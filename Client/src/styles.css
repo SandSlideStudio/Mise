@@ -1,0 +1,645 @@
+@import 'tailwindcss';
+
+/**
+ * A kitchen tool, drawn like a spec sheet.
+ *
+ * Barlow Condensed names and counts, Barlow explains. Things sit on square
+ * hairline plates with registration marks at the corners, a station is an
+ * olive band, and the row is the only thing anyone touches.
+ *
+ * Two grounds, neither a preference: paper for the office at four, ink for the
+ * pass at eleven. Ochre is the only accent that holds on both, so it carries
+ * every quantity and every primary action; olive names things.
+ *
+ * Every colour is a token. Night swaps the tokens, never the markup, so a
+ * screen forced to night (the tablet sign-in) and a whole app switched to
+ * night draw from exactly the same place.
+ */
+
+@theme {
+  --color-surface: #faf9f5;
+  --color-surface-raised: #ffffff;
+  --color-surface-sunk: #f2efe4;
+  --color-done: #f0ede1;
+  --color-line: #cdc9b9;
+  --color-rule: #eeebe0;
+  --color-field: #949080;
+  --color-ink: #2a2c22;
+  --color-ink-soft: #5d5f52;
+  --color-ink-faint: #6b6d5f;
+  --color-brand: #3c4a2a;
+  --color-band: #3c4a2a;
+  --color-band-ink: #f2f0e4;
+  --color-accent: #8a5c1a;
+  --color-accent-ink: #ffffff;
+  --color-accent-wash: #f7f0e2;
+  --color-danger: #a33224;
+
+  --font-sans: 'Barlow', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Barlow Condensed', 'Barlow', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, 'Cascadia Mono', Menlo, monospace;
+
+  /* Nothing is rounded. Plates are drawn, not styled. */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+
+  /* The smallest thing a cook should have to hit at a desk. */
+  --spacing-touch: 3rem;
+}
+
+/*
+ * Night. Declared twice on purpose: once for a device set to dark with no
+ * explicit choice, once for the explicit choice and for anything that is
+ * always night, like the tablet's front door.
+ */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='day']) {
+    --color-surface: #1a1c16;
+    --color-surface-raised: #24271e;
+    --color-surface-sunk: #1e211a;
+    --color-done: #1c1f18;
+    --color-line: #4a4f3d;
+    --color-rule: #3d4234;
+    --color-field: #4a4f3d;
+    --color-ink: #f2f0e4;
+    --color-ink-soft: #b3b6a2;
+    --color-ink-faint: #8f9282;
+    /* Olive goes muddy on a dark ground, so as a name it lifts to sage. */
+    --color-brand: #9cb173;
+    --color-band: #4a5c33;
+    --color-band-ink: #f6f4e8;
+    --color-accent: #e3ab5b;
+    --color-accent-ink: #1a1c16;
+    --color-accent-wash: #2e2a1d;
+    --color-danger: #e8806c;
+    --logo-filter: brightness(1.5) saturate(1.15);
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='night'],
+.night {
+  --color-surface: #1a1c16;
+  --color-surface-raised: #24271e;
+  --color-surface-sunk: #1e211a;
+  --color-done: #1c1f18;
+  --color-line: #4a4f3d;
+  --color-rule: #3d4234;
+  --color-field: #4a4f3d;
+  --color-ink: #f2f0e4;
+  --color-ink-soft: #b3b6a2;
+  --color-ink-faint: #8f9282;
+  --color-brand: #9cb173;
+  --color-band: #4a5c33;
+  --color-band-ink: #f6f4e8;
+  --color-accent: #e3ab5b;
+  --color-accent-ink: #1a1c16;
+  --color-accent-wash: #2e2a1d;
+  --color-danger: #e8806c;
+  --logo-filter: brightness(1.5) saturate(1.15);
+  color-scheme: dark;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --logo-filter: none;
+  }
+
+  html {
+    /* Nothing on a kitchen tablet should need a pinch to read. */
+    font-size: 17px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-surface text-ink font-sans antialiased;
+    margin: 0;
+    min-height: 100dvh;
+    line-height: 1.5;
+  }
+
+  h1,
+  h2,
+  h3 {
+    @apply font-display;
+    font-weight: 600;
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+  }
+
+  /* Stop a mistimed double tap from zooming mid-service. */
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 30%, transparent);
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-accent;
+  }
+}
+
+@layer components {
+  /* ── plate: the thing everything sits on ─────────────────────────────── */
+
+  .plate {
+    @apply border-line bg-surface-raised relative border;
+  }
+
+  /* Registration marks, drawn outside the box so the plate reads as drawn. */
+  .plate > .corner {
+    position: absolute;
+    width: 11px;
+    height: 11px;
+    color: color-mix(in srgb, var(--color-ink) 55%, transparent);
+    pointer-events: none;
+  }
+  .plate > .corner::before,
+  .plate > .corner::after {
+    content: '';
+    position: absolute;
+    background: currentColor;
+  }
+  .plate > .corner::before {
+    left: 5px;
+    top: 0;
+    width: 1px;
+    height: 100%;
+  }
+  .plate > .corner::after {
+    top: 5px;
+    left: 0;
+    width: 100%;
+    height: 1px;
+  }
+  .plate > .corner.tl {
+    top: -6px;
+    left: -6px;
+  }
+  .plate > .corner.tr {
+    top: -6px;
+    right: -6px;
+  }
+  .plate > .corner.bl {
+    bottom: -6px;
+    left: -6px;
+  }
+  .plate > .corner.br {
+    bottom: -6px;
+    right: -6px;
+  }
+
+  /* ── type roles ──────────────────────────────────────────────────────── */
+
+  /* What a column or a field is. */
+  .eyebrow {
+    @apply text-ink-faint text-[11px] font-medium tracking-[0.12em] uppercase;
+  }
+
+  /* A named run of things: "On tonight", "Method", "The rest". */
+  .heading-rule {
+    @apply font-display text-brand flex items-center gap-3 text-xl font-semibold tracking-[0.14em] uppercase;
+  }
+  .heading-rule::after {
+    content: '';
+    @apply bg-field h-px flex-1;
+  }
+
+  /* The only number anyone needs. */
+  .qty {
+    @apply font-display text-accent leading-none font-semibold;
+  }
+
+  /* Column headings over a table of rows. */
+  .col-head {
+    @apply bg-surface-sunk border-line text-ink-faint border-b text-[11px] tracking-[0.12em] uppercase;
+  }
+
+  /* A station: olive, reversed, counted. Found by the stripe, not by reading. */
+  .band {
+    @apply bg-band text-band-ink font-display flex items-center justify-between font-semibold tracking-[0.16em] uppercase;
+  }
+  .band[data-clear='true'] {
+    @apply bg-done text-ink-faint;
+  }
+
+  /* ── controls ────────────────────────────────────────────────────────── */
+
+  .field {
+    @apply border-field bg-surface-raised text-ink placeholder:text-ink-faint w-full border px-3 text-base;
+    min-height: 2.75rem;
+  }
+  .field:focus-visible {
+    @apply border-accent outline-accent outline-2 -outline-offset-1;
+  }
+  textarea.field {
+    @apply py-2.5;
+  }
+  select.field {
+    @apply pr-8;
+  }
+
+  /* Same look as .eyebrow; spelled out because a class cannot @apply another. */
+  .label {
+    @apply text-ink-faint mb-1.5 block text-[11px] font-medium tracking-[0.12em] uppercase;
+  }
+
+  /* Grouped rather than composed: Tailwind cannot @apply a class of our own. */
+  .btn,
+  .btn-primary,
+  .btn-quiet,
+  .btn-danger {
+    @apply font-display inline-flex items-center justify-center gap-2 border px-5 text-lg font-semibold tracking-[0.08em] whitespace-nowrap uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-45;
+    min-height: var(--spacing-touch);
+  }
+
+  .btn-primary {
+    @apply border-accent bg-accent text-accent-ink hover:brightness-95 active:brightness-90;
+  }
+
+  .btn-quiet {
+    @apply border-line bg-surface-raised text-ink hover:bg-surface-sunk active:bg-done;
+  }
+
+  .btn-danger {
+    @apply border-danger text-danger hover:bg-danger/10 bg-transparent;
+  }
+
+  /* For dense rows like a staff list, where a full touch target is too tall. */
+  .btn-small {
+    @apply border-line bg-surface-raised text-ink-soft hover:bg-surface-sunk hover:text-ink inline-flex min-h-9 items-center justify-center gap-1.5 border px-3 text-[13px] font-medium tracking-[0.08em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-45;
+  }
+
+  .card {
+    @apply border-line bg-surface-raised border p-6;
+  }
+
+  .tag {
+    @apply border-line text-ink-soft inline-flex items-center border px-2 py-0.5 text-[12px] font-medium tracking-[0.1em] uppercase;
+  }
+  .tag-brand {
+    @apply border-brand text-brand;
+  }
+  .tag-accent {
+    @apply border-accent text-accent;
+  }
+  /* Reversed ink. Kept for allergens: the one thing nobody may miss. */
+  .tag-ink {
+    @apply border-ink bg-ink text-surface;
+  }
+
+  /* A choice that stays chosen: filters, allergens, scale modes. */
+  .toggle {
+    @apply border-line bg-surface-raised text-ink-soft hover:text-ink inline-flex items-center gap-2 border px-3 py-1.5 text-sm transition-colors;
+  }
+  .toggle[aria-pressed='true'] {
+    @apply border-accent bg-accent text-accent-ink;
+  }
+
+  /*
+   * The logo is drawn in deep olive, which disappears on a dark ground. Rather
+   * than a light chip, the artwork is lifted with a luminance filter, so it
+   * stays the drawing it is.
+   */
+  .logo-mark {
+    @apply shrink-0 object-contain;
+    filter: var(--logo-filter);
+  }
+
+  /* The drafting grid behind setup and sign-in: 64px squares, 80px on wide screens. */
+  .grid-paper {
+    --grid-line: color-mix(in srgb, var(--color-line) 55%, transparent);
+    background-color: var(--color-surface);
+    background-image:
+      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+    background-size: 64px 64px;
+  }
+  @media (min-width: 80rem) {
+    .grid-paper {
+      background-size: 80px 80px;
+    }
+  }
+
+  /*
+   * Turning the pages of setup. The old page slides away in the direction of
+   * travel, the new one arrives from the other side, and its form follows the
+   * heading by a beat. Nobody who asked for less motion sees any of it.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .page-enter-forward {
+      animation: page-enter-forward 360ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    }
+    .page-enter-back {
+      animation: page-enter-back 360ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    }
+    .page-leave-forward {
+      animation: page-leave-forward 180ms ease-in both;
+    }
+    .page-leave-back {
+      animation: page-leave-back 180ms ease-in both;
+    }
+    :is(.page-enter-forward, .page-enter-back) .page-late {
+      animation: page-late 420ms cubic-bezier(0.2, 0.7, 0.3, 1) 70ms both;
+    }
+    /* A label or a row that changes in place. */
+    .fade-swap {
+      animation: fade-swap 260ms ease-out both;
+    }
+
+    /* The last page of setup: a box and a tick draw themselves, then the frame closes. */
+    .draw-tick .draw-box {
+      stroke-dasharray: 1;
+      animation: draw-line 600ms cubic-bezier(0.6, 0, 0.2, 1) 150ms both;
+    }
+    .draw-tick .draw-check {
+      stroke-dasharray: 1;
+      animation: draw-line 450ms cubic-bezier(0.6, 0, 0.2, 1) 700ms both;
+    }
+    .frame-leave {
+      animation: frame-leave 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
+    }
+
+    /* Whatever arrives on a page after loading fades in rather than popping. */
+    .app-main :is(main > *, main > .plate > *) {
+      animation: fade-swap 280ms ease-out both;
+    }
+
+    /* The tour: the dimming fades, the card rises, the spotlight glides between stops. */
+    .tour-backdrop {
+      animation: fade-swap 220ms ease-out both;
+    }
+    .tour-card {
+      animation: tour-rise 380ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    }
+    .tour-spot {
+      transition:
+        top 450ms cubic-bezier(0.2, 0.7, 0.3, 1),
+        left 450ms cubic-bezier(0.2, 0.7, 0.3, 1),
+        width 450ms cubic-bezier(0.2, 0.7, 0.3, 1),
+        height 450ms cubic-bezier(0.2, 0.7, 0.3, 1);
+    }
+  }
+}
+
+@keyframes page-enter-forward {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-enter-back {
+  from {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-leave-forward {
+  to {
+    opacity: 0;
+    transform: translateX(-28px);
+  }
+}
+
+@keyframes page-leave-back {
+  to {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+}
+
+@keyframes page-late {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-swap {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes draw-line {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes frame-leave {
+  to {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+}
+
+@keyframes tour-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+ * Changing page in the app: the new page rises in under the header. Plain CSS,
+ * so it can never hold a page change up.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .app-main > main {
+    animation: route-enter 300ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+  }
+}
+
+@keyframes route-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/*
+ * The sign-in screens. Names on the tablet arrive one after another, a wrong
+ * PIN or password shakes its head, and each digit lands in its slot.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  .stagger-in {
+    animation: page-late 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 45ms + 80ms);
+  }
+  .shake {
+    animation: shake 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+  .pop {
+    animation: pop 180ms ease-out both;
+  }
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translateX(-2px);
+  }
+  20%,
+  80% {
+    transform: translateX(4px);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translateX(-8px);
+  }
+  40%,
+  60% {
+    transform: translateX(8px);
+  }
+}
+
+@keyframes pop {
+  from {
+    opacity: 0.4;
+    transform: scale(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/**
+ * Kitchens print specs and tape them inside the pass, so a printed page is
+ * black only: a hairline rule costs nothing and a filled panel costs a
+ * cartridge.
+ */
+@media print {
+  :root,
+  :root[data-theme='night'],
+  .night {
+    --color-surface: #ffffff;
+    --color-surface-raised: #ffffff;
+    --color-surface-sunk: #ffffff;
+    --color-done: #ffffff;
+    --color-line: #999999;
+    --color-rule: #bbbbbb;
+    --color-field: #bbbbbb;
+    --color-ink: #000000;
+    --color-ink-soft: #333333;
+    --color-ink-faint: #555555;
+    --color-brand: #000000;
+    --color-band: #ffffff;
+    --color-band-ink: #000000;
+    --color-accent: #000000;
+    --color-accent-ink: #ffffff;
+    --logo-filter: none;
+    color-scheme: light;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+
+  body {
+    background: white;
+    color: black;
+    font-size: 11pt;
+  }
+
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+
+  /* A band prints as a ruled heading, not a block of toner. */
+  .band {
+    border-bottom: 1.5pt solid black;
+  }
+
+  .plate > .corner {
+    display: none;
+  }
+
+  /* Never split a line or a step across two sheets. */
+  li,
+  figure,
+  .keep-together {
+    break-inside: avoid;
+  }
+
+  a::after {
+    content: '';
+  }
+}
+
+/*
+ * The backup recovery key on its own sheet. Only there while the key is shown,
+ * and only printed when the Print button next to it asked for it.
+ */
+.print-key {
+  display: none;
+}
+
+@media print {
+  html.printing-key body > :not(.print-key) {
+    display: none !important;
+  }
+
+  html.printing-key .print-key {
+    display: block;
+    font-size: 14pt;
+    line-height: 1.5;
+  }
+
+  .print-key h1 {
+    font-size: 20pt;
+    margin-bottom: 12mm;
+  }
+
+  .print-key .print-key-code {
+    font-family: ui-monospace, 'Cascadia Mono', Menlo, monospace;
+    font-size: 22pt;
+    letter-spacing: 0.08em;
+    border: 1.5pt solid black;
+    padding: 6mm;
+    margin-bottom: 10mm;
+  }
+}

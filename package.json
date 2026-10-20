@@ -1,0 +1,49 @@
+{
+  "name": "mise",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Recipe and mise en place manager for professional kitchens",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "Server",
+    "Client"
+  ],
+  "scripts": {
+    "dev": "concurrently -n server,client -c blue,green \"npm:dev:server\" \"npm:dev:client\"",
+    "dev:server": "npm run dev --workspace @mise/server",
+    "dev:client": "npm run dev --workspace @mise/client",
+    "build": "npm run build --workspace @mise/client && npm run build --workspace @mise/server",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:generate": "npm run db:generate --workspace @mise/server",
+    "db:migrate": "npm run db:migrate --workspace @mise/server",
+    "db:studio": "npm run db:studio --workspace @mise/server"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.20.2",
+    "concurrently": "^9.1.0",
+    "eslint": "^9.17.0",
+    "prettier": "^3.4.2",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.18.1",
+    "vite": "^8.3.0",
+    "vitest": "^5.0.0"
+  },
+  "license": "AGPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sandslidestudio/mise.git"
+  },
+  "homepage": "https://github.com/sandslidestudio/mise"
+}

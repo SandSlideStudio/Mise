@@ -1,0 +1,69 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1789069874977,
+      "tag": "0000_mature_dagger",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789332190621,
+      "tag": "0001_sudden_mother_askani",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1789334474505,
+      "tag": "0002_smiling_captain_flint",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789469563618,
+      "tag": "0003_remove_deactivated_staff",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789500826652,
+      "tag": "0004_tour_seen",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789501694123,
+      "tag": "0005_pin_length",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791821198021,
+      "tag": "0006_prep_edits_and_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1792518541317,
+      "tag": "0007_backups",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1792539049069,
+      "tag": "0008_onedrive",
+      "breakpoints": true
+    }
+  ]
+}

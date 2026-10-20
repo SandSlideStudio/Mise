@@ -1,0 +1,13 @@
+node_modules
+**/node_modules
+**/dist
+**/build
+**/coverage
+data
+.env
+.env.local
+.git
+.gitignore
+*.tsbuildinfo
+.vite
+design

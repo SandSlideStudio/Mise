@@ -1,0 +1,56 @@
+import { z } from 'zod';
+import { allergenSchema, idSchema } from './common.js';
+
+/**
+ * The raw material catalogue. Density and item weight are what make
+ * volume-to-weight and count-to-weight conversion possible later, and yield
+ * percent is what makes a prep list say how much to actually pull from the
+ * walk-in rather than how much ends up in the pan.
+ */
+
+export const baseUnitSchema = z.enum(['g', 'ml', 'each']);
+
+export const ingredientSchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  category: z.string().nullable(),
+  baseUnit: baseUnitSchema,
+  allergens: z.array(allergenSchema),
+  densityGPerMl: z.number().positive().nullable(),
+  itemWeightG: z.number().positive().nullable(),
+  yieldPercent: z.number().positive().max(100),
+  requiresPrep: z.boolean(),
+  notes: z.string().nullable(),
+});
+
+const ingredientFields = z.object({
+  name: z.string().min(1).max(160),
+  category: z.string().max(80).nullable().optional(),
+  baseUnit: baseUnitSchema,
+  allergens: z.array(allergenSchema),
+  densityGPerMl: z.number().positive().nullable().optional(),
+  itemWeightG: z.number().positive().nullable().optional(),
+  yieldPercent: z.number().positive().max(100),
+  requiresPrep: z.boolean(),
+  notes: z.string().max(2000).nullable().optional(),
+});
+
+export const createIngredientSchema = ingredientFields.extend({
+  allergens: z.array(allergenSchema).default([]),
+  yieldPercent: z.number().positive().max(100).default(100),
+  requiresPrep: z.boolean().default(false),
+});
+
+// Built from the fields without defaults: a field left out of an update stays as it is.
+export const updateIngredientSchema = ingredientFields.partial();
+
+export const listIngredientsQuerySchema = z.object({
+  search: z.string().max(160).optional(),
+  category: z.string().max(80).optional(),
+});
+
+export type Ingredient = z.infer<typeof ingredientSchema>;
+export type CreateIngredient = z.infer<typeof createIngredientSchema>;
+
+export type UpdateIngredient = z.infer<typeof updateIngredientSchema>;
+export type BaseUnit = z.infer<typeof baseUnitSchema>;

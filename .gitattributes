@@ -1,0 +1,4 @@
+# Store text with LF everywhere, so a checkout on Windows matches the image.
+* text=auto eol=lf
+*.png binary
+*.woff2 binary

@@ -1,0 +1,100 @@
+# Mise for a kitchen: the published image and a database, nothing to build.
+#
+#   docker compose up -d                    plain HTTP on port 3000
+#   docker compose --profile https up -d    HTTPS through Caddy (set MISE_DOMAIN)
+#
+# Secrets live in .env next to this file. install.sh writes one for you.
+name: mise-kitchen
+
+# Old logs are dropped instead of filling the disk.
+x-logging: &logging
+  driver: local
+  options:
+    max-size: 5m
+    max-file: '2'
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mise
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      POSTGRES_DB: mise
+    # Sized for a small machine such as a Raspberry Pi; a kitchen's database is
+    # a few megabytes. Rarer checkpoints and compressed page images mean fewer
+    # writes to an SD card.
+    command: >-
+      postgres
+      -c shared_buffers=32MB
+      -c max_connections=25
+      -c work_mem=4MB
+      -c maintenance_work_mem=16MB
+      -c effective_cache_size=128MB
+      -c checkpoint_timeout=15min
+      -c wal_compression=on
+      -c log_checkpoints=off
+    # No published port: only the app talks to the database.
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    logging: *logging
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mise -d mise']
+      # Every second while starting, so the app isn't kept waiting, then once a minute.
+      interval: 1m
+      start_period: 60s
+      start_interval: 1s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: ghcr.io/sandslidestudio/mise-kitchen:${MISE_VERSION:-1}
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      HOST: 0.0.0.0
+      DATABASE_URL: postgres://mise:${POSTGRES_PASSWORD}@db:5432/mise
+      SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
+      COOKIE_SECURE: ${COOKIE_SECURE:-false}
+      TRUST_PROXY: ${TRUST_PROXY:-false}
+      SETUP_TOKEN: ${SETUP_TOKEN:-}
+      UPLOAD_DIR: /data/uploads
+      BACKUP_DIR: /data/backups
+      ONEDRIVE_CLIENT_ID: ${ONEDRIVE_CLIENT_ID:-}
+    ports:
+      # With HTTPS, MISE_BIND=127.0.0.1 keeps this port off the network so
+      # every request goes through Caddy.
+      - '${MISE_BIND:-0.0.0.0}:${PORT:-3000}:3000'
+    volumes:
+      - uploads:/data/uploads
+      - backups:/data/backups
+    logging: *logging
+
+  # Optional. Fetches and renews a certificate for MISE_DOMAIN by itself, as
+  # long as that name points at this machine and ports 80 and 443 reach it.
+  caddy:
+    image: caddy:2-alpine
+    profiles: [https]
+    restart: unless-stopped
+    depends_on: [app]
+    environment:
+      MISE_DOMAIN: ${MISE_DOMAIN:-}
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    logging: *logging
+
+volumes:
+  db-data:
+  uploads:
+  backups:
+  caddy-data:
+  caddy-config:
