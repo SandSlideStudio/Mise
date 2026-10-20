@@ -17,7 +17,7 @@ Zero 2 W up on a 64-bit system, or any Linux server) with [Docker](https://docs.
 Then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/sandslidestudio/mise/main/deploy/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/SandSlideStudio/Mise/main/deploy/install.sh | sh
 ```
 
 That creates a `mise-kitchen` folder, writes a `.env` with new secrets, starts Mise and prints a

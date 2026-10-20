@@ -1,7 +1,7 @@
 #!/bin/sh
 # Install or update Mise on this machine.
 #
-#   curl -fsSL https://raw.githubusercontent.com/sandslidestudio/mise/main/deploy/install.sh | sh
+#   curl -fsSL https://raw.githubusercontent.com/SandSlideStudio/Mise/main/deploy/install.sh | sh
 #
 # Needs Docker with the compose plugin. Creates ./mise-kitchen (or $MISE_DIR),
 # writes a .env with fresh secrets the first time, and starts Mise. Running it
@@ -14,7 +14,7 @@ if [ -z "${MISE_DIR:-}" ] && [ -f compose.yaml ] && grep -q '^name: mise-kitchen
 fi
 MISE_DIR="${MISE_DIR:-mise-kitchen}"
 MISE_REF="${MISE_REF:-main}"
-MISE_SOURCE="${MISE_SOURCE:-https://raw.githubusercontent.com/sandslidestudio/mise/$MISE_REF/deploy}"
+MISE_SOURCE="${MISE_SOURCE:-https://raw.githubusercontent.com/SandSlideStudio/Mise/$MISE_REF/deploy}"
 
 say() { printf '%s\n' "$*"; }
 fail() { printf 'mise: %s\n' "$*" >&2; exit 1; }

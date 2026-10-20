@@ -42,10 +42,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      # Registry names are lower case; the account name may not be.
+      - id: owner
+        run: echo "name=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_OUTPUT"
       - id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/mise-kitchen
+          images: ghcr.io/${{ steps.owner.outputs.name }}/mise-kitchen
           # 1.2.3, 1.2 and 1, so a kitchen can follow whichever it likes.
           tags: |
             type=semver,pattern={{version}}
