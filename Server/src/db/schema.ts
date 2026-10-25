@@ -15,7 +15,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import type { UnitCode } from '@mise/domain';
+import type { AllergenDetails, Season, UnitCode } from '@mise/domain';
 
 /**
  * One server instance is one kitchen, so nothing here is scoped to a tenant.
@@ -55,6 +55,28 @@ export const languageEnum = pgEnum('language', ['en', 'nl', 'fr', 'es', 'de']);
 export const prepModeEnum = pgEnum('prep_mode', ['per_service', 'running']);
 /** What becomes of a line ticked off the running list once it has gone. */
 export const tickedRetentionEnum = pgEnum('ticked_retention', ['keep', 'delete']);
+/** Mirror SERVING_TEMPERATURES and COURSES in @mise/domain. */
+export const servingTemperatureEnum = pgEnum('serving_temperature', [
+  'cold',
+  'room',
+  'warm',
+  'hot',
+  'hot_and_cold',
+]);
+export const courseEnum = pgEnum('course', [
+  'amuse',
+  'starter',
+  'middle',
+  'main',
+  'pre_dessert',
+  'dessert',
+  'mignardise',
+  'side',
+]);
+/** How a dish card is printed: on white, or dark like the night screen. */
+export const dishCardThemeEnum = pgEnum('dish_card_theme', ['day', 'night']);
+/** Who may open a dish card. */
+export const dishCardAccessEnum = pgEnum('dish_card_access', ['everyone', 'managers']);
 
 // --- identity -------------------------------------------------------------
 
@@ -168,6 +190,13 @@ export const ingredients = pgTable(
     /** Edible portion as a percentage of what you buy. Onions are about 90. */
     yieldPercent: real('yield_percent').notNull().default(100),
     requiresPrep: boolean('requires_prep').notNull().default(false),
+    /** True or false once someone has said. Null means nobody has, which is never vegan. */
+    vegan: boolean('vegan'),
+    /** Which gluten cereals and which nuts, as the law wants them named. */
+    allergenDetails: jsonb('allergen_details')
+      .$type<Partial<AllergenDetails>>()
+      .notNull()
+      .default({}),
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -203,6 +232,13 @@ export const recipes = pgTable(
     tags: jsonb('tags').$type<string[]>().notNull().default([]),
     declaredAllergens: jsonb('declared_allergens').$type<string[]>().notNull().default([]),
     mayContain: jsonb('may_contain').$type<string[]>().notNull().default([]),
+    // Front of house: what a dish card says about a dish beyond its spec.
+    seasons: jsonb('seasons').$type<Season[]>().notNull().default([]),
+    flavourProfile: jsonb('flavour_profile').$type<string[]>().notNull().default([]),
+    servingTemperature: servingTemperatureEnum('serving_temperature'),
+    course: courseEnum('course'),
+    drinkPairings: jsonb('drink_pairings').$type<string[]>().notNull().default([]),
+    cutlery: jsonb('cutlery').$type<string[]>().notNull().default([]),
     version: integer('version').notNull().default(1),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -439,6 +475,29 @@ export const backupSettings = pgTable('backup_settings', {
   lastError: text('last_error'),
   /** What the last backup contained, so an unchanged kitchen isn't written again. */
   lastFingerprint: text('last_fingerprint'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+// --- dish cards -----------------------------------------------------------
+
+/**
+ * Exactly one row: how this kitchen's dish cards look. Part of every backup,
+ * along with the logo it points at.
+ */
+export const dishCardSettings = pgTable('dish_card_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /** Replaces "Dish card · kitchen name" at the top. Null keeps that. */
+  title: text('title'),
+  locationName: text('location_name'),
+  address: text('address'),
+  /** A file in the uploads volume, like a plating photo. */
+  logoPath: text('logo_path'),
+  /** The kitchen's own warning, one per language it has written one in. */
+  warnings: jsonb('warnings').$type<Partial<Record<string, string>>>().notNull().default({}),
+  /** Parts of the card switched off. Anything not listed is shown. */
+  hidden: jsonb('hidden').$type<string[]>().notNull().default([]),
+  theme: dishCardThemeEnum('theme').notNull().default('day'),
+  access: dishCardAccessEnum('access').notNull().default('everyone'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { COURSES, SEASONS, SERVING_TEMPERATURES } from '@mise/domain';
 import { allergenSchema, idSchema, quantitySchema, unitCodeSchema } from './common.js';
 
 /**
@@ -6,6 +7,14 @@ import { allergenSchema, idSchema, quantitySchema, unitCodeSchema } from './comm
  * ingredient or another recipe. That one rule is what separates a restaurant
  * spec from a home recipe.
  */
+
+/** What a dish card says about a dish. Fixed lists, so the card can translate them. */
+export const seasonSchema = z.enum(SEASONS);
+export const servingTemperatureSchema = z.enum(SERVING_TEMPERATURES);
+export const courseSchema = z.enum(COURSES);
+
+/** Short things a chef types: a flavour, a wine, a spoon. */
+const shortList = z.array(z.string().trim().min(1).max(80)).max(12);
 
 export const recipeTypeSchema = z.enum(['dish', 'prep', 'component']);
 export const recipeStatusSchema = z.enum(['draft', 'published', 'archived']);
@@ -55,6 +64,12 @@ export const recipeSchema = z.object({
   tags: z.array(z.string()),
   declaredAllergens: z.array(allergenSchema),
   mayContain: z.array(allergenSchema),
+  seasons: z.array(seasonSchema),
+  flavourProfile: z.array(z.string()),
+  servingTemperature: servingTemperatureSchema.nullable(),
+  course: courseSchema.nullable(),
+  drinkPairings: z.array(z.string()),
+  cutlery: z.array(z.string()),
   components: z.array(recipeComponentSchema),
   photos: z.array(recipePhotoSchema),
   version: z.number().int(),
@@ -97,6 +112,12 @@ const recipeFields = z.object({
   tags: z.array(z.string().max(60)),
   declaredAllergens: z.array(allergenSchema),
   mayContain: z.array(allergenSchema),
+  seasons: z.array(seasonSchema).max(SEASONS.length),
+  flavourProfile: shortList,
+  servingTemperature: servingTemperatureSchema.nullable(),
+  course: courseSchema.nullable(),
+  drinkPairings: shortList,
+  cutlery: shortList,
   components: z.array(createRecipeComponentSchema),
 });
 
@@ -106,6 +127,12 @@ export const createRecipeSchema = recipeFields.extend({
   tags: z.array(z.string().max(60)).default([]),
   declaredAllergens: z.array(allergenSchema).default([]),
   mayContain: z.array(allergenSchema).default([]),
+  seasons: z.array(seasonSchema).max(SEASONS.length).default([]),
+  flavourProfile: shortList.default([]),
+  servingTemperature: servingTemperatureSchema.nullable().default(null),
+  course: courseSchema.nullable().default(null),
+  drinkPairings: shortList.default([]),
+  cutlery: shortList.default([]),
   components: z.array(createRecipeComponentSchema).default([]),
 });
 
@@ -179,3 +206,6 @@ export const duplicateRecipeSchema = z.object({
 });
 
 export type ScaleQuery = z.infer<typeof scaleQuerySchema>;
+export type Season = z.infer<typeof seasonSchema>;
+export type ServingTemperature = z.infer<typeof servingTemperatureSchema>;
+export type Course = z.infer<typeof courseSchema>;

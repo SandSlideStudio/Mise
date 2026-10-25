@@ -37,6 +37,10 @@ export type Season = (typeof SEASONS)[number];
 export type ServingTemperature = (typeof SERVING_TEMPERATURES)[number];
 export type Course = (typeof COURSES)[number];
 
+export function isSeason(value: string): value is Season {
+  return (SEASONS as readonly string[]).includes(value);
+}
+
 /**
  * The order allergens run across a card. Not the order of the law: the order
  * kitchens already print, with the common ones first.
