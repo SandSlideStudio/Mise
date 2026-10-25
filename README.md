@@ -47,6 +47,17 @@ Cooks sign in on a kitchen tablet by tapping their name and typing their PIN. Th
 tablet you've enrolled: sign in on it as the administrator, go to **Settings → Tablets** and enrol
 it. Five wrong PINs lock that person out for 15 minutes.
 
+## Dish cards
+
+Every dish has a dish card for the floor: its photo and what it is on the front, and every
+allergen for each of its components on the back. Open a dish and choose **Dish card**, pick the
+language and day or night, then print it or download the PDF.
+
+Fill in the **Front of house** part of a dish in the recipe editor, and say on each ingredient
+whether it is vegan and, for gluten and nuts, which cereal or nut it is. The card page lists
+anything still missing. **Settings → Dish cards** sets the logo, address, which parts show and
+the warning printed at the foot of every card, in each language you print in.
+
 ## HTTPS
 
 On a kitchen network that only staff use, plain HTTP on port 3000 works. If Mise can be reached
