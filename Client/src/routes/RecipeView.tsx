@@ -209,6 +209,15 @@ function RecipePage({ recipeId }: { recipeId: string }) {
             >
               {t('recipe.print')}
             </button>
+            {recipe.type === 'dish' ? (
+              <Link
+                to="/recipes/$recipeId/card"
+                params={{ recipeId: recipe.id }}
+                className="btn-quiet grow sm:grow-0"
+              >
+                {t('recipe.dishCard')}
+              </Link>
+            ) : null}
             {canManage ? (
               <>
                 <button

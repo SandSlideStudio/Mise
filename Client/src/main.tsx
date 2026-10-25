@@ -6,6 +6,7 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
+  lazyRouteComponent,
   Outlet,
   RouterProvider,
   useNavigate,
@@ -173,6 +174,12 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId/edit',
     component: RecipeEditor,
+  }),
+  // Loaded when first opened: the fonts and PDF code are only needed here.
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/recipes/$recipeId/card',
+    component: lazyRouteComponent(() => import('./routes/DishCard.js'), 'DishCardPage'),
   }),
   createRoute({ getParentRoute: () => rootRoute, path: '/ingredients', component: Ingredients }),
   createRoute({ getParentRoute: () => rootRoute, path: '/setup', component: Setup }),

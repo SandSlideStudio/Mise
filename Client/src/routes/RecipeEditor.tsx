@@ -839,7 +839,7 @@ function FrontOfHouse(props: {
         </div>
       </fieldset>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3">
         <RailField label={t('editor.temperature')} htmlFor="temperature">
           <select
             id="temperature"
