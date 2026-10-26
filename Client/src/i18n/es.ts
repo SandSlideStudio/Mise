@@ -295,6 +295,11 @@ export const es: Record<MessageKey, string> = {
   'addTask.what': 'Qué hacer',
   'addTask.placeholder': 'Chalotas en brunoise',
   'addTask.submit': 'Añadir la línea',
+  'addTask.fromBook': 'Del recetario',
+  'addTask.makes': 'rinde {amount}',
+  'addTask.linked': 'Vinculada a la receta {name}. Quien la haga abre la receta en esta cantidad.',
+  'task.recipe': 'Receta',
+  'task.openRecipe': 'Abrir la receta de {task}',
 
   'recipes.subtitle':
     'Usa Sin para ver qué puede comer una mesa con alergias, subrecetas incluidas.',

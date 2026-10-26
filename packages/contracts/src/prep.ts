@@ -17,6 +17,8 @@ export const tickedRetentionSchema = z.enum(['keep', 'delete']);
 export const prepTaskSchema = z.object({
   id: idSchema,
   stationId: idSchema.nullable(),
+  /** The spec this line is for, when it was added from a recipe. */
+  recipeId: idSchema.nullable(),
   description: z.string(),
   quantity: quantitySchema.nullable(),
   status: prepTaskStatusSchema,
@@ -30,6 +32,7 @@ export const prepTaskSchema = z.object({
 export const createPrepTaskSchema = z.object({
   description: z.string().min(1).max(500),
   stationId: idSchema.nullable().optional(),
+  recipeId: idSchema.nullable().optional(),
   quantity: quantitySchema.nullable().optional(),
   assignedUserId: idSchema.nullable().optional(),
 });

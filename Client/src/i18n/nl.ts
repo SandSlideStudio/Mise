@@ -293,6 +293,12 @@ export const nl: Record<MessageKey, string> = {
   'addTask.what': 'Wat te doen',
   'addTask.placeholder': 'Sjalotten brunoise',
   'addTask.submit': 'Regel toevoegen',
+  'addTask.fromBook': 'Uit het receptenboek',
+  'addTask.makes': 'levert {amount}',
+  'addTask.linked':
+    'Gekoppeld aan het recept {name}. Wie het maakt, opent het recept op deze hoeveelheid.',
+  'task.recipe': 'Recept',
+  'task.openRecipe': 'Open het recept voor {task}',
 
   'recipes.subtitle':
     'Gebruik Vrij van om te zien wat een tafel met een allergie kan eten, subrecepten inbegrepen.',

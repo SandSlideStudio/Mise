@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
 import type { PrepTask, PrepTaskStatus, Station } from '@mise/contracts';
 import { formatQuantity, humanize, isUnitCode } from '@mise/domain';
 import { useT, type Translator } from '../i18n/index.js';
@@ -111,6 +112,8 @@ export function PrepTaskRow({
         )
       ) : null}
 
+      {task.recipeId ? <RecipeLink task={task} recipeId={task.recipeId} /> : null}
+
       {onRemove ? <RemoveButton task={task} onRemove={onRemove} disabled={disabled} /> : null}
     </li>
   );
@@ -160,6 +163,40 @@ function ProgressTick({
         {label}
       </span>
     </button>
+  );
+}
+
+/**
+ * The spec behind a line, opened at the amount the line asks for, so the cook
+ * making two kilos of fig gel reads the recipe for two kilos.
+ */
+function RecipeLink({ task, recipeId }: { task: PrepTask; recipeId: string }) {
+  const { t } = useT();
+  return (
+    <Link
+      to="/recipes/$recipeId"
+      params={{ recipeId }}
+      search={task.quantity ? { amount: task.quantity.value, unit: task.quantity.unit } : {}}
+      aria-label={t('task.openRecipe', { task: task.description })}
+      className="no-print border-rule bg-surface-raised text-ink-soft active:bg-surface-sunk flex w-[64px] shrink-0 flex-col items-center justify-center gap-1 border-l px-1 text-center sm:w-[76px]"
+    >
+      <svg
+        aria-hidden
+        width="22"
+        height="22"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5z" />
+      </svg>
+      <span className="text-[11px] leading-tight font-medium tracking-[0.06em] uppercase">
+        {t('task.recipe')}
+      </span>
+    </Link>
   );
 }
 

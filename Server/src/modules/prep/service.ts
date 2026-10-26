@@ -49,6 +49,7 @@ export function createPrepService(db: Database) {
       .select({
         id: prepTasks.id,
         stationId: prepTasks.stationId,
+        recipeId: prepTasks.recipeId,
         description: prepTasks.description,
         quantityBase: prepTasks.quantityBase,
         quantityUnit: prepTasks.quantityUnit,
@@ -105,6 +106,7 @@ export function createPrepService(db: Database) {
       .insert(prepTasks)
       .values({
         stationId: input.stationId ?? null,
+        recipeId: input.recipeId ?? null,
         description: input.description,
         ...toBaseQuantity(input.quantity),
         status: 'open',
@@ -215,12 +217,19 @@ export function createPrepService(db: Database) {
 
     if (!match) return { task: await createTask(input), merged: false };
 
-    if (added.quantityBase !== null) {
+    const linksRecipe = !match.recipeId && input.recipeId;
+    if (added.quantityBase !== null || linksRecipe) {
       await db
         .update(prepTasks)
         .set({
-          quantityBase: (match.quantityBase ?? 0) + added.quantityBase,
-          quantityUnit: match.quantityUnit ?? added.quantityUnit,
+          ...(added.quantityBase !== null
+            ? {
+                quantityBase: (match.quantityBase ?? 0) + added.quantityBase,
+                quantityUnit: match.quantityUnit ?? added.quantityUnit,
+              }
+            : {}),
+          // Typed by hand first and picked from the book later: keep the link.
+          ...(linksRecipe ? { recipeId: input.recipeId } : {}),
           updatedAt: new Date(),
         })
         .where(eq(prepTasks.id, match.id));

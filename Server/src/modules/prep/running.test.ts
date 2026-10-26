@@ -16,6 +16,7 @@ function as(cookie: string) {
 
 interface Line {
   id: string;
+  recipeId: string | null;
   stationId: string | null;
   description: string;
   status: string;
@@ -202,6 +203,63 @@ describe('the running list', () => {
 
     const ticked = await setStatus(created.json().task.id, 'done', cook);
     expect(ticked.statusCode).toBe(200);
+  });
+});
+
+describe('lines from a recipe', () => {
+  async function recipe(name: string) {
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/recipes',
+      payload: { name, type: 'prep', yield: { value: 1, unit: 'kg' } },
+      cookies: as(admin),
+    });
+    return response.json().id as string;
+  }
+
+  it('remembers which recipe a line is for', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const response = await add({
+      description: 'Vijgen Gel',
+      recipeId: gel,
+      quantity: { value: 2, unit: 'kg' },
+    });
+    expect(response.json().task).toMatchObject({
+      recipeId: gel,
+      quantity: { value: 2000, unit: 'g' },
+    });
+  });
+
+  it('links a line typed by hand once the same thing is added from the book', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const typed = await add({ description: 'vijgen gel', quantity: { value: 500, unit: 'g' } });
+    expect(typed.json().task.recipeId).toBeNull();
+
+    const picked = await add({
+      description: 'Vijgen Gel',
+      recipeId: gel,
+      quantity: { value: 1, unit: 'kg' },
+    });
+    expect(picked.json()).toMatchObject({
+      merged: true,
+      task: { recipeId: gel, quantity: { value: 1500, unit: 'g' } },
+    });
+  });
+
+  it('refuses a recipe that does not exist', async () => {
+    const response = await add({
+      description: 'Ghost',
+      recipeId: '00000000-0000-4000-8000-000000000000',
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('keeps the line when its recipe is deleted, without the link', async () => {
+    const gel = await recipe('Vijgen Gel');
+    await add({ description: 'Vijgen Gel', recipeId: gel });
+    await ctx.app.inject({ method: 'DELETE', url: `/api/recipes/${gel}`, cookies: as(admin) });
+    const [line] = await list();
+    expect(line).toMatchObject({ description: 'Vijgen Gel', recipeId: null });
   });
 });
 

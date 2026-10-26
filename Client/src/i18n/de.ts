@@ -297,6 +297,12 @@ export const de: Record<MessageKey, string> = {
   'addTask.what': 'Was zu tun ist',
   'addTask.placeholder': 'Schalotten brunoise',
   'addTask.submit': 'Zeile hinzufügen',
+  'addTask.fromBook': 'Aus dem Rezeptbuch',
+  'addTask.makes': 'ergibt {amount}',
+  'addTask.linked':
+    'Mit dem Rezept {name} verknüpft. Wer es macht, öffnet das Rezept in dieser Menge.',
+  'task.recipe': 'Rezept',
+  'task.openRecipe': 'Rezept für {task} öffnen',
 
   'recipes.subtitle':
     'Mit Frei von siehst du, was ein Tisch mit Allergie essen kann, Unterrezepte eingeschlossen.',

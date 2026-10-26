@@ -303,6 +303,8 @@ export const prepTasks = pgTable(
   {
     id: uuid('id').primaryKey().defaultRandom(),
     stationId: uuid('station_id').references(() => stations.id, { onDelete: 'set null' }),
+    /** The spec this line is for, when it was added from a recipe. */
+    recipeId: uuid('recipe_id').references(() => recipes.id, { onDelete: 'set null' }),
     description: text('description').notNull(),
     quantityBase: numeric('quantity_base', { precision: 14, scale: 4, mode: 'number' }),
     quantityUnit: text('quantity_unit'),
@@ -316,6 +318,7 @@ export const prepTasks = pgTable(
   },
   (t) => [
     index('prep_task_station_idx').on(t.stationId),
+    index('prep_task_recipe_idx').on(t.recipeId),
     index('prep_task_assignee_idx').on(t.assignedUserId),
     index('prep_task_completed_by_idx').on(t.completedBy),
     // The list asks for open lines and lines ticked in the last two hours.

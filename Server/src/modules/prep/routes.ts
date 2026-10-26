@@ -9,9 +9,11 @@ import {
   prepTaskSchema,
   updatePrepTaskSchema,
 } from '@mise/contracts';
+import { eq } from 'drizzle-orm';
 import { isUnitCode } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
+import { recipes } from '../../db/schema.js';
 import { createPrepService } from './service.js';
 
 /**
@@ -29,6 +31,7 @@ function serialiseTask(task: TaskRow) {
   return {
     id: task.id,
     stationId: task.stationId,
+    recipeId: task.recipeId,
     description: task.description,
     // The column is plain text, so the unit is checked rather than asserted:
     // an unrecognised one drops the quantity instead of failing the response.
@@ -73,10 +76,18 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole(...MANAGERS)],
       schema: {
         body: createPrepTaskSchema,
-        response: { 200: addRunningTaskResponseSchema, 403: errorSchema },
+        response: { 200: addRunningTaskResponseSchema, 400: errorSchema, 403: errorSchema },
       },
     },
     async (request) => {
+      if (request.body.recipeId) {
+        const [recipe] = await app.db
+          .select({ id: recipes.id })
+          .from(recipes)
+          .where(eq(recipes.id, request.body.recipeId))
+          .limit(1);
+        if (!recipe) throw ApiError.badRequest('That recipe no longer exists.');
+      }
       const result = await svc.addTask(request.body);
       if (!result.task) throw new ApiError(500, 'internal_error', 'Could not add that line.');
       return { task: serialiseTask(result.task), merged: result.merged };

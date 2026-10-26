@@ -299,6 +299,11 @@ export const fr: Record<MessageKey, string> = {
   'addTask.what': 'À faire',
   'addTask.placeholder': 'Échalotes en brunoise',
   'addTask.submit': 'Ajouter la ligne',
+  'addTask.fromBook': 'Du livre de recettes',
+  'addTask.makes': 'donne {amount}',
+  'addTask.linked': 'Liée à la recette {name}. Qui la prépare ouvre la recette à cette quantité.',
+  'task.recipe': 'Recette',
+  'task.openRecipe': 'Ouvrir la recette de {task}',
 
   'recipes.subtitle':
     'Utilisez Sans pour voir ce qu’une table allergique peut manger, sous-recettes comprises.',

@@ -1,6 +1,6 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import type { PrepTask, PrepTaskStatus } from '@mise/contracts';
-import { ALL_UNITS, type UnitCode } from '@mise/domain';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import type { PrepTask, PrepTaskStatus, RecipeSummary } from '@mise/contracts';
+import { ALL_UNITS, formatQuantity, isUnitCode, type UnitCode } from '@mise/domain';
 import { useStations } from '../api/kitchen.js';
 import {
   GONE_AFTER_MS,
@@ -9,6 +9,7 @@ import {
   useRunningTasks,
   useUpdatePrepTask,
 } from '../api/running.js';
+import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { LoadError } from '../components/LoadError.js';
@@ -165,6 +166,9 @@ function RunningPrep() {
 /**
  * Putting something on the running list. Adding what is already waiting on
  * the same station puts the amount onto that line, and says so.
+ *
+ * Typing offers matching recipes from the book. Picking one links the line to
+ * its spec, so whoever makes it can open the recipe at the amount asked for.
  */
 function AddRunningLine() {
   const translator = useT();
@@ -176,6 +180,31 @@ function AddRunningLine() {
   const [unit, setUnit] = useState<UnitCode>('kg');
   const [stationId, setStationId] = useState('');
   const [mergedInto, setMergedInto] = useState<string | null>(null);
+  const [linked, setLinked] = useState<RecipeSummary | null>(null);
+  const recipes = useRecipes();
+  const amountField = useRef<HTMLInputElement>(null);
+
+  const typed = description.trim().toLocaleLowerCase();
+  const suggestions =
+    linked || typed.length < 2
+      ? []
+      : (recipes.data ?? [])
+          .filter((r) => r.status !== 'archived' && r.name.toLocaleLowerCase().includes(typed))
+          .sort(
+            (a, b) =>
+              Number(!a.name.toLocaleLowerCase().startsWith(typed)) -
+                Number(!b.name.toLocaleLowerCase().startsWith(typed)) ||
+              a.name.localeCompare(b.name),
+          )
+          .slice(0, 5);
+
+  function pick(recipe: RecipeSummary) {
+    setLinked(recipe);
+    setDescription(recipe.name);
+    if (isUnitCode(recipe.yield.unit)) setUnit(recipe.yield.unit);
+    if (recipe.stationId && !stationId) setStationId(recipe.stationId);
+    amountField.current?.focus();
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -183,6 +212,7 @@ function AddRunningLine() {
       {
         description,
         stationId: stationId || null,
+        recipeId: linked?.id ?? null,
         quantity: amount ? { value: Number(amount), unit } : null,
       },
       {
@@ -192,6 +222,7 @@ function AddRunningLine() {
           setMergedInto(result.merged ? result.task.description : null);
           setDescription('');
           setAmount('');
+          setLinked(null);
         },
       },
     );
@@ -207,11 +238,17 @@ function AddRunningLine() {
         aria-label={t('addTask.what')}
         className="field col-span-3 h-12 text-lg md:col-span-1"
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        onChange={(e) => {
+          setDescription(e.target.value);
+          // Changing the words breaks the link to the recipe that was picked.
+          if (linked && e.target.value !== linked.name) setLinked(null);
+        }}
         placeholder={t('addTask.placeholder')}
+        autoComplete="off"
         required
       />
       <input
+        ref={amountField}
         aria-label={t('common.howMuch')}
         type="number"
         inputMode="decimal"
@@ -254,6 +291,35 @@ function AddRunningLine() {
       >
         {t('addTask.submit')}
       </button>
+
+      {suggestions.length > 0 ? (
+        <div className="col-span-3 flex flex-wrap items-center gap-2 md:col-span-5">
+          <span className="eyebrow">{t('addTask.fromBook')}</span>
+          {suggestions.map((recipe) => (
+            <button
+              key={recipe.id}
+              type="button"
+              className="toggle min-h-10 px-3 text-[15px]"
+              onClick={() => pick(recipe)}
+            >
+              {recipe.name}
+              {isUnitCode(recipe.yield.unit) ? (
+                <span className="text-ink-soft">
+                  {' · '}
+                  {t('addTask.makes', {
+                    amount: formatQuantity({ value: recipe.yield.value, unit: recipe.yield.unit }),
+                  })}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {linked ? (
+        <p role="status" className="text-brand col-span-3 text-[15px] md:col-span-5">
+          {t('addTask.linked', { name: linked.name })}
+        </p>
+      ) : null}
 
       {mergedInto && !add.isPending ? (
         <p role="status" className="text-ink-soft col-span-3 text-[15px] md:col-span-5">

@@ -162,6 +162,14 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId',
     component: RecipeView,
+    // A prep line opens its spec at the amount it asks for: ?amount=2000&unit=g.
+    validateSearch: (search: Record<string, unknown>): { amount?: number; unit?: string } => {
+      const amount = Number(search.amount);
+      return {
+        amount: Number.isFinite(amount) && amount > 0 ? amount : undefined,
+        unit: typeof search.unit === 'string' ? search.unit : undefined,
+      };
+    },
   }),
   createRoute({
     getParentRoute: () => rootRoute,

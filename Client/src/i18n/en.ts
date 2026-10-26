@@ -292,6 +292,12 @@ export const en = {
   'addTask.what': 'What to do',
   'addTask.placeholder': 'Brunoise shallots',
   'addTask.submit': 'Add the line',
+  'addTask.fromBook': 'From the book',
+  'addTask.makes': 'makes {amount}',
+  'addTask.linked':
+    'Linked to the recipe {name}. Whoever makes it can open the spec at this amount.',
+  'task.recipe': 'Recipe',
+  'task.openRecipe': 'Open the recipe for {task}',
 
   'recipes.subtitle': 'Use Free from to see what an allergy table can have, sub-recipes included.',
   'recipes.search': 'Search the book',
