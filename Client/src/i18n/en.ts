@@ -521,6 +521,13 @@ export const en = {
   'kitchen.retentionHint':
     'Kept lines are a record of who did what and when, for later reports, and take up storage. Deleted lines are gone for good.',
 
+  'handover.title': 'Handover',
+  'handover.empty': 'Leave a note for the next shift',
+  'handover.placeholder': 'Fish delivery is late; stock on at three.',
+  'handover.save': 'Save the note',
+  'handover.clear': 'Clear the note',
+  'handover.edit': 'Change',
+  'handover.by': '{name}, {when}',
   'running.title': 'The list',
   'running.subtitle':
     'One list for the whole kitchen. Ticked lines go two hours after they are ticked.',

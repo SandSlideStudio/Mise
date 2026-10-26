@@ -263,6 +263,50 @@ describe('lines from a recipe', () => {
   });
 });
 
+describe('the handover note', () => {
+  async function note(cookie = admin) {
+    const response = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/running/note',
+      cookies: as(cookie),
+    });
+    return response.json();
+  }
+
+  function write(text: string, cookie = admin) {
+    return ctx.app.inject({
+      method: 'PUT',
+      url: '/api/running/note',
+      payload: { text },
+      cookies: as(cookie),
+    });
+  }
+
+  it('starts empty, and says who left it and when once written', async () => {
+    expect(await note()).toEqual({ text: null, byName: null, at: null });
+
+    const written = await write('  Vis komt later, fond om 15:00 opzetten.  ');
+    expect(written.statusCode).toBe(200);
+    expect(written.json()).toMatchObject({
+      text: 'Vis komt later, fond om 15:00 opzetten.',
+      byName: 'Escoffier',
+    });
+    expect(written.json().at).not.toBeNull();
+  });
+
+  it('lets a cook read it but not change it', async () => {
+    await write('Vis komt later.');
+    const cook = await signInCook();
+    expect((await note(cook)).text).toBe('Vis komt later.');
+    expect((await write('Nee', cook)).statusCode).toBe(403);
+  });
+
+  it('is cleared by writing nothing', async () => {
+    await write('Vis komt later.');
+    expect((await write('   ')).json()).toEqual({ text: null, byName: null, at: null });
+  });
+});
+
 describe('being made', () => {
   it('lets a cook mark a job as theirs in progress, so nobody else starts it', async () => {
     const created = await add({ description: 'Chicken stock' });

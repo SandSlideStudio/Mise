@@ -529,6 +529,13 @@ export const de: Record<MessageKey, string> = {
   'kitchen.retentionHint':
     'Behaltene Zeilen zeigen, wer was wann gemacht hat, für spätere Auswertungen, und belegen Speicher. Gelöschte Zeilen sind endgültig weg.',
 
+  'handover.title': 'Übergabe',
+  'handover.empty': 'Eine Notiz für die nächste Schicht hinterlassen',
+  'handover.placeholder': 'Fisch kommt später; Fond um drei ansetzen.',
+  'handover.save': 'Notiz speichern',
+  'handover.clear': 'Notiz löschen',
+  'handover.edit': 'Ändern',
+  'handover.by': '{name}, {when}',
   'running.title': 'Die Liste',
   'running.subtitle':
     'Eine Liste für die ganze Küche. Abgehakte Zeilen verschwinden nach zwei Stunden.',

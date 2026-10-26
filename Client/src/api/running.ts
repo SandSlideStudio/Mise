@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   AddRunningTaskResponse,
   CreatePrepTask,
+  HandoverNote,
   PrepTask,
   SessionUser,
   UpdatePrepTask,
@@ -30,6 +31,22 @@ export function useRunningTasks() {
     // Lines drop off on the clock as well as on a tap, so keep asking.
     refetchInterval: 60_000,
     select: overlay,
+  });
+}
+
+/** The note above the list for the next shift. */
+export function useHandoverNote() {
+  return useQuery({
+    queryKey: ['handover'],
+    queryFn: () => api.get<HandoverNote>('/running/note'),
+  });
+}
+
+export function useUpdateHandoverNote() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (text: string) => api.put<HandoverNote>('/running/note', { text }),
+    onSuccess: (note) => queryClient.setQueryData(['handover'], note),
   });
 }
 

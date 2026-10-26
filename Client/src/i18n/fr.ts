@@ -531,6 +531,13 @@ export const fr: Record<MessageKey, string> = {
   'kitchen.retentionHint':
     'Les lignes gardées disent qui a fait quoi et quand, pour des rapports ultérieurs, et prennent de la place. Les lignes supprimées disparaissent pour de bon.',
 
+  'handover.title': 'Passation',
+  'handover.empty': 'Laisser un mot à l’équipe suivante',
+  'handover.placeholder': 'Le poisson arrive en retard ; fond à lancer à 15 h.',
+  'handover.save': 'Enregistrer le mot',
+  'handover.clear': 'Effacer le mot',
+  'handover.edit': 'Modifier',
+  'handover.by': '{name}, {when}',
   'running.title': 'La liste',
   'running.subtitle':
     'Une seule liste pour toute la cuisine. Les lignes cochées disparaissent au bout de deux heures.',

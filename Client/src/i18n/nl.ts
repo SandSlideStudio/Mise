@@ -527,6 +527,13 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.retentionHint':
     'Bewaarde regels laten zien wie wat wanneer deed, voor latere overzichten, en kosten opslagruimte. Verwijderde regels zijn voorgoed weg.',
 
+  'handover.title': 'Overdracht',
+  'handover.empty': 'Laat een notitie achter voor de volgende dienst',
+  'handover.placeholder': 'Vis komt later binnen; fond om drie uur opzetten.',
+  'handover.save': 'Notitie opslaan',
+  'handover.clear': 'Notitie wissen',
+  'handover.edit': 'Wijzigen',
+  'handover.by': '{name}, {when}',
   'running.title': 'De lijst',
   'running.subtitle': 'Eén lijst voor de hele keuken. Afgevinkte regels verdwijnen na twee uur.',
   'running.empty': 'Er staat niets op de lijst. Zet erop wat er moet gebeuren.',

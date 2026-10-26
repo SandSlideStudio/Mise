@@ -56,9 +56,23 @@ export const updatePrepTaskSchema = z.object({
   sortOrder: z.number().int().optional(),
 });
 
+/** The note above the list for the next shift. */
+export const handoverNoteSchema = z.object({
+  text: z.string().nullable(),
+  byName: z.string().nullable(),
+  at: z.string().nullable(),
+});
+
+export const updateHandoverNoteSchema = z.object({
+  /** Empty clears the note. */
+  text: z.string().trim().max(1000),
+});
+
 export type PrepTask = z.infer<typeof prepTaskSchema>;
 export type PrepTaskStatus = z.infer<typeof prepTaskStatusSchema>;
 export type CreatePrepTask = z.infer<typeof createPrepTaskSchema>;
 export type UpdatePrepTask = z.infer<typeof updatePrepTaskSchema>;
 export type AddRunningTaskResponse = z.infer<typeof addRunningTaskResponseSchema>;
 export type TickedRetention = z.infer<typeof tickedRetentionSchema>;
+export type HandoverNote = z.infer<typeof handoverNoteSchema>;
+export type UpdateHandoverNote = z.infer<typeof updateHandoverNoteSchema>;

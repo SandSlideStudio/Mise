@@ -74,6 +74,14 @@ export const kitchens = pgTable('kitchen', {
   unitSystem: unitSystemEnum('unit_system').notNull().default('metric'),
   language: languageEnum('language').notNull().default('en'),
   tickedRetention: tickedRetentionEnum('ticked_retention').notNull().default('keep'),
+  /**
+   * The note above the prep list for the next shift, and who left it when.
+   * The name is kept as written, so the note still says who left it after
+   * they have left the kitchen.
+   */
+  handoverNote: text('handover_note'),
+  handoverNoteBy: text('handover_note_by'),
+  handoverNoteAt: timestamp('handover_note_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

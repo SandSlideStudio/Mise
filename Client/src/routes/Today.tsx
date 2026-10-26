@@ -6,7 +6,9 @@ import {
   GONE_AFTER_MS,
   useAddRunningTask,
   useDeletePrepTask,
+  useHandoverNote,
   useRunningTasks,
+  useUpdateHandoverNote,
   useUpdatePrepTask,
 } from '../api/running.js';
 import { useRecipes } from '../api/recipes.js';
@@ -158,8 +160,130 @@ function RunningPrep() {
       }
       noteFor={noteFor}
       onRemove={canManage ? (id) => remove.mutate(id) : undefined}
-      header={canManage ? <AddRunningLine /> : null}
+      header={
+        <>
+          <Handover canEdit={canManage} />
+          {canManage ? <AddRunningLine /> : null}
+        </>
+      }
     />
+  );
+}
+
+/**
+ * The note the last shift left for this one: "fish is late, stock on at 3".
+ * Large enough to read from the pass, with who wrote it and when, so nobody
+ * acts on yesterday's note thinking it is today's. Chefs write it; everyone
+ * reads it.
+ */
+function Handover({ canEdit }: { canEdit: boolean }) {
+  const translator = useT();
+  const { t, locale } = translator;
+  const note = useHandoverNote();
+  const update = useUpdateHandoverNote();
+  const [draft, setDraft] = useState<string | null>(null);
+
+  const text = note.data?.text ?? null;
+  if (!text && !canEdit) return null;
+
+  function save(value: string) {
+    update.mutate(value, { onSuccess: () => setDraft(null) });
+  }
+
+  if (draft !== null) {
+    return (
+      <form
+        className="no-print bg-accent-wash border-accent border-b-2 border-l-[6px] px-4 py-3 sm:px-7"
+        onSubmit={(event) => {
+          event.preventDefault();
+          save(draft);
+        }}
+      >
+        <label className="eyebrow mb-2 block" htmlFor="handover">
+          {t('handover.title')}
+        </label>
+        <textarea
+          id="handover"
+          className="field min-h-24 py-2.5 text-lg"
+          value={draft}
+          maxLength={1000}
+          autoFocus
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={t('handover.placeholder')}
+        />
+        {update.error ? (
+          <p role="alert" className="text-danger mt-2 text-[15px]">
+            {errorMessage(translator, update.error)}
+          </p>
+        ) : null}
+        <div className="mt-2.5 flex flex-wrap gap-2.5">
+          <button type="submit" className="btn-primary min-h-11" disabled={update.isPending}>
+            {update.isPending ? t('common.saving') : t('handover.save')}
+          </button>
+          <button type="button" className="btn-quiet min-h-11" onClick={() => setDraft(null)}>
+            {t('common.cancel')}
+          </button>
+          {text ? (
+            <button
+              type="button"
+              className="btn-quiet min-h-11 sm:ml-auto"
+              disabled={update.isPending}
+              onClick={() => save('')}
+            >
+              {t('handover.clear')}
+            </button>
+          ) : null}
+        </div>
+      </form>
+    );
+  }
+
+  if (!text) {
+    return (
+      <div className="no-print border-line border-b-2 px-4 py-2.5 sm:px-7">
+        <button
+          type="button"
+          className="text-accent text-[17px] underline underline-offset-4"
+          onClick={() => setDraft('')}
+        >
+          {t('handover.empty')}
+        </button>
+      </div>
+    );
+  }
+
+  const at = note.data?.at ? new Date(note.data.at) : null;
+  return (
+    <div
+      data-tour="handover"
+      className="bg-accent-wash border-accent flex flex-wrap items-start gap-x-6 gap-y-2 border-b-2 border-l-[6px] px-4 py-3 sm:px-7 sm:py-4"
+    >
+      <div className="min-w-0 flex-1">
+        <span className="eyebrow">{t('handover.title')}</span>
+        <p className="mt-1 text-xl leading-snug whitespace-pre-line sm:text-[23px]">{text}</p>
+        {note.data?.byName && at ? (
+          <p className="text-ink-soft mt-1 text-[15px]">
+            {t('handover.by', {
+              name: note.data.byName,
+              when: at.toLocaleString(locale, {
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+            })}
+          </p>
+        ) : null}
+      </div>
+      {canEdit ? (
+        <button
+          type="button"
+          className="btn-quiet no-print min-h-11"
+          onClick={() => setDraft(text)}
+        >
+          {t('handover.edit')}
+        </button>
+      ) : null}
+    </div>
   );
 }
 

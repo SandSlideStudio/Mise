@@ -5,15 +5,17 @@ import {
   addRunningTaskResponseSchema,
   createPrepTaskSchema,
   errorSchema,
+  handoverNoteSchema,
   idSchema,
   prepTaskSchema,
+  updateHandoverNoteSchema,
   updatePrepTaskSchema,
 } from '@mise/contracts';
 import { eq } from 'drizzle-orm';
 import { isUnitCode } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
-import { recipes } from '../../db/schema.js';
+import { kitchens, recipes } from '../../db/schema.js';
 import { createPrepService } from './service.js';
 
 /**
@@ -91,6 +93,58 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
       const result = await svc.addTask(request.body);
       if (!result.task) throw new ApiError(500, 'internal_error', 'Could not add that line.');
       return { task: serialiseTask(result.task), merged: result.merged };
+    },
+  );
+
+  // --- the handover note ---------------------------------------------------
+
+  /** What the last shift left for this one. Everyone reads it; chefs write it. */
+  async function readNote() {
+    const [kitchen] = await app.db
+      .select({
+        text: kitchens.handoverNote,
+        byName: kitchens.handoverNoteBy,
+        at: kitchens.handoverNoteAt,
+      })
+      .from(kitchens)
+      .limit(1);
+    return {
+      text: kitchen?.text ?? null,
+      byName: kitchen?.byName ?? null,
+      at: kitchen?.at?.toISOString() ?? null,
+    };
+  }
+
+  r.get(
+    '/running/note',
+    {
+      onRequest: [app.requireUser],
+      schema: { response: { 200: handoverNoteSchema, 401: errorSchema } },
+    },
+    readNote,
+  );
+
+  r.put(
+    '/running/note',
+    {
+      onRequest: [app.requireRole(...MANAGERS)],
+      schema: {
+        body: updateHandoverNoteSchema,
+        response: { 200: handoverNoteSchema, 403: errorSchema },
+      },
+    },
+    async (request) => {
+      const text = request.body.text;
+      await app.db.update(kitchens).set(
+        text
+          ? {
+              handoverNote: text,
+              handoverNoteBy: request.user!.displayName,
+              handoverNoteAt: new Date(),
+            }
+          : { handoverNote: null, handoverNoteBy: null, handoverNoteAt: null },
+      );
+      return readNote();
     },
   );
 
