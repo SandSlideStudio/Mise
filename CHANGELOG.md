@@ -3,6 +3,22 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.0.1
+
+- First-run setup only asks for a setup code when one was set with `SETUP_TOKEN`, or when Mise
+  runs behind HTTPS or a proxy and may be reachable from the internet. Then a code is always
+  needed, and Mise prints one in its log if none was set. The hint no longer points to a command
+  that only works with the installer.
+- The recipe editor no longer shows batch size, portions, prep time, keeping time and storage for a
+  dish. A new dish is written for one plate; existing dishes keep their size.
+- The backups page no longer assumes an SD card.
+- Mise runs as any user, such as the apps user on TrueNAS, and says clearly at start when it
+  can't write its data folders.
+- The database is no longer migrated twice every time Mise starts.
+- The README explains installing on TrueNAS.
+- Developing Mise needs npm 11, which comes with Node 24, so `npm install` no longer rewrites
+  `package-lock.json`.
+
 ## 2.0.0
 
 **Read this before updating.** Services and generated prep lists are gone. Every kitchen now

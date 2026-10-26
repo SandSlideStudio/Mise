@@ -153,7 +153,7 @@ export const nl: Record<MessageKey, string> = {
   'setup.failed': 'Instellen is mislukt. Kijk in het serverlogboek.',
   'setup.create': 'Keuken aanmaken',
   'setup.codeHint':
-    'Hij staat aan het eind van de installatielink die werd getoond toen Mise werd geïnstalleerd. Opnieuw bekijken: docker compose logs app',
+    'Het is de SETUP_TOKEN in de instellingen van Mise, en staat ook aan het eind van de installatielink die het installatieprogramma toonde. Is er geen ingesteld, dan heeft Mise er zelf een gemaakt en in zijn log gezet.',
   'setup.codeLabel': 'Installatiecode',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Jij',
@@ -201,7 +201,6 @@ export const nl: Record<MessageKey, string> = {
   'setup.recipeName': 'Naam van het recept',
   'setup.recipeType': 'Soort',
   'setup.makes': 'Eén batch levert',
-  'setup.portions': 'Porties',
   'setup.recipeDuplicate': 'Twee recepten hebben dezelfde naam.',
   'setup.yieldInvalid': 'Een batch moet meer dan 0 opleveren.',
   'setup.settingsTitle': 'Hoe deze keuken werkt',
@@ -392,8 +391,9 @@ export const nl: Record<MessageKey, string> = {
   'editor.kindNew': 'Nieuw',
   'editor.theRest': 'De rest',
   'editor.batchMakes': 'Eén batch levert',
+  'editor.dishPlates_one': 'Hoeveelheden zijn voor één bord.',
+  'editor.dishPlates_other': 'Hoeveelheden zijn voor {count} borden.',
   'editor.yieldUnit': 'Eenheid opbrengst',
-  'editor.portionsHint': 'Borden per batch',
   'editor.prepMinutes': 'Prep, minuten',
   'editor.keepsHours': 'Houdbaar, uren',
   'editor.storagePlaceholder': 'Vacuüm, koelcel, gelabeld',
@@ -581,7 +581,7 @@ export const nl: Record<MessageKey, string> = {
   'backups.whereTitle': 'Waar back-ups heen gaan',
   'backups.whereLocal': 'Alleen op deze machine',
   'backups.whereLocalHint':
-    'Een kapotte SD-kaart of een inbraak neemt ze mee, dus download er af en toe een.',
+    'Deze staan op dezelfde machine als Mise. Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn ze ook weg. Download er dus af en toe een, of stuur ze naar een NAS of OneDrive.',
   'backups.whereWebdav': 'Ook naar een NAS of Nextcloud',
   'backups.whereWebdavHint':
     'Via WebDAV, dat Synology, QNAP en Nextcloud allemaal bieden. Er blijft ook een kopie op deze machine.',

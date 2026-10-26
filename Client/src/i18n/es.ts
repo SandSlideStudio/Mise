@@ -155,7 +155,7 @@ export const es: Record<MessageKey, string> = {
   'setup.failed': 'La configuración ha fallado. Revisa el registro del servidor.',
   'setup.create': 'Crear la cocina',
   'setup.codeHint':
-    'Está al final del enlace que apareció al instalar Mise. Para verlo otra vez: docker compose logs app',
+    'Es el SETUP_TOKEN de la configuración de Mise, también al final del enlace que mostró el instalador. Si no se definió ninguno, Mise creó uno y lo escribió en su registro.',
   'setup.codeLabel': 'Código de configuración',
   'setup.stepKitchen': 'Restaurante',
   'setup.stepYou': 'Tú',
@@ -203,7 +203,6 @@ export const es: Record<MessageKey, string> = {
   'setup.recipeName': 'Nombre de la receta',
   'setup.recipeType': 'Tipo',
   'setup.makes': 'Una tanda rinde',
-  'setup.portions': 'Raciones',
   'setup.recipeDuplicate': 'Dos recetas tienen el mismo nombre.',
   'setup.yieldInvalid': 'Una tanda tiene que rendir más de 0.',
   'setup.settingsTitle': 'Cómo funciona esta cocina',
@@ -393,8 +392,9 @@ export const es: Record<MessageKey, string> = {
   'editor.kindNew': 'Nuevo',
   'editor.theRest': 'El resto',
   'editor.batchMakes': 'Una tanda rinde',
+  'editor.dishPlates_one': 'Las cantidades son para un plato.',
+  'editor.dishPlates_other': 'Las cantidades son para {count} platos.',
   'editor.yieldUnit': 'Unidad de rendimiento',
-  'editor.portionsHint': 'Platos por tanda',
   'editor.prepMinutes': 'Preparación, minutos',
   'editor.keepsHours': 'Aguanta, horas',
   'editor.storagePlaceholder': 'Al vacío, cámara, etiquetado',
@@ -581,7 +581,7 @@ export const es: Record<MessageKey, string> = {
   'backups.whereTitle': 'Adónde van las copias',
   'backups.whereLocal': 'Solo en esta máquina',
   'backups.whereLocalHint':
-    'Una tarjeta SD rota o un robo se las lleva, así que descarga una de vez en cuando.',
+    'Se guardan en la misma máquina que Mise. Si se estropea, la roban o falla su disco, se pierden con ella. Así que descarga una de vez en cuando, o envíalas a un NAS o a OneDrive.',
   'backups.whereWebdav': 'También a un NAS o Nextcloud',
   'backups.whereWebdavHint':
     'Por WebDAV, que ofrecen Synology, QNAP y Nextcloud. También queda una copia en esta máquina.',

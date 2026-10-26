@@ -156,24 +156,87 @@ used under 200 MB of memory; the Zero 2 W has 512 MB.
 The SD card holds both the kitchen and its nightly backups, so a card that dies takes both with it.
 Send the backups to a NAS, or download one now and then.
 
+## On TrueNAS
+
+TrueNAS SCALE 24.10 and newer run Mise as a custom app, without the installer.
+
+1. In the TrueNAS shell (**System → Shell**), run `openssl rand -hex 32` twice. The first is the
+   session secret, the second the database password.
+2. Go to **Apps → Discover Apps → ⋮ → Install via YAML**.
+3. Name the app `mise`. TrueNAS only accepts lowercase letters, digits and hyphens.
+4. Paste the YAML below with your two values filled in. The database password goes in twice.
+5. Save, wait until the app shows as running, and open `http://<your TrueNAS address>:3000`.
+
+```yaml
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mise
+      POSTGRES_PASSWORD: YOUR_DATABASE_PASSWORD
+      POSTGRES_DB: mise
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mise -d mise']
+      interval: 1m
+      start_period: 60s
+      start_interval: 1s
+      timeout: 5s
+      retries: 5
+
+  app:
+    image: ghcr.io/sandslidestudio/mise-kitchen:2
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgres://mise:YOUR_DATABASE_PASSWORD@db:5432/mise
+      SESSION_SECRET: YOUR_SESSION_SECRET
+      UPLOAD_DIR: /data/uploads
+      BACKUP_DIR: /data/backups
+    ports:
+      - '3000:3000'
+    volumes:
+      - uploads:/data/uploads
+      - backups:/data/backups
+
+volumes:
+  db-data:
+  uploads:
+  backups:
+```
+
+On a kitchen network, setup asks for no code. If Mise will be reachable from the internet, add
+`SETUP_TOKEN` with a third `openssl rand -hex 32`, along with the settings from [HTTPS](#https),
+and open `/setup?token=<that value>`. If port 3000 is taken, change the first number, as in
+`'3080:3000'`.
+
+To update, open the app under **Apps** and choose **Update** or **Pull Images**. Keep the YAML
+with your values somewhere safe: the same secret and password let a reinstall pick up the existing
+data.
+
 ## Settings in `.env`
 
-| Setting              | What it does                                                       |
-| -------------------- | ------------------------------------------------------------------ |
-| `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.     |
-| `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                          |
-| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version  |
-| `PORT`               | The port Mise answers on. Default `3000`.                          |
-| `SETUP_TOKEN`        | The one-time code first-run setup asks for. The installer sets it  |
-| `MISE_DOMAIN`        | Your domain name, when using the built-in HTTPS                    |
-| `COOKIE_SECURE`      | `true` when Mise is only reached over HTTPS                        |
-| `TRUST_PROXY`        | `1` when Mise is behind Caddy or another proxy, otherwise `false`  |
-| `MISE_BIND`          | `127.0.0.1` behind a proxy on the same machine                     |
-| `ONEDRIVE_CLIENT_ID` | Your own Microsoft app for OneDrive backups. Empty uses Mise's own |
+| Setting              | What it does                                                         |
+| -------------------- | -------------------------------------------------------------------- |
+| `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.       |
+| `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                            |
+| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version    |
+| `PORT`               | The port Mise answers on. Default `3000`.                            |
+| `SETUP_TOKEN`        | The one-time code first-run setup asks for. Empty: only behind HTTPS |
+| `MISE_DOMAIN`        | Your domain name, when using the built-in HTTPS                      |
+| `COOKIE_SECURE`      | `true` when Mise is only reached over HTTPS                          |
+| `TRUST_PROXY`        | `1` when Mise is behind Caddy or another proxy, otherwise `false`    |
+| `MISE_BIND`          | `127.0.0.1` behind a proxy on the same machine                       |
+| `ONEDRIVE_CLIENT_ID` | Your own Microsoft app for OneDrive backups. Empty uses Mise's own   |
 
 ## Development
 
-Needs Node 22 or newer, and Docker for the development database.
+Needs Node 24 or newer (or Node 22 with npm 11), and Docker for the development database.
 
 ```bash
 npm install

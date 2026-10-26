@@ -12,7 +12,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx --env-file-if-exists=../.env src/db/migrate.ts",
+    "db:migrate": "tsx --env-file-if-exists=../.env src/db/migrate-cli.ts",
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {

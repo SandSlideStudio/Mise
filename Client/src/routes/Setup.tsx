@@ -10,7 +10,7 @@ import {
   type SetupRequest,
   type TickedRetention,
 } from '@mise/contracts';
-import { ALL_UNITS, type UnitCode } from '@mise/domain';
+import { ALL_UNITS, ONE_PLATE, type UnitCode } from '@mise/domain';
 import type { RestoreResult } from '@mise/contracts';
 import { useRestoreBackup } from '../api/backups.js';
 import { RequestFailed } from '../api/client.js';
@@ -129,7 +129,6 @@ interface RecipeDraft {
   stationKey: string;
   yieldValue: string;
   yieldUnit: UnitCode;
-  portions: string;
 }
 
 /** Offered until the admin touches the list, in whatever language is chosen. */
@@ -233,7 +232,9 @@ export function Setup() {
       case 'recipes':
         if (recipes.some((recipe) => !recipe.name.trim())) found.add('setup.nameMissing');
         if (hasDuplicates(recipes.map((recipe) => recipe.name))) found.add('setup.recipeDuplicate');
-        if (recipes.some((recipe) => !(toNumber(recipe.yieldValue) > 0))) {
+        if (
+          recipes.some((recipe) => recipe.type !== 'dish' && !(toNumber(recipe.yieldValue) > 0))
+        ) {
           found.add('setup.yieldInvalid');
         }
         break;
@@ -320,8 +321,12 @@ export function Setup() {
         name: recipe.name.trim(),
         type: recipe.type,
         station: stationName(recipe.stationKey),
-        yield: { value: toNumber(recipe.yieldValue), unit: recipe.yieldUnit },
-        portions: recipe.type === 'dish' && recipe.portions ? toNumber(recipe.portions) : null,
+        ...(recipe.type === 'dish'
+          ? ONE_PLATE
+          : {
+              yield: { value: toNumber(recipe.yieldValue), unit: recipe.yieldUnit },
+              portions: null,
+            }),
       })),
     };
 
@@ -803,7 +808,6 @@ export function Setup() {
                         stationKey: '',
                         yieldValue: '',
                         yieldUnit: 'each',
-                        portions: '',
                       },
                     ])
                   }
@@ -1238,7 +1242,7 @@ function RecipeRow({
   onChange: (next: RecipeDraft) => void;
   onRemove: () => void;
 }) {
-  const { t } = useT();
+  const { t, plural } = useT();
   const id = (field: string) => `${recipe.key}-${field}`;
 
   return (
@@ -1276,49 +1280,39 @@ function RecipeRow({
           onChange={(stationKey) => onChange({ ...recipe, stationKey })}
         />
       </Field>
-      <div>
-        <label className="label" htmlFor={id('yield')}>
-          {t('setup.makes')}
-        </label>
-        <div className="flex gap-2">
-          <input
-            id={id('yield')}
-            className="field min-w-0"
-            value={recipe.yieldValue}
-            onChange={(e) => onChange({ ...recipe, yieldValue: e.target.value })}
-            inputMode="decimal"
-            placeholder="10"
-          />
-          <select
-            aria-label={t('editor.yieldUnit')}
-            className="field w-28 shrink-0"
-            value={recipe.yieldUnit}
-            onChange={(e) => onChange({ ...recipe, yieldUnit: e.target.value as UnitCode })}
-          >
-            {ALL_UNITS.map((unit) => (
-              <option key={unit.code} value={unit.code}>
-                {unit.code}
-              </option>
-            ))}
-          </select>
-        </div>
-      </div>
       <div className="flex items-end gap-2">
         {recipe.type === 'dish' ? (
-          <div className="min-w-0 flex-1">
-            <label className="label" htmlFor={id('portions')}>
-              {t('setup.portions')}
-            </label>
-            <input
-              id={id('portions')}
-              className="field"
-              value={recipe.portions}
-              onChange={(e) => onChange({ ...recipe, portions: e.target.value })}
-              inputMode="decimal"
-            />
-          </div>
+          <p className="text-ink-soft min-w-0 flex-1 pb-3 text-sm">
+            {plural('editor.dishPlates', ONE_PLATE.portions)}
+          </p>
         ) : (
-          <span className="flex-1" />
+          <div className="min-w-0 flex-1">
+            <label className="label" htmlFor={id('yield')}>
+              {t('setup.makes')}
+            </label>
+            <div className="flex gap-2">
+              <input
+                id={id('yield')}
+                className="field min-w-0"
+                value={recipe.yieldValue}
+                onChange={(e) => onChange({ ...recipe, yieldValue: e.target.value })}
+                inputMode="decimal"
+                placeholder="10"
+              />
+              <select
+                aria-label={t('editor.yieldUnit')}
+                className="field w-28 shrink-0"
+                value={recipe.yieldUnit}
+                onChange={(e) => onChange({ ...recipe, yieldUnit: e.target.value as UnitCode })}
+              >
+                {ALL_UNITS.map((unit) => (
+                  <option key={unit.code} value={unit.code}>
+                    {unit.code}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         )}
         <button type="button" className="btn-small h-11 shrink-0" onClick={onRemove}>
           {t('common.remove')}

@@ -3,7 +3,6 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createDatabase } from './client.js';
-import { loadConfig } from '../config.js';
 
 /**
  * Migrations run on boot, so an admin pulling a newer image never has to
@@ -34,15 +33,4 @@ export async function runMigrations(databaseUrl: string): Promise<void> {
   } finally {
     await sql.end();
   }
-}
-
-/** Allow running this file directly: npm run db:migrate */
-const invokedDirectly =
-  process.argv[1] !== undefined &&
-  path.resolve(process.argv[1]) === path.resolve(fileURLToPath(import.meta.url));
-
-if (invokedDirectly) {
-  const config = loadConfig();
-  await runMigrations(config.DATABASE_URL);
-  console.log('Migrations applied.');
 }
