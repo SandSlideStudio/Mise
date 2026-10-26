@@ -85,7 +85,17 @@ jobs:
             echo "CHANGELOG.md has no section for $version" >&2
             exit 1
           fi
+      # What the installer downloads, from this release rather than from main.
+      # A release can't hold a file whose name starts with a dot.
+      - name: Installer files and their checksums
+        run: |
+          mkdir dist
+          cp deploy/install.sh deploy/compose.yaml deploy/Caddyfile dist/
+          cp deploy/.env.example dist/env.example
+          (cd dist && sha256sum install.sh compose.yaml Caddyfile env.example > SHA256SUMS)
       - name: Publish the release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "$GITHUB_REF_NAME" --title "Mise $GITHUB_REF_NAME" --notes-file notes.md
+        run: |
+          gh release create "$GITHUB_REF_NAME" --title "Mise $GITHUB_REF_NAME" --notes-file notes.md \
+            dist/install.sh dist/compose.yaml dist/Caddyfile dist/env.example dist/SHA256SUMS

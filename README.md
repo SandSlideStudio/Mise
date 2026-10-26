@@ -17,8 +17,12 @@ Zero 2 W up on a 64-bit system, or any Linux server) with [Docker](https://docs.
 Then run:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/SandSlideStudio/Mise/main/deploy/install.sh | sh
+curl -fsSL https://github.com/SandSlideStudio/Mise/releases/latest/download/install.sh | sh
 ```
+
+The installer and everything it downloads come from the latest release, never from unfinished work.
+Each release lists the files with their SHA-256 checksums in `SHA256SUMS`, if you want to read or
+check the installer before running it.
 
 That creates a `mise-kitchen` folder, writes a `.env` with new secrets, starts Mise and prints a
 setup link. Open it in a browser and the setup screens take you through naming the kitchen, your
@@ -27,8 +31,9 @@ on the network can set the kitchen up before you do.
 
 ### Without the installer
 
-Download [`deploy/compose.yaml`](deploy/compose.yaml), [`deploy/Caddyfile`](deploy/Caddyfile) and
-[`deploy/.env.example`](deploy/.env.example) into a folder, and rename `.env.example` to `.env`.
+Download `compose.yaml`, `Caddyfile` and `env.example` from the
+[latest release](https://github.com/SandSlideStudio/Mise/releases/latest) into a folder, and rename
+`env.example` to `.env`.
 Replace both `change-me` values with long random strings (`openssl rand -hex 32` makes one each),
 then:
 
@@ -218,10 +223,14 @@ volumes:
   backups:
 ```
 
-On a kitchen network, setup asks for no code. If Mise will be reachable from the internet, add
-`SETUP_TOKEN` with a third `openssl rand -hex 32`, along with the settings from [HTTPS](#https),
-and open `/setup?token=<that value>`. If port 3000 is taken, change the first number, as in
-`'3080:3000'`.
+From a computer on the kitchen network, setup asks for no code. From anywhere else, or through a
+proxy or tunnel, it asks for the code Mise prints in the app's log (**Apps → mise → Logs**). If
+Mise will be reachable from the internet, add `SETUP_TOKEN` with a third `openssl rand -hex 32`,
+along with the settings from [HTTPS](#https), and open `/setup?token=<that value>`. If port 3000 is
+taken, change the first number, as in `'3080:3000'`.
+
+Mise runs as any user TrueNAS gives it. The photo and backup folders in the image can be written by
+any user for that reason; they live in the app's own volumes, which only this one process uses.
 
 To update, open the app under **Apps** and choose **Update** or **Pull Images**. Keep the YAML
 with your values somewhere safe: the same secret and password let a reinstall pick up the existing
@@ -229,18 +238,18 @@ data.
 
 ## Settings in `.env`
 
-| Setting              | What it does                                                         |
-| -------------------- | -------------------------------------------------------------------- |
-| `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.       |
-| `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                            |
-| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version    |
-| `PORT`               | The port Mise answers on. Default `3000`.                            |
-| `SETUP_TOKEN`        | The one-time code first-run setup asks for. Empty: only behind HTTPS |
-| `MISE_DOMAIN`        | Your domain name, when using the built-in HTTPS                      |
-| `COOKIE_SECURE`      | `true` when Mise is only reached over HTTPS                          |
-| `TRUST_PROXY`        | `1` when Mise is behind Caddy or another proxy, otherwise `false`    |
-| `MISE_BIND`          | `127.0.0.1` behind a proxy on the same machine                       |
-| `ONEDRIVE_CLIENT_ID` | Your own Microsoft app for OneDrive backups. Empty uses Mise's own   |
+| Setting              | What it does                                                        |
+| -------------------- | ------------------------------------------------------------------- |
+| `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.      |
+| `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                           |
+| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version   |
+| `PORT`               | The port Mise answers on. Default `3000`.                           |
+| `SETUP_TOKEN`        | The setup code. Empty: made up, asked only from outside the network |
+| `MISE_DOMAIN`        | Your domain name, when using the built-in HTTPS                     |
+| `COOKIE_SECURE`      | `true` when Mise is only reached over HTTPS                         |
+| `TRUST_PROXY`        | `1` when Mise is behind Caddy or another proxy, otherwise `false`   |
+| `MISE_BIND`          | `127.0.0.1` behind a proxy on the same machine                      |
+| `ONEDRIVE_CLIENT_ID` | Your own Microsoft app for OneDrive backups. Empty uses Mise's own  |
 
 ## Development
 

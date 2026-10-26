@@ -3,6 +3,27 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.1.1
+
+Security and safer updates, from an independent audit.
+
+- Dependencies updated past the published advisories, among them zod (high) and fastify.
+- Wrong passwords and PINs lock out the address they come from, for that account, instead of the
+  account itself, so nobody can keep you out by guessing at your email from somewhere else. Thirty
+  failures from any addresses within 15 minutes still lock the account. A new password or PIN from
+  an administrator lifts every lock on that person.
+- First-run setup without `SETUP_TOKEN` only skips the code for computers on the kitchen network.
+  From a public address, or through a proxy or tunnel, it asks for the code Mise prints in its log.
+  Restoring a backup on the setup page follows the same rule.
+- Before an update changes the database, Mise backs the kitchen up on the server. If that backup
+  fails, nothing is changed and Mise stops with a clear message.
+- The installer and the files it downloads come from the latest release instead of the `main`
+  branch, with SHA-256 checksums alongside. Install with
+  `curl -fsSL https://github.com/SandSlideStudio/Mise/releases/latest/download/install.sh | sh`.
+- Fixed: the installer stopped after starting Mise when run as `curl ... | sh`, before printing the
+  setup link.
+- Every released version is now upgraded to the newest in an automatic test, data included.
+
 ## 2.1.0
 
 **Setup**

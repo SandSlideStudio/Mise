@@ -1,8 +1,10 @@
 #!/bin/sh
 # Install or update Mise on this machine.
 #
-#   curl -fsSL https://raw.githubusercontent.com/SandSlideStudio/Mise/main/deploy/install.sh | sh
+#   curl -fsSL https://github.com/SandSlideStudio/Mise/releases/latest/download/install.sh | sh
 #
+# The installer and the files it downloads come from the latest release, never
+# from work in progress. MISE_RELEASE=v2.1.1 installs that release instead.
 # Needs Docker with the compose plugin. Creates ./mise-kitchen (or $MISE_DIR),
 # writes a .env with fresh secrets the first time, and starts Mise. Running it
 # again pulls the newest release and keeps your existing .env.
@@ -13,8 +15,10 @@ if [ -z "${MISE_DIR:-}" ] && [ -f compose.yaml ] && grep -q '^name: mise-kitchen
   MISE_DIR=.
 fi
 MISE_DIR="${MISE_DIR:-mise-kitchen}"
-MISE_REF="${MISE_REF:-main}"
-MISE_SOURCE="${MISE_SOURCE:-https://raw.githubusercontent.com/SandSlideStudio/Mise/$MISE_REF/deploy}"
+if [ -n "${MISE_RELEASE:-}" ]; then
+  MISE_SOURCE="${MISE_SOURCE:-https://github.com/SandSlideStudio/Mise/releases/download/$MISE_RELEASE}"
+fi
+MISE_SOURCE="${MISE_SOURCE:-https://github.com/SandSlideStudio/Mise/releases/latest/download}"
 
 say() { printf '%s\n' "$*"; }
 fail() { printf 'mise: %s\n' "$*" >&2; exit 1; }
@@ -22,6 +26,9 @@ fail() { printf 'mise: %s\n' "$*" >&2; exit 1; }
 command -v docker >/dev/null 2>&1 || fail "Docker is not installed. Get it from https://docs.docker.com/get-docker/"
 docker compose version >/dev/null 2>&1 || fail "Docker is installed but the compose plugin is not. See https://docs.docker.com/compose/install/"
 docker info >/dev/null 2>&1 || fail "Docker is installed but not running, or this user may not use it."
+
+# Run as `curl ... | sh`, this script arrives on standard input. Every docker
+# command below gets </dev/null, or it would read, and swallow, the rest of it.
 
 fetch() {
   if command -v curl >/dev/null 2>&1; then
@@ -51,7 +58,8 @@ fetch "$MISE_SOURCE/Caddyfile" Caddyfile
 if [ -f .env ]; then
   say "Keeping the existing .env and its secrets."
 else
-  fetch "$MISE_SOURCE/.env.example" .env.example
+  # A release can't hold a file starting with a dot, so it's env.example there.
+  fetch "$MISE_SOURCE/env.example" .env.example 2>/dev/null || fetch "$MISE_SOURCE/.env.example" .env.example
   session_secret="$(random_secret)"
   db_password="$(random_secret)"
   setup_code="$(random_secret | cut -c1-24)"
@@ -65,18 +73,18 @@ else
 fi
 
 say "Downloading the newest Mise"
-if ! docker compose pull --quiet; then
+if ! docker compose pull --quiet </dev/null; then
   say "Could not download it. Starting the version already on this machine, if there is one."
 fi
 say "Starting Mise"
-docker compose up -d --remove-orphans
+docker compose up -d --remove-orphans </dev/null
 
 port="$(sed -n 's/^PORT=//p' .env)"
 port="${port:-3000}"
 
 say "Waiting for Mise to answer"
 tries=0
-until docker compose exec -T app wget -qO /dev/null http://127.0.0.1:3000/api/health >/dev/null 2>&1; do
+until docker compose exec -T app wget -qO /dev/null http://127.0.0.1:3000/api/health </dev/null >/dev/null 2>&1; do
   tries=$((tries + 1))
   [ "$tries" -lt 90 ] || fail "Mise did not start within three minutes. See: cd $(pwd) && docker compose logs app"
   sleep 2
@@ -88,7 +96,7 @@ if command -v hostname >/dev/null 2>&1; then
   [ -n "${lan:-}" ] && address="$lan"
 fi
 
-needs_setup="$(docker compose exec -T app node -e "fetch('http://127.0.0.1:3000/api/setup/status').then(r=>r.json()).then(s=>console.log(s.needsSetup)).catch(()=>console.log('unknown'))" 2>/dev/null | tr -d '\r')"
+needs_setup="$(docker compose exec -T app node -e "fetch('http://127.0.0.1:3000/api/setup/status').then(r=>r.json()).then(s=>console.log(s.needsSetup)).catch(()=>console.log('unknown'))" </dev/null 2>/dev/null | tr -d '\r')"
 setup_code="$(sed -n 's/^SETUP_TOKEN=//p' .env)"
 
 say ""

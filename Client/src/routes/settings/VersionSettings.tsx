@@ -4,7 +4,7 @@ import { useCurrentUser } from '../../api/session.js';
 import { errorMessage, useT } from '../../i18n/index.js';
 
 const INSTALL_COMMAND =
-  'curl -fsSL https://raw.githubusercontent.com/SandSlideStudio/Mise/main/deploy/install.sh | sh';
+  'curl -fsSL https://github.com/SandSlideStudio/Mise/releases/latest/download/install.sh | sh';
 const DOCKER_COMMAND = 'docker compose pull && docker compose up -d';
 
 /**
