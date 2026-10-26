@@ -36,7 +36,7 @@ import * as webdav from './webdav.js';
  */
 
 /** Bumped when the inside of a backup changes in a way older versions can't read. */
-const FORMAT = 1;
+export const FORMAT = 1;
 const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
 const FILE_PATTERN = /^mise-backup-\d{8}-\d{6}\.mise$/;
 const HOUR = 3_600_000;
@@ -46,7 +46,7 @@ type Settings = typeof backupSettings.$inferSelect;
 /** Restoring is only for a server nobody has set up yet. */
 export class AlreadySetUpError extends Error {}
 
-interface Manifest {
+export interface Manifest {
   format: number;
   app: string;
   version: string;
@@ -103,7 +103,7 @@ export function problemOf(
   return null;
 }
 
-function fileName(moment: Date): string {
+export function fileName(moment: Date): string {
   const stamp = moment.toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
   return `mise-backup-${stamp}.mise`;
 }
