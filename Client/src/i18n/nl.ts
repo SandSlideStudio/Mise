@@ -154,7 +154,7 @@ export const nl: Record<MessageKey, string> = {
   'setup.failed': 'Instellen is mislukt. Kijk in het serverlogboek.',
   'setup.create': 'Keuken aanmaken',
   'setup.codeHint':
-    'Het is de SETUP_TOKEN in de instellingen van Mise, en staat ook aan het eind van de installatielink die het installatieprogramma toonde. Is er geen ingesteld, dan heeft Mise er zelf een gemaakt en in zijn log gezet.',
+    'Installeren van buiten het keukennetwerk vraagt om deze code. Het is SETUP_TOKEN in de instellingen van Mise, of het eind van de installatielink die het installatieprogramma toonde. Is er geen ingesteld, dan heeft Mise er zelf een gemaakt en in zijn log gezet.',
   'setup.codeLabel': 'Installatiecode',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Jij',
@@ -199,7 +199,12 @@ export const nl: Record<MessageKey, string> = {
   'setup.summaryPin': 'Pincode voor de keukentablet',
   'setup.backupsTitle': 'Back-ups',
   'setup.backupsHint':
-    'Mise maakt elke nacht een back-up van de hele keuken. Een kopie ergens anders betekent dat een kapotte schijf of een diefstal de back-ups niet ook meeneemt. Je koppelt het direct na de installatie; later kan ook.',
+    'Mise maakt elke nacht een back-up van de hele keuken. Een kopie ergens anders betekent dat een kapotte schijf of een diefstal de back-ups niet ook meeneemt. Je kunt dit later wijzigen in Instellingen.',
+  'setup.backupsTestFirst':
+    'Test eerst de verbinding met de NAS, of kies een andere plek voor back-ups.',
+  'setup.backupsConnectFirst': 'Koppel eerst OneDrive, of kies een andere plek voor back-ups.',
+  'setup.codeForBackups':
+    'Nodig om de NAS te testen of OneDrive te koppelen van buiten het keukennetwerk. Het is SETUP_TOKEN in de instellingen van Mise, of de code die Mise in zijn log zette.',
   'setup.recipesTitle': 'Recepten',
   'setup.recipesBody':
     'Zet de gerechten en mise en place die je al kent in het receptenboek: een naam en wat één batch oplevert. Ingrediënten en werkwijze kunnen later.',
@@ -616,12 +621,7 @@ export const nl: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn de back-ups ook weg. Stuur ze ook naar een NAS of OneDrive.',
   'backups.onlyHereAction': 'Kies waar ze heen gaan',
-  'backups.connectTitle': 'Nog één stap voor je back-ups',
-  'backups.connectWebdav':
-    'Vul je NAS of Nextcloud in onder Waar back-ups heen gaan, test hem en sla op.',
-  'backups.connectOnedrive':
-    'Koppel OneDrive onder Waar back-ups heen gaan met de code die Microsoft je geeft, en sla daarna op.',
-  'backups.whereLocal': 'Alleen op deze machine',
+  'backups.whereLocal': 'Op deze machine, altijd',
   'backups.whereLocalHint':
     'Deze staan op dezelfde machine als Mise. Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn ze ook weg. Download er dus af en toe een, of stuur ze naar een NAS of OneDrive.',
   'backups.whereWebdav': 'Ook naar een NAS of Nextcloud',
@@ -666,6 +666,7 @@ export const nl: Record<MessageKey, string> = {
   'backups.onedrive.failed':
     'Microsoft accepteerde de koppeling niet. Probeer het over een minuut opnieuw.',
   'backups.keepOnedrive': 'Bewaren op OneDrive',
+  'backups.keepBoth': 'Bewaren op de NAS en op OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive laat Mise niet meer toe. Koppel OneDrive opnieuw op de pagina Back-ups.',
   'backups.reason.onedrive_full': 'OneDrive is vol.',

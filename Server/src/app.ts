@@ -1,4 +1,4 @@
-import Fastify, { LogController, type FastifyInstance } from 'fastify';
+import Fastify, { LogController, type FastifyInstance, type FastifyRequest } from 'fastify';
 import cookie from '@fastify/cookie';
 import rateLimit from '@fastify/rate-limit';
 import fastifyStatic from '@fastify/static';
@@ -18,6 +18,7 @@ import livePlugin from './plugins/live.js';
 import securityPlugin from './plugins/security.js';
 import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
+import { fromOwnNetwork } from './lib/network.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
@@ -43,6 +44,8 @@ declare module 'fastify' {
   interface FastifyInstance {
     /** The code first-run setup must be given, or null when none is needed. */
     setupToken: string | null;
+    /** Whether this request has to give the setup code to set up or restore. */
+    setupCodeNeeded: (request: FastifyRequest) => boolean;
     backups: BackupService;
     updates: UpdateChecker;
   }
@@ -89,6 +92,11 @@ export async function buildApp(
   });
 
   app.decorate('setupToken', setupTokenFor(config));
+  const always = setupCodeAlways(config);
+  app.decorate(
+    'setupCodeNeeded',
+    (request: FastifyRequest) => app.setupToken !== null && (always || !fromOwnNetwork(request)),
+  );
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
@@ -266,17 +274,21 @@ function findClientDir(hint: string): string | null {
 }
 
 /**
- * The one-time code first-run setup asks for, or null when it asks for none.
- *
- * On a kitchen network the risk is someone on the wifi finishing setup first,
- * in the minutes between install and setup, so no code is needed unless one
- * was set. Behind HTTPS or a proxy Mise is probably reachable from the
- * internet, where bots claim freshly installed apps: then there is always a
- * code, made up and printed in the log when none was set.
+ * The one-time code first-run setup can ask for. Every production server has
+ * one: the one set in SETUP_TOKEN, or else one made up at start and printed in
+ * the log. Whether a given request has to give it is setupCodeNeeded's call.
  */
 export function setupTokenFor(config: Config): string | null {
   if (config.NODE_ENV !== 'production') return null;
-  if (config.SETUP_TOKEN) return config.SETUP_TOKEN;
-  const reachableFromOutside = config.COOKIE_SECURE || config.TRUST_PROXY !== false;
-  return reachableFromOutside ? generateToken(18) : null;
+  return config.SETUP_TOKEN ?? generateToken(18);
+}
+
+/**
+ * Whether this request has to give the setup code. Always when one was set on
+ * purpose, or when Mise sits behind HTTPS or a proxy and so is probably
+ * reachable from the internet, where bots claim freshly installed apps. On a
+ * plain kitchen network, only for requests that don't come straight from it.
+ */
+export function setupCodeAlways(config: Config): boolean {
+  return Boolean(config.SETUP_TOKEN) || config.COOKIE_SECURE || config.TRUST_PROXY !== false;
 }

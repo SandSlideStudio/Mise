@@ -3,6 +3,7 @@ import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js
 import { quantitySchema } from './common.js';
 import { recipeTypeSchema } from './recipes.js';
 import { tickedRetentionSchema } from './prep.js';
+import { backupSendToSchema, webdavUrlSchema } from './backups.js';
 
 /**
  * First run only. Reachable while the server has no users at all.
@@ -38,6 +39,22 @@ export const setupRecipeSchema = z.object({
   portions: z.number().positive().nullable().optional(),
 });
 
+/**
+ * Where backups go, chosen and connected during setup. A NAS was tested and
+ * OneDrive signed in to on the way; the server checks OneDrive again.
+ */
+export const setupBackupsSchema = z
+  .object({
+    sendTo: backupSendToSchema,
+    webdavUrl: webdavUrlSchema.nullable().optional(),
+    webdavUsername: z.string().trim().max(200).nullable().optional(),
+    webdavPassword: z.string().max(500).optional(),
+  })
+  .refine((backups) => !backups.sendTo.includes('webdav') || Boolean(backups.webdavUrl), {
+    message: 'Enter the address of the NAS to send backups to.',
+    path: ['webdavUrl'],
+  });
+
 export const setupRequestSchema = z
   .object({
     /** The one-time code from the install, when the server asks for one. */
@@ -57,6 +74,7 @@ export const setupRequestSchema = z
     stations: z.array(z.string().trim().min(1).max(80)).min(1).max(50).optional(),
     staff: z.array(setupStaffSchema).max(200).optional(),
     recipes: z.array(setupRecipeSchema).max(500).optional(),
+    backups: setupBackupsSchema.optional(),
   })
   .superRefine((setup, ctx) => {
     const stations = (setup.stations ?? DEFAULT_STATIONS).map(sameName);
@@ -90,3 +108,4 @@ export const setupRequestSchema = z
 export type SetupRequest = z.infer<typeof setupRequestSchema>;
 export type SetupStaff = z.infer<typeof setupStaffSchema>;
 export type SetupRecipe = z.infer<typeof setupRecipeSchema>;
+export type SetupBackups = z.infer<typeof setupBackupsSchema>;

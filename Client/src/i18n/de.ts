@@ -156,7 +156,7 @@ export const de: Record<MessageKey, string> = {
   'setup.failed': 'Die Einrichtung ist fehlgeschlagen. Sieh im Serverprotokoll nach.',
   'setup.create': 'Küche anlegen',
   'setup.codeHint':
-    'Es ist der SETUP_TOKEN in den Einstellungen von Mise, auch am Ende des Links, den das Installationsprogramm angezeigt hat. Wurde keiner gesetzt, hat Mise selbst einen erstellt und in sein Protokoll geschrieben.',
+    'Die Einrichtung von außerhalb des Küchennetzwerks verlangt diesen Code. Es ist SETUP_TOKEN in den Einstellungen von Mise oder das Ende des Links, den das Installationsprogramm angezeigt hat. Wurde keiner gesetzt, hat Mise selbst einen erstellt und in sein Protokoll geschrieben.',
   'setup.codeLabel': 'Einrichtungscode',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Du',
@@ -202,7 +202,13 @@ export const de: Record<MessageKey, string> = {
   'setup.summaryPin': 'PIN für das Küchentablet',
   'setup.backupsTitle': 'Sicherungen',
   'setup.backupsHint':
-    'Mise sichert jede Nacht die ganze Küche. Eine Kopie woanders sorgt dafür, dass eine kaputte Festplatte oder ein Diebstahl die Sicherungen nicht mitnimmt. Du verbindest es direkt nach der Einrichtung; später geht es auch.',
+    'Mise sichert jede Nacht die ganze Küche. Eine Kopie woanders sorgt dafür, dass eine kaputte Festplatte oder ein Diebstahl die Sicherungen nicht mitnimmt. Du kannst das später in den Einstellungen ändern.',
+  'setup.backupsTestFirst':
+    'Teste zuerst die Verbindung zum NAS oder wähle einen anderen Ort für Sicherungen.',
+  'setup.backupsConnectFirst':
+    'Verbinde zuerst OneDrive oder wähle einen anderen Ort für Sicherungen.',
+  'setup.codeForBackups':
+    'Nötig, um das NAS zu testen oder OneDrive zu verbinden, wenn du außerhalb des Küchennetzwerks bist. Es ist SETUP_TOKEN in den Einstellungen von Mise oder der Code, den Mise in sein Protokoll geschrieben hat.',
   'setup.recipesTitle': 'Rezepte',
   'setup.recipesBody':
     'Trag die Gerichte und Vorbereitungen, die du schon kennst, ins Rezeptbuch ein: einen Namen und was eine Charge ergibt. Zutaten und Zubereitung können später folgen.',
@@ -621,12 +627,7 @@ export const de: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind die Sicherungen mit weg. Schicke sie auch an ein NAS oder OneDrive.',
   'backups.onlyHereAction': 'Ziel auswählen',
-  'backups.connectTitle': 'Noch ein Schritt für deine Sicherungen',
-  'backups.connectWebdav':
-    'Trage unter Wohin die Sicherungen gehen dein NAS oder Nextcloud ein, teste es und speichere.',
-  'backups.connectOnedrive':
-    'Verbinde OneDrive unter Wohin die Sicherungen gehen mit dem Code von Microsoft und speichere dann.',
-  'backups.whereLocal': 'Nur auf diesem Gerät',
+  'backups.whereLocal': 'Auf diesem Gerät, immer',
   'backups.whereLocalHint':
     'Sie liegen auf demselben Gerät wie Mise. Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind sie mit weg. Lade also ab und zu eine herunter oder schicke sie an ein NAS oder OneDrive.',
   'backups.whereWebdav': 'Auch auf ein NAS oder Nextcloud',
@@ -672,6 +673,7 @@ export const de: Record<MessageKey, string> = {
   'backups.onedrive.failed':
     'Microsoft hat die Verbindung nicht angenommen. Versuch es in einer Minute noch einmal.',
   'backups.keepOnedrive': 'Auf OneDrive behalten',
+  'backups.keepBoth': 'Auf dem NAS und auf OneDrive behalten',
   'backups.reason.onedrive_auth':
     'OneDrive lässt Mise nicht mehr hinein. Verbinde es auf der Seite Sicherungen neu.',
   'backups.reason.onedrive_full': 'OneDrive ist voll.',

@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
-/** Where nightly backups go. They are always kept on the server too. */
-export const backupDestinationSchema = z.enum(['local', 'webdav', 'onedrive']);
+/**
+ * Where else each backup goes. Every backup is kept on the server first; it is
+ * also sent to each of these that is switched on, any number of them at once.
+ */
+export const backupDestinationSchema = z.enum(['webdav', 'onedrive']);
+export const backupSendToSchema = z
+  .array(backupDestinationSchema)
+  .max(2)
+  .transform((list) => [...new Set(list)]);
 
 /**
  * What an administrator should be told about, most urgent first: the last
@@ -47,7 +54,7 @@ export const onedriveStatusSchema = z.object({
 });
 
 export const backupStatusSchema = z.object({
-  destination: backupDestinationSchema,
+  sendTo: z.array(backupDestinationSchema),
   webdavUrl: z.string().nullable(),
   webdavUsername: z.string().nullable(),
   hasWebdavPassword: z.boolean(),
@@ -66,7 +73,7 @@ export const backupStatusSchema = z.object({
   files: z.array(backupFileSchema),
 });
 
-const webdavUrlSchema = z
+export const webdavUrlSchema = z
   .string()
   .trim()
   .max(500)
@@ -74,7 +81,7 @@ const webdavUrlSchema = z
 
 export const updateBackupSettingsSchema = z
   .object({
-    destination: backupDestinationSchema,
+    sendTo: backupSendToSchema,
     webdavUrl: webdavUrlSchema.nullable(),
     webdavUsername: z.string().trim().max(200).nullable(),
     /** Left out to keep the saved password. */

@@ -103,7 +103,7 @@ describe('password sign-in', () => {
     expect(response.json().error.code).toBe('invalid_credentials');
   });
 
-  it('locks the account after five failed attempts', async () => {
+  it('locks the address after five failed attempts', async () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       await ctx.app.inject({
         method: 'POST',
@@ -299,6 +299,21 @@ describe('PIN sign-in on the line', () => {
       cookies: { mise_device: deviceCookie },
     });
     expect(response.statusCode).toBe(429);
+
+    // A new PIN from an administrator lifts it straight away.
+    await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/users/${cookId}`,
+      payload: { pin: '1357' },
+      cookies: { mise_session: adminCookie },
+    });
+    const after = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/pin-login',
+      payload: { userId: cookId, pin: '1357' },
+      cookies: { mise_device: deviceCookie },
+    });
+    expect(after.statusCode).toBe(200);
   });
 
   it('signs everyone out of a tablet when it is revoked', async () => {
@@ -389,7 +404,7 @@ describe('the database refuses nonsense', () => {
 });
 
 describe('guessing many passwords at once', () => {
-  it('still locks the account after five', async () => {
+  it('still locks the address after five', async () => {
     await setUpKitchen(ctx.app);
     const guesses = Array.from({ length: 8 }, (_, i) =>
       ctx.app.inject({
@@ -410,5 +425,36 @@ describe('guessing many passwords at once', () => {
       payload: { email: ADMIN.email, password: ADMIN.password },
     });
     expect(real.json().error?.code).toBe('account_locked');
+  });
+});
+
+describe('someone else guessing at your account', () => {
+  const ATTACKER = '203.0.113.9';
+  const KITCHEN_LAPTOP = '192.168.1.20';
+
+  function login(password: string, remoteAddress: string) {
+    return ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password },
+      remoteAddress,
+    });
+  }
+
+  it('locks out the address that guessed, not the account', async () => {
+    await setUpKitchen(ctx.app);
+    for (let i = 0; i < 6; i += 1) await login(`wrong-${i}`, ATTACKER);
+    expect((await login(ADMIN.password, ATTACKER)).json().error?.code).toBe('account_locked');
+
+    // The chef, from the kitchen, is not kept out.
+    expect((await login(ADMIN.password, KITCHEN_LAPTOP)).statusCode).toBe(200);
+  });
+
+  it('locks the account itself when guesses come from many addresses', async () => {
+    await setUpKitchen(ctx.app);
+    for (let i = 0; i < 30; i += 1) await login('wrong', `198.51.100.${i + 1}`);
+    const response = await login(ADMIN.password, KITCHEN_LAPTOP);
+    expect(response.statusCode).toBe(429);
+    expect(response.json().error.code).toBe('account_locked');
   });
 });

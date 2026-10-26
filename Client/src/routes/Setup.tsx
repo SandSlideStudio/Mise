@@ -11,8 +11,14 @@ import {
   type TickedRetention,
 } from '@mise/contracts';
 import { ALL_UNITS, ONE_PLATE, type UnitCode } from '@mise/domain';
-import type { BackupDestination, RestoreResult } from '@mise/contracts';
-import { useRestoreBackup } from '../api/backups.js';
+import type { BackupDestination, OnedriveStatus, RestoreResult } from '@mise/contracts';
+import {
+  useRestoreBackup,
+  useSetupConnectOnedrive,
+  useSetupDisconnectOnedrive,
+  useSetupOnedrive,
+  useSetupTestBackup,
+} from '../api/backups.js';
 import { RequestFailed } from '../api/client.js';
 import { useEnrollDevice } from '../api/kitchen.js';
 import { useSetup, useSetupStatus } from '../api/session.js';
@@ -103,7 +109,6 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PIN = /^\d{4,8}$/;
 
 const BACKUP_CHOICE: Record<BackupDestination, MessageKey> = {
-  local: 'backups.whereLocal',
   webdav: 'backups.whereWebdav',
   onedrive: 'backups.whereOnedrive',
 };
@@ -188,7 +193,15 @@ export function Setup() {
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [enrolDevice, setEnrolDevice] = useState(false);
-  const [backupsTo, setBackupsTo] = useState<BackupDestination>('local');
+  // Every backup stays on this machine; these are where else it goes too.
+  const [sendTo, setSendTo] = useState<BackupDestination[]>([]);
+  const toWebdav = sendTo.includes('webdav');
+  const toOnedrive = sendTo.includes('onedrive');
+  const toggleSendTo = (place: BackupDestination) =>
+    setSendTo((current) =>
+      current.includes(place) ? current.filter((p) => p !== place) : [...current, place],
+    );
+  const [nas, setNas] = useState<NasDraft>({ url: '', username: '', password: '', tested: false });
   const [deviceName, setDeviceName] = useState('');
 
   // The one-time code a production server asks for. The installer's setup link
@@ -200,6 +213,7 @@ export function Setup() {
     (error) => error instanceof RequestFailed && error.code === 'setup_token',
   );
   const askForCode = status.data?.setupTokenRequired === true && (!linkCode || codeRejected);
+  const onedrive = useSetupOnedrive(code.trim(), toOnedrive);
 
   /** -1 on the welcome page, 0 to 5 on the steps, 6 once it is all signed. */
   const index = isStep(page) ? STEPS.indexOf(page) : page === 'ready' ? STEPS.length : -1;
@@ -249,6 +263,10 @@ export function Setup() {
         break;
       case 'settings':
         if (enrolDevice && !deviceName.trim()) found.add('setup.required');
+        if (toWebdav && !nas.tested) found.add('setup.backupsTestFirst');
+        if (toOnedrive && !onedrive.data?.account) {
+          found.add('setup.backupsConnectFirst');
+        }
         break;
       case 'check':
         if (askForCode && !code.trim()) found.add('setup.required');
@@ -338,6 +356,19 @@ export function Setup() {
               portions: null,
             }),
       })),
+      backups:
+        sendTo.length === 0
+          ? undefined
+          : {
+              sendTo,
+              ...(toWebdav
+                ? {
+                    webdavUrl: nas.url.trim(),
+                    webdavUsername: nas.username.trim() || null,
+                    webdavPassword: nas.password || undefined,
+                  }
+                : {}),
+            },
     };
 
     setup.mutate(payload, {
@@ -369,10 +400,7 @@ export function Setup() {
             kitchenName: kitchenName.trim(),
             setupTokenRequired: false,
           });
-          // Backups off the machine are connected on the backups page, which
-          // needs the administrator this setup just signed in.
-          if (backupsTo === 'local') void navigate({ to: '/' });
-          else window.location.assign(`/settings?tab=backups&connect=${backupsTo}`);
+          void navigate({ to: '/' });
         }, READY_HOLD_MS + CLOSE_MS);
       },
     });
@@ -877,16 +905,41 @@ export function Setup() {
                 <fieldset className="border-rule flex flex-col gap-2 border-t pt-6">
                   <legend className="sr-only">{t('setup.backupsTitle')}</legend>
                   <SectionTitle>{t('setup.backupsTitle')}</SectionTitle>
-                  {(['local', 'webdav', 'onedrive'] as const).map((value) => (
-                    <Choice
-                      key={value}
-                      name="backups"
-                      checked={backupsTo === value}
-                      onChange={() => setBackupsTo(value)}
-                      title={t(BACKUP_CHOICE[value])}
+                  <CheckChoice
+                    checked
+                    disabled
+                    onChange={() => {}}
+                    title={t('backups.whereLocal')}
+                  />
+                  {(['webdav', 'onedrive'] as const).map((place) => (
+                    <CheckChoice
+                      key={place}
+                      checked={sendTo.includes(place)}
+                      onChange={() => toggleSendTo(place)}
+                      title={t(BACKUP_CHOICE[place])}
                     />
                   ))}
                   <p className="text-ink-soft text-sm text-pretty">{t('setup.backupsHint')}</p>
+                  {sendTo.length > 0 && askForCode ? (
+                    <Field
+                      label={t('setup.codeLabel')}
+                      htmlFor="backupCode"
+                      hint={t('setup.codeForBackups')}
+                    >
+                      <input
+                        id="backupCode"
+                        className="field font-mono"
+                        value={code}
+                        onChange={(e) => setCode(e.target.value)}
+                        autoComplete="off"
+                        spellCheck={false}
+                      />
+                    </Field>
+                  ) : null}
+                  {toWebdav ? <SetupNas draft={nas} onChange={setNas} code={code.trim()} /> : null}
+                  {toOnedrive ? (
+                    <SetupOnedrive status={onedrive.data ?? null} code={code.trim()} />
+                  ) : null}
                 </fieldset>
 
                 <section className="border-rule flex flex-col gap-3 border-t pt-6">
@@ -980,7 +1033,18 @@ export function Setup() {
                     <p className="text-ink-soft text-sm">
                       {t(unitSystem === 'metric' ? 'kitchen.metric' : 'kitchen.imperial')}
                     </p>
-                    <p className="text-ink-soft text-sm">{t(BACKUP_CHOICE[backupsTo])}</p>
+                    <p className="text-ink-soft text-sm">{t('backups.whereLocal')}</p>
+                    {toWebdav ? (
+                      <p className="text-ink-soft text-sm">
+                        {t('backups.whereWebdav')} · {nas.url.trim()}
+                      </p>
+                    ) : null}
+                    {toOnedrive ? (
+                      <p className="text-ink-soft text-sm">
+                        {t('backups.whereOnedrive')}
+                        {onedrive.data?.account ? ` · ${onedrive.data.account}` : ''}
+                      </p>
+                    ) : null}
                     <p className="text-ink-soft text-sm">
                       {enrolDevice
                         ? t('setup.summaryTablet', { name: deviceName.trim() })
@@ -1030,6 +1094,178 @@ export function Setup() {
 }
 
 // --- pieces ------------------------------------------------------------------
+
+interface NasDraft {
+  url: string;
+  username: string;
+  password: string;
+  /** Answered a test with these exact details. */
+  tested: boolean;
+}
+
+/** The NAS's address and sign-in, tested before setup goes on. */
+function SetupNas({
+  draft,
+  onChange,
+  code,
+}: {
+  draft: NasDraft;
+  onChange: (next: NasDraft) => void;
+  code: string;
+}) {
+  const translator = useT();
+  const { t } = translator;
+  const test = useSetupTestBackup(code);
+  // Any change means the last test no longer says anything.
+  const change = (patch: Partial<NasDraft>) => onChange({ ...draft, ...patch, tested: false });
+
+  return (
+    <div className="border-line flex flex-col gap-4 border-l-4 pl-4">
+      <Field
+        label={t('backups.webdavUrl')}
+        htmlFor="setupWebdavUrl"
+        hint={t('backups.webdavUrlHint')}
+      >
+        <input
+          id="setupWebdavUrl"
+          type="url"
+          className="field"
+          value={draft.url}
+          onChange={(e) => change({ url: e.target.value })}
+          placeholder="http://nas.local:5005/backups/mise"
+        />
+      </Field>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={t('backups.webdavUser')} htmlFor="setupWebdavUser">
+          <input
+            id="setupWebdavUser"
+            className="field"
+            value={draft.username}
+            onChange={(e) => change({ username: e.target.value })}
+            autoComplete="off"
+          />
+        </Field>
+        <Field label={t('backups.webdavPassword')} htmlFor="setupWebdavPassword">
+          <input
+            id="setupWebdavPassword"
+            type="password"
+            className="field"
+            value={draft.password}
+            onChange={(e) => change({ password: e.target.value })}
+            autoComplete="new-password"
+          />
+        </Field>
+      </div>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          className="btn-small"
+          disabled={!draft.url.trim() || test.isPending}
+          onClick={() =>
+            test.mutate(
+              {
+                webdavUrl: draft.url.trim(),
+                webdavUsername: draft.username.trim() || null,
+                webdavPassword: draft.password,
+              },
+              { onSuccess: () => onChange({ ...draft, tested: true }) },
+            )
+          }
+        >
+          {test.isPending ? t('backups.testing') : t('backups.test')}
+        </button>
+        {draft.tested ? (
+          <p role="status" className="text-sm">
+            ✓ {t('backups.testOk')}
+          </p>
+        ) : null}
+      </div>
+      {test.error && !draft.tested ? (
+        <p role="alert" className="text-danger text-sm">
+          {errorMessage(translator, test.error)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Signing in to OneDrive during setup: Microsoft gives a short code, someone
+ * types it in at Microsoft's page on any phone or computer, and this notices.
+ */
+function SetupOnedrive({ status, code }: { status: OnedriveStatus | null; code: string }) {
+  const translator = useT();
+  const { t } = translator;
+  const connect = useSetupConnectOnedrive(code);
+  const disconnect = useSetupDisconnectOnedrive(code);
+
+  if (status?.account) {
+    return (
+      <div className="border-line flex flex-wrap items-center gap-3 border-l-4 pl-4">
+        <p className="flex-1">✓ {t('backups.onedriveConnected', { account: status.account })}</p>
+        <button
+          type="button"
+          className="btn-small"
+          disabled={disconnect.isPending}
+          onClick={() => disconnect.mutate()}
+        >
+          {t('backups.onedriveDisconnect')}
+        </button>
+      </div>
+    );
+  }
+
+  if (status?.connecting) {
+    const { verificationUri, userCode } = status.connecting;
+    return (
+      <div className="border-accent flex flex-col gap-3 border-l-4 pl-4">
+        <p>{t('backups.onedriveCodeIntro')}</p>
+        <a
+          className="text-lg font-medium underline underline-offset-4"
+          href={verificationUri}
+          target="_blank"
+          rel="noreferrer"
+        >
+          {verificationUri.replace(/^https?:\/\//, '')}
+        </a>
+        <p className="font-mono text-3xl tracking-[0.2em] select-all">{userCode}</p>
+        <p role="status" className="text-ink-soft text-sm">
+          {t('backups.onedriveWaiting')}
+        </p>
+        <div>
+          <button type="button" className="btn-small" onClick={() => disconnect.mutate()}>
+            {t('common.cancel')}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-line flex flex-col gap-3 border-l-4 pl-4">
+      <div>
+        <button
+          type="button"
+          className="btn-small"
+          disabled={connect.isPending}
+          onClick={() => connect.mutate()}
+        >
+          {connect.isPending ? t('backups.onedriveStarting') : t('backups.onedriveConnect')}
+        </button>
+      </div>
+      {status?.connectError ? (
+        <p role="alert" className="text-danger text-sm">
+          {t(`backups.onedrive.${status.connectError}`)}
+        </p>
+      ) : null}
+      {connect.error ? (
+        <p role="alert" className="text-danger text-sm">
+          {errorMessage(translator, connect.error)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
 
 function SectionTitle({ children }: { children: ReactNode }) {
   return (
@@ -1106,6 +1342,40 @@ function PasswordState({ password, confirm }: { password: string; confirm: strin
     <p className="text-ink-soft text-sm">✓ {t('setup.passwordMatch')}</p>
   ) : (
     <p className="text-danger text-sm">{t('setup.passwordMismatch')}</p>
+  );
+}
+
+/** One of several that can be on at once. */
+function CheckChoice({
+  checked,
+  disabled,
+  onChange,
+  title,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: () => void;
+  title: string;
+}) {
+  return (
+    <label
+      className={`flex min-h-12 items-center gap-3 border-2 px-4 py-3 transition-colors ${
+        disabled ? 'cursor-default' : 'cursor-pointer'
+      } ${
+        checked
+          ? 'border-accent bg-accent-wash'
+          : 'border-line bg-surface-raised hover:border-field'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        className="accent-accent h-4 w-4 shrink-0"
+      />
+      <span className="font-medium">{title}</span>
+    </label>
   );
 }
 

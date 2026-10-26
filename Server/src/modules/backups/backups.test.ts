@@ -441,7 +441,7 @@ describe('sending backups to a NAS', () => {
       url: '/api/backups',
       cookies,
       payload: {
-        destination: 'webdav',
+        sendTo: ['webdav'],
         webdavUrl: address,
         webdavUsername: 'chef',
         webdavPassword: 'secret',
@@ -449,7 +449,7 @@ describe('sending backups to a NAS', () => {
       },
     });
     expect(saved.statusCode).toBe(200);
-    expect(saved.json()).toMatchObject({ destination: 'webdav', hasWebdavPassword: true });
+    expect(saved.json()).toMatchObject({ sendTo: ['webdav'], hasWebdavPassword: true });
 
     await app.backups.run({ force: true });
     expect([...stored.keys()]).toEqual(['mise-backup-20261020-040000.mise']);
@@ -459,6 +459,63 @@ describe('sending backups to a NAS', () => {
     expect([...stored.keys()]).toEqual(['mise-backup-20261021-040000.mise']);
     const status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
     expect(status.lastError).toBeNull();
+  });
+
+  it('can be tested and chosen during setup, before the kitchen exists', async () => {
+    const wrong = await app.inject({
+      method: 'POST',
+      url: '/api/setup/backups/test',
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'wrong' },
+    });
+    expect(wrong.statusCode).toBe(400);
+    expect(wrong.json().error.code).toBe('backup_auth');
+
+    const right = await app.inject({
+      method: 'POST',
+      url: '/api/setup/backups/test',
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'secret' },
+    });
+    expect(right.statusCode).toBe(204);
+
+    const setUp = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: {
+        ...ADMIN,
+        backups: {
+          sendTo: ['webdav'],
+          webdavUrl: address,
+          webdavUsername: 'chef',
+          webdavPassword: 'secret',
+        },
+      },
+    });
+    expect(setUp.statusCode).toBe(200);
+    const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
+    const status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
+    expect(status).toMatchObject({
+      sendTo: ['webdav'],
+      webdavUrl: address,
+      webdavUsername: 'chef',
+      hasWebdavPassword: true,
+    });
+
+    // Once the kitchen exists, the setup steps are gone.
+    const after = await app.inject({
+      method: 'POST',
+      url: '/api/setup/backups/test',
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'secret' },
+    });
+    expect(after.statusCode).toBe(404);
+  });
+
+  it('refuses a NAS without an address in setup', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { sendTo: ['webdav'] } },
+    });
+    expect(response.statusCode).toBe(400);
   });
 
   it('says when the NAS turns the password down', async () => {
@@ -477,7 +534,7 @@ describe('sending backups to a NAS', () => {
       url: '/api/backups',
       cookies,
       payload: {
-        destination: 'webdav',
+        sendTo: ['webdav'],
         webdavUrl: address,
         webdavUsername: 'chef',
         webdavPassword: 'wrong',
@@ -495,7 +552,7 @@ describe('sending backups to a NAS', () => {
       method: 'PATCH',
       url: '/api/backups',
       cookies,
-      payload: { destination: 'webdav' },
+      payload: { sendTo: ['webdav'] },
     });
     expect(response.statusCode).toBe(400);
     const zone = await app.inject({

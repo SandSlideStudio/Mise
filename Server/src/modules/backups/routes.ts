@@ -22,7 +22,7 @@ import { AlreadySetUpError, validTimeZone } from './service.js';
 /** Big enough for years of plating photos. */
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024 * 1024;
 
-function failed(error: unknown): never {
+export function failed(error: unknown): never {
   if (error instanceof BackupFailure) {
     throw new ApiError(400, `backup_${error.code}`, error.message);
   }
@@ -180,12 +180,15 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
             continue;
           }
           // The code is checked before a single byte of the file is kept.
-          if (app.setupToken !== null && !safeEqual(fields.setupToken ?? '', app.setupToken)) {
+          if (
+            app.setupCodeNeeded(request) &&
+            !safeEqual(fields.setupToken ?? '', app.setupToken ?? '')
+          ) {
             part.file.resume();
             throw new ApiError(
               403,
               'setup_token',
-              'That setup code is wrong. It was printed when Mise was installed.',
+              'That setup code is wrong. It is SETUP_TOKEN in the settings, or the code Mise printed in its log.',
             );
           }
           await pipeline(part.file, createWriteStream(upload));

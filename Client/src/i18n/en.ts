@@ -156,7 +156,7 @@ export const en = {
   'setup.failed': 'Setup failed. Check the server log.',
   'setup.create': 'Create the kitchen',
   'setup.codeHint':
-    'It’s the SETUP_TOKEN in Mise’s settings, also at the end of the setup link the installer printed. If none was set, Mise made one up and wrote it in its log.',
+    'Setup from outside the kitchen network needs this code. It’s SETUP_TOKEN in Mise’s settings, or the end of the setup link the installer printed. If none was set, Mise made one up and wrote it in its log.',
   'setup.codeLabel': 'Setup code',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'You',
@@ -201,7 +201,12 @@ export const en = {
   'setup.summaryPin': 'PIN for the kitchen tablet',
   'setup.backupsTitle': 'Backups',
   'setup.backupsHint':
-    'Mise backs up the whole kitchen every night. A copy somewhere else means a dead disk or a theft doesn’t take the backups too. You connect it right after setup; you can also do it later.',
+    'Mise backs up the whole kitchen every night. A copy somewhere else means a dead disk or a theft doesn’t take the backups too. You can change this later in Settings.',
+  'setup.backupsTestFirst':
+    'Test the connection to the NAS first, or choose another place for backups.',
+  'setup.backupsConnectFirst': 'Connect OneDrive first, or choose another place for backups.',
+  'setup.codeForBackups':
+    'Needed to test the NAS or connect OneDrive from outside the kitchen network. It’s SETUP_TOKEN in Mise’s settings, or the code Mise wrote in its log.',
   'setup.recipesTitle': 'Recipes',
   'setup.recipesBody':
     'Put the dishes and prep you already know into the book: a name and what one batch makes. Ingredients and method can follow in the recipe book.',
@@ -606,12 +611,7 @@ export const en = {
   'backups.onlyHereBody':
     'If it breaks, is stolen or its disk fails, the backups go with it. Send them to a NAS or OneDrive as well.',
   'backups.onlyHereAction': 'Choose where they go',
-  'backups.connectTitle': 'One more step for your backups',
-  'backups.connectWebdav':
-    'Fill in your NAS or Nextcloud under Where backups go, test it and save.',
-  'backups.connectOnedrive':
-    'Connect OneDrive under Where backups go with the code Microsoft gives you, then save.',
-  'backups.whereLocal': 'Only on this machine',
+  'backups.whereLocal': 'On this machine, always',
   'backups.whereLocalHint':
     'These are kept on the same machine as Mise. If it breaks, is stolen or its disk fails, they go with it, so download one now and then or send them to a NAS or OneDrive.',
   'backups.whereWebdav': 'Also to a NAS or Nextcloud',
@@ -655,6 +655,7 @@ export const en = {
   'backups.onedrive.expired': 'The code ran out before anyone signed in. Start again.',
   'backups.onedrive.failed': "Microsoft didn't accept the connection. Try again in a minute.",
   'backups.keepOnedrive': 'Keep on OneDrive',
+  'backups.keepBoth': 'Keep on the NAS and on OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive no longer lets Mise in. Connect it again on the backups page.',
   'backups.reason.onedrive_full': 'OneDrive is full.',

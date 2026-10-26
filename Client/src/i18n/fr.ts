@@ -156,7 +156,7 @@ export const fr: Record<MessageKey, string> = {
   'setup.failed': 'La configuration a échoué. Consultez le journal du serveur.',
   'setup.create': 'Créer la cuisine',
   'setup.codeHint':
-    'C’est le SETUP_TOKEN des réglages de Mise, aussi à la fin du lien affiché par le programme d’installation. Si aucun n’a été défini, Mise en a créé un et l’a écrit dans son journal.',
+    'La configuration depuis l’extérieur du réseau de la cuisine demande ce code. C’est SETUP_TOKEN dans les réglages de Mise, ou la fin du lien affiché par le programme d’installation. Si aucun n’a été défini, Mise en a créé un et l’a écrit dans son journal.',
   'setup.codeLabel': 'Code de configuration',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Vous',
@@ -202,7 +202,13 @@ export const fr: Record<MessageKey, string> = {
   'setup.summaryPin': 'Code PIN pour la tablette de la cuisine',
   'setup.backupsTitle': 'Sauvegardes',
   'setup.backupsHint':
-    'Mise sauvegarde toute la cuisine chaque nuit. Une copie ailleurs évite qu’un disque mort ou un vol emporte aussi les sauvegardes. Vous la connectez juste après la configuration ; c’est aussi possible plus tard.',
+    'Mise sauvegarde toute la cuisine chaque nuit. Une copie ailleurs évite qu’un disque mort ou un vol emporte aussi les sauvegardes. Vous pourrez changer cela plus tard dans les Réglages.',
+  'setup.backupsTestFirst':
+    'Testez d’abord la connexion au NAS, ou choisissez un autre endroit pour les sauvegardes.',
+  'setup.backupsConnectFirst':
+    'Connectez d’abord OneDrive, ou choisissez un autre endroit pour les sauvegardes.',
+  'setup.codeForBackups':
+    'Nécessaire pour tester le NAS ou connecter OneDrive depuis l’extérieur du réseau de la cuisine. C’est SETUP_TOKEN dans les réglages de Mise, ou le code que Mise a écrit dans son journal.',
   'setup.recipesTitle': 'Recettes',
   'setup.recipesBody':
     'Ajoutez au livre les plats et la mise en place que vous connaissez déjà : un nom et ce que donne une fournée. Ingrédients et méthode pourront suivre dans le livre de recettes.',
@@ -624,12 +630,7 @@ export const fr: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Si elle tombe en panne, est volée ou si son disque lâche, les sauvegardes partent avec. Envoyez-les aussi vers un NAS ou OneDrive.',
   'backups.onlyHereAction': 'Choisir où elles vont',
-  'backups.connectTitle': 'Encore une étape pour vos sauvegardes',
-  'backups.connectWebdav':
-    'Renseignez votre NAS ou Nextcloud sous Où vont les sauvegardes, testez-le et enregistrez.',
-  'backups.connectOnedrive':
-    'Connectez OneDrive sous Où vont les sauvegardes avec le code que Microsoft vous donne, puis enregistrez.',
-  'backups.whereLocal': 'Uniquement sur cette machine',
+  'backups.whereLocal': 'Sur cette machine, toujours',
   'backups.whereLocalHint':
     'Elles sont gardées sur la même machine que Mise. Si elle tombe en panne, est volée ou si son disque lâche, elles partent avec. Téléchargez-en donc une de temps en temps, ou envoyez-les vers un NAS ou OneDrive.',
   'backups.whereWebdav': 'Aussi vers un NAS ou Nextcloud',
@@ -673,6 +674,7 @@ export const fr: Record<MessageKey, string> = {
   'backups.onedrive.expired': 'Le code a expiré avant la connexion. Recommencez.',
   'backups.onedrive.failed': 'Microsoft n’a pas accepté la connexion. Réessayez dans une minute.',
   'backups.keepOnedrive': 'Garder sur OneDrive',
+  'backups.keepBoth': 'Garder sur le NAS et sur OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive n’accepte plus Mise. Reconnectez-le sur la page des sauvegardes.',
   'backups.reason.onedrive_full': 'OneDrive est plein.',

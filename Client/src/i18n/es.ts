@@ -156,7 +156,7 @@ export const es: Record<MessageKey, string> = {
   'setup.failed': 'La configuración ha fallado. Revisa el registro del servidor.',
   'setup.create': 'Crear la cocina',
   'setup.codeHint':
-    'Es el SETUP_TOKEN de la configuración de Mise, también al final del enlace que mostró el instalador. Si no se definió ninguno, Mise creó uno y lo escribió en su registro.',
+    'Configurar desde fuera de la red de la cocina pide este código. Es SETUP_TOKEN en la configuración de Mise, o el final del enlace que mostró el instalador. Si no se definió ninguno, Mise creó uno y lo escribió en su registro.',
   'setup.codeLabel': 'Código de configuración',
   'setup.stepKitchen': 'Restaurante',
   'setup.stepYou': 'Tú',
@@ -201,7 +201,12 @@ export const es: Record<MessageKey, string> = {
   'setup.summaryPin': 'PIN para la tableta de la cocina',
   'setup.backupsTitle': 'Copias de seguridad',
   'setup.backupsHint':
-    'Mise hace cada noche una copia de toda la cocina. Una copia en otro sitio evita que un disco roto o un robo se lleve también las copias. Lo conectas justo después de la configuración; también puedes hacerlo más tarde.',
+    'Mise hace cada noche una copia de toda la cocina. Una copia en otro sitio evita que un disco roto o un robo se lleve también las copias. Puedes cambiarlo más tarde en Configuración.',
+  'setup.backupsTestFirst':
+    'Prueba primero la conexión con el NAS, o elige otro sitio para las copias.',
+  'setup.backupsConnectFirst': 'Conecta primero OneDrive, o elige otro sitio para las copias.',
+  'setup.codeForBackups':
+    'Necesario para probar el NAS o conectar OneDrive desde fuera de la red de la cocina. Es SETUP_TOKEN en la configuración de Mise, o el código que Mise escribió en su registro.',
   'setup.recipesTitle': 'Recetas',
   'setup.recipesBody':
     'Añade al recetario los platos y la mise en place que ya conoces: un nombre y lo que rinde una tanda. Ingredientes y elaboración pueden venir después.',
@@ -617,12 +622,7 @@ export const es: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Si se estropea, la roban o falla su disco, las copias se pierden con ella. Envíalas también a un NAS o a OneDrive.',
   'backups.onlyHereAction': 'Elegir adónde van',
-  'backups.connectTitle': 'Un paso más para tus copias',
-  'backups.connectWebdav':
-    'Rellena tu NAS o Nextcloud en Adónde van las copias, pruébalo y guarda.',
-  'backups.connectOnedrive':
-    'Conecta OneDrive en Adónde van las copias con el código que te da Microsoft y luego guarda.',
-  'backups.whereLocal': 'Solo en esta máquina',
+  'backups.whereLocal': 'En esta máquina, siempre',
   'backups.whereLocalHint':
     'Se guardan en la misma máquina que Mise. Si se estropea, la roban o falla su disco, se pierden con ella. Así que descarga una de vez en cuando, o envíalas a un NAS o a OneDrive.',
   'backups.whereWebdav': 'También a un NAS o Nextcloud',
@@ -667,6 +667,7 @@ export const es: Record<MessageKey, string> = {
     'El código caducó antes de que nadie iniciara sesión. Vuelve a empezar.',
   'backups.onedrive.failed': 'Microsoft no aceptó la conexión. Inténtalo de nuevo en un minuto.',
   'backups.keepOnedrive': 'Guardar en OneDrive',
+  'backups.keepBoth': 'Guardar en el NAS y en OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive ya no deja entrar a Mise. Vuelve a conectarlo en la página de copias.',
   'backups.reason.onedrive_full': 'OneDrive está lleno.',

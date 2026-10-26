@@ -1,4 +1,4 @@
-import { and, eq, isNull, lt, lte, or, sql } from 'drizzle-orm';
+import { and, eq, isNull, lt, sql } from 'drizzle-orm';
 import { DEFAULT_STATIONS, type Language, type SetupRequest } from '@mise/contracts';
 import { toBase, type UnitCode } from '@mise/domain';
 import type { Database } from '../../db/client.js';
@@ -10,6 +10,7 @@ import {
   hashToken,
   verifySecret,
 } from '../../lib/crypto.js';
+import { createLockout, LOCKOUT_MINUTES, type Lockout } from './lockout.js';
 
 /**
  * Sign-in, sessions, and the lockout that stops a four-digit PIN from being
@@ -21,9 +22,6 @@ export const PASSWORD_SESSION_DAYS = 14;
 export const PIN_SESSION_HOURS = 14;
 /** A tablet stays enrolled for a year unless an admin revokes it. */
 export const DEVICE_TOKEN_DAYS = 365;
-
-const MAX_FAILED_ATTEMPTS = 5;
-const LOCKOUT_MINUTES = 15;
 
 export type AuthFailure =
   | { kind: 'invalid_credentials' }
@@ -53,51 +51,29 @@ function daysFromNow(days: number): Date {
 }
 
 export function createAuthService(db: Database) {
+  /** Wrong guesses per account and address; see lockout.ts. */
+  const lockout: Lockout = createLockout();
+
   /**
-   * Count a sign-in attempt before the slow password check, in one UPDATE.
-   * Guesses sent at the same moment then queue behind each other, so the sixth
-   * is refused without being checked instead of all of them getting through
-   * before the lock. Returns the attempt number, or when the lock lifts.
+   * Before the slow check: is the account locked as a whole (the brake, or an
+   * older lock), or this address for this account? Otherwise the attempt is
+   * counted now, so guesses sent at once can't all slip through.
    */
   async function reserveAttempt(
-    userId: string,
+    user: { id: string; lockedUntil: Date | null },
+    address: string,
   ): Promise<{ attempt: number } | { lockedUntil: Date }> {
-    const [row] = await db
-      .update(users)
-      .set({ failedAttempts: sql`${users.failedAttempts} + 1`, lockedUntil: null })
-      .where(
-        and(
-          eq(users.id, userId),
-          or(isNull(users.lockedUntil), lte(users.lockedUntil, new Date())),
-        ),
-      )
-      .returning({ failedAttempts: users.failedAttempts });
+    if (user.lockedUntil && user.lockedUntil > new Date()) return { lockedUntil: user.lockedUntil };
+    return lockout.reserve(user.id, address);
+  }
 
-    if (!row) {
-      const [locked] = await db
-        .select({ lockedUntil: users.lockedUntil })
-        .from(users)
+  async function failedAttempt(userId: string, address: string, attempt: number): Promise<void> {
+    if (lockout.failed(userId, address, attempt).lockAccount) {
+      await db
+        .update(users)
+        .set({ lockedUntil: minutesFromNow(LOCKOUT_MINUTES), updatedAt: new Date() })
         .where(eq(users.id, userId));
-      return { lockedUntil: locked?.lockedUntil ?? minutesFromNow(LOCKOUT_MINUTES) };
     }
-    if (row.failedAttempts > MAX_FAILED_ATTEMPTS) return { lockedUntil: await lock(userId) };
-    return { attempt: row.failedAttempts };
-  }
-
-  async function lock(userId: string): Promise<Date> {
-    const until = minutesFromNow(LOCKOUT_MINUTES);
-    await db
-      .update(users)
-      .set({ lockedUntil: until, failedAttempts: 0, updatedAt: new Date() })
-      .where(eq(users.id, userId));
-    return until;
-  }
-
-  async function clearFailures(userId: string): Promise<void> {
-    await db
-      .update(users)
-      .set({ failedAttempts: 0, lockedUntil: null, updatedAt: new Date() })
-      .where(eq(users.id, userId));
   }
 
   async function issueSession(
@@ -119,6 +95,7 @@ export function createAuthService(db: Database) {
   async function loginWithPassword(
     email: string,
     password: string,
+    address: string,
     userAgent?: string | null,
   ): Promise<{ ok: true; session: AuthenticatedSession } | { ok: false; error: AuthFailure }> {
     const [user] = await db
@@ -133,17 +110,17 @@ export function createAuthService(db: Database) {
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
     if (!user.active) return { ok: false, error: { kind: 'inactive' } };
-    const reserved = await reserveAttempt(user.id);
+    const reserved = await reserveAttempt(user, address);
     if ('lockedUntil' in reserved) {
       return { ok: false, error: { kind: 'locked', until: reserved.lockedUntil } };
     }
 
     if (!(await verifySecret(user.passwordHash, password))) {
-      if (reserved.attempt >= MAX_FAILED_ATTEMPTS) await lock(user.id);
+      await failedAttempt(user.id, address, reserved.attempt);
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
 
-    await clearFailures(user.id);
+    lockout.succeeded(user.id, address);
     const session = await issueSession(user.id, {
       expiresAt: daysFromNow(PASSWORD_SESSION_DAYS),
       userAgent,
@@ -168,17 +145,18 @@ export function createAuthService(db: Database) {
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
     if (!user.active) return { ok: false, error: { kind: 'inactive' } };
-    const reserved = await reserveAttempt(user.id);
+    // The tablet is the address: a PIN only works on an enrolled one anyway.
+    const reserved = await reserveAttempt(user, deviceId);
     if ('lockedUntil' in reserved) {
       return { ok: false, error: { kind: 'locked', until: reserved.lockedUntil } };
     }
 
     if (!(await verifySecret(user.pinHash, pin))) {
-      if (reserved.attempt >= MAX_FAILED_ATTEMPTS) await lock(user.id);
+      await failedAttempt(user.id, deviceId, reserved.attempt);
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
 
-    await clearFailures(user.id);
+    lockout.succeeded(user.id, deviceId);
     const session = await issueSession(user.id, {
       deviceId,
       expiresAt: new Date(Date.now() + PIN_SESSION_HOURS * 3_600_000),
@@ -432,6 +410,8 @@ export function createAuthService(db: Database) {
   return {
     loginWithPassword,
     loginWithPin,
+    /** Start a person's count over everywhere, after an administrator resets them. */
+    forgetFailures: (userId: string) => lockout.forget(userId),
     markTourSeen,
     resolveSession,
     revokeSession,

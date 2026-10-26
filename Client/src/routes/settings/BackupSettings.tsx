@@ -20,35 +20,22 @@ import { errorMessage, useT } from '../../i18n/index.js';
  * Nightly backups: when the last one worked, where they go, and the recovery
  * key that opens them. Administrators only; a backup holds everyone's sign-in.
  */
-/**
- * Setup sends a kitchen here with ?connect=webdav or ?connect=onedrive when
- * whoever set it up wants backups off the machine: connecting needs a signed-in
- * administrator, so it can only be finished once the kitchen exists.
- */
-function connectFromAddress(): Remote | null {
-  const asked = new URLSearchParams(window.location.search).get('connect');
-  return asked === 'webdav' || asked === 'onedrive' ? asked : null;
-}
-
-type Remote = Exclude<BackupDestination, 'local'>;
-
 export function BackupSettings() {
   const translator = useT();
   const { t } = translator;
   const status = useBackupStatus();
   const run = useRunBackup();
-  const [connect] = useState(connectFromAddress);
 
   if (status.isPending) return <p className="text-ink-soft">{t('common.loading')}</p>;
   if (status.isError) return <LoadError onRetry={() => void status.refetch()} />;
 
   const data = status.data;
   const newest = data.files[0];
-  const onlyHere = data.destination === 'local';
+  const onlyHere = data.sendTo.length === 0;
 
   return (
     <section className="flex flex-col gap-10">
-      {onlyHere ? <OnlyHere connect={connect} /> : null}
+      {onlyHere ? <OnlyHere /> : null}
       <div>
         <h2 className="mb-1.5 text-2xl">{t('backups.title')}</h2>
         <p className="text-ink-soft mb-5 max-w-2xl text-sm">{t('backups.body')}</p>
@@ -92,11 +79,7 @@ export function BackupSettings() {
 
       <RecoveryKey confirmed={data.keyConfirmed} />
       {/* Starts over when OneDrive connects, which changes where backups go. */}
-      <Destination
-        key={`${data.destination}:${data.onedrive.account ?? ''}`}
-        status={data}
-        connect={onlyHere ? connect : null}
-      />
+      <Destination key={`${data.sendTo.join()}:${data.onedrive.account ?? ''}`} status={data} />
       <KeptFiles files={data.files} />
     </section>
   );
@@ -194,23 +177,15 @@ const REMOTE_KEEP = [7, 14, 30, 60, 90];
  * Backups kept only on the server go when the server goes. Said at the top of
  * the page until they also go somewhere else.
  */
-function OnlyHere({ connect }: { connect: Remote | null }) {
+function OnlyHere() {
   const { t } = useT();
   const toDestination = () =>
     document.getElementById('backup-destination')?.scrollIntoView({ behavior: 'smooth' });
 
   return (
     <div role="status" className="bg-accent-wash border-accent border-l-[6px] px-5 py-4">
-      <p className="text-lg font-semibold">
-        {connect ? t('backups.connectTitle') : t('backups.onlyHereTitle')}
-      </p>
-      <p className="text-ink-soft mt-1 max-w-2xl">
-        {connect === 'webdav'
-          ? t('backups.connectWebdav')
-          : connect === 'onedrive'
-            ? t('backups.connectOnedrive')
-            : t('backups.onlyHereBody')}
-      </p>
+      <p className="text-lg font-semibold">{t('backups.onlyHereTitle')}</p>
+      <p className="text-ink-soft mt-1 max-w-2xl">{t('backups.onlyHereBody')}</p>
       <button type="button" className="btn-small mt-3" onClick={toDestination}>
         {t('backups.onlyHereAction')}
       </button>
@@ -218,13 +193,19 @@ function OnlyHere({ connect }: { connect: Remote | null }) {
   );
 }
 
-function Destination({ status, connect }: { status: BackupStatus; connect: Remote | null }) {
+function Destination({ status }: { status: BackupStatus }) {
   const translator = useT();
   const { t, plural } = translator;
   const update = useUpdateBackups();
   const test = useTestBackupDestination();
 
-  const [destination, setDestination] = useState<BackupDestination>(connect ?? status.destination);
+  const [sendTo, setSendTo] = useState<BackupDestination[]>(status.sendTo);
+  const toWebdav = sendTo.includes('webdav');
+  const toOnedrive = sendTo.includes('onedrive');
+  const toggle = (place: BackupDestination) =>
+    setSendTo((current) =>
+      current.includes(place) ? current.filter((p) => p !== place) : [...current, place],
+    );
   const [url, setUrl] = useState(status.webdavUrl ?? '');
   const [username, setUsername] = useState(status.webdavUsername ?? '');
   const [password, setPassword] = useState('');
@@ -237,7 +218,7 @@ function Destination({ status, connect }: { status: BackupStatus; connect: Remot
     event.preventDefault();
     update.mutate(
       {
-        destination,
+        sendTo,
         webdavUrl: url.trim() || null,
         webdavUsername: username.trim() || null,
         ...(password ? { webdavPassword: password } : {}),
@@ -268,27 +249,29 @@ function Destination({ status, connect }: { status: BackupStatus; connect: Remot
       <form onSubmit={onSubmit} className="card flex max-w-2xl flex-col gap-5">
         <fieldset className="flex flex-col gap-3">
           <legend className="sr-only">{t('backups.whereTitle')}</legend>
+          {/* Every backup is made here first, so this one can't be switched off. */}
           <Choice
-            checked={destination === 'local'}
-            onChange={() => setDestination('local')}
+            checked
+            disabled
+            onChange={() => {}}
             title={t('backups.whereLocal')}
             hint={t('backups.whereLocalHint')}
           />
           <Choice
-            checked={destination === 'webdav'}
-            onChange={() => setDestination('webdav')}
+            checked={toWebdav}
+            onChange={() => toggle('webdav')}
             title={t('backups.whereWebdav')}
             hint={t('backups.whereWebdavHint')}
           />
           <Choice
-            checked={destination === 'onedrive'}
-            onChange={() => setDestination('onedrive')}
+            checked={toOnedrive}
+            onChange={() => toggle('onedrive')}
             title={t('backups.whereOnedrive')}
             hint={t('backups.whereOnedriveHint')}
           />
         </fieldset>
 
-        {destination === 'webdav' ? (
+        {toWebdav ? (
           <div className="border-line flex flex-col gap-4 border-l-4 pl-4">
             <div>
               <label className="label" htmlFor="webdavUrl">
@@ -358,12 +341,16 @@ function Destination({ status, connect }: { status: BackupStatus; connect: Remot
           </div>
         ) : null}
 
-        {destination === 'onedrive' ? <OnedrivePanel onedrive={status.onedrive} /> : null}
+        {toOnedrive ? <OnedrivePanel onedrive={status.onedrive} /> : null}
 
-        {destination !== 'local' ? (
+        {sendTo.length > 0 ? (
           <div>
             <label className="label" htmlFor="keepRemote">
-              {destination === 'onedrive' ? t('backups.keepOnedrive') : t('backups.keepRemote')}
+              {toWebdav && toOnedrive
+                ? t('backups.keepBoth')
+                : toOnedrive
+                  ? t('backups.keepOnedrive')
+                  : t('backups.keepRemote')}
             </label>
             <select
               id="keepRemote"
@@ -429,7 +416,7 @@ function Destination({ status, connect }: { status: BackupStatus; connect: Remot
           <button
             type="submit"
             className="btn-primary"
-            disabled={update.isPending || (destination === 'onedrive' && !status.onedrive.account)}
+            disabled={update.isPending || (toOnedrive && !status.onedrive.account)}
           >
             {update.isPending ? t('common.saving') : t('common.save')}
           </button>
@@ -520,26 +507,28 @@ function OnedrivePanel({ onedrive }: { onedrive: OnedriveStatus }) {
 
 function Choice({
   checked,
+  disabled,
   onChange,
   title,
   hint,
 }: {
   checked: boolean;
+  disabled?: boolean;
   onChange: () => void;
   title: string;
   hint: string;
 }) {
   return (
     <label
-      className={`flex cursor-pointer gap-3 border-2 p-4 transition-colors ${
-        checked ? 'border-accent bg-accent-wash' : 'border-line'
-      }`}
+      className={`flex gap-3 border-2 p-4 transition-colors ${
+        disabled ? 'cursor-default' : 'cursor-pointer'
+      } ${checked ? 'border-accent bg-accent-wash' : 'border-line'}`}
     >
       <input
-        type="radio"
-        name="destination"
+        type="checkbox"
         className="accent-accent mt-1 size-4 shrink-0"
         checked={checked}
+        disabled={disabled}
         onChange={onChange}
       />
       <span>

@@ -10,7 +10,9 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { buildApp } from '../../app.js';
 import type { Database } from '../../db/client.js';
 import {
+  ADMIN,
   TEST_CONFIG,
+  cookieFrom,
   createTestDatabase,
   resetDatabase,
   setUpKitchen,
@@ -185,6 +187,126 @@ async function connect(cookies: Record<string, string>) {
   await app.backups.run({ force: false });
 }
 
+describe('connecting OneDrive during setup', () => {
+  it('connects before the kitchen exists, and the kitchen starts out backing up there', async () => {
+    const started = await app.inject({ method: 'POST', url: '/api/setup/onedrive' });
+    expect(started.statusCode).toBe(200);
+    expect(started.json().connecting).toMatchObject({ userCode: 'ABCD-EFGH' });
+
+    // Choosing OneDrive before the sign-in is done is refused.
+    const early = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { sendTo: ['onedrive'] } },
+    });
+    expect(early.statusCode).toBe(400);
+
+    microsoft.approved = true;
+    await until(
+      async () =>
+        (await app.inject({ method: 'GET', url: '/api/setup/onedrive' })).json().account !== null,
+    );
+
+    const setUp = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { sendTo: ['onedrive'] } },
+    });
+    expect(setUp.statusCode).toBe(200);
+    const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
+    expect(await status(cookies)).toMatchObject({
+      sendTo: ['onedrive'],
+      onedrive: { account: 'chef@outlook.com' },
+    });
+    // Connecting starts a first backup by itself; let it finish here.
+    await app.backups.run({ force: false });
+  });
+
+  it('lets go of OneDrive when setup ends with another choice', async () => {
+    await app.inject({ method: 'POST', url: '/api/setup/onedrive' });
+    microsoft.approved = true;
+    await until(
+      async () =>
+        (await app.inject({ method: 'GET', url: '/api/setup/onedrive' })).json().account !== null,
+    );
+    const setUp = await app.inject({ method: 'POST', url: '/api/setup', payload: ADMIN });
+    const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
+    expect(await status(cookies)).toMatchObject({
+      sendTo: [],
+      onedrive: { account: null },
+    });
+    await app.backups.run({ force: false });
+  });
+});
+
+describe('backing up to a NAS and OneDrive at once', () => {
+  let nas: http.Server;
+  let nasAddress: string;
+  let nasDown = false;
+  const onNas = new Map<string, Buffer>();
+
+  beforeAll(async () => {
+    nas = http.createServer((request, response) => {
+      if (nasDown) return void response.writeHead(503).end();
+      const name = decodeURIComponent(request.url!.replace(/^\/dav\/?/, ''));
+      const chunks: Buffer[] = [];
+      request.on('data', (chunk: Buffer) => chunks.push(chunk));
+      request.on('end', () => {
+        if (request.method === 'PUT') {
+          onNas.set(name, Buffer.concat(chunks));
+          response.writeHead(201).end();
+        } else if (request.method === 'PROPFIND') {
+          const hrefs = ['/dav/', ...[...onNas.keys()].map((file) => `/dav/${file}`)]
+            .map((href) => `<d:response><d:href>${href}</d:href></d:response>`)
+            .join('');
+          response
+            .writeHead(207, { 'content-type': 'application/xml' })
+            .end(`<?xml version="1.0"?><d:multistatus xmlns:d="DAV:">${hrefs}</d:multistatus>`);
+        } else {
+          response.writeHead(204).end();
+        }
+      });
+    });
+    await new Promise<void>((resolve) => nas.listen(0, '127.0.0.1', resolve));
+    nasAddress = `http://127.0.0.1:${(nas.address() as AddressInfo).port}/dav`;
+  });
+
+  afterAll(async () => {
+    await new Promise((resolve) => nas.close(resolve));
+  });
+
+  beforeEach(() => {
+    nasDown = false;
+    onNas.clear();
+  });
+
+  it('sends each backup to both, and still reaches one when the other is down', async () => {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    await connect(cookies);
+    const saved = await app.inject({
+      method: 'PATCH',
+      url: '/api/backups',
+      cookies,
+      payload: { sendTo: ['webdav', 'onedrive'], webdavUrl: nasAddress },
+    });
+    expect(saved.json().sendTo).toEqual(['webdav', 'onedrive']);
+    microsoft.files.clear();
+
+    await app.backups.run({ force: true });
+    expect(onNas.size).toBe(1);
+    expect([...microsoft.files.keys()].filter((name) => !name.startsWith('.'))).toHaveLength(1);
+    expect((await status(cookies)).lastError).toBeNull();
+
+    // The NAS is off; OneDrive still gets tonight's copy, and the failure is said.
+    nasDown = true;
+    microsoft.files.clear();
+    await new Promise((resolve) => setTimeout(resolve, 1100));
+    await app.backups.run({ force: true });
+    expect([...microsoft.files.keys()].filter((name) => !name.startsWith('.'))).toHaveLength(1);
+    expect((await status(cookies)).lastError).not.toBeNull();
+  });
+});
+
 describe('backing up to OneDrive', () => {
   it('connects with a code, then sends each backup to the app folder', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
@@ -194,7 +316,7 @@ describe('backing up to OneDrive', () => {
 
     const after = await status(cookies);
     expect(after).toMatchObject({
-      destination: 'onedrive',
+      sendTo: ['onedrive'],
       lastError: null,
       onedrive: { account: 'chef@outlook.com', connecting: null, connectError: null },
     });
@@ -267,7 +389,7 @@ describe('backing up to OneDrive', () => {
       cookies,
     });
     expect(disconnected.json()).toMatchObject({
-      destination: 'local',
+      sendTo: [],
       onedrive: { account: null },
     });
   });
@@ -290,7 +412,7 @@ describe('backing up to OneDrive', () => {
       method: 'PATCH',
       url: '/api/backups',
       cookies,
-      payload: { destination: 'onedrive' },
+      payload: { sendTo: ['onedrive'] },
     });
     expect(response.statusCode).toBe(400);
   });
