@@ -611,7 +611,7 @@ export const en = {
   'backups.onlyHereBody':
     'If it breaks, is stolen or its disk fails, the backups go with it. Send them to a NAS or OneDrive as well.',
   'backups.onlyHereAction': 'Choose where they go',
-  'backups.whereLocal': 'Only on this machine',
+  'backups.whereLocal': 'On this machine, always',
   'backups.whereLocalHint':
     'These are kept on the same machine as Mise. If it breaks, is stolen or its disk fails, they go with it, so download one now and then or send them to a NAS or OneDrive.',
   'backups.whereWebdav': 'Also to a NAS or Nextcloud',
@@ -655,6 +655,7 @@ export const en = {
   'backups.onedrive.expired': 'The code ran out before anyone signed in. Start again.',
   'backups.onedrive.failed': "Microsoft didn't accept the connection. Try again in a minute.",
   'backups.keepOnedrive': 'Keep on OneDrive',
+  'backups.keepBoth': 'Keep on the NAS and on OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive no longer lets Mise in. Connect it again on the backups page.',
   'backups.reason.onedrive_full': 'OneDrive is full.',

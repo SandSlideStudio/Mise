@@ -383,8 +383,9 @@ export const backupSettings = pgTable('backup_settings', {
   /** Opens every backup this server makes. Printed by an administrator. */
   recoveryKey: text('recovery_key').notNull(),
   keyConfirmedAt: timestamp('key_confirmed_at', { withTimezone: true }),
-  /** 'local', 'webdav' for a NAS or Nextcloud, or 'onedrive'. */
-  destination: text('destination').notNull().default('local'),
+  /** Every backup is kept here; these say where else each one goes too. */
+  sendToWebdav: boolean('send_to_webdav').notNull().default(false),
+  sendToOnedrive: boolean('send_to_onedrive').notNull().default(false),
   webdavUrl: text('webdav_url'),
   webdavUsername: text('webdav_username'),
   webdavPassword: text('webdav_password'),

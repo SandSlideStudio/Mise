@@ -109,7 +109,6 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PIN = /^\d{4,8}$/;
 
 const BACKUP_CHOICE: Record<BackupDestination, MessageKey> = {
-  local: 'backups.whereLocal',
   webdav: 'backups.whereWebdav',
   onedrive: 'backups.whereOnedrive',
 };
@@ -194,7 +193,14 @@ export function Setup() {
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [enrolDevice, setEnrolDevice] = useState(false);
-  const [backupsTo, setBackupsTo] = useState<BackupDestination>('local');
+  // Every backup stays on this machine; these are where else it goes too.
+  const [sendTo, setSendTo] = useState<BackupDestination[]>([]);
+  const toWebdav = sendTo.includes('webdav');
+  const toOnedrive = sendTo.includes('onedrive');
+  const toggleSendTo = (place: BackupDestination) =>
+    setSendTo((current) =>
+      current.includes(place) ? current.filter((p) => p !== place) : [...current, place],
+    );
   const [nas, setNas] = useState<NasDraft>({ url: '', username: '', password: '', tested: false });
   const [deviceName, setDeviceName] = useState('');
 
@@ -207,7 +213,7 @@ export function Setup() {
     (error) => error instanceof RequestFailed && error.code === 'setup_token',
   );
   const askForCode = status.data?.setupTokenRequired === true && (!linkCode || codeRejected);
-  const onedrive = useSetupOnedrive(code.trim(), backupsTo === 'onedrive');
+  const onedrive = useSetupOnedrive(code.trim(), toOnedrive);
 
   /** -1 on the welcome page, 0 to 5 on the steps, 6 once it is all signed. */
   const index = isStep(page) ? STEPS.indexOf(page) : page === 'ready' ? STEPS.length : -1;
@@ -257,8 +263,8 @@ export function Setup() {
         break;
       case 'settings':
         if (enrolDevice && !deviceName.trim()) found.add('setup.required');
-        if (backupsTo === 'webdav' && !nas.tested) found.add('setup.backupsTestFirst');
-        if (backupsTo === 'onedrive' && !onedrive.data?.account) {
+        if (toWebdav && !nas.tested) found.add('setup.backupsTestFirst');
+        if (toOnedrive && !onedrive.data?.account) {
           found.add('setup.backupsConnectFirst');
         }
         break;
@@ -351,11 +357,11 @@ export function Setup() {
             }),
       })),
       backups:
-        backupsTo === 'local'
+        sendTo.length === 0
           ? undefined
           : {
-              destination: backupsTo,
-              ...(backupsTo === 'webdav'
+              sendTo,
+              ...(toWebdav
                 ? {
                     webdavUrl: nas.url.trim(),
                     webdavUsername: nas.username.trim() || null,
@@ -899,17 +905,22 @@ export function Setup() {
                 <fieldset className="border-rule flex flex-col gap-2 border-t pt-6">
                   <legend className="sr-only">{t('setup.backupsTitle')}</legend>
                   <SectionTitle>{t('setup.backupsTitle')}</SectionTitle>
-                  {(['local', 'webdav', 'onedrive'] as const).map((value) => (
-                    <Choice
-                      key={value}
-                      name="backups"
-                      checked={backupsTo === value}
-                      onChange={() => setBackupsTo(value)}
-                      title={t(BACKUP_CHOICE[value])}
+                  <CheckChoice
+                    checked
+                    disabled
+                    onChange={() => {}}
+                    title={t('backups.whereLocal')}
+                  />
+                  {(['webdav', 'onedrive'] as const).map((place) => (
+                    <CheckChoice
+                      key={place}
+                      checked={sendTo.includes(place)}
+                      onChange={() => toggleSendTo(place)}
+                      title={t(BACKUP_CHOICE[place])}
                     />
                   ))}
                   <p className="text-ink-soft text-sm text-pretty">{t('setup.backupsHint')}</p>
-                  {backupsTo !== 'local' && askForCode ? (
+                  {sendTo.length > 0 && askForCode ? (
                     <Field
                       label={t('setup.codeLabel')}
                       htmlFor="backupCode"
@@ -925,10 +936,8 @@ export function Setup() {
                       />
                     </Field>
                   ) : null}
-                  {backupsTo === 'webdav' ? (
-                    <SetupNas draft={nas} onChange={setNas} code={code.trim()} />
-                  ) : null}
-                  {backupsTo === 'onedrive' ? (
+                  {toWebdav ? <SetupNas draft={nas} onChange={setNas} code={code.trim()} /> : null}
+                  {toOnedrive ? (
                     <SetupOnedrive status={onedrive.data ?? null} code={code.trim()} />
                   ) : null}
                 </fieldset>
@@ -1024,13 +1033,18 @@ export function Setup() {
                     <p className="text-ink-soft text-sm">
                       {t(unitSystem === 'metric' ? 'kitchen.metric' : 'kitchen.imperial')}
                     </p>
-                    <p className="text-ink-soft text-sm">
-                      {t(BACKUP_CHOICE[backupsTo])}
-                      {backupsTo === 'webdav' ? ` · ${nas.url.trim()}` : ''}
-                      {backupsTo === 'onedrive' && onedrive.data?.account
-                        ? ` · ${onedrive.data.account}`
-                        : ''}
-                    </p>
+                    <p className="text-ink-soft text-sm">{t('backups.whereLocal')}</p>
+                    {toWebdav ? (
+                      <p className="text-ink-soft text-sm">
+                        {t('backups.whereWebdav')} · {nas.url.trim()}
+                      </p>
+                    ) : null}
+                    {toOnedrive ? (
+                      <p className="text-ink-soft text-sm">
+                        {t('backups.whereOnedrive')}
+                        {onedrive.data?.account ? ` · ${onedrive.data.account}` : ''}
+                      </p>
+                    ) : null}
                     <p className="text-ink-soft text-sm">
                       {enrolDevice
                         ? t('setup.summaryTablet', { name: deviceName.trim() })
@@ -1328,6 +1342,40 @@ function PasswordState({ password, confirm }: { password: string; confirm: strin
     <p className="text-ink-soft text-sm">✓ {t('setup.passwordMatch')}</p>
   ) : (
     <p className="text-danger text-sm">{t('setup.passwordMismatch')}</p>
+  );
+}
+
+/** One of several that can be on at once. */
+function CheckChoice({
+  checked,
+  disabled,
+  onChange,
+  title,
+}: {
+  checked: boolean;
+  disabled?: boolean;
+  onChange: () => void;
+  title: string;
+}) {
+  return (
+    <label
+      className={`flex min-h-12 items-center gap-3 border-2 px-4 py-3 transition-colors ${
+        disabled ? 'cursor-default' : 'cursor-pointer'
+      } ${
+        checked
+          ? 'border-accent bg-accent-wash'
+          : 'border-line bg-surface-raised hover:border-field'
+      }`}
+    >
+      <input
+        type="checkbox"
+        checked={checked}
+        disabled={disabled}
+        onChange={onChange}
+        className="accent-accent h-4 w-4 shrink-0"
+      />
+      <span className="font-medium">{title}</span>
+    </label>
   );
 }
 

@@ -3,7 +3,7 @@ import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js
 import { quantitySchema } from './common.js';
 import { recipeTypeSchema } from './recipes.js';
 import { tickedRetentionSchema } from './prep.js';
-import { backupDestinationSchema, webdavUrlSchema } from './backups.js';
+import { backupSendToSchema, webdavUrlSchema } from './backups.js';
 
 /**
  * First run only. Reachable while the server has no users at all.
@@ -45,12 +45,12 @@ export const setupRecipeSchema = z.object({
  */
 export const setupBackupsSchema = z
   .object({
-    destination: backupDestinationSchema,
+    sendTo: backupSendToSchema,
     webdavUrl: webdavUrlSchema.nullable().optional(),
     webdavUsername: z.string().trim().max(200).nullable().optional(),
     webdavPassword: z.string().max(500).optional(),
   })
-  .refine((backups) => backups.destination !== 'webdav' || Boolean(backups.webdavUrl), {
+  .refine((backups) => !backups.sendTo.includes('webdav') || Boolean(backups.webdavUrl), {
     message: 'Enter the address of the NAS to send backups to.',
     path: ['webdavUrl'],
   });

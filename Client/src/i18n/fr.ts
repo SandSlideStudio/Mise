@@ -630,7 +630,7 @@ export const fr: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Si elle tombe en panne, est volée ou si son disque lâche, les sauvegardes partent avec. Envoyez-les aussi vers un NAS ou OneDrive.',
   'backups.onlyHereAction': 'Choisir où elles vont',
-  'backups.whereLocal': 'Uniquement sur cette machine',
+  'backups.whereLocal': 'Sur cette machine, toujours',
   'backups.whereLocalHint':
     'Elles sont gardées sur la même machine que Mise. Si elle tombe en panne, est volée ou si son disque lâche, elles partent avec. Téléchargez-en donc une de temps en temps, ou envoyez-les vers un NAS ou OneDrive.',
   'backups.whereWebdav': 'Aussi vers un NAS ou Nextcloud',
@@ -674,6 +674,7 @@ export const fr: Record<MessageKey, string> = {
   'backups.onedrive.expired': 'Le code a expiré avant la connexion. Recommencez.',
   'backups.onedrive.failed': 'Microsoft n’a pas accepté la connexion. Réessayez dans une minute.',
   'backups.keepOnedrive': 'Garder sur OneDrive',
+  'backups.keepBoth': 'Garder sur le NAS et sur OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive n’accepte plus Mise. Reconnectez-le sur la page des sauvegardes.',
   'backups.reason.onedrive_full': 'OneDrive est plein.',

@@ -627,7 +627,7 @@ export const de: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind die Sicherungen mit weg. Schicke sie auch an ein NAS oder OneDrive.',
   'backups.onlyHereAction': 'Ziel auswählen',
-  'backups.whereLocal': 'Nur auf diesem Gerät',
+  'backups.whereLocal': 'Auf diesem Gerät, immer',
   'backups.whereLocalHint':
     'Sie liegen auf demselben Gerät wie Mise. Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind sie mit weg. Lade also ab und zu eine herunter oder schicke sie an ein NAS oder OneDrive.',
   'backups.whereWebdav': 'Auch auf ein NAS oder Nextcloud',
@@ -673,6 +673,7 @@ export const de: Record<MessageKey, string> = {
   'backups.onedrive.failed':
     'Microsoft hat die Verbindung nicht angenommen. Versuch es in einer Minute noch einmal.',
   'backups.keepOnedrive': 'Auf OneDrive behalten',
+  'backups.keepBoth': 'Auf dem NAS und auf OneDrive behalten',
   'backups.reason.onedrive_auth':
     'OneDrive lässt Mise nicht mehr hinein. Verbinde es auf der Seite Sicherungen neu.',
   'backups.reason.onedrive_full': 'OneDrive ist voll.',

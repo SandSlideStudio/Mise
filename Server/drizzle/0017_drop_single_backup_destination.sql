@@ -1,0 +1,1 @@
+ALTER TABLE "backup_settings" DROP COLUMN "destination";

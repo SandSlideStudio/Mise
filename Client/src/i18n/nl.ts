@@ -621,7 +621,7 @@ export const nl: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn de back-ups ook weg. Stuur ze ook naar een NAS of OneDrive.',
   'backups.onlyHereAction': 'Kies waar ze heen gaan',
-  'backups.whereLocal': 'Alleen op deze machine',
+  'backups.whereLocal': 'Op deze machine, altijd',
   'backups.whereLocalHint':
     'Deze staan op dezelfde machine als Mise. Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn ze ook weg. Download er dus af en toe een, of stuur ze naar een NAS of OneDrive.',
   'backups.whereWebdav': 'Ook naar een NAS of Nextcloud',
@@ -666,6 +666,7 @@ export const nl: Record<MessageKey, string> = {
   'backups.onedrive.failed':
     'Microsoft accepteerde de koppeling niet. Probeer het over een minuut opnieuw.',
   'backups.keepOnedrive': 'Bewaren op OneDrive',
+  'backups.keepBoth': 'Bewaren op de NAS en op OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive laat Mise niet meer toe. Koppel OneDrive opnieuw op de pagina Back-ups.',
   'backups.reason.onedrive_full': 'OneDrive is vol.',

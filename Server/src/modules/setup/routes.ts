@@ -147,7 +147,8 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
       await allowed(request, request.body.setupToken);
       const backups = request.body.backups;
       const onedrive = (await app.backups.status()).onedrive;
-      if (backups?.destination === 'onedrive' && !onedrive.account) {
+      const sendTo = backups?.sendTo ?? [];
+      if (sendTo.includes('onedrive') && !onedrive.account) {
         throw ApiError.badRequest('Connect OneDrive first.');
       }
 
@@ -161,7 +162,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
           : {}),
         ...(backups
           ? {
-              destination: backups.destination,
+              sendTo,
               webdavUrl: backups.webdavUrl ?? null,
               webdavUsername: backups.webdavUsername ?? null,
               ...(backups.webdavPassword ? { webdavPassword: backups.webdavPassword } : {}),
@@ -169,7 +170,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
           : {}),
       });
       // Connected on the way, then another choice made: don't keep the sign-in.
-      if (onedrive.account && backups?.destination !== 'onedrive') {
+      if (onedrive.account && !sendTo.includes('onedrive')) {
         await app.backups.disconnectOnedrive();
       }
 

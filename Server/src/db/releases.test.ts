@@ -20,6 +20,7 @@ import { buildApp } from '../app.js';
 import { hashSecret } from '../lib/crypto.js';
 import { generateRecoveryKey } from '../modules/backups/crypto.js';
 import { backupBeforeMigrating } from '../modules/backups/premigration.js';
+import { SETTINGS_ID } from '../modules/backups/service.js';
 import { TEST_CONFIG, cookieFrom, createTestDatabase } from '../test/harness.js';
 import type { Database } from './client.js';
 import { pendingMigrations } from './migrate.js';
@@ -98,7 +99,9 @@ async function fill(db: Database, last: string) {
              ('${SAUCE}', 0, 250, 250, 'g', '${BUTTER}', null),
              ('${DISH}', 0, 1500, 1500, 'g', '${COD}', null),
              ('${DISH}', 1, 500, 0.5, 'l', null, '${SAUCE}')`);
-  await run(`insert into backup_settings (recovery_key) values ('${generateRecoveryKey()}')`);
+  // Every release so far sent backups to one place; this one, a NAS.
+  await run(`insert into backup_settings (id, recovery_key, destination, webdav_url)
+             values ('${SETTINGS_ID}', '${generateRecoveryKey()}', 'webdav', 'http://nas.local/dav')`);
 
   if (!at('0010')) {
     // 1.x: tonight's service with an open line, and one on the running list.
@@ -210,6 +213,11 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
         const note = await get('/api/running/note');
         expect(note.text).toBe(last >= '0012' ? 'Vis komt om drie uur' : null);
         expect((await get('/api/version')).checkEnabled).toBe(last < '0015');
+        // Still sending to the NAS, now as one of the places a backup goes.
+        expect(await get('/api/backups')).toMatchObject({
+          sendTo: ['webdav'],
+          webdavUrl: 'http://nas.local/dav',
+        });
       } finally {
         await app.close();
       }

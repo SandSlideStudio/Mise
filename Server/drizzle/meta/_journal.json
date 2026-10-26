@@ -113,6 +113,20 @@
       "when": 1793045673068,
       "tag": "0015_update_check",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1793050167213,
+      "tag": "0016_backups_to_several_places",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793050168351,
+      "tag": "0017_drop_single_backup_destination",
+      "breakpoints": true
     }
   ]
 }

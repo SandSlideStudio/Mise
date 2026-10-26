@@ -31,7 +31,7 @@ export function BackupSettings() {
 
   const data = status.data;
   const newest = data.files[0];
-  const onlyHere = data.destination === 'local';
+  const onlyHere = data.sendTo.length === 0;
 
   return (
     <section className="flex flex-col gap-10">
@@ -79,7 +79,7 @@ export function BackupSettings() {
 
       <RecoveryKey confirmed={data.keyConfirmed} />
       {/* Starts over when OneDrive connects, which changes where backups go. */}
-      <Destination key={`${data.destination}:${data.onedrive.account ?? ''}`} status={data} />
+      <Destination key={`${data.sendTo.join()}:${data.onedrive.account ?? ''}`} status={data} />
       <KeptFiles files={data.files} />
     </section>
   );
@@ -199,7 +199,13 @@ function Destination({ status }: { status: BackupStatus }) {
   const update = useUpdateBackups();
   const test = useTestBackupDestination();
 
-  const [destination, setDestination] = useState<BackupDestination>(status.destination);
+  const [sendTo, setSendTo] = useState<BackupDestination[]>(status.sendTo);
+  const toWebdav = sendTo.includes('webdav');
+  const toOnedrive = sendTo.includes('onedrive');
+  const toggle = (place: BackupDestination) =>
+    setSendTo((current) =>
+      current.includes(place) ? current.filter((p) => p !== place) : [...current, place],
+    );
   const [url, setUrl] = useState(status.webdavUrl ?? '');
   const [username, setUsername] = useState(status.webdavUsername ?? '');
   const [password, setPassword] = useState('');
@@ -212,7 +218,7 @@ function Destination({ status }: { status: BackupStatus }) {
     event.preventDefault();
     update.mutate(
       {
-        destination,
+        sendTo,
         webdavUrl: url.trim() || null,
         webdavUsername: username.trim() || null,
         ...(password ? { webdavPassword: password } : {}),
@@ -243,27 +249,29 @@ function Destination({ status }: { status: BackupStatus }) {
       <form onSubmit={onSubmit} className="card flex max-w-2xl flex-col gap-5">
         <fieldset className="flex flex-col gap-3">
           <legend className="sr-only">{t('backups.whereTitle')}</legend>
+          {/* Every backup is made here first, so this one can't be switched off. */}
           <Choice
-            checked={destination === 'local'}
-            onChange={() => setDestination('local')}
+            checked
+            disabled
+            onChange={() => {}}
             title={t('backups.whereLocal')}
             hint={t('backups.whereLocalHint')}
           />
           <Choice
-            checked={destination === 'webdav'}
-            onChange={() => setDestination('webdav')}
+            checked={toWebdav}
+            onChange={() => toggle('webdav')}
             title={t('backups.whereWebdav')}
             hint={t('backups.whereWebdavHint')}
           />
           <Choice
-            checked={destination === 'onedrive'}
-            onChange={() => setDestination('onedrive')}
+            checked={toOnedrive}
+            onChange={() => toggle('onedrive')}
             title={t('backups.whereOnedrive')}
             hint={t('backups.whereOnedriveHint')}
           />
         </fieldset>
 
-        {destination === 'webdav' ? (
+        {toWebdav ? (
           <div className="border-line flex flex-col gap-4 border-l-4 pl-4">
             <div>
               <label className="label" htmlFor="webdavUrl">
@@ -333,12 +341,16 @@ function Destination({ status }: { status: BackupStatus }) {
           </div>
         ) : null}
 
-        {destination === 'onedrive' ? <OnedrivePanel onedrive={status.onedrive} /> : null}
+        {toOnedrive ? <OnedrivePanel onedrive={status.onedrive} /> : null}
 
-        {destination !== 'local' ? (
+        {sendTo.length > 0 ? (
           <div>
             <label className="label" htmlFor="keepRemote">
-              {destination === 'onedrive' ? t('backups.keepOnedrive') : t('backups.keepRemote')}
+              {toWebdav && toOnedrive
+                ? t('backups.keepBoth')
+                : toOnedrive
+                  ? t('backups.keepOnedrive')
+                  : t('backups.keepRemote')}
             </label>
             <select
               id="keepRemote"
@@ -404,7 +416,7 @@ function Destination({ status }: { status: BackupStatus }) {
           <button
             type="submit"
             className="btn-primary"
-            disabled={update.isPending || (destination === 'onedrive' && !status.onedrive.account)}
+            disabled={update.isPending || (toOnedrive && !status.onedrive.account)}
           >
             {update.isPending ? t('common.saving') : t('common.save')}
           </button>
@@ -495,26 +507,28 @@ function OnedrivePanel({ onedrive }: { onedrive: OnedriveStatus }) {
 
 function Choice({
   checked,
+  disabled,
   onChange,
   title,
   hint,
 }: {
   checked: boolean;
+  disabled?: boolean;
   onChange: () => void;
   title: string;
   hint: string;
 }) {
   return (
     <label
-      className={`flex cursor-pointer gap-3 border-2 p-4 transition-colors ${
-        checked ? 'border-accent bg-accent-wash' : 'border-line'
-      }`}
+      className={`flex gap-3 border-2 p-4 transition-colors ${
+        disabled ? 'cursor-default' : 'cursor-pointer'
+      } ${checked ? 'border-accent bg-accent-wash' : 'border-line'}`}
     >
       <input
-        type="radio"
-        name="destination"
+        type="checkbox"
         className="accent-accent mt-1 size-4 shrink-0"
         checked={checked}
+        disabled={disabled}
         onChange={onChange}
       />
       <span>

@@ -103,6 +103,14 @@ export function problemOf(
   return null;
 }
 
+/** The places besides this machine that each backup goes to. */
+function sendToOf(settings: Settings): BackupDestination[] {
+  return [
+    ...(settings.sendToWebdav ? (['webdav'] as const) : []),
+    ...(settings.sendToOnedrive ? (['onedrive'] as const) : []),
+  ];
+}
+
 export function fileName(moment: Date): string {
   const stamp = moment.toISOString().replace(/[-:]/g, '').replace('T', '-').slice(0, 15);
   return `mise-backup-${stamp}.mise`;
@@ -175,7 +183,7 @@ export function createBackupService({
     const [kitchen] = await db.select({ createdAt: kitchens.createdAt }).from(kitchens).limit(1);
     const files = await listFiles();
     return {
-      destination: current.destination as BackupDestination,
+      sendTo: sendToOf(current),
       webdavUrl: current.webdavUrl,
       webdavUsername: current.webdavUsername,
       hasWebdavPassword: Boolean(current.webdavPassword),
@@ -209,15 +217,23 @@ export function createBackupService({
     input: UpdateBackupSettings,
   ): Promise<'ok' | 'needs_address' | 'needs_onedrive'> {
     const current = await settings();
-    const destination = input.destination ?? current.destination;
+    const { sendTo: asked, ...rest } = input;
+    const sendTo = asked ?? sendToOf(current);
     const webdavUrl = input.webdavUrl !== undefined ? input.webdavUrl : current.webdavUrl;
-    if (destination === 'webdav' && !webdavUrl) return 'needs_address';
-    if (destination === 'onedrive' && !current.onedriveRefreshToken) return 'needs_onedrive';
+    if (sendTo.includes('webdav') && !webdavUrl) return 'needs_address';
+    if (sendTo.includes('onedrive') && !current.onedriveRefreshToken) return 'needs_onedrive';
 
     // A new place to send to hasn't got this kitchen yet, changed or not.
-    const moved = destination !== current.destination || webdavUrl !== current.webdavUrl;
+    const sendToWebdav = sendTo.includes('webdav');
+    const sendToOnedrive = sendTo.includes('onedrive');
+    const moved =
+      (sendToWebdav && !current.sendToWebdav) ||
+      (sendToOnedrive && !current.sendToOnedrive) ||
+      webdavUrl !== current.webdavUrl;
     await record({
-      ...input,
+      ...rest,
+      sendToWebdav,
+      sendToOnedrive,
       ...(moved ? { lastFingerprint: null } : {}),
       updatedAt: new Date(),
     });
@@ -310,33 +326,50 @@ export function createBackupService({
         await unlink(path.join(backupDir, old.name)).catch(() => {});
       }
 
-      if (current.destination === 'webdav' && current.webdavUrl) {
+      // Each place on its own: a NAS that's switched off doesn't keep the
+      // copy from reaching OneDrive. The first failure is still reported.
+      const failures: unknown[] = [];
+      const send = async (to: () => Promise<void>) => {
+        try {
+          await to();
+        } catch (error) {
+          failures.push(error);
+        }
+      };
+
+      if (current.sendToWebdav && current.webdavUrl) {
         const target = {
           url: current.webdavUrl,
           username: current.webdavUsername,
           password: current.webdavPassword,
         };
-        await webdav.upload(target, name, finished, size);
-        const remote = (await webdav.list(target))
-          .filter((file) => FILE_PATTERN.test(file))
-          .sort()
-          .reverse();
-        for (const old of remote.slice(current.keepRemote)) await webdav.remove(target, old);
+        await send(async () => {
+          await webdav.upload(target, name, finished, size);
+          const remote = (await webdav.list(target))
+            .filter((file) => FILE_PATTERN.test(file))
+            .sort()
+            .reverse();
+          for (const old of remote.slice(current.keepRemote)) await webdav.remove(target, old);
+        });
       }
 
-      if (current.destination === 'onedrive' && current.onedriveRefreshToken) {
-        const token = await onedrive.refresh(current.onedriveRefreshToken);
-        if (token.refreshToken !== current.onedriveRefreshToken) {
-          await record({ onedriveRefreshToken: token.refreshToken });
-        }
-        await onedrive.upload(token.accessToken, name, finished, size);
-        const remote = (await onedrive.list(token.accessToken))
-          .filter((item) => FILE_PATTERN.test(item.name))
-          .sort((a, b) => b.name.localeCompare(a.name));
-        for (const old of remote.slice(current.keepRemote)) {
-          await onedrive.remove(token.accessToken, old.id);
-        }
+      if (current.sendToOnedrive && current.onedriveRefreshToken) {
+        const refreshToken = current.onedriveRefreshToken;
+        await send(async () => {
+          const token = await onedrive.refresh(refreshToken);
+          if (token.refreshToken !== refreshToken) {
+            await record({ onedriveRefreshToken: token.refreshToken });
+          }
+          await onedrive.upload(token.accessToken, name, finished, size);
+          const remote = (await onedrive.list(token.accessToken))
+            .filter((item) => FILE_PATTERN.test(item.name))
+            .sort((a, b) => b.name.localeCompare(a.name));
+          for (const old of remote.slice(current.keepRemote)) {
+            await onedrive.remove(token.accessToken, old.id);
+          }
+        });
       }
+      if (failures.length > 0) throw failures[0];
 
       await record({
         lastAttemptAt: attemptAt,
@@ -411,7 +444,7 @@ export function createBackupService({
       await record({
         onedriveRefreshToken: result.refreshToken,
         onedriveAccount: account,
-        destination: 'onedrive',
+        sendToOnedrive: true,
         lastFingerprint: null,
         updatedAt: new Date(),
       });
@@ -439,11 +472,11 @@ export function createBackupService({
   async function disconnectOnedrive(): Promise<void> {
     stopSignIn();
     signInError = null;
-    const current = await settings();
+    await settings();
     await record({
       onedriveRefreshToken: null,
       onedriveAccount: null,
-      ...(current.destination === 'onedrive' ? { destination: 'local' } : {}),
+      sendToOnedrive: false,
       updatedAt: new Date(),
     });
   }

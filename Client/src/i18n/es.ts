@@ -622,7 +622,7 @@ export const es: Record<MessageKey, string> = {
   'backups.onlyHereBody':
     'Si se estropea, la roban o falla su disco, las copias se pierden con ella. Envíalas también a un NAS o a OneDrive.',
   'backups.onlyHereAction': 'Elegir adónde van',
-  'backups.whereLocal': 'Solo en esta máquina',
+  'backups.whereLocal': 'En esta máquina, siempre',
   'backups.whereLocalHint':
     'Se guardan en la misma máquina que Mise. Si se estropea, la roban o falla su disco, se pierden con ella. Así que descarga una de vez en cuando, o envíalas a un NAS o a OneDrive.',
   'backups.whereWebdav': 'También a un NAS o Nextcloud',
@@ -667,6 +667,7 @@ export const es: Record<MessageKey, string> = {
     'El código caducó antes de que nadie iniciara sesión. Vuelve a empezar.',
   'backups.onedrive.failed': 'Microsoft no aceptó la conexión. Inténtalo de nuevo en un minuto.',
   'backups.keepOnedrive': 'Guardar en OneDrive',
+  'backups.keepBoth': 'Guardar en el NAS y en OneDrive',
   'backups.reason.onedrive_auth':
     'OneDrive ya no deja entrar a Mise. Vuelve a conectarlo en la página de copias.',
   'backups.reason.onedrive_full': 'OneDrive está lleno.',

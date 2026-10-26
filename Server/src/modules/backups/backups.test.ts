@@ -441,7 +441,7 @@ describe('sending backups to a NAS', () => {
       url: '/api/backups',
       cookies,
       payload: {
-        destination: 'webdav',
+        sendTo: ['webdav'],
         webdavUrl: address,
         webdavUsername: 'chef',
         webdavPassword: 'secret',
@@ -449,7 +449,7 @@ describe('sending backups to a NAS', () => {
       },
     });
     expect(saved.statusCode).toBe(200);
-    expect(saved.json()).toMatchObject({ destination: 'webdav', hasWebdavPassword: true });
+    expect(saved.json()).toMatchObject({ sendTo: ['webdav'], hasWebdavPassword: true });
 
     await app.backups.run({ force: true });
     expect([...stored.keys()]).toEqual(['mise-backup-20261020-040000.mise']);
@@ -483,7 +483,7 @@ describe('sending backups to a NAS', () => {
       payload: {
         ...ADMIN,
         backups: {
-          destination: 'webdav',
+          sendTo: ['webdav'],
           webdavUrl: address,
           webdavUsername: 'chef',
           webdavPassword: 'secret',
@@ -494,7 +494,7 @@ describe('sending backups to a NAS', () => {
     const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
     const status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
     expect(status).toMatchObject({
-      destination: 'webdav',
+      sendTo: ['webdav'],
       webdavUrl: address,
       webdavUsername: 'chef',
       hasWebdavPassword: true,
@@ -513,7 +513,7 @@ describe('sending backups to a NAS', () => {
     const response = await app.inject({
       method: 'POST',
       url: '/api/setup',
-      payload: { ...ADMIN, backups: { destination: 'webdav' } },
+      payload: { ...ADMIN, backups: { sendTo: ['webdav'] } },
     });
     expect(response.statusCode).toBe(400);
   });
@@ -534,7 +534,7 @@ describe('sending backups to a NAS', () => {
       url: '/api/backups',
       cookies,
       payload: {
-        destination: 'webdav',
+        sendTo: ['webdav'],
         webdavUrl: address,
         webdavUsername: 'chef',
         webdavPassword: 'wrong',
@@ -552,7 +552,7 @@ describe('sending backups to a NAS', () => {
       method: 'PATCH',
       url: '/api/backups',
       cookies,
-      payload: { destination: 'webdav' },
+      payload: { sendTo: ['webdav'] },
     });
     expect(response.statusCode).toBe(400);
     const zone = await app.inject({
