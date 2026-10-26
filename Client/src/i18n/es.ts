@@ -156,7 +156,7 @@ export const es: Record<MessageKey, string> = {
   'setup.failed': 'La configuración ha fallado. Revisa el registro del servidor.',
   'setup.create': 'Crear la cocina',
   'setup.codeHint':
-    'Es el SETUP_TOKEN de la configuración de Mise, también al final del enlace que mostró el instalador. Si no se definió ninguno, Mise creó uno y lo escribió en su registro.',
+    'Configurar desde fuera de la red de la cocina pide este código. Es SETUP_TOKEN en la configuración de Mise, o el final del enlace que mostró el instalador. Si no se definió ninguno, Mise creó uno y lo escribió en su registro.',
   'setup.codeLabel': 'Código de configuración',
   'setup.stepKitchen': 'Restaurante',
   'setup.stepYou': 'Tú',

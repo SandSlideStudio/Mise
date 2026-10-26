@@ -156,7 +156,7 @@ export const en = {
   'setup.failed': 'Setup failed. Check the server log.',
   'setup.create': 'Create the kitchen',
   'setup.codeHint':
-    'It’s the SETUP_TOKEN in Mise’s settings, also at the end of the setup link the installer printed. If none was set, Mise made one up and wrote it in its log.',
+    'Setup from outside the kitchen network needs this code. It’s SETUP_TOKEN in Mise’s settings, or the end of the setup link the installer printed. If none was set, Mise made one up and wrote it in its log.',
   'setup.codeLabel': 'Setup code',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'You',

@@ -34,9 +34,9 @@ describe('the lockout', () => {
 
   it('pulls the account-wide brake after enough failures from anywhere', () => {
     const lockout = createLockout();
-    let last: { lockAccount?: boolean } = {};
+    let last: ReturnType<typeof guess> | null = null;
     for (let i = 0; i < ACCOUNT_BRAKE; i += 1) last = guess(lockout, 'chef', `address-${i}`);
-    expect(last.lockAccount).toBe(true);
+    expect(last).toHaveProperty('lockAccount', true);
   });
 
   it('forgets everything about a person when told to', () => {

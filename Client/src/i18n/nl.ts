@@ -154,7 +154,7 @@ export const nl: Record<MessageKey, string> = {
   'setup.failed': 'Instellen is mislukt. Kijk in het serverlogboek.',
   'setup.create': 'Keuken aanmaken',
   'setup.codeHint':
-    'Het is de SETUP_TOKEN in de instellingen van Mise, en staat ook aan het eind van de installatielink die het installatieprogramma toonde. Is er geen ingesteld, dan heeft Mise er zelf een gemaakt en in zijn log gezet.',
+    'Installeren van buiten het keukennetwerk vraagt om deze code. Het is SETUP_TOKEN in de instellingen van Mise, of het eind van de installatielink die het installatieprogramma toonde. Is er geen ingesteld, dan heeft Mise er zelf een gemaakt en in zijn log gezet.',
   'setup.codeLabel': 'Installatiecode',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Jij',

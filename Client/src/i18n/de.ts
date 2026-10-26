@@ -156,7 +156,7 @@ export const de: Record<MessageKey, string> = {
   'setup.failed': 'Die Einrichtung ist fehlgeschlagen. Sieh im Serverprotokoll nach.',
   'setup.create': 'Küche anlegen',
   'setup.codeHint':
-    'Es ist der SETUP_TOKEN in den Einstellungen von Mise, auch am Ende des Links, den das Installationsprogramm angezeigt hat. Wurde keiner gesetzt, hat Mise selbst einen erstellt und in sein Protokoll geschrieben.',
+    'Die Einrichtung von außerhalb des Küchennetzwerks verlangt diesen Code. Es ist SETUP_TOKEN in den Einstellungen von Mise oder das Ende des Links, den das Installationsprogramm angezeigt hat. Wurde keiner gesetzt, hat Mise selbst einen erstellt und in sein Protokoll geschrieben.',
   'setup.codeLabel': 'Einrichtungscode',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Du',

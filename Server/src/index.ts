@@ -1,6 +1,6 @@
 import { access, constants, mkdir } from 'node:fs/promises';
 import path from 'node:path';
-import { buildApp } from './app.js';
+import { buildApp, setupCodeAlways } from './app.js';
 import { loadConfig, type Config } from './config.js';
 import { runMigrations } from './db/migrate.js';
 
@@ -69,6 +69,11 @@ async function main(): Promise<void> {
   if (await app.auth.needsSetup()) {
     const query = app.setupToken ? `?token=${app.setupToken}` : '';
     app.log.info(`Mise needs setting up. Open http://<this machine>:${config.PORT}/setup${query}`);
+    if (app.setupToken && !setupCodeAlways(config)) {
+      app.log.info(
+        'From the kitchen network setup needs no code; from anywhere else it asks for this one.',
+      );
+    }
   }
 }
 

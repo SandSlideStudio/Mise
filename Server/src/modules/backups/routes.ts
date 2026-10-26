@@ -180,12 +180,15 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
             continue;
           }
           // The code is checked before a single byte of the file is kept.
-          if (app.setupToken !== null && !safeEqual(fields.setupToken ?? '', app.setupToken)) {
+          if (
+            app.setupCodeNeeded(request) &&
+            !safeEqual(fields.setupToken ?? '', app.setupToken ?? '')
+          ) {
             part.file.resume();
             throw new ApiError(
               403,
               'setup_token',
-              'That setup code is wrong. It was printed when Mise was installed.',
+              'That setup code is wrong. It is SETUP_TOKEN in the settings, or the code Mise printed in its log.',
             );
           }
           await pipeline(part.file, createWriteStream(upload));

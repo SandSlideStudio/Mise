@@ -156,7 +156,7 @@ export const fr: Record<MessageKey, string> = {
   'setup.failed': 'La configuration a échoué. Consultez le journal du serveur.',
   'setup.create': 'Créer la cuisine',
   'setup.codeHint':
-    'C’est le SETUP_TOKEN des réglages de Mise, aussi à la fin du lien affiché par le programme d’installation. Si aucun n’a été défini, Mise en a créé un et l’a écrit dans son journal.',
+    'La configuration depuis l’extérieur du réseau de la cuisine demande ce code. C’est SETUP_TOKEN dans les réglages de Mise, ou la fin du lien affiché par le programme d’installation. Si aucun n’a été défini, Mise en a créé un et l’a écrit dans son journal.',
   'setup.codeLabel': 'Code de configuration',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Vous',

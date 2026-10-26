@@ -25,13 +25,13 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
 
   // Public on purpose: the sign-in screens need the kitchen's language and name
   // before anyone has signed in, and neither is a secret.
-  r.get('/status', { schema: { response: { 200: setupStatusSchema } } }, async () => {
+  r.get('/status', { schema: { response: { 200: setupStatusSchema } } }, async (request) => {
     const kitchen = await app.auth.kitchen();
     return {
       needsSetup: await app.auth.needsSetup(),
       language: kitchen?.language ?? 'en',
       kitchenName: kitchen?.name ?? null,
-      setupTokenRequired: app.setupToken !== null,
+      setupTokenRequired: app.setupCodeNeeded(request),
     };
   });
 
@@ -54,11 +54,14 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
       if (!(await app.auth.needsSetup())) {
         throw ApiError.notFound('This page');
       }
-      if (app.setupToken !== null && !safeEqual(request.body.setupToken ?? '', app.setupToken)) {
+      if (
+        app.setupCodeNeeded(request) &&
+        !safeEqual(request.body.setupToken ?? '', app.setupToken ?? '')
+      ) {
         throw new ApiError(
           403,
           'setup_token',
-          'That setup code is wrong. It was printed when Mise was installed.',
+          'That setup code is wrong. It is SETUP_TOKEN in the settings, or the code Mise printed in its log.',
         );
       }
 
