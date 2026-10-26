@@ -115,6 +115,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
       const result = await app.auth.loginWithPassword(
         request.body.email,
         request.body.password,
+        request.ip,
         request.headers['user-agent'] ?? null,
       );
       if (!result.ok) throw failureToError(result.error);

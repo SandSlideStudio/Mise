@@ -193,6 +193,10 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const result = await kitchen.updateUser(request.params.id, request.body, request.user!);
       if (!result.ok) throw failureToError(result.error);
+      // A new password or PIN lifts the lock wherever they were locked out.
+      if (request.body.password || request.body.pin !== undefined) {
+        app.auth.forgetFailures(request.params.id);
+      }
       return serialiseUser(result.user);
     },
   );
