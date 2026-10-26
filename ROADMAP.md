@@ -20,7 +20,9 @@ What's planned after 2.0, roughly in order. Nothing here has a date.
   - First-run setup offers an optional step to send backups to a NAS or OneDrive, and the
     backups page warns while backups only live on the server itself.
   - Settings shows which version of Mise is running, and tells administrators when a newer
-    one is out. The check asks GitHub once a day and can be switched off.
+    one is out, with a link to what changed and the steps to update for their kind of install:
+    TrueNAS, the installer or plain Docker. The check asks GitHub once a day and can be switched
+    off.
   - The image runs as any user, such as the apps user TrueNAS uses.
   - The README explains installing on TrueNAS.
   - Installing on Windows no longer changes `package-lock.json`.
