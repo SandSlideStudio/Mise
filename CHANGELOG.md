@@ -3,7 +3,7 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
-## Unreleased
+## 1.1.0
 
 **Dish cards**
 
