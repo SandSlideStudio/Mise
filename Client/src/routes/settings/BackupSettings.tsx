@@ -20,24 +20,11 @@ import { errorMessage, useT } from '../../i18n/index.js';
  * Nightly backups: when the last one worked, where they go, and the recovery
  * key that opens them. Administrators only; a backup holds everyone's sign-in.
  */
-/**
- * Setup sends a kitchen here with ?connect=webdav or ?connect=onedrive when
- * whoever set it up wants backups off the machine: connecting needs a signed-in
- * administrator, so it can only be finished once the kitchen exists.
- */
-function connectFromAddress(): Remote | null {
-  const asked = new URLSearchParams(window.location.search).get('connect');
-  return asked === 'webdav' || asked === 'onedrive' ? asked : null;
-}
-
-type Remote = Exclude<BackupDestination, 'local'>;
-
 export function BackupSettings() {
   const translator = useT();
   const { t } = translator;
   const status = useBackupStatus();
   const run = useRunBackup();
-  const [connect] = useState(connectFromAddress);
 
   if (status.isPending) return <p className="text-ink-soft">{t('common.loading')}</p>;
   if (status.isError) return <LoadError onRetry={() => void status.refetch()} />;
@@ -48,7 +35,7 @@ export function BackupSettings() {
 
   return (
     <section className="flex flex-col gap-10">
-      {onlyHere ? <OnlyHere connect={connect} /> : null}
+      {onlyHere ? <OnlyHere /> : null}
       <div>
         <h2 className="mb-1.5 text-2xl">{t('backups.title')}</h2>
         <p className="text-ink-soft mb-5 max-w-2xl text-sm">{t('backups.body')}</p>
@@ -92,11 +79,7 @@ export function BackupSettings() {
 
       <RecoveryKey confirmed={data.keyConfirmed} />
       {/* Starts over when OneDrive connects, which changes where backups go. */}
-      <Destination
-        key={`${data.destination}:${data.onedrive.account ?? ''}`}
-        status={data}
-        connect={onlyHere ? connect : null}
-      />
+      <Destination key={`${data.destination}:${data.onedrive.account ?? ''}`} status={data} />
       <KeptFiles files={data.files} />
     </section>
   );
@@ -194,23 +177,15 @@ const REMOTE_KEEP = [7, 14, 30, 60, 90];
  * Backups kept only on the server go when the server goes. Said at the top of
  * the page until they also go somewhere else.
  */
-function OnlyHere({ connect }: { connect: Remote | null }) {
+function OnlyHere() {
   const { t } = useT();
   const toDestination = () =>
     document.getElementById('backup-destination')?.scrollIntoView({ behavior: 'smooth' });
 
   return (
     <div role="status" className="bg-accent-wash border-accent border-l-[6px] px-5 py-4">
-      <p className="text-lg font-semibold">
-        {connect ? t('backups.connectTitle') : t('backups.onlyHereTitle')}
-      </p>
-      <p className="text-ink-soft mt-1 max-w-2xl">
-        {connect === 'webdav'
-          ? t('backups.connectWebdav')
-          : connect === 'onedrive'
-            ? t('backups.connectOnedrive')
-            : t('backups.onlyHereBody')}
-      </p>
+      <p className="text-lg font-semibold">{t('backups.onlyHereTitle')}</p>
+      <p className="text-ink-soft mt-1 max-w-2xl">{t('backups.onlyHereBody')}</p>
       <button type="button" className="btn-small mt-3" onClick={toDestination}>
         {t('backups.onlyHereAction')}
       </button>
@@ -218,13 +193,13 @@ function OnlyHere({ connect }: { connect: Remote | null }) {
   );
 }
 
-function Destination({ status, connect }: { status: BackupStatus; connect: Remote | null }) {
+function Destination({ status }: { status: BackupStatus }) {
   const translator = useT();
   const { t, plural } = translator;
   const update = useUpdateBackups();
   const test = useTestBackupDestination();
 
-  const [destination, setDestination] = useState<BackupDestination>(connect ?? status.destination);
+  const [destination, setDestination] = useState<BackupDestination>(status.destination);
   const [url, setUrl] = useState(status.webdavUrl ?? '');
   const [username, setUsername] = useState(status.webdavUsername ?? '');
   const [password, setPassword] = useState('');

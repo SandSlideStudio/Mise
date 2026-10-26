@@ -120,7 +120,7 @@ warning at the top of every page.
 Keep a copy off the machine. Download one now and then, or let Mise send every backup to OneDrive,
 or to a NAS or Nextcloud over WebDAV, which Synology and QNAP boxes offer. All of these are set up
 on the same page. OneDrive backups go into the `Apps/Mise` folder, and Mise can't see anything else
-in that OneDrive. Setup offers to send them off the machine from the start, and the backups page
+in that OneDrive. Setup lets you connect a NAS or OneDrive straight away, and the backups page
 says so for as long as they only live on the server.
 
 Every backup is encrypted with the kitchen's recovery key. Print it from **Settings → Backups** and

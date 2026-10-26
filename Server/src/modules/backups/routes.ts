@@ -22,7 +22,7 @@ import { AlreadySetUpError, validTimeZone } from './service.js';
 /** Big enough for years of plating photos. */
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024 * 1024;
 
-function failed(error: unknown): never {
+export function failed(error: unknown): never {
   if (error instanceof BackupFailure) {
     throw new ApiError(400, `backup_${error.code}`, error.message);
   }

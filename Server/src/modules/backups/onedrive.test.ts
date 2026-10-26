@@ -10,7 +10,9 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } 
 import { buildApp } from '../../app.js';
 import type { Database } from '../../db/client.js';
 import {
+  ADMIN,
   TEST_CONFIG,
+  cookieFrom,
   createTestDatabase,
   resetDatabase,
   setUpKitchen,
@@ -184,6 +186,58 @@ async function connect(cookies: Record<string, string>) {
   // The first backup starts by itself once connected; wait for it.
   await app.backups.run({ force: false });
 }
+
+describe('connecting OneDrive during setup', () => {
+  it('connects before the kitchen exists, and the kitchen starts out backing up there', async () => {
+    const started = await app.inject({ method: 'POST', url: '/api/setup/onedrive' });
+    expect(started.statusCode).toBe(200);
+    expect(started.json().connecting).toMatchObject({ userCode: 'ABCD-EFGH' });
+
+    // Choosing OneDrive before the sign-in is done is refused.
+    const early = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { destination: 'onedrive' } },
+    });
+    expect(early.statusCode).toBe(400);
+
+    microsoft.approved = true;
+    await until(
+      async () =>
+        (await app.inject({ method: 'GET', url: '/api/setup/onedrive' })).json().account !== null,
+    );
+
+    const setUp = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { destination: 'onedrive' } },
+    });
+    expect(setUp.statusCode).toBe(200);
+    const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
+    expect(await status(cookies)).toMatchObject({
+      destination: 'onedrive',
+      onedrive: { account: 'chef@outlook.com' },
+    });
+    // Connecting starts a first backup by itself; let it finish here.
+    await app.backups.run({ force: false });
+  });
+
+  it('lets go of OneDrive when setup ends with another choice', async () => {
+    await app.inject({ method: 'POST', url: '/api/setup/onedrive' });
+    microsoft.approved = true;
+    await until(
+      async () =>
+        (await app.inject({ method: 'GET', url: '/api/setup/onedrive' })).json().account !== null,
+    );
+    const setUp = await app.inject({ method: 'POST', url: '/api/setup', payload: ADMIN });
+    const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
+    expect(await status(cookies)).toMatchObject({
+      destination: 'local',
+      onedrive: { account: null },
+    });
+    await app.backups.run({ force: false });
+  });
+});
 
 describe('backing up to OneDrive', () => {
   it('connects with a code, then sends each backup to the app folder', async () => {

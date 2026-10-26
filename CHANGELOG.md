@@ -15,6 +15,9 @@ Security and safer updates, from an independent audit.
 - First-run setup without `SETUP_TOKEN` only skips the code for computers on the kitchen network.
   From a public address, or through a proxy or tunnel, it asks for the code Mise prints in its log.
   Restoring a backup on the setup page follows the same rule.
+- Backups to a NAS or OneDrive are now connected during setup itself: test the NAS or sign in to
+  OneDrive on the setup screen, before the kitchen is created, instead of on the backups page
+  afterwards.
 - Before an update changes the database, Mise backs the kitchen up on the server. If that backup
   fails, nothing is changed and Mise stops with a clear message.
 - The installer and the files it downloads come from the latest release instead of the `main`

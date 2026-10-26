@@ -31,6 +31,7 @@ export class RequestFailed extends Error {
 }
 
 interface RequestOptions {
+  headers?: Record<string, string>;
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
   body?: unknown;
   signal?: AbortSignal;
@@ -51,7 +52,10 @@ function buildUrl(path: string, query?: RequestOptions['query']): string {
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const response = await fetch(buildUrl(path, options.query), {
     method: options.method ?? 'GET',
-    headers: options.body === undefined ? {} : { 'content-type': 'application/json' },
+    headers: {
+      ...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
+      ...options.headers,
+    },
     body: options.body === undefined ? undefined : JSON.stringify(options.body),
     // Sessions are httpOnly cookies, so every request has to carry them.
     credentials: 'same-origin',

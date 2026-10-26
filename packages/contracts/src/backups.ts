@@ -66,7 +66,7 @@ export const backupStatusSchema = z.object({
   files: z.array(backupFileSchema),
 });
 
-const webdavUrlSchema = z
+export const webdavUrlSchema = z
   .string()
   .trim()
   .max(500)

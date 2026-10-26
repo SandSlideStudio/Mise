@@ -1,11 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
   BackupStatus,
+  OnedriveStatus,
   RestoreResult,
   TestBackupDestination,
   UpdateBackupSettings,
 } from '@mise/contracts';
-import { api, BASE_URL, RequestFailed } from './client.js';
+import { api, BASE_URL, request, RequestFailed } from './client.js';
 
 export function useBackupStatus(enabled = true) {
   return useQuery({
@@ -105,5 +106,51 @@ export function useRestoreBackup() {
         throw new RequestFailed(response.status, parsed as never, response.statusText);
       return parsed as RestoreResult;
     },
+  });
+}
+
+// --- during first-run setup ----------------------------------------------
+// The same steps as Settings → Backups, before anyone is signed in. They carry
+// the setup code for the requests that need it.
+
+const setupHeaders = (code: string): Record<string, string> =>
+  code ? { 'x-setup-token': code } : {};
+
+export function useSetupTestBackup(code: string) {
+  return useMutation({
+    mutationFn: (input: TestBackupDestination) =>
+      request<void>('/setup/backups/test', {
+        method: 'POST',
+        body: input,
+        headers: setupHeaders(code),
+      }),
+  });
+}
+
+/** OneDrive's side during setup; asked every few seconds while a sign-in is waiting. */
+export function useSetupOnedrive(code: string, enabled: boolean) {
+  return useQuery({
+    queryKey: ['setup-onedrive'],
+    queryFn: () => request<OnedriveStatus>('/setup/onedrive', { headers: setupHeaders(code) }),
+    enabled,
+    refetchInterval: (query) => (query.state.data?.connecting ? 3000 : false),
+  });
+}
+
+export function useSetupConnectOnedrive(code: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      request<OnedriveStatus>('/setup/onedrive', { method: 'POST', headers: setupHeaders(code) }),
+    onSuccess: (status) => queryClient.setQueryData(['setup-onedrive'], status),
+  });
+}
+
+export function useSetupDisconnectOnedrive(code: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () =>
+      request<OnedriveStatus>('/setup/onedrive', { method: 'DELETE', headers: setupHeaders(code) }),
+    onSuccess: (status) => queryClient.setQueryData(['setup-onedrive'], status),
   });
 }

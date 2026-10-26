@@ -461,6 +461,63 @@ describe('sending backups to a NAS', () => {
     expect(status.lastError).toBeNull();
   });
 
+  it('can be tested and chosen during setup, before the kitchen exists', async () => {
+    const wrong = await app.inject({
+      method: 'POST',
+      url: '/api/setup/backups/test',
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'wrong' },
+    });
+    expect(wrong.statusCode).toBe(400);
+    expect(wrong.json().error.code).toBe('backup_auth');
+
+    const right = await app.inject({
+      method: 'POST',
+      url: '/api/setup/backups/test',
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'secret' },
+    });
+    expect(right.statusCode).toBe(204);
+
+    const setUp = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: {
+        ...ADMIN,
+        backups: {
+          destination: 'webdav',
+          webdavUrl: address,
+          webdavUsername: 'chef',
+          webdavPassword: 'secret',
+        },
+      },
+    });
+    expect(setUp.statusCode).toBe(200);
+    const cookies = { mise_session: cookieFrom(setUp, 'mise_session')! };
+    const status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
+    expect(status).toMatchObject({
+      destination: 'webdav',
+      webdavUrl: address,
+      webdavUsername: 'chef',
+      hasWebdavPassword: true,
+    });
+
+    // Once the kitchen exists, the setup steps are gone.
+    const after = await app.inject({
+      method: 'POST',
+      url: '/api/setup/backups/test',
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'secret' },
+    });
+    expect(after.statusCode).toBe(404);
+  });
+
+  it('refuses a NAS without an address in setup', async () => {
+    const response = await app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { destination: 'webdav' } },
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
   it('says when the NAS turns the password down', async () => {
     const { cookies } = await stockedKitchen();
     const test = await app.inject({
