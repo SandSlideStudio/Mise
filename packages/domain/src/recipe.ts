@@ -4,6 +4,7 @@ import {
   emptyAllergenProfile,
   mergeProfiles,
 } from './allergens.js';
+import type { AllergenDetails } from './dishcard.js';
 import { err, ok, type Result } from './result.js';
 import { convert, dimensionOf, toBase, type ConversionContext, type Quantity } from './units.js';
 import type { BaseUnit, UnitCode } from './units.js';
@@ -36,6 +37,10 @@ export interface Ingredient {
   yieldPercent: number;
   /** Whether appearing in a recipe is by itself enough to earn a prep task. */
   requiresPrep: boolean;
+  /** True or false when someone has said; null or absent when nobody has. */
+  vegan?: boolean | null;
+  /** Which gluten cereals and which nuts, for the ones that contain them. */
+  allergenDetails?: Partial<AllergenDetails> | null;
 }
 
 export type ComponentRef =

@@ -26,6 +26,7 @@ import ingredientRoutes from './modules/ingredients/routes.js';
 import recipeRoutes from './modules/recipes/routes.js';
 import photoRoutes from './modules/recipes/photos.js';
 import backupRoutes from './modules/backups/routes.js';
+import dishCardRoutes from './modules/dishcards/routes.js';
 import { createBackupService, type BackupService } from './modules/backups/service.js';
 import { createOnedrive } from './modules/backups/onedrive.js';
 
@@ -126,6 +127,7 @@ export async function buildApp(
   await app.register(multipart);
   await app.register(recipeRoutes, { prefix: '/api' });
   await app.register(photoRoutes, { prefix: '/api' });
+  await app.register(dishCardRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
   await registerUploads(app, config);
 

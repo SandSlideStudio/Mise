@@ -5,3 +5,4 @@ export * from './allergens.js';
 export * from './recipe.js';
 export * from './explode.js';
 export * from './expand.js';
+export * from './dishcard.js';

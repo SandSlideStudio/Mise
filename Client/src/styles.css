@@ -643,3 +643,39 @@
     margin-bottom: 10mm;
   }
 }
+
+/*
+ * A dish card on its own landscape sheets. Only there while it is being
+ * printed, so the rest of the app never prints alongside it.
+ */
+.print-card {
+  display: none;
+}
+
+@media print {
+  html.printing-card body > :not(.print-card) {
+    display: none !important;
+  }
+
+  html.printing-card .print-card {
+    display: block;
+  }
+
+  .print-card-page {
+    width: 297mm;
+    height: 210mm;
+    overflow: hidden;
+    break-after: page;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .print-card-page:last-child {
+    break-after: auto;
+  }
+
+  .print-card-page svg {
+    width: 297mm;
+    height: 210mm;
+  }
+}

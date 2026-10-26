@@ -183,6 +183,12 @@ export function createRecipesService(db: Database) {
           tags: input.tags,
           declaredAllergens: input.declaredAllergens,
           mayContain: input.mayContain,
+          seasons: input.seasons,
+          flavourProfile: input.flavourProfile,
+          servingTemperature: input.servingTemperature,
+          course: input.course,
+          drinkPairings: input.drinkPairings,
+          cutlery: input.cutlery,
           createdBy,
         })
         .returning();
@@ -230,6 +236,14 @@ export function createRecipesService(db: Database) {
             ? { declaredAllergens: input.declaredAllergens }
             : {}),
           ...(input.mayContain !== undefined ? { mayContain: input.mayContain } : {}),
+          ...(input.seasons !== undefined ? { seasons: input.seasons } : {}),
+          ...(input.flavourProfile !== undefined ? { flavourProfile: input.flavourProfile } : {}),
+          ...(input.servingTemperature !== undefined
+            ? { servingTemperature: input.servingTemperature }
+            : {}),
+          ...(input.course !== undefined ? { course: input.course } : {}),
+          ...(input.drinkPairings !== undefined ? { drinkPairings: input.drinkPairings } : {}),
+          ...(input.cutlery !== undefined ? { cutlery: input.cutlery } : {}),
           version: sql`${recipes.version} + 1`,
           updatedAt: new Date(),
         })
@@ -275,6 +289,12 @@ export function createRecipesService(db: Database) {
           tags: source.tags,
           declaredAllergens: source.declaredAllergens,
           mayContain: source.mayContain,
+          seasons: source.seasons,
+          flavourProfile: source.flavourProfile,
+          servingTemperature: source.servingTemperature,
+          course: source.course,
+          drinkPairings: source.drinkPairings,
+          cutlery: source.cutlery,
           createdBy: source.createdBy,
         })
         .returning();

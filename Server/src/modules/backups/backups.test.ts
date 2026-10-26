@@ -203,6 +203,55 @@ describe('backing up and restoring', () => {
     }
   });
 
+  it('brings back the dish card settings and logo', async () => {
+    const { cookies } = await stockedKitchen();
+    const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), randomBytes(64)]);
+    const logo = await app.inject({
+      method: 'POST',
+      url: '/api/dish-cards/logo',
+      cookies,
+      ...multipart({}, { field: 'file', type: 'image/png', data: png }),
+    });
+    expect(logo.statusCode).toBe(200);
+    await app.inject({
+      method: 'PATCH',
+      url: '/api/dish-cards/settings',
+      cookies,
+      payload: { warnings: { nl: 'Eigendom van de keuken.' }, theme: 'night' },
+    });
+    const { file, key } = await backUp(cookies);
+
+    const second = await emptyServer();
+    try {
+      const restored = await restore(second.app, file, key);
+      expect(restored.json().photos).toBe(2);
+      const signIn = await second.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password: ADMIN.password },
+      });
+      const restoredCookies = { mise_session: cookieFrom(signIn, 'mise_session')! };
+      const settings = await second.app.inject({
+        method: 'GET',
+        url: '/api/dish-cards/settings',
+        cookies: restoredCookies,
+      });
+      expect(settings.json()).toMatchObject({
+        logoUrl: logo.json().logoUrl,
+        warnings: { nl: 'Eigendom van de keuken.' },
+        theme: 'night',
+      });
+      const image = await second.app.inject({
+        method: 'GET',
+        url: settings.json().logoUrl,
+        cookies: restoredCookies,
+      });
+      expect(image.rawPayload.equals(png)).toBe(true);
+    } finally {
+      await second.close();
+    }
+  });
+
   it('refuses a wrong key, a file that is not a backup, and a server already in use', async () => {
     const { cookies } = await stockedKitchen();
     const { file, key } = await backUp(cookies);

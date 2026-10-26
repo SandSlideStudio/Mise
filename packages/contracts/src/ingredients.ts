@@ -10,6 +10,10 @@ import { allergenSchema, idSchema } from './common.js';
 
 export const baseUnitSchema = z.enum(['g', 'ml', 'each']);
 
+/** Which gluten cereals and which nuts, named the way the law wants them. */
+const names = z.array(z.string().trim().min(1).max(60)).max(12);
+export const allergenDetailsSchema = z.object({ gluten: names, nuts: names });
+
 export const ingredientSchema = z.object({
   id: idSchema,
   name: z.string(),
@@ -20,6 +24,9 @@ export const ingredientSchema = z.object({
   itemWeightG: z.number().positive().nullable(),
   yieldPercent: z.number().positive().max(100),
   requiresPrep: z.boolean(),
+  /** Null until somebody says, and null is never shown as vegan. */
+  vegan: z.boolean().nullable(),
+  allergenDetails: allergenDetailsSchema,
   notes: z.string().nullable(),
 });
 
@@ -32,6 +39,8 @@ const ingredientFields = z.object({
   itemWeightG: z.number().positive().nullable().optional(),
   yieldPercent: z.number().positive().max(100),
   requiresPrep: z.boolean(),
+  vegan: z.boolean().nullable().optional(),
+  allergenDetails: allergenDetailsSchema.optional(),
   notes: z.string().max(2000).nullable().optional(),
 });
 
@@ -54,3 +63,4 @@ export type CreateIngredient = z.infer<typeof createIngredientSchema>;
 
 export type UpdateIngredient = z.infer<typeof updateIngredientSchema>;
 export type BaseUnit = z.infer<typeof baseUnitSchema>;
+export type AllergenDetails = z.infer<typeof allergenDetailsSchema>;

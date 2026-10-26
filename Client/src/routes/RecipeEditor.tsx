@@ -9,12 +9,23 @@ import {
 import { useNavigate, useParams } from '@tanstack/react-router';
 import type {
   ComponentRef,
+  Course,
   CreateRecipeComponent,
   Recipe,
   RecipeStatus,
   RecipeType,
+  Season,
+  ServingTemperature,
 } from '@mise/contracts';
-import { ALLERGENS, ALL_UNITS, type Allergen, type UnitCode } from '@mise/domain';
+import {
+  ALLERGENS,
+  ALL_UNITS,
+  COURSES,
+  SEASONS,
+  SERVING_TEMPERATURES,
+  type Allergen,
+  type UnitCode,
+} from '@mise/domain';
 import { useStations } from '../api/kitchen.js';
 import { useCreateRecipe, useRecipe, useRecipeAllergens, useUpdateRecipe } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
@@ -23,9 +34,12 @@ import { ComponentPicker } from '../components/ComponentPicker.js';
 import { Plate } from '../components/Plate.js';
 import {
   allergenName,
+  courseName,
   errorMessage,
   recipeStatusName,
   recipeTypeName,
+  seasonName,
+  temperatureName,
   useT,
 } from '../i18n/index.js';
 
@@ -53,6 +67,14 @@ type LineField = 'picker' | 'amount' | 'unit' | 'note';
 
 /** Column widths of a line, shared with its heading so they line up. */
 const LINE_COLUMNS = 'lg:grid-cols-[96px_minmax(0,1fr)_96px_84px_minmax(0,220px)_100px]';
+
+/** "romig, knoflook, fris" into a list, and back. */
+function splitList(value: string): string[] {
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
 
 let lineCounter = 0;
 function blankLine(section = ''): EditorLine {
@@ -122,6 +144,14 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [mayContain, setMayContain] = useState<Allergen[]>(
     (recipe?.mayContain ?? []) as Allergen[],
   );
+  const [seasons, setSeasons] = useState<Season[]>(recipe?.seasons ?? []);
+  const [flavour, setFlavour] = useState((recipe?.flavourProfile ?? []).join(', '));
+  const [temperature, setTemperature] = useState<ServingTemperature | ''>(
+    recipe?.servingTemperature ?? '',
+  );
+  const [course, setCourse] = useState<Course | ''>(recipe?.course ?? '');
+  const [drinks, setDrinks] = useState((recipe?.drinkPairings ?? []).join(', '));
+  const [cutlery, setCutlery] = useState((recipe?.cutlery ?? []).join(', '));
   const [steps, setSteps] = useState<string[]>((recipe?.method ?? []).map((s) => s.text));
   const [lines, setLines] = useState<EditorLine[]>(() =>
     (recipe?.components ?? []).length > 0
@@ -246,12 +276,15 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       shelfLifeHours: shelfLifeHours ? Number(shelfLifeHours) : null,
       storage: storage || null,
       method: steps.filter((step) => step.trim()).map((text) => ({ text })),
-      tags: tags
-        .split(',')
-        .map((tag) => tag.trim())
-        .filter(Boolean),
+      tags: splitList(tags),
       declaredAllergens: [],
       mayContain,
+      seasons,
+      flavourProfile: splitList(flavour),
+      servingTemperature: temperature || null,
+      course: course || null,
+      drinkPairings: splitList(drinks),
+      cutlery: splitList(cutlery),
       components,
     };
 
@@ -629,6 +662,26 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                 />
               </RailField>
 
+              {type === 'dish' ? (
+                <>
+                  <div className="bg-field h-px" />
+                  <FrontOfHouse
+                    seasons={seasons}
+                    onSeasons={setSeasons}
+                    flavour={flavour}
+                    onFlavour={setFlavour}
+                    temperature={temperature}
+                    onTemperature={setTemperature}
+                    course={course}
+                    onCourse={setCourse}
+                    drinks={drinks}
+                    onDrinks={setDrinks}
+                    cutlery={cutlery}
+                    onCutlery={setCutlery}
+                  />
+                </>
+              ) : null}
+
               <div className="bg-field h-px" />
 
               <AllergenRollup recipeId={recipe?.id} />
@@ -732,6 +785,121 @@ function RailField({
       {children}
       {hint ? <span className="text-ink-faint text-xs">{hint}</span> : null}
     </span>
+  );
+}
+
+/**
+ * What the dish card says beyond the spec. Only a dish has one, so only a
+ * dish shows these; a stock keeps whatever it had, untouched.
+ */
+function FrontOfHouse(props: {
+  seasons: Season[];
+  onSeasons: (value: Season[]) => void;
+  flavour: string;
+  onFlavour: (value: string) => void;
+  temperature: ServingTemperature | '';
+  onTemperature: (value: ServingTemperature | '') => void;
+  course: Course | '';
+  onCourse: (value: Course | '') => void;
+  drinks: string;
+  onDrinks: (value: string) => void;
+  cutlery: string;
+  onCutlery: (value: string) => void;
+}) {
+  const { t } = useT();
+  return (
+    <div className="flex flex-col gap-[18px]">
+      <div>
+        <h2 className="font-display text-brand text-xl font-semibold tracking-[0.14em] uppercase">
+          {t('editor.frontOfHouse')}
+        </h2>
+        <p className="text-ink-faint text-xs">{t('editor.frontOfHouseHint')}</p>
+      </div>
+
+      <fieldset className="flex flex-col gap-2">
+        <legend className="eyebrow mb-2">{t('editor.seasons')}</legend>
+        <div className="flex flex-wrap gap-1.5">
+          {SEASONS.map((season) => (
+            <button
+              key={season}
+              type="button"
+              aria-pressed={props.seasons.includes(season)}
+              onClick={() =>
+                props.onSeasons(
+                  props.seasons.includes(season)
+                    ? props.seasons.filter((s) => s !== season)
+                    : SEASONS.filter((s) => s === season || props.seasons.includes(s)),
+                )
+              }
+              className="toggle px-2.5 py-1 text-[13px]"
+            >
+              {seasonName(t, season)}
+            </button>
+          ))}
+        </div>
+      </fieldset>
+
+      <div className="grid gap-3">
+        <RailField label={t('editor.temperature')} htmlFor="temperature">
+          <select
+            id="temperature"
+            className="field min-h-10"
+            value={props.temperature}
+            onChange={(e) => props.onTemperature(e.target.value as ServingTemperature | '')}
+          >
+            <option value="">{t('editor.notSet')}</option>
+            {SERVING_TEMPERATURES.map((value) => (
+              <option key={value} value={value}>
+                {temperatureName(t, value)}
+              </option>
+            ))}
+          </select>
+        </RailField>
+        <RailField label={t('editor.course')} htmlFor="course">
+          <select
+            id="course"
+            className="field min-h-10"
+            value={props.course}
+            onChange={(e) => props.onCourse(e.target.value as Course | '')}
+          >
+            <option value="">{t('editor.notSet')}</option>
+            {COURSES.map((value) => (
+              <option key={value} value={value}>
+                {courseName(t, value)}
+              </option>
+            ))}
+          </select>
+        </RailField>
+      </div>
+
+      <RailField label={t('editor.flavour')} htmlFor="flavour" hint={t('editor.listHint')}>
+        <input
+          id="flavour"
+          className="field min-h-10"
+          value={props.flavour}
+          onChange={(e) => props.onFlavour(e.target.value)}
+          placeholder={t('editor.flavourPlaceholder')}
+        />
+      </RailField>
+      <RailField label={t('editor.drinks')} htmlFor="drinks">
+        <input
+          id="drinks"
+          className="field min-h-10"
+          value={props.drinks}
+          onChange={(e) => props.onDrinks(e.target.value)}
+          placeholder={t('editor.drinksPlaceholder')}
+        />
+      </RailField>
+      <RailField label={t('editor.cutlery')} htmlFor="cutlery">
+        <input
+          id="cutlery"
+          className="field min-h-10"
+          value={props.cutlery}
+          onChange={(e) => props.onCutlery(e.target.value)}
+          placeholder={t('editor.cutleryPlaceholder')}
+        />
+      </RailField>
+    </div>
   );
 }
 

@@ -15,8 +15,10 @@
     "@fontsource/barlow-condensed": "^5.3.0",
     "@mise/contracts": "*",
     "@mise/domain": "*",
+    "@pdf-lib/fontkit": "^1.1.1",
     "@tanstack/react-query": "^5.102.8",
     "@tanstack/react-router": "^1.170.35",
+    "pdf-lib": "^1.17.1",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
   },

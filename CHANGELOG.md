@@ -3,6 +3,22 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 1.1.0
+
+**Dish cards**
+
+- Every dish has a dish card for front of house: the plating photo, season, flavour profile,
+  serving temperature, place on the menu, components, drink pairings and cutlery on the front,
+  and every allergen per component on the back.
+- Print it, or download it as a PDF, in any of the five languages and in day or night colours.
+- Anything sitting directly on a dish that brings an allergen gets a row of its own, so the
+  table never leaves one out.
+- Ingredients can say whether they are vegan, and which gluten cereals and nuts they contain.
+  A card only calls a dish vegan when every ingredient in it says so.
+- **Settings → Dish cards** sets the heading, logo, location, the kitchen's own warning in each
+  language, which parts of the card show, the look, and who may open cards. The settings and the
+  logo are part of every backup.
+
 ## 1.0.0 (first public release)
 
 **Recipes**

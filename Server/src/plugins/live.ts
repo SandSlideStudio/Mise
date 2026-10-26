@@ -37,6 +37,7 @@ const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
   ['/api/services', 'prep'],
   ['/api/kitchen', 'kitchen'],
   ['/api/stations', 'kitchen'],
+  ['/api/dish-cards', 'kitchen'],
   ['/api/users', 'staff'],
 ];
 

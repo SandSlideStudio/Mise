@@ -12,7 +12,13 @@ import type {
   UpdateBackupSettings,
 } from '@mise/contracts';
 import type { Database } from '../../db/client.js';
-import { backupSettings, kitchens, recipePhotos, users } from '../../db/schema.js';
+import {
+  backupSettings,
+  dishCardSettings,
+  kitchens,
+  recipePhotos,
+  users,
+} from '../../db/schema.js';
 import { VERSION } from '../../lib/version.js';
 import { packEntries, unpackEntries, type Entry } from './archive.js';
 import { decryptToFile, formatRecoveryKey, generateRecoveryKey, writeEncrypted } from './crypto.js';
@@ -244,8 +250,11 @@ export function createBackupService({
 
       const tables = await exportTables(db);
       const photoRows = await db.select({ path: recipePhotos.path }).from(recipePhotos);
+      // The dish card logo travels with the photos and comes back the same way.
+      const logoRows = await db.select({ path: dishCardSettings.logoPath }).from(dishCardSettings);
+      const stored = [...photoRows, ...logoRows].flatMap((row) => (row.path ? [row.path] : []));
       const photos: { name: string; file: string; size: number; mtime: number }[] = [];
-      for (const name of new Set(photoRows.map((row) => path.basename(row.path)))) {
+      for (const name of new Set(stored.map((file) => path.basename(file)))) {
         const file = path.join(uploadDir, name);
         try {
           const info = await stat(file);

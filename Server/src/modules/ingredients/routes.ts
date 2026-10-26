@@ -38,6 +38,11 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       itemWeightG: row.itemWeightG,
       yieldPercent: row.yieldPercent,
       requiresPrep: row.requiresPrep,
+      vegan: row.vegan,
+      allergenDetails: {
+        gluten: row.allergenDetails.gluten ?? [],
+        nuts: row.allergenDetails.nuts ?? [],
+      },
       notes: row.notes,
     };
   }
@@ -104,6 +109,8 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           itemWeightG: request.body.itemWeightG ?? null,
           yieldPercent: request.body.yieldPercent,
           requiresPrep: request.body.requiresPrep,
+          vegan: request.body.vegan ?? null,
+          allergenDetails: request.body.allergenDetails ?? {},
           notes: request.body.notes ?? null,
         })
         .returning();

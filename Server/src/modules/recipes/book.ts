@@ -78,6 +78,8 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
     itemWeightG: row.itemWeightG,
     yieldPercent: row.yieldPercent,
     requiresPrep: row.requiresPrep,
+    vegan: row.vegan,
+    allergenDetails: row.allergenDetails,
   }));
 
   return createRecipeBook(domainRecipes, domainIngredients);

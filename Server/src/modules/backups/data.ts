@@ -19,6 +19,7 @@ export const BACKED_UP: PgTable[] = [
   schema.services,
   schema.serviceDishes,
   schema.prepTasks,
+  schema.dishCardSettings,
 ];
 
 /**

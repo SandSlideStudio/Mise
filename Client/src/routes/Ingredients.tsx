@@ -196,7 +196,15 @@ function describe(t: Translator['t'], ingredient: Ingredient): string {
   if (ingredient.category) parts.push(ingredient.category);
   parts.push(unitLabel(t, ingredient.baseUnit));
   if (ingredient.requiresPrep) parts.push(t('ingredients.ownPrepLine'));
+  if (ingredient.vegan) parts.push(t('ingredients.vegan'));
   return parts.join(' · ');
+}
+
+function splitNames(value: string): string[] {
+  return value
+    .split(',')
+    .map((name) => name.trim())
+    .filter(Boolean);
 }
 
 function unitLabel(t: Translator['t'], baseUnit: BaseUnit): string {
@@ -234,6 +242,9 @@ function IngredientForm({
   );
   const [yieldPercent, setYieldPercent] = useState(String(ingredient?.yieldPercent ?? 100));
   const [requiresPrep, setRequiresPrep] = useState(ingredient?.requiresPrep ?? false);
+  const [vegan, setVegan] = useState<boolean | null>(ingredient?.vegan ?? null);
+  const [cereals, setCereals] = useState((ingredient?.allergenDetails.gluten ?? []).join(', '));
+  const [nuts, setNuts] = useState((ingredient?.allergenDetails.nuts ?? []).join(', '));
   const [confirming, setConfirming] = useState(false);
 
   const pending = create.isPending || update.isPending;
@@ -250,6 +261,12 @@ function IngredientForm({
       itemWeightG: itemWeight ? Number(itemWeight) : null,
       yieldPercent: Number(yieldPercent),
       requiresPrep,
+      vegan,
+      // Names only count for an allergen that is ticked.
+      allergenDetails: {
+        gluten: allergens.includes('gluten') ? splitNames(cereals) : [],
+        nuts: allergens.includes('nuts') ? splitNames(nuts) : [],
+      },
     };
     if (ingredient) update.mutate({ id: ingredient.id, ...payload }, { onSuccess: onDone });
     else create.mutate(payload, { onSuccess: onDone });
@@ -362,6 +379,64 @@ function IngredientForm({
             </button>
           ))}
         </div>
+      </fieldset>
+
+      {allergens.includes('gluten') || allergens.includes('nuts') ? (
+        <div className="grid gap-4 sm:grid-cols-2">
+          {allergens.includes('gluten') ? (
+            <div>
+              <label className="label" htmlFor="cereals">
+                {t('ingredients.whichCereals')}
+              </label>
+              <input
+                id="cereals"
+                className="field"
+                value={cereals}
+                onChange={(e) => setCereals(e.target.value)}
+                placeholder={t('ingredients.cerealsPlaceholder')}
+              />
+            </div>
+          ) : null}
+          {allergens.includes('nuts') ? (
+            <div>
+              <label className="label" htmlFor="nuts">
+                {t('ingredients.whichNuts')}
+              </label>
+              <input
+                id="nuts"
+                className="field"
+                value={nuts}
+                onChange={(e) => setNuts(e.target.value)}
+                placeholder={t('ingredients.nutsPlaceholder')}
+              />
+            </div>
+          ) : null}
+          <p className="text-ink-soft text-sm sm:col-span-2">{t('ingredients.detailsHint')}</p>
+        </div>
+      ) : null}
+
+      <fieldset>
+        <legend className="label">{t('ingredients.vegan')}</legend>
+        <div className="flex flex-wrap gap-1.5">
+          {(
+            [
+              [true, t('ingredients.veganYes')],
+              [false, t('ingredients.veganNo')],
+              [null, t('ingredients.veganUnknown')],
+            ] as const
+          ).map(([value, label]) => (
+            <button
+              key={String(value)}
+              type="button"
+              aria-pressed={vegan === value}
+              onClick={() => setVegan(value)}
+              className="toggle"
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <p className="text-ink-soft mt-1.5 text-sm">{t('ingredients.veganHint')}</p>
       </fieldset>
 
       {error ? (

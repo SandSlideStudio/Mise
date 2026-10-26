@@ -192,6 +192,23 @@ export function recipeStatusName(t: Translator['t'], status: string): string {
   return t(`recipeStatus.${status}` as MessageKey);
 }
 
+export function seasonName(t: Translator['t'], season: string): string {
+  return t(`season.${season}` as MessageKey);
+}
+
+export function temperatureName(t: Translator['t'], temperature: string): string {
+  return t(`temperature.${temperature}` as MessageKey);
+}
+
+export function courseName(t: Translator['t'], course: string): string {
+  return t(`course.${course}` as MessageKey);
+}
+
+/** The short name a dish card prints over its column: "Sulphites", not the legal name. */
+export function cardAllergenName(t: Translator['t'], allergen: Allergen | string): string {
+  return t(`cardAllergen.${allergen}` as MessageKey);
+}
+
 /**
  * A name as it sits mid-sentence: "free from celery". German keeps its
  * capital, because every German noun has one.

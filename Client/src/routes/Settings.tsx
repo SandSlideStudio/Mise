@@ -8,14 +8,16 @@ import { StationSettings } from './settings/StationSettings.js';
 import { DeviceSettings } from './settings/DeviceSettings.js';
 import { KitchenSettings } from './settings/KitchenSettings.js';
 import { BackupSettings } from './settings/BackupSettings.js';
+import { DishCardSettings } from './settings/DishCardSettings.js';
 
-type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'backups';
+type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'backups';
 
 const TABS: { id: TabId; label: MessageKey; adminOnly?: boolean }[] = [
   { id: 'staff', label: 'settings.tabStaff' },
   { id: 'stations', label: 'settings.tabStations' },
   { id: 'devices', label: 'settings.tabDevices' },
   { id: 'kitchen', label: 'settings.tabKitchen' },
+  { id: 'dishCards', label: 'settings.tabDishCards' },
   { id: 'backups', label: 'settings.tabBackups', adminOnly: true },
 ];
 
@@ -71,6 +73,7 @@ export function Settings() {
         {tab === 'stations' ? <StationSettings /> : null}
         {tab === 'devices' ? <DeviceSettings /> : null}
         {tab === 'kitchen' ? <KitchenSettings /> : null}
+        {tab === 'dishCards' ? <DishCardSettings /> : null}
         {tab === 'backups' && user.role === 'admin' ? <BackupSettings /> : null}
 
         <AboutLine className="border-line mt-12 border-t pt-4" />
