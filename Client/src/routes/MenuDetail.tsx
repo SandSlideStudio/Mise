@@ -314,6 +314,7 @@ function Printing({ menu }: { menu: Menu }) {
       const title = `${cardT('menus.cardsTitle')} – ${menu.name}`;
       const blob = await renderMenuCards({
         dishIds: menu.dishes.map((dish) => dish.recipeId),
+        menuName: menu.name,
         title,
         language,
         kitchenLanguage,

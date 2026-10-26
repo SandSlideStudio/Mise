@@ -14,7 +14,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import type { AllergenDetails, Season } from '@mise/domain';
+import type { AllergenDetails } from '@mise/domain';
 
 /**
  * One server instance is one kitchen, so nothing here is scoped to a tenant.
@@ -84,6 +84,8 @@ export const kitchens = pgTable('kitchen', {
   handoverNote: text('handover_note'),
   handoverNoteBy: text('handover_note_by'),
   handoverNoteAt: timestamp('handover_note_at', { withTimezone: true }),
+  /** Ask GitHub once a day whether a newer Mise is out. An administrator can switch it off. */
+  updateCheck: boolean('update_check').notNull().default(true),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -228,7 +230,6 @@ export const recipes = pgTable(
     declaredAllergens: jsonb('declared_allergens').$type<string[]>().notNull().default([]),
     mayContain: jsonb('may_contain').$type<string[]>().notNull().default([]),
     // Front of house: what a dish card says about a dish beyond its spec.
-    seasons: jsonb('seasons').$type<Season[]>().notNull().default([]),
     flavourProfile: jsonb('flavour_profile').$type<string[]>().notNull().default([]),
     servingTemperature: servingTemperatureEnum('serving_temperature'),
     course: courseEnum('course'),

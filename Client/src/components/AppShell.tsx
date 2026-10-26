@@ -4,6 +4,7 @@ import { LANGUAGES, type Language } from '@mise/contracts';
 import { useBackupStatus } from '../api/backups.js';
 import { useCurrentUser, useLogout, useUpdateMe } from '../api/session.js';
 import { dismissRefusal, useLastRefusal, usePendingTickCount } from '../api/ticks.js';
+import { useVersion } from '../api/version.js';
 import {
   errorMessage,
   inSentence,
@@ -60,6 +61,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to="/settings"
                 label="nav.settings"
                 active={pathname.startsWith('/settings')}
+                badge={user.role === 'admin' ? <UpdateDot /> : null}
               />
             ) : null}
           </nav>
@@ -209,7 +211,17 @@ function LanguagePicker() {
   );
 }
 
-function NavLink({ to, label, active }: { to: string; label: MessageKey; active: boolean }) {
+function NavLink({
+  to,
+  label,
+  active,
+  badge,
+}: {
+  to: string;
+  label: MessageKey;
+  active: boolean;
+  badge?: ReactNode;
+}) {
   const { t } = useT();
   return (
     <Link
@@ -221,7 +233,23 @@ function NavLink({ to, label, active }: { to: string; label: MessageKey; active:
       }`}
     >
       {t(label)}
+      {badge}
     </Link>
+  );
+}
+
+/** A quiet dot on Settings for an administrator while a newer Mise is out. */
+function UpdateDot() {
+  const { t } = useT();
+  const version = useVersion();
+  if (!version.data?.newer) return null;
+  return (
+    <span
+      role="img"
+      aria-label={t('nav.updateAvailable')}
+      title={t('nav.updateAvailable')}
+      className="bg-accent ml-2 inline-block h-2.5 w-2.5 rounded-full"
+    />
   );
 }
 

@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { beforeEach, describe, expect, it } from 'vitest';
+import { dishCardSettings } from '../../db/schema.js';
 import { cookieFrom, setUpKitchen, useTestContext } from '../../test/harness.js';
 
 const ctx = useTestContext();
@@ -52,7 +53,6 @@ async function luchtigeMais(extra: Record<string, unknown>[] = []) {
     type: 'dish',
     yield: { value: 10, unit: 'each' },
     portions: 10,
-    seasons: ['autumn'],
     flavourProfile: ['Romig', 'Knoflook', 'Fris'],
     servingTemperature: 'cold',
     course: 'middle',
@@ -70,7 +70,6 @@ describe('front-of-house fields on a recipe', () => {
   it('keeps what the chef fills in, and starts empty when they do not', async () => {
     const dish = await luchtigeMais();
     expect(dish).toMatchObject({
-      seasons: ['autumn'],
       flavourProfile: ['Romig', 'Knoflook', 'Fris'],
       servingTemperature: 'cold',
       course: 'middle',
@@ -84,7 +83,6 @@ describe('front-of-house fields on a recipe', () => {
       yield: { value: 1, unit: 'l' },
     });
     expect(plain).toMatchObject({
-      seasons: [],
       flavourProfile: [],
       servingTemperature: null,
       course: null,
@@ -99,14 +97,22 @@ describe('front-of-house fields on a recipe', () => {
       payload: { course: 'starter' },
       cookies: admin,
     });
-    expect(response.json()).toMatchObject({ course: 'starter', seasons: ['autumn'] });
+    expect(response.json()).toMatchObject({
+      course: 'starter',
+      flavourProfile: ['Romig', 'Knoflook', 'Fris'],
+    });
   });
 
-  it('refuses a season it does not know', async () => {
+  it('refuses a serving temperature it does not know', async () => {
     const response = await ctx.app.inject({
       method: 'POST',
       url: '/api/recipes',
-      payload: { name: 'X', type: 'dish', yield: { value: 1, unit: 'each' }, seasons: ['monsoon'] },
+      payload: {
+        name: 'X',
+        type: 'dish',
+        yield: { value: 1, unit: 'each' },
+        servingTemperature: 'lukewarm',
+      },
       cookies: admin,
     });
     expect(response.statusCode).toBe(400);
@@ -155,6 +161,18 @@ describe('the dish card', () => {
     expect(body.other).toBeNull();
     expect(body.whole).toMatchObject({ contains: ['mustard', 'sulphites'], vegan: 'yes' });
     expect(body.attention).toEqual({ veganUnknown: [], missingDetails: [] });
+  });
+
+  it('names the active menus the dish is on, and no others', async () => {
+    const dish = await luchtigeMais();
+    expect((await card(dish.id)).json().dish.menus).toEqual([]);
+
+    await post('/api/menus', { name: 'Winterkaart', status: 'active', dishes: [dish.id] });
+    await post('/api/menus', { name: 'Proeverij', status: 'active', dishes: [dish.id] });
+    await post('/api/menus', { name: 'Zomerkaart', status: 'draft', dishes: [dish.id] });
+    await post('/api/menus', { name: 'Lunch', status: 'active', dishes: [] });
+
+    expect((await card(dish.id)).json().dish.menus).toEqual(['Proeverij', 'Winterkaart']);
   });
 
   it('gives an ingredient straight on the plate its own row when it brings an allergen', async () => {
@@ -238,6 +256,17 @@ describe('dish card settings', () => {
       theme: 'day',
       access: 'everyone',
     });
+  });
+
+  it('keep the menu line hidden for a kitchen that hid the season before 2.1', async () => {
+    await ctx.app.inject({ method: 'GET', url: '/api/dish-cards/settings', cookies: admin });
+    await ctx.db.update(dishCardSettings).set({ hidden: ['season', 'summary', 'gone'] });
+    const response = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/dish-cards/settings',
+      cookies: admin,
+    });
+    expect(response.json().hidden).toEqual(['menu', 'summary']);
   });
 
   it('keep a warning per language and drop the empty ones', async () => {

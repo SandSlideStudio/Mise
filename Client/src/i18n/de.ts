@@ -62,6 +62,7 @@ export const de: Record<MessageKey, string> = {
   'nav.recipes': 'Rezepte',
   'nav.ingredients': 'Zutaten',
   'nav.settings': 'Einstellungen',
+  'nav.updateAvailable': 'Eine neuere Mise-Version ist da',
 
   'role.admin': 'Administrator',
   'role.head_chef': 'Küchenchef',
@@ -195,6 +196,13 @@ export const de: Record<MessageKey, string> = {
   'setup.addPerson': 'Jemanden hinzufügen',
   'setup.nameMissing': 'Jede Zeile braucht einen Namen.',
   'setup.pinInvalid': 'Eine PIN hat 4 bis 8 Ziffern.',
+  'setup.yourPin': 'Deine PIN (optional)',
+  'setup.yourPinHint':
+    'Damit meldest du dich wie die übrige Brigade am Küchentablet an. Leer lassen zum Überspringen; du kannst sie später festlegen.',
+  'setup.summaryPin': 'PIN für das Küchentablet',
+  'setup.backupsTitle': 'Sicherungen',
+  'setup.backupsHint':
+    'Mise sichert jede Nacht die ganze Küche. Eine Kopie woanders sorgt dafür, dass eine kaputte Festplatte oder ein Diebstahl die Sicherungen nicht mitnimmt. Du verbindest es direkt nach der Einrichtung; später geht es auch.',
   'setup.recipesTitle': 'Rezepte',
   'setup.recipesBody':
     'Trag die Gerichte und Vorbereitungen, die du schon kennst, ins Rezeptbuch ein: einen Namen und was eine Charge ergibt. Zutaten und Zubereitung können später folgen.',
@@ -514,6 +522,30 @@ export const de: Record<MessageKey, string> = {
   'devices.revokeTitle': 'Meldet sofort alle auf {name} ab',
 
   'kitchen.loadError': 'Die Kücheneinstellungen konnten nicht geladen werden.',
+  'version.title': 'Mise-Version',
+  'version.running': 'Diese Küche läuft mit Mise {version}.',
+  'version.upToDate': 'Das ist die neueste Version.',
+  'version.newer': 'Mise {version} ist erschienen.',
+  'version.whatChanged': 'Was sich geändert hat',
+  'version.checkFailed':
+    'GitHub war nicht erreichbar, um nach einer neueren Version zu suchen. Mise versucht es morgen wieder.',
+  'version.notChecked':
+    'Noch nicht geprüft. Mise schaut eine Minute nach dem Start und danach einmal am Tag.',
+  'version.checkLabel': 'Einmal am Tag nach einer neueren Version suchen',
+  'version.checkHint':
+    'Mise fragt GitHub, welche Version die neueste ist. Über deine Küche wird nichts gesendet.',
+  'version.howTitle': 'So aktualisierst du',
+  'version.backupFirst':
+    'Lade zuerst eine Sicherung herunter. Die Datenbank aktualisiert sich beim Start von Mise selbst.',
+  'version.major':
+    '{version} ist eine neue Hauptversion. Lies zuerst, was sich geändert hat, und setze MISE_VERSION in .env auf {major}, oder das Image-Tag in TrueNAS auf :{major}.',
+  'version.howTrueNas': 'TrueNAS',
+  'version.howTrueNasSteps':
+    'Öffne Apps, wähle die App mise und klicke auf Update oder Pull Images.',
+  'version.howInstaller': 'Mit dem Installationsprogramm installiert',
+  'version.howInstallerSteps': 'Führe im Ordner mise-kitchen den Installationsbefehl erneut aus:',
+  'version.howDocker': 'Nur Docker',
+  'version.howDockerSteps': 'Führe im Ordner mit compose.yaml aus:',
   'kitchen.title': 'Diese Küche',
   'kitchen.units': 'Einheiten',
   'kitchen.metric': 'Metrisch — Gramm und Liter',
@@ -535,6 +567,8 @@ export const de: Record<MessageKey, string> = {
   'handover.save': 'Notiz speichern',
   'handover.clear': 'Notiz löschen',
   'handover.edit': 'Ändern',
+  'handover.remove': 'Notiz entfernen',
+  'handover.removeConfirm': 'Entfernen?',
   'handover.by': '{name}, {when}',
   'running.title': 'Die Liste',
   'running.subtitle':
@@ -583,6 +617,15 @@ export const de: Record<MessageKey, string> = {
   'backups.keyPrintBody':
     'Mit diesem Schlüssel stellst du eine Sicherung dieser Küche in Mise wieder her. Bewahre ihn nicht beim Server auf, sondern im Bürosafe oder zu Hause.',
   'backups.whereTitle': 'Wohin die Sicherungen gehen',
+  'backups.onlyHereTitle': 'Sicherungen liegen nur auf diesem Gerät',
+  'backups.onlyHereBody':
+    'Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind die Sicherungen mit weg. Schicke sie auch an ein NAS oder OneDrive.',
+  'backups.onlyHereAction': 'Ziel auswählen',
+  'backups.connectTitle': 'Noch ein Schritt für deine Sicherungen',
+  'backups.connectWebdav':
+    'Trage unter Wohin die Sicherungen gehen dein NAS oder Nextcloud ein, teste es und speichere.',
+  'backups.connectOnedrive':
+    'Verbinde OneDrive unter Wohin die Sicherungen gehen mit dem Code von Microsoft und speichere dann.',
   'backups.whereLocal': 'Nur auf diesem Gerät',
   'backups.whereLocalHint':
     'Sie liegen auf demselben Gerät wie Mise. Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind sie mit weg. Lade also ab und zu eine herunter oder schicke sie an ein NAS oder OneDrive.',
@@ -664,7 +707,6 @@ export const de: Record<MessageKey, string> = {
   'recipe.dishCard': 'Gerichtkarte',
   'editor.frontOfHouse': 'Service',
   'editor.frontOfHouseHint': 'Was die Gerichtkarte dem Service sagt.',
-  'editor.seasons': 'Saison',
   'editor.flavour': 'Geschmacksprofil',
   'editor.flavourPlaceholder': 'cremig, Knoblauch, frisch',
   'editor.temperature': 'Serviert',
@@ -675,11 +717,6 @@ export const de: Record<MessageKey, string> = {
   'editor.cutleryPlaceholder': 'kleiner Löffel',
   'editor.listHint': 'Mit Kommas trennen.',
   'editor.notSet': 'Nicht angegeben',
-  'season.spring': 'Frühling',
-  'season.summer': 'Sommer',
-  'season.autumn': 'Herbst',
-  'season.winter': 'Winter',
-  'season.all_year': 'Ganzjährig',
   'temperature.cold': 'Kalt',
   'temperature.room': 'Zimmertemperatur',
   'temperature.warm': 'Lauwarm',
@@ -728,7 +765,7 @@ export const de: Record<MessageKey, string> = {
   'card.attentionPhoto': 'Dieses Gericht hat noch kein Foto.',
   'card.attentionDraft': 'Dieses Rezept ist noch ein Entwurf.',
   'card.fixIngredients': 'Zu den Zutaten',
-  'card.season': 'Saison',
+  'card.menu': 'Menü',
   'card.flavour': 'Geschmacksprofil',
   'card.temperature': 'Temperatur',
   'card.course': 'Platz im Menü',
@@ -788,7 +825,7 @@ export const de: Record<MessageKey, string> = {
     'In jeder Sprache schreiben, in der gedruckt wird. Eine Karte in einer Sprache ohne Hinweis nimmt den in der Sprache der Küche.',
   'dishCards.warningPlaceholder': 'Diese Gerichtkarte ist Eigentum von …',
   'dishCards.show': 'Auf der Karte',
-  'dishCards.part.season': 'Saison',
+  'dishCards.part.menu': 'Menü',
   'dishCards.part.flavour': 'Geschmacksprofil',
   'dishCards.part.temperature': 'Temperatur',
   'dishCards.part.course': 'Platz im Menü',

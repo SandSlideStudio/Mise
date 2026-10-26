@@ -1,8 +1,21 @@
-import { eq } from 'drizzle-orm';
-import type { DishCard, DishCardFacts, UpdateDishCardSettings } from '@mise/contracts';
-import { dishCardMatrix, isSeason, type DishCardRow as DomainRow } from '@mise/domain';
+import { and, asc, eq } from 'drizzle-orm';
+import {
+  DISH_CARD_PARTS,
+  type DishCard,
+  type DishCardFacts,
+  type DishCardPart,
+  type UpdateDishCardSettings,
+} from '@mise/contracts';
+import { dishCardMatrix, type DishCardRow as DomainRow } from '@mise/domain';
 import type { Database } from '../../db/client.js';
-import { dishCardSettings, kitchens, recipePhotos, recipes } from '../../db/schema.js';
+import {
+  dishCardSettings,
+  kitchens,
+  menuDishes,
+  menus,
+  recipePhotos,
+  recipes,
+} from '../../db/schema.js';
 import { loadRecipeBook } from '../recipes/book.js';
 
 /**
@@ -28,6 +41,18 @@ function facts(row: Omit<DomainRow, 'recipeId' | 'name'>): DishCardFacts {
   };
 }
 
+/**
+ * The parts a kitchen switched off. Before 2.1 the line under the name was the
+ * season; it is the menu now, so a kitchen that hid one keeps the other hidden.
+ * That holds for settings restored from an older backup too.
+ */
+function hiddenParts(stored: string[]): DishCardPart[] {
+  const parts = stored
+    .map((part) => (part === 'season' ? 'menu' : part))
+    .filter((part): part is DishCardPart => (DISH_CARD_PARTS as readonly string[]).includes(part));
+  return [...new Set(parts)];
+}
+
 export function serialiseSettings(row: StoredSettings) {
   return {
     title: row.title,
@@ -35,7 +60,7 @@ export function serialiseSettings(row: StoredSettings) {
     address: row.address,
     logoUrl: row.logoPath ? `/api/uploads/${row.logoPath}` : null,
     warnings: row.warnings,
-    hidden: row.hidden as DishCard['settings']['hidden'],
+    hidden: hiddenParts(row.hidden),
     theme: row.theme,
     access: row.access,
   };
@@ -96,10 +121,18 @@ export function createDishCardService(db: Database) {
     // A card that can't be worked out is not printed with a guess in it.
     if (!matrix.ok) return { ok: false, error: { kind: 'broken' } };
 
-    const [photos, [kitchen], stored] = await Promise.all([
+    const [photos, [kitchen], stored, onMenus] = await Promise.all([
       db.select().from(recipePhotos).where(eq(recipePhotos.recipeId, recipeId)),
       db.select({ name: kitchens.name }).from(kitchens).limit(1),
       settings(),
+      // The menus the floor is selling it on now. Printing from a menu names
+      // that menu instead; the client swaps it in.
+      db
+        .select({ name: menus.name })
+        .from(menuDishes)
+        .innerJoin(menus, eq(menus.id, menuDishes.menuId))
+        .where(and(eq(menuDishes.recipeId, recipeId), eq(menus.status, 'active')))
+        .orderBy(asc(menus.name)),
     ]);
     const photo = photos.find((p) => p.isPrimary) ?? photos[0] ?? null;
 
@@ -111,7 +144,7 @@ export function createDishCardService(db: Database) {
           id: dish.id,
           name: dish.name,
           status: dish.status,
-          seasons: dish.seasons.filter(isSeason),
+          menus: onMenus.map((menu) => menu.name),
           flavourProfile: dish.flavourProfile,
           servingTemperature: dish.servingTemperature,
           course: dish.course,

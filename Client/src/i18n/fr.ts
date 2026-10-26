@@ -60,6 +60,7 @@ export const fr: Record<MessageKey, string> = {
   'nav.recipes': 'Recettes',
   'nav.ingredients': 'Ingrédients',
   'nav.settings': 'Réglages',
+  'nav.updateAvailable': 'Une version plus récente de Mise est sortie',
 
   'role.admin': 'Administrateur',
   'role.head_chef': 'Chef de cuisine',
@@ -195,6 +196,13 @@ export const fr: Record<MessageKey, string> = {
   'setup.addPerson': 'Ajouter quelqu’un',
   'setup.nameMissing': 'Chaque ligne a besoin d’un nom.',
   'setup.pinInvalid': 'Un code PIN compte 4 à 8 chiffres.',
+  'setup.yourPin': 'Votre code PIN (facultatif)',
+  'setup.yourPinHint':
+    'Pour vous connecter sur la tablette de la cuisine comme le reste de la brigade. Laissez vide pour passer ; vous pourrez en définir un plus tard.',
+  'setup.summaryPin': 'Code PIN pour la tablette de la cuisine',
+  'setup.backupsTitle': 'Sauvegardes',
+  'setup.backupsHint':
+    'Mise sauvegarde toute la cuisine chaque nuit. Une copie ailleurs évite qu’un disque mort ou un vol emporte aussi les sauvegardes. Vous la connectez juste après la configuration ; c’est aussi possible plus tard.',
   'setup.recipesTitle': 'Recettes',
   'setup.recipesBody':
     'Ajoutez au livre les plats et la mise en place que vous connaissez déjà : un nom et ce que donne une fournée. Ingrédients et méthode pourront suivre dans le livre de recettes.',
@@ -516,6 +524,31 @@ export const fr: Record<MessageKey, string> = {
   'devices.revokeTitle': 'Déconnecte immédiatement tout le monde de {name}',
 
   'kitchen.loadError': 'Impossible de charger les réglages de la cuisine.',
+  'version.title': 'Version de Mise',
+  'version.running': 'Cette cuisine utilise Mise {version}.',
+  'version.upToDate': 'C’est la version la plus récente.',
+  'version.newer': 'Mise {version} est sorti.',
+  'version.whatChanged': 'Ce qui a changé',
+  'version.checkFailed':
+    'Impossible de joindre GitHub pour chercher une version plus récente. Mise réessaiera demain.',
+  'version.notChecked':
+    'Pas encore vérifié. Mise regarde une minute après son démarrage, puis une fois par jour.',
+  'version.checkLabel': 'Chercher une version plus récente une fois par jour',
+  'version.checkHint':
+    'Mise demande à GitHub quelle version est la plus récente. Rien sur votre cuisine n’est envoyé.',
+  'version.howTitle': 'Comment mettre à jour',
+  'version.backupFirst':
+    'Téléchargez d’abord une sauvegarde. La base de données se met à jour au démarrage de Mise.',
+  'version.major':
+    '{version} est une nouvelle version majeure. Lisez d’abord ce qui a changé, puis mettez MISE_VERSION à {major} dans .env, ou le tag de l’image à :{major} sur TrueNAS.',
+  'version.howTrueNas': 'TrueNAS',
+  'version.howTrueNasSteps':
+    'Ouvrez Apps, choisissez l’app mise et cliquez sur Update ou Pull Images.',
+  'version.howInstaller': 'Installé avec le programme d’installation',
+  'version.howInstallerSteps':
+    'Dans le dossier mise-kitchen, relancez la commande d’installation :',
+  'version.howDocker': 'Docker seul',
+  'version.howDockerSteps': 'Dans le dossier contenant compose.yaml, lancez :',
   'kitchen.title': 'Cette cuisine',
   'kitchen.units': 'Unités',
   'kitchen.metric': 'Métrique — grammes et litres',
@@ -537,6 +570,8 @@ export const fr: Record<MessageKey, string> = {
   'handover.save': 'Enregistrer le mot',
   'handover.clear': 'Effacer le mot',
   'handover.edit': 'Modifier',
+  'handover.remove': 'Supprimer la note',
+  'handover.removeConfirm': 'Supprimer ?',
   'handover.by': '{name}, {when}',
   'running.title': 'La liste',
   'running.subtitle':
@@ -585,6 +620,15 @@ export const fr: Record<MessageKey, string> = {
   'backups.keyPrintBody':
     'Cette clé permet de restaurer une sauvegarde de cette cuisine dans Mise. Ne la gardez pas près du serveur : plutôt au coffre du bureau ou chez vous.',
   'backups.whereTitle': 'Où vont les sauvegardes',
+  'backups.onlyHereTitle': 'Les sauvegardes ne sont que sur cette machine',
+  'backups.onlyHereBody':
+    'Si elle tombe en panne, est volée ou si son disque lâche, les sauvegardes partent avec. Envoyez-les aussi vers un NAS ou OneDrive.',
+  'backups.onlyHereAction': 'Choisir où elles vont',
+  'backups.connectTitle': 'Encore une étape pour vos sauvegardes',
+  'backups.connectWebdav':
+    'Renseignez votre NAS ou Nextcloud sous Où vont les sauvegardes, testez-le et enregistrez.',
+  'backups.connectOnedrive':
+    'Connectez OneDrive sous Où vont les sauvegardes avec le code que Microsoft vous donne, puis enregistrez.',
   'backups.whereLocal': 'Uniquement sur cette machine',
   'backups.whereLocalHint':
     'Elles sont gardées sur la même machine que Mise. Si elle tombe en panne, est volée ou si son disque lâche, elles partent avec. Téléchargez-en donc une de temps en temps, ou envoyez-les vers un NAS ou OneDrive.',
@@ -664,7 +708,6 @@ export const fr: Record<MessageKey, string> = {
   'recipe.dishCard': 'Fiche plat',
   'editor.frontOfHouse': 'Salle',
   'editor.frontOfHouseHint': 'Ce que la fiche plat dit à la salle.',
-  'editor.seasons': 'Saison',
   'editor.flavour': 'Profil de saveur',
   'editor.flavourPlaceholder': 'crémeux, ail, frais',
   'editor.temperature': 'Servi',
@@ -675,11 +718,6 @@ export const fr: Record<MessageKey, string> = {
   'editor.cutleryPlaceholder': 'petite cuillère',
   'editor.listHint': 'Séparez par des virgules.',
   'editor.notSet': 'Non renseigné',
-  'season.spring': 'Printemps',
-  'season.summer': 'Été',
-  'season.autumn': 'Automne',
-  'season.winter': 'Hiver',
-  'season.all_year': 'Toute l’année',
   'temperature.cold': 'Froid',
   'temperature.room': 'Température ambiante',
   'temperature.warm': 'Tiède',
@@ -728,7 +766,7 @@ export const fr: Record<MessageKey, string> = {
   'card.attentionPhoto': 'Ce plat n’a pas encore de photo.',
   'card.attentionDraft': 'Cette recette est encore un brouillon.',
   'card.fixIngredients': 'Ouvrir les ingrédients',
-  'card.season': 'Saison',
+  'card.menu': 'Menu',
   'card.flavour': 'Profil de saveur',
   'card.temperature': 'Température',
   'card.course': 'Place dans le menu',
@@ -788,7 +826,7 @@ export const fr: Record<MessageKey, string> = {
     'Écrivez-le dans chaque langue d’impression. Une fiche dans une langue sans avertissement reprend celui de la langue de la cuisine.',
   'dishCards.warningPlaceholder': 'Cette fiche plat est la propriété de …',
   'dishCards.show': 'Sur la fiche',
-  'dishCards.part.season': 'Saison',
+  'dishCards.part.menu': 'Menu',
   'dishCards.part.flavour': 'Profil de saveur',
   'dishCards.part.temperature': 'Température',
   'dishCards.part.course': 'Place dans le menu',

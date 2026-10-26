@@ -188,10 +188,6 @@ export function recipeStatusName(t: Translator['t'], status: string): string {
   return t(`recipeStatus.${status}` as MessageKey);
 }
 
-export function seasonName(t: Translator['t'], season: string): string {
-  return t(`season.${season}` as MessageKey);
-}
-
 export function temperatureName(t: Translator['t'], temperature: string): string {
   return t(`temperature.${temperature}` as MessageKey);
 }

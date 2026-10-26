@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from 'react';
 import { LANGUAGES, type Language, type TickedRetention } from '@mise/contracts';
 import { useKitchen, useUpdateKitchen } from '../../api/kitchen.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
+import { VersionSettings } from './VersionSettings.js';
 
 /**
  * What this kitchen is called, which units it works in, what it speaks, and
@@ -117,6 +118,7 @@ export function KitchenSettings() {
           </button>
         </div>
       </form>
+      <VersionSettings />
     </section>
   );
 }

@@ -1,0 +1,1 @@
+ALTER TABLE "kitchen" ADD COLUMN "update_check" boolean DEFAULT true NOT NULL;

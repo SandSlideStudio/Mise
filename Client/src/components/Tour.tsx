@@ -70,7 +70,10 @@ export function TourHost() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [phase, setPhase] = useState<'waiting' | 'asking' | 'touring' | 'done'>('waiting');
 
-  const due = user != null && !user.tourSeen;
+  // Fresh from setup and connecting backups: the tour waits until that's done.
+  const connecting =
+    pathname === '/settings' && new URLSearchParams(window.location.search).has('connect');
+  const due = user != null && !user.tourSeen && !connecting;
 
   useEffect(() => {
     if (!due || phase !== 'waiting') return;

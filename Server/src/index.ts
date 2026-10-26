@@ -46,6 +46,9 @@ async function main(): Promise<void> {
 
   await app.listen({ port: config.PORT, host: config.HOST });
 
+  // Whether a newer Mise is out: a minute after start, then daily, if allowed.
+  app.updates.start();
+
   // Expired sessions are cleared out at start and then once an hour.
   const purge = () =>
     app.auth.purgeExpiredSessions().catch((error: unknown) => {

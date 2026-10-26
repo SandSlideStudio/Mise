@@ -45,7 +45,8 @@ Chefs and managers sign in with an email and password, on any device.
 
 Cooks sign in on a kitchen tablet by tapping their name and typing their PIN. That only works on a
 tablet you've enrolled: sign in on it as the administrator, go to **Settings → Tablets** and enrol
-it. Five wrong PINs lock that person out for 15 minutes.
+it. Five wrong PINs lock that person out for 15 minutes. Anyone can have a PIN, managers included;
+whoever sets up the kitchen can choose one during setup.
 
 ## Dish cards
 
@@ -55,8 +56,9 @@ language and day or night, then print it or download the PDF.
 
 Fill in the **Front of house** part of a dish in the recipe editor, and say on each ingredient
 whether it is vegan and, for gluten and nuts, which cereal or nut it is. The card page lists
-anything still missing. **Settings → Dish cards** sets the logo, address, which parts show and
-the warning printed at the foot of every card, in each language you print in.
+anything still missing. Under the name, the card says which menu the dish is on: the active menus,
+or the menu you're printing from. **Settings → Dish cards** sets the logo, address, which parts
+show and the warning printed at the foot of every card, in each language you print in.
 
 ## Menus
 
@@ -98,6 +100,11 @@ Kitchens installed before 2.0 have `MISE_VERSION=1` and stay on 1.x until you ch
 2.0.0 notes first.
 [CHANGELOG.md](CHANGELOG.md) lists what changed in each release.
 
+**Settings → Kitchen** shows which version is running. Once a day Mise asks GitHub whether a newer
+one is out and, if so, tells administrators there, with the steps for their kind of install. Only
+that request is sent, nothing about the kitchen, and an administrator can switch it off on the same
+page. Mise doesn't update itself: that would mean giving it control of the machine it runs on.
+
 ## Backups
 
 Mise backs the kitchen up every night by itself: the data and the plating photos, in one encrypted
@@ -108,7 +115,8 @@ warning at the top of every page.
 Keep a copy off the machine. Download one now and then, or let Mise send every backup to OneDrive,
 or to a NAS or Nextcloud over WebDAV, which Synology and QNAP boxes offer. All of these are set up
 on the same page. OneDrive backups go into the `Apps/Mise` folder, and Mise can't see anything else
-in that OneDrive.
+in that OneDrive. Setup offers to send them off the machine from the start, and the backups page
+says so for as long as they only live on the server.
 
 Every backup is encrypted with the kitchen's recovery key. Print it from **Settings → Backups** and
 keep it away from the server. Without it, nobody can open a backup.
