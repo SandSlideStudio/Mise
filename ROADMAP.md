@@ -17,6 +17,13 @@ What's planned after 2.0, roughly in order. Nothing here has a date.
     "X" next to its change button to remove it in one go instead of emptying the text.
   - Dishes no longer have a season. The dish card prints the menu the dish is on instead: the
     menu being printed when cards come from a menu, otherwise the active menu it's on.
+  - First-run setup offers an optional step to send backups to a NAS or OneDrive, and the
+    backups page warns while backups only live on the server itself.
+  - Settings shows which version of Mise is running, and tells administrators when a newer
+    one is out. The check asks GitHub once a day and can be switched off.
+  - The image runs as any user, such as the apps user TrueNAS uses.
+  - The README explains installing on TrueNAS.
+  - Installing on Windows no longer changes `package-lock.json`.
 - **2.1: Costing.** Ingredient prices and purchase units, and a food cost per dish and per menu.
 - **2.2: Temperature and cooling logs.** HACCP records kept on the tablet instead of on paper.
 - **Labels.** Print prep date, use-by and allergens to a label printer when a line is ticked.
