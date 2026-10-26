@@ -15,6 +15,8 @@ What's planned after 2.0, roughly in order. Nothing here has a date.
     tap in on the kitchen tablet like everyone else without setting one later.
   - Everyone can write, change and remove the handover note, cooks included. The note gets an
     "X" next to its change button to remove it in one go instead of emptying the text.
+  - Dishes no longer have a season. The dish card prints the menu the dish is on instead: the
+    menu being printed when cards come from a menu, otherwise the active menu it's on.
 - **2.1: Costing.** Ingredient prices and purchase units, and a food cost per dish and per menu.
 - **2.2: Temperature and cooling logs.** HACCP records kept on the tablet instead of on paper.
 - **Labels.** Print prep date, use-by and allergens to a label printer when a line is ticked.
