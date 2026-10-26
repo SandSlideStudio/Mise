@@ -150,6 +150,8 @@ export function createKit(
   options: LayoutOptions,
   settings: DishCardSettings,
   kitchenName: string,
+  /** The line over the page, when it isn't the dish card's own heading. */
+  headingOverride?: string,
 ) {
   const { t, locale } = createTranslator(options.language);
   const p = PALETTES[options.theme];
@@ -236,7 +238,7 @@ export function createKit(
 
   // --- shared pieces ------------------------------------------------------------
 
-  const heading = settings.title ?? `${t('card.title')} · ${kitchenName}`;
+  const heading = headingOverride ?? settings.title ?? `${t('card.title')} · ${kitchenName}`;
   const warning =
     settings.warnings[options.language] ??
     settings.warnings[options.kitchenLanguage] ??
@@ -311,7 +313,7 @@ export function createKit(
 }
 
 export function layoutDishCard(card: DishCard, fonts: CardFonts, options: LayoutOptions) {
-  const { t, locale, p, shows, upper, wrap, text, block, width, footer, eyebrow } = createKit(
+  const { t, p, shows, upper, wrap, text, block, width, footer, eyebrow } = createKit(
     fonts,
     options,
     card.settings,

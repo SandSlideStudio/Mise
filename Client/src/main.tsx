@@ -21,6 +21,8 @@ import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
 import { RecipeView } from './routes/RecipeView.js';
 import { Recipes } from './routes/Recipes.js';
+import { Menus } from './routes/Menus.js';
+import { MenuDetail } from './routes/MenuDetail.js';
 import { Today } from './routes/Today.js';
 import { Line } from './routes/Line.js';
 import { Login } from './routes/Login.js';
@@ -181,6 +183,13 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId/card',
     component: lazyRouteComponent(() => import('./routes/DishCard.js'), 'DishCardPage'),
+  }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/menus', component: Menus }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/menus/$menuId', component: MenuDetail }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/menus/$menuId/overview',
+    component: lazyRouteComponent(() => import('./routes/MenuOverview.js'), 'MenuOverviewPage'),
   }),
   createRoute({ getParentRoute: () => rootRoute, path: '/ingredients', component: Ingredients }),
   createRoute({ getParentRoute: () => rootRoute, path: '/setup', component: Setup }),

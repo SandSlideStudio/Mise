@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
 import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
+import { useDishCardSettings } from '../api/dishcards.js';
 import { useStations } from '../api/kitchen.js';
 import { useCurrentUser } from '../api/session.js';
 import {
@@ -57,6 +58,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipe();
   const [confirming, setConfirming] = useState(false);
+  const cardSettings = useDishCardSettings();
 
   // An amount this recipe can't be scaled to, such as kilos of something
   // counted in pieces, opens the spec as written instead of an error.
@@ -221,7 +223,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
             >
               {t('recipe.print')}
             </button>
-            {recipe.type === 'dish' ? (
+            {recipe.type === 'dish' && (canManage || cardSettings.data?.access === 'everyone') ? (
               <Link
                 to="/recipes/$recipeId/card"
                 params={{ recipeId: recipe.id }}

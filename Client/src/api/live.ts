@@ -11,12 +11,13 @@ import { BASE_URL } from './client.js';
  * within a second.
  */
 
-type Topic = 'prep' | 'kitchen' | 'staff';
+type Topic = 'prep' | 'kitchen' | 'staff' | 'menus';
 
 const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
   prep: [['tasks'], ['handover']],
   kitchen: [['kitchen'], ['stations'], ['me'], ['dish-card-settings'], ['dish-card']],
   staff: [['users'], ['roster'], ['me']],
+  menus: [['menus'], ['menu'], ['menu-overview']],
 };
 
 const TOPICS = Object.keys(KEYS_BY_TOPIC) as Topic[];
