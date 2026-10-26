@@ -43,7 +43,10 @@ COPY --from=build /app/Server/dist ./Server/dist
 COPY --from=build /app/Server/drizzle ./Server/drizzle
 COPY --from=build /app/Client/dist ./Client/dist
 
-RUN mkdir -p /data/uploads /data/backups && chown -R node:node /data
+# Runs as node by default, but any user will do, such as the apps user TrueNAS
+# gives its apps. A fresh volume copies these folders, so anyone may write them.
+RUN mkdir -p /data/uploads /data/backups && chown -R node:node /data \
+  && chmod 1777 /data/uploads /data/backups
 USER node
 
 EXPOSE 3000

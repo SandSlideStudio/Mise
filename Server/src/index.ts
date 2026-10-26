@@ -1,6 +1,28 @@
+import { access, constants, mkdir } from 'node:fs/promises';
+import path from 'node:path';
 import { buildApp } from './app.js';
-import { loadConfig } from './config.js';
+import { loadConfig, type Config } from './config.js';
 import { runMigrations } from './db/migrate.js';
+
+/**
+ * Mise may run as any user, such as the one TrueNAS gives its apps. Say so
+ * plainly at start when that user can't write the data folders, rather than
+ * failing on the first photo or the first nightly backup.
+ */
+async function checkDataFolders(config: Config): Promise<void> {
+  const user = process.getuid?.() ?? 'this user';
+  for (const folder of [config.UPLOAD_DIR, config.BACKUP_DIR]) {
+    const absolute = path.resolve(folder);
+    try {
+      await mkdir(absolute, { recursive: true });
+      await access(absolute, constants.W_OK);
+    } catch {
+      throw new Error(
+        `Mise runs as user ${user} and can't write to ${absolute}. Give that folder to this user, or run Mise as its owner.`,
+      );
+    }
+  }
+}
 
 /**
  * Boot order matters for a self-hosted box: migrate first, then listen. An
@@ -9,6 +31,7 @@ import { runMigrations } from './db/migrate.js';
 async function main(): Promise<void> {
   const config = loadConfig();
 
+  await checkDataFolders(config);
   await runMigrations(config.DATABASE_URL);
 
   const app = await buildApp(config);

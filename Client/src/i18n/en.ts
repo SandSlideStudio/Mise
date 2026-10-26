@@ -155,7 +155,7 @@ export const en = {
   'setup.failed': 'Setup failed. Check the server log.',
   'setup.create': 'Create the kitchen',
   'setup.codeHint':
-    'It’s at the end of the setup link printed when Mise was installed. To see it again, run: docker compose logs app',
+    'It’s the SETUP_TOKEN in Mise’s settings, also at the end of the setup link the installer printed. If none was set, Mise made one up and wrote it in its log.',
   'setup.codeLabel': 'Setup code',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'You',
@@ -202,7 +202,6 @@ export const en = {
   'setup.recipeName': 'Recipe name',
   'setup.recipeType': 'Sort',
   'setup.makes': 'One batch makes',
-  'setup.portions': 'Portions',
   'setup.recipeDuplicate': 'Two recipes have the same name.',
   'setup.yieldInvalid': 'A batch has to make more than 0.',
   'setup.settingsTitle': 'How this kitchen works',
@@ -390,8 +389,9 @@ export const en = {
   'editor.kindNew': 'New',
   'editor.theRest': 'The rest',
   'editor.batchMakes': 'One batch makes',
+  'editor.dishPlates_one': 'Quantities are for one plate.',
+  'editor.dishPlates_other': 'Quantities are for {count} plates.',
   'editor.yieldUnit': 'Yield unit',
-  'editor.portionsHint': 'Plates one batch covers',
   'editor.prepMinutes': 'Prep, minutes',
   'editor.keepsHours': 'Keeps, hours',
   'editor.storagePlaceholder': 'Vac-packed, walk-in, labelled',
@@ -573,7 +573,7 @@ export const en = {
   'backups.whereTitle': 'Where backups go',
   'backups.whereLocal': 'Only on this machine',
   'backups.whereLocalHint':
-    'A dead SD card or a break-in takes these with it, so download one now and then.',
+    'These are kept on the same machine as Mise. If it breaks, is stolen or its disk fails, they go with it, so download one now and then or send them to a NAS or OneDrive.',
   'backups.whereWebdav': 'Also to a NAS or Nextcloud',
   'backups.whereWebdavHint':
     'Over WebDAV, which Synology, QNAP and Nextcloud all offer. A copy stays on this machine too.',

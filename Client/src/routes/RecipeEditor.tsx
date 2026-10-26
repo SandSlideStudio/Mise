@@ -21,6 +21,7 @@ import {
   ALLERGENS,
   ALL_UNITS,
   COURSES,
+  ONE_PLATE,
   SEASONS,
   SERVING_TEMPERATURES,
   type Allergen,
@@ -132,7 +133,6 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [stationId, setStationId] = useState(recipe?.stationId ?? '');
   const [yieldAmount, setYieldAmount] = useState(String(recipe?.yield.value ?? ''));
   const [yieldUnit, setYieldUnit] = useState<UnitCode>((recipe?.yield.unit as UnitCode) ?? 'kg');
-  const [portions, setPortions] = useState(recipe?.portions ? String(recipe.portions) : '');
   const [prepMinutes, setPrepMinutes] = useState(
     recipe?.prepMinutes ? String(recipe.prepMinutes) : '',
   );
@@ -193,8 +193,13 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const pending = create.isPending || update.isPending;
   const error = create.error ?? update.error;
 
-  /** A dish is plated to order, so it is the only type that needs portions. */
-  const needsPortions = type === 'dish';
+  // A dish has no batch: a new one is one plate, and one that was already a
+  // dish keeps the size its components were written for.
+  const isDish = type === 'dish';
+  const dishSize =
+    recipe?.type === 'dish'
+      ? { yield: recipe.yield, portions: recipe.portions ?? ONE_PLATE.portions }
+      : ONE_PLATE;
 
   function updateLine(key: string, patch: Partial<EditorLine>) {
     setLines((current) => current.map((line) => (line.key === key ? { ...line, ...patch } : line)));
@@ -270,11 +275,11 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       type,
       status,
       stationId: stationId || null,
-      yield: { value: Number(yieldAmount), unit: yieldUnit },
-      portions: needsPortions && portions ? Number(portions) : null,
-      prepMinutes: prepMinutes ? Number(prepMinutes) : null,
-      shelfLifeHours: shelfLifeHours ? Number(shelfLifeHours) : null,
-      storage: storage || null,
+      yield: isDish ? dishSize.yield : { value: Number(yieldAmount), unit: yieldUnit },
+      portions: isDish ? dishSize.portions : null,
+      prepMinutes: !isDish && prepMinutes ? Number(prepMinutes) : null,
+      shelfLifeHours: !isDish && shelfLifeHours ? Number(shelfLifeHours) : null,
+      storage: (!isDish && storage) || null,
       method: steps.filter((step) => step.trim()).map((text) => ({ text })),
       tags: splitList(tags),
       declaredAllergens: [],
@@ -567,90 +572,80 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                   </select>
                 </RailField>
 
-                <RailField
-                  label={t('editor.batchMakes')}
-                  htmlFor="yieldAmount"
-                  className="col-span-2"
-                >
-                  <span className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
-                    <input
-                      id="yieldAmount"
-                      type="number"
-                      inputMode="decimal"
-                      step="any"
-                      min={0}
-                      className="field qty min-h-10 text-xl"
-                      value={yieldAmount}
-                      onChange={(e) => setYieldAmount(e.target.value)}
-                      required
-                    />
-                    <select
-                      aria-label={t('editor.yieldUnit')}
-                      className="field min-h-10"
-                      value={yieldUnit}
-                      onChange={(e) => setYieldUnit(e.target.value as UnitCode)}
+                {isDish ? null : (
+                  <>
+                    <RailField
+                      label={t('editor.batchMakes')}
+                      htmlFor="yieldAmount"
+                      className="col-span-2"
                     >
-                      {ALL_UNITS.map((unit) => (
-                        <option key={unit.code} value={unit.code}>
-                          {unit.code}
-                        </option>
-                      ))}
-                    </select>
-                  </span>
-                </RailField>
+                      <span className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
+                        <input
+                          id="yieldAmount"
+                          type="number"
+                          inputMode="decimal"
+                          step="any"
+                          min={0}
+                          className="field qty min-h-10 text-xl"
+                          value={yieldAmount}
+                          onChange={(e) => setYieldAmount(e.target.value)}
+                          required
+                        />
+                        <select
+                          aria-label={t('editor.yieldUnit')}
+                          className="field min-h-10"
+                          value={yieldUnit}
+                          onChange={(e) => setYieldUnit(e.target.value as UnitCode)}
+                        >
+                          {ALL_UNITS.map((unit) => (
+                            <option key={unit.code} value={unit.code}>
+                              {unit.code}
+                            </option>
+                          ))}
+                        </select>
+                      </span>
+                    </RailField>
 
-                {needsPortions ? (
-                  <RailField
-                    label={t('scale.portions')}
-                    htmlFor="portions"
-                    hint={t('editor.portionsHint')}
-                  >
-                    <input
-                      id="portions"
-                      type="number"
-                      inputMode="decimal"
-                      step="any"
-                      min={0}
-                      className="field qty min-h-10 text-xl"
-                      value={portions}
-                      onChange={(e) => setPortions(e.target.value)}
-                      required
-                    />
-                  </RailField>
-                ) : null}
+                    <RailField label={t('editor.prepMinutes')} htmlFor="prepMinutes">
+                      <input
+                        id="prepMinutes"
+                        type="number"
+                        min={0}
+                        className="field min-h-10"
+                        value={prepMinutes}
+                        onChange={(e) => setPrepMinutes(e.target.value)}
+                      />
+                    </RailField>
 
-                <RailField label={t('editor.prepMinutes')} htmlFor="prepMinutes">
-                  <input
-                    id="prepMinutes"
-                    type="number"
-                    min={0}
-                    className="field min-h-10"
-                    value={prepMinutes}
-                    onChange={(e) => setPrepMinutes(e.target.value)}
-                  />
-                </RailField>
-
-                <RailField label={t('editor.keepsHours')} htmlFor="shelfLife">
-                  <input
-                    id="shelfLife"
-                    type="number"
-                    min={0}
-                    className="field min-h-10"
-                    value={shelfLifeHours}
-                    onChange={(e) => setShelfLifeHours(e.target.value)}
-                  />
-                </RailField>
+                    <RailField label={t('editor.keepsHours')} htmlFor="shelfLife">
+                      <input
+                        id="shelfLife"
+                        type="number"
+                        min={0}
+                        className="field min-h-10"
+                        value={shelfLifeHours}
+                        onChange={(e) => setShelfLifeHours(e.target.value)}
+                      />
+                    </RailField>
+                  </>
+                )}
               </div>
 
-              <RailField label={t('recipe.storage')} htmlFor="storage">
-                <input
-                  id="storage"
-                  className="field min-h-10"
-                  value={storage}
-                  onChange={(e) => setStorage(e.target.value)}
-                  placeholder={t('editor.storagePlaceholder')}
-                />
-              </RailField>
+              {isDish ? (
+                <p className="text-ink-soft text-sm">
+                  {plural('editor.dishPlates', dishSize.portions)}
+                </p>
+              ) : (
+                <RailField label={t('recipe.storage')} htmlFor="storage">
+                  <input
+                    id="storage"
+                    className="field min-h-10"
+                    value={storage}
+                    onChange={(e) => setStorage(e.target.value)}
+                    placeholder={t('editor.storagePlaceholder')}
+                  />
+                </RailField>
+              )}
 
               <RailField label={t('editor.tags')} htmlFor="tags">
                 <input

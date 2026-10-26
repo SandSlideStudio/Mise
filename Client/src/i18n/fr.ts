@@ -155,7 +155,7 @@ export const fr: Record<MessageKey, string> = {
   'setup.failed': 'La configuration a échoué. Consultez le journal du serveur.',
   'setup.create': 'Créer la cuisine',
   'setup.codeHint':
-    'Il se trouve à la fin du lien affiché lors de l’installation de Mise. Pour le revoir : docker compose logs app',
+    'C’est le SETUP_TOKEN des réglages de Mise, aussi à la fin du lien affiché par le programme d’installation. Si aucun n’a été défini, Mise en a créé un et l’a écrit dans son journal.',
   'setup.codeLabel': 'Code de configuration',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Vous',
@@ -204,7 +204,6 @@ export const fr: Record<MessageKey, string> = {
   'setup.recipeName': 'Nom de la recette',
   'setup.recipeType': 'Type',
   'setup.makes': 'Une fournée donne',
-  'setup.portions': 'Portions',
   'setup.recipeDuplicate': 'Deux recettes portent le même nom.',
   'setup.yieldInvalid': 'Une fournée doit donner plus de 0.',
   'setup.settingsTitle': 'Le fonctionnement de cette cuisine',
@@ -397,8 +396,9 @@ export const fr: Record<MessageKey, string> = {
   'editor.kindNew': 'Nouveau',
   'editor.theRest': 'Le reste',
   'editor.batchMakes': 'Une fournée donne',
+  'editor.dishPlates_one': 'Les quantités sont pour une assiette.',
+  'editor.dishPlates_other': 'Les quantités sont pour {count} assiettes.',
   'editor.yieldUnit': 'Unité de rendement',
-  'editor.portionsHint': 'Assiettes par fournée',
   'editor.prepMinutes': 'Préparation, minutes',
   'editor.keepsHours': 'Conservation, heures',
   'editor.storagePlaceholder': 'Sous vide, chambre froide, étiqueté',
@@ -587,7 +587,7 @@ export const fr: Record<MessageKey, string> = {
   'backups.whereTitle': 'Où vont les sauvegardes',
   'backups.whereLocal': 'Uniquement sur cette machine',
   'backups.whereLocalHint':
-    'Une carte SD morte ou un cambriolage les emporte, alors téléchargez-en une de temps en temps.',
+    'Elles sont gardées sur la même machine que Mise. Si elle tombe en panne, est volée ou si son disque lâche, elles partent avec. Téléchargez-en donc une de temps en temps, ou envoyez-les vers un NAS ou OneDrive.',
   'backups.whereWebdav': 'Aussi vers un NAS ou Nextcloud',
   'backups.whereWebdavHint':
     'Par WebDAV, que proposent Synology, QNAP et Nextcloud. Une copie reste aussi sur cette machine.',

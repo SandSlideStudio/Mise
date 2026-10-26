@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { buildApp } from '../../app.js';
+import { buildApp, setupTokenFor } from '../../app.js';
 import { ADMIN, TEST_CONFIG, useTestContext } from '../../test/harness.js';
 
 const ctx = useTestContext();
@@ -52,5 +52,33 @@ describe('setting up a production server', () => {
       payload: { ...ADMIN, setupToken: CODE },
     });
     expect(response.statusCode).toBe(200);
+  });
+});
+
+describe('when setup asks for a code', () => {
+  const kitchen = { ...TEST_CONFIG, NODE_ENV: 'production' as const };
+
+  it('asks for none on a kitchen network when no code was set', async () => {
+    expect(setupTokenFor(kitchen)).toBeNull();
+    production = await buildApp(kitchen, { db: ctx.db, serveClient: false });
+    const status = await production.inject({ method: 'GET', url: '/api/setup/status' });
+    expect(status.json()).toMatchObject({ needsSetup: true, setupTokenRequired: false });
+    const response = await production.inject({ method: 'POST', url: '/api/setup', payload: ADMIN });
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('uses the code that was set', () => {
+    expect(setupTokenFor({ ...kitchen, SETUP_TOKEN: CODE })).toBe(CODE);
+  });
+
+  it('always asks behind HTTPS or a proxy, making a code up when none was set', () => {
+    expect(setupTokenFor({ ...kitchen, COOKIE_SECURE: true })).toMatch(/.{16,}/);
+    expect(setupTokenFor({ ...kitchen, TRUST_PROXY: 1 })).toMatch(/.{16,}/);
+  });
+
+  it('never asks in development', () => {
+    expect(
+      setupTokenFor({ ...TEST_CONFIG, NODE_ENV: 'development', SETUP_TOKEN: CODE }),
+    ).toBeNull();
   });
 });

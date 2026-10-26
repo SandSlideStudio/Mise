@@ -81,11 +81,7 @@ export async function buildApp(
     bodyLimit: 2 * 1024 * 1024,
   });
 
-  // Production setup needs a one-time code; development and tests don't.
-  app.decorate(
-    'setupToken',
-    config.NODE_ENV === 'production' ? (config.SETUP_TOKEN ?? generateToken(18)) : null,
-  );
+  app.decorate('setupToken', setupTokenFor(config));
 
   app.setValidatorCompiler(validatorCompiler);
   app.setSerializerCompiler(serializerCompiler);
@@ -243,4 +239,20 @@ function findClientDir(hint: string): string | null {
     dir = parent;
   }
   return null;
+}
+
+/**
+ * The one-time code first-run setup asks for, or null when it asks for none.
+ *
+ * On a kitchen network the risk is someone on the wifi finishing setup first,
+ * in the minutes between install and setup, so no code is needed unless one
+ * was set. Behind HTTPS or a proxy Mise is probably reachable from the
+ * internet, where bots claim freshly installed apps: then there is always a
+ * code, made up and printed in the log when none was set.
+ */
+export function setupTokenFor(config: Config): string | null {
+  if (config.NODE_ENV !== 'production') return null;
+  if (config.SETUP_TOKEN) return config.SETUP_TOKEN;
+  const reachableFromOutside = config.COOKIE_SECURE || config.TRUST_PROXY !== false;
+  return reachableFromOutside ? generateToken(18) : null;
 }

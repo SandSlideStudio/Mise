@@ -20,6 +20,16 @@ import type { BaseUnit, UnitCode } from './units.js';
 
 export type RecipeType = 'dish' | 'prep' | 'component';
 
+/**
+ * A dish is plated to order, so a new one is written for a single plate: its
+ * components are what goes on one plate, and scaling to 40 covers multiplies
+ * by 40. Batch sizes only mean something for preps and components.
+ */
+export const ONE_PLATE = { yield: { value: 1, unit: 'each' }, portions: 1 } as const satisfies {
+  yield: Quantity;
+  portions: number;
+};
+
 export interface Ingredient {
   id: string;
   name: string;

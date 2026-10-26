@@ -155,7 +155,7 @@ export const de: Record<MessageKey, string> = {
   'setup.failed': 'Die Einrichtung ist fehlgeschlagen. Sieh im Serverprotokoll nach.',
   'setup.create': 'Küche anlegen',
   'setup.codeHint':
-    'Er steht am Ende des Links, der bei der Installation von Mise angezeigt wurde. Erneut anzeigen: docker compose logs app',
+    'Es ist der SETUP_TOKEN in den Einstellungen von Mise, auch am Ende des Links, den das Installationsprogramm angezeigt hat. Wurde keiner gesetzt, hat Mise selbst einen erstellt und in sein Protokoll geschrieben.',
   'setup.codeLabel': 'Einrichtungscode',
   'setup.stepKitchen': 'Restaurant',
   'setup.stepYou': 'Du',
@@ -204,7 +204,6 @@ export const de: Record<MessageKey, string> = {
   'setup.recipeName': 'Name des Rezepts',
   'setup.recipeType': 'Art',
   'setup.makes': 'Eine Charge ergibt',
-  'setup.portions': 'Portionen',
   'setup.recipeDuplicate': 'Zwei Rezepte haben denselben Namen.',
   'setup.yieldInvalid': 'Eine Charge muss mehr als 0 ergeben.',
   'setup.settingsTitle': 'So arbeitet diese Küche',
@@ -396,8 +395,9 @@ export const de: Record<MessageKey, string> = {
   'editor.kindNew': 'Neu',
   'editor.theRest': 'Der Rest',
   'editor.batchMakes': 'Ein Ansatz ergibt',
+  'editor.dishPlates_one': 'Die Mengen gelten für einen Teller.',
+  'editor.dishPlates_other': 'Die Mengen gelten für {count} Teller.',
   'editor.yieldUnit': 'Einheit der Ausbeute',
-  'editor.portionsHint': 'Teller pro Ansatz',
   'editor.prepMinutes': 'Vorbereitung, Minuten',
   'editor.keepsHours': 'Haltbar, Stunden',
   'editor.storagePlaceholder': 'Vakuumiert, Kühlraum, beschriftet',
@@ -585,7 +585,7 @@ export const de: Record<MessageKey, string> = {
   'backups.whereTitle': 'Wohin die Sicherungen gehen',
   'backups.whereLocal': 'Nur auf diesem Gerät',
   'backups.whereLocalHint':
-    'Eine kaputte SD-Karte oder ein Einbruch nimmt sie mit, also lade ab und zu eine herunter.',
+    'Sie liegen auf demselben Gerät wie Mise. Geht es kaputt, wird es gestohlen oder fällt die Festplatte aus, sind sie mit weg. Lade also ab und zu eine herunter oder schicke sie an ein NAS oder OneDrive.',
   'backups.whereWebdav': 'Auch auf ein NAS oder Nextcloud',
   'backups.whereWebdavHint':
     'Per WebDAV, das Synology, QNAP und Nextcloud anbieten. Eine Kopie bleibt auch auf diesem Gerät.',
