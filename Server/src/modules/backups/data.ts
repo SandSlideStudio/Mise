@@ -18,6 +18,8 @@ export const BACKED_UP: PgTable[] = [
   schema.recipePhotos,
   schema.prepTasks,
   schema.dishCardSettings,
+  schema.menus,
+  schema.menuDishes,
 ];
 
 /**

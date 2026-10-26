@@ -62,6 +62,8 @@ export const courseEnum = pgEnum('course', [
 ]);
 /** How a dish card is printed: on white, or dark like the night screen. */
 export const dishCardThemeEnum = pgEnum('dish_card_theme', ['day', 'night']);
+/** Whether a menu is being written, on, or in the past. */
+export const menuStatusEnum = pgEnum('menu_status', ['draft', 'active', 'archived']);
 /** Who may open a dish card. */
 export const dishCardAccessEnum = pgEnum('dish_card_access', ['everyone', 'managers']);
 
@@ -424,6 +426,43 @@ export const dishCardSettings = pgTable('dish_card_settings', {
   access: dishCardAccessEnum('access').notNull().default('everyone'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+// --- menus ----------------------------------------------------------------
+
+/** A group of dishes front of house sells together: a season's menu, the lunch card. */
+export const menus = pgTable(
+  'menu',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    description: text('description'),
+    status: menuStatusEnum('status').notNull().default('draft'),
+    /** When this menu's dish cards were last downloaded, to say which have changed since. */
+    cardsPrintedAt: timestamp('cards_printed_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('menu_name_key').on(sql`lower(${t.name})`)],
+);
+
+export const menuDishes = pgTable(
+  'menu_dish',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    menuId: uuid('menu_id')
+      .notNull()
+      .references(() => menus.id, { onDelete: 'cascade' }),
+    // A dish deleted from the book leaves every menu it was on.
+    recipeId: uuid('recipe_id')
+      .notNull()
+      .references(() => recipes.id, { onDelete: 'cascade' }),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (t) => [
+    uniqueIndex('menu_dish_key').on(t.menuId, t.recipeId),
+    index('menu_dish_recipe_idx').on(t.recipeId),
+  ],
+);
 
 /** One prep line as stored. */
 export type PrepTaskRow = typeof prepTasks.$inferSelect;
