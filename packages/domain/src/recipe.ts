@@ -30,13 +30,9 @@ export interface Ingredient {
   itemWeightG?: number | null;
   /**
    * Edible portion as a percentage of what you buy. Onions come in around 90:
-   * a kilo bought is 900 g once peeled and trimmed. Prep quantities are
-   * grossed up by this so the list says how much to actually pull from the
-   * walk-in.
+   * a kilo bought is 900 g once peeled and trimmed.
    */
   yieldPercent: number;
-  /** Whether appearing in a recipe is by itself enough to earn a prep task. */
-  requiresPrep: boolean;
   /** True or false when someone has said; null or absent when nobody has. */
   vegan?: boolean | null;
   /** Which gluten cereals and which nuts, for the ones that contain them. */

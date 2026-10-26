@@ -3,7 +3,7 @@ export * from './auth.js';
 export * from './kitchen.js';
 export * from './ingredients.js';
 export * from './recipes.js';
-export * from './services.js';
+export * from './prep.js';
 export * from './setup.js';
 export * from './backups.js';
 export * from './dishcards.js';

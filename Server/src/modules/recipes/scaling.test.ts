@@ -34,7 +34,7 @@ beforeEach(async () => {
   const onion = await post(
     ctx.app,
     '/api/ingredients',
-    { name: 'Onion', baseUnit: 'g', yieldPercent: 90, requiresPrep: true },
+    { name: 'Onion', baseUnit: 'g', yieldPercent: 90 },
     admin,
   );
 

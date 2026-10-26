@@ -359,7 +359,6 @@ export function createAuthService(db: Database) {
         name: input.kitchenName,
         language: input.language ?? 'en',
         ...(input.unitSystem ? { unitSystem: input.unitSystem } : {}),
-        ...(input.prepMode ? { prepMode: input.prepMode } : {}),
         ...(input.tickedRetention ? { tickedRetention: input.tickedRetention } : {}),
       });
 

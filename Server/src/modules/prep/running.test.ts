@@ -16,7 +16,6 @@ function as(cookie: string) {
 
 interface Line {
   id: string;
-  serviceId: string | null;
   stationId: string | null;
   description: string;
   status: string;
@@ -91,29 +90,33 @@ async function signInCook(): Promise<string> {
 }
 
 describe('the kitchen setting', () => {
-  it('starts on a list per service, and an administrator can switch it', async () => {
+  it('keeps ticked lines by default, and an administrator can switch to deleting them', async () => {
     const before = await ctx.app.inject({ method: 'GET', url: '/api/kitchen', cookies: as(admin) });
-    expect(before.json()).toMatchObject({ prepMode: 'per_service', tickedRetention: 'keep' });
+    expect(before.json()).toMatchObject({ tickedRetention: 'keep' });
+    expect(before.json()).not.toHaveProperty('prepMode');
 
     const after = await ctx.app.inject({
       method: 'PATCH',
       url: '/api/kitchen',
-      payload: { prepMode: 'running', tickedRetention: 'delete' },
+      payload: { tickedRetention: 'delete' },
       cookies: as(admin),
     });
     expect(after.statusCode).toBe(200);
-    expect(after.json()).toMatchObject({ prepMode: 'running', tickedRetention: 'delete' });
+    expect(after.json()).toMatchObject({ tickedRetention: 'delete' });
   });
 });
 
 describe('the running list', () => {
-  it('holds lines that belong to no service', async () => {
+  it('holds the lines added to it', async () => {
     const response = await add({
       description: 'Brunoise shallots',
       quantity: { value: 2, unit: 'kg' },
     });
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ merged: false, task: { serviceId: null } });
+    expect(response.json()).toMatchObject({
+      merged: false,
+      task: { description: 'Brunoise shallots', status: 'open' },
+    });
     expect(await list()).toHaveLength(1);
   });
 
@@ -199,33 +202,6 @@ describe('the running list', () => {
 
     const ticked = await setStatus(created.json().task.id, 'done', cook);
     expect(ticked.statusCode).toBe(200);
-  });
-
-  it('never applies the two-hour rule to a list that belongs to a service', async () => {
-    const service = await ctx.app.inject({
-      method: 'POST',
-      url: '/api/services',
-      payload: { date: '2026-09-11', period: 'dinner' },
-      cookies: as(admin),
-    });
-    const serviceId = service.json().id;
-    const task = await ctx.app.inject({
-      method: 'POST',
-      url: `/api/services/${serviceId}/tasks`,
-      payload: { description: 'Chicken stock' },
-      cookies: as(admin),
-    });
-    const id = task.json().id;
-    await setStatus(id, 'done');
-    await tickedHoursAgo(id, 72);
-
-    const tasks = await ctx.app.inject({
-      method: 'GET',
-      url: `/api/services/${serviceId}/tasks`,
-      cookies: as(admin),
-    });
-    expect(tasks.json()).toHaveLength(1);
-    expect((await setStatus(id, 'open')).statusCode).toBe(200);
   });
 });
 

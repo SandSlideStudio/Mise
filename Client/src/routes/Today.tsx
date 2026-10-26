@@ -1,15 +1,19 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from '@tanstack/react-router';
-import type { PrepTask, PrepTaskStatus, ServiceSummary } from '@mise/contracts';
+import type { PrepTask, PrepTaskStatus } from '@mise/contracts';
 import { ALL_UNITS, type UnitCode } from '@mise/domain';
-import { useKitchen, useStations } from '../api/kitchen.js';
-import { GONE_AFTER_MS, RUNNING_LIST, useAddRunningTask, useRunningTasks } from '../api/running.js';
+import { useStations } from '../api/kitchen.js';
+import {
+  GONE_AFTER_MS,
+  useAddRunningTask,
+  useDeletePrepTask,
+  useRunningTasks,
+  useUpdatePrepTask,
+} from '../api/running.js';
 import { useCurrentUser } from '../api/session.js';
-import { todayIso, usePrepTasks, useServices, useUpdatePrepTask } from '../api/services.js';
 import { AppShell } from '../components/AppShell.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
-import { clockTime, errorMessage, friendlyDate, periodName, useT } from '../i18n/index.js';
+import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
 import { useNight } from '../lib/theme.js';
 
 /**
@@ -20,8 +24,8 @@ import { useNight } from '../lib/theme.js';
  * anyone needs; the "For …" line under each job is the arithmetic, and it is
  * never hidden behind a tap.
  *
- * A kitchen keeps either a list per service or one running list, and this
- * screen shows whichever it keeps.
+ * The kitchen keeps one running list: lines go on by hand, and a ticked line
+ * is gone two hours after it was ticked.
  */
 
 type Filter = { kind: 'mine' } | { kind: 'all' } | { kind: 'station'; stationId: string };
@@ -30,7 +34,6 @@ export function Today() {
   const { data: user } = useCurrentUser();
   const { t, locale } = useT();
   const stations = useStations();
-  const kitchen = useKitchen();
   const [night, toggleNight] = useNight();
   const today = useToday();
 
@@ -70,18 +73,17 @@ export function Today() {
           </div>
         </div>
 
-        {kitchen.isPending ? (
-          <Quiet>{t('common.loading')}</Quiet>
-        ) : kitchen.isError ? (
-          <LoadError className="mx-4 my-6 sm:mx-7" onRetry={() => void kitchen.refetch()} />
-        ) : kitchen.data?.prepMode === 'running' ? (
-          <RunningPrep />
-        ) : (
-          <ServiceLists date={today} />
-        )}
+        <RunningPrep />
       </main>
     </AppShell>
   );
+}
+
+/** Today where the tablet is, which is where the cook is standing. */
+function todayIso(): string {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
 }
 
 /**
@@ -101,73 +103,6 @@ function useToday(): string {
   return today;
 }
 
-/** A list per service: today's services, each with its own board. */
-function ServiceLists({ date }: { date: string }) {
-  const { data: user } = useCurrentUser();
-  const { t } = useT();
-  const services = useServices({ from: date, to: date });
-
-  if (services.isPending) return <Quiet>{t('common.loading')}</Quiet>;
-  if (services.isError) {
-    return <LoadError className="mx-4 my-6 sm:mx-7" onRetry={() => void services.refetch()} />;
-  }
-
-  if (services.data?.length === 0) {
-    return (
-      <div className="px-4 py-8 sm:px-7 sm:py-10">
-        <div className="border-line border-2 border-dashed p-8 text-center sm:p-10">
-          <p className="text-ink-soft text-xl">{t('today.nothingPlanned')}</p>
-          {user?.role !== 'cook' ? (
-            <Link to="/services" className="btn-primary mt-6">
-              {t('services.plan')}
-            </Link>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {services.data?.map((service) => (
-        <ServicePrep key={service.id} service={service} />
-      ))}
-    </>
-  );
-}
-
-function ServicePrep({ service }: { service: ServiceSummary }) {
-  const { data: user } = useCurrentUser();
-  const { t, plural } = useT();
-  const tasks = usePrepTasks(service.id);
-  const update = useUpdatePrepTask(service.id);
-
-  return (
-    <Board
-      title={periodName(t, service.period)}
-      subtitle={service.covers ? plural('today.covers', service.covers) : null}
-      tasks={tasks.data}
-      failed={tasks.isError ? () => void tasks.refetch() : undefined}
-      emptyText={t('today.noPrep')}
-      onToggle={(id, status) =>
-        // Starting a job puts your name on it, so the kitchen sees who has it.
-        update.mutate(
-          status === 'in_progress'
-            ? { id, status, assignedUserId: user?.id ?? null }
-            : { id, status },
-        )
-      }
-      footer={
-        user?.role !== 'cook' ? (
-          <Link to="/services/$serviceId" params={{ serviceId: service.id }} className="btn-quiet">
-            {t('today.editList')}
-          </Link>
-        ) : null
-      }
-    />
-  );
-}
-
 /**
  * One running list for the whole kitchen. Lines go on by hand, and a ticked
  * line is gone two hours after it was ticked, so the list never turns into
@@ -177,7 +112,9 @@ function RunningPrep() {
   const { data: user } = useCurrentUser();
   const { t, locale } = useT();
   const tasks = useRunningTasks();
-  const update = useUpdatePrepTask(RUNNING_LIST);
+  const update = useUpdatePrepTask();
+  const remove = useDeletePrepTask();
+  const canManage = user?.role !== 'cook';
 
   // Lines drop off on the clock, not only when someone taps, so keep time.
   const [now, setNow] = useState(() => Date.now());
@@ -186,29 +123,22 @@ function RunningPrep() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const visible = tasks.data
-    ?.filter(
-      (task) =>
-        !(
-          task.status === 'done' &&
-          task.completedAt &&
-          Date.parse(task.completedAt) + GONE_AFTER_MS <= now
-        ),
-    )
-    .map((task) =>
-      // Say when a ticked line will go, so nobody is surprised when it does.
-      task.status === 'done' && task.completedAt
-        ? {
-            ...task,
-            notes: [
-              ...task.notes,
-              t('running.goneAt', {
-                time: clockTime(locale, new Date(Date.parse(task.completedAt) + GONE_AFTER_MS)),
-              }),
-            ],
-          }
-        : task,
-    );
+  const visible = tasks.data?.filter(
+    (task) =>
+      !(
+        task.status === 'done' &&
+        task.completedAt &&
+        Date.parse(task.completedAt) + GONE_AFTER_MS <= now
+      ),
+  );
+
+  // Say when a ticked line will go, so nobody is surprised when it does.
+  const noteFor = (task: PrepTask) =>
+    task.status === 'done' && task.completedAt
+      ? t('running.goneAt', {
+          time: clockTime(locale, new Date(Date.parse(task.completedAt) + GONE_AFTER_MS)),
+        })
+      : null;
 
   return (
     <Board
@@ -225,7 +155,9 @@ function RunningPrep() {
             : { id, status },
         )
       }
-      header={user?.role !== 'cook' ? <AddRunningLine /> : null}
+      noteFor={noteFor}
+      onRemove={canManage ? (id) => remove.mutate(id) : undefined}
+      header={canManage ? <AddRunningLine /> : null}
     />
   );
 }
@@ -348,8 +280,9 @@ function Board({
   failed,
   emptyText,
   onToggle,
+  noteFor,
+  onRemove,
   header,
-  footer,
 }: {
   title: string;
   subtitle: string | null;
@@ -358,8 +291,9 @@ function Board({
   failed?: () => void;
   emptyText: string;
   onToggle: (id: string, status: PrepTaskStatus) => void;
+  noteFor?: (task: PrepTask) => string | null;
+  onRemove?: (id: string) => void;
   header?: ReactNode;
-  footer?: ReactNode;
 }) {
   const { data: user } = useCurrentUser();
   const { t } = useT();
@@ -464,8 +398,10 @@ function Board({
                   <PrepTaskRow
                     key={task.id}
                     task={task}
+                    note={noteFor?.(task)}
                     onToggle={(next) => onToggle(task.id, next)}
                     onProgress={(next) => onToggle(task.id, next)}
+                    onRemove={onRemove ? () => onRemove(task.id) : undefined}
                   />
                 ))}
               </ul>
@@ -473,8 +409,6 @@ function Board({
           ))}
         </div>
       )}
-
-      {footer ? <div className="no-print px-4 pt-5 sm:px-7">{footer}</div> : null}
     </section>
   );
 }

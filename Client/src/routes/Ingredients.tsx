@@ -195,7 +195,6 @@ function describe(t: Translator['t'], ingredient: Ingredient): string {
   const parts: string[] = [];
   if (ingredient.category) parts.push(ingredient.category);
   parts.push(unitLabel(t, ingredient.baseUnit));
-  if (ingredient.requiresPrep) parts.push(t('ingredients.ownPrepLine'));
   if (ingredient.vegan) parts.push(t('ingredients.vegan'));
   return parts.join(' · ');
 }
@@ -241,7 +240,6 @@ function IngredientForm({
     ingredient?.itemWeightG ? String(ingredient.itemWeightG) : '',
   );
   const [yieldPercent, setYieldPercent] = useState(String(ingredient?.yieldPercent ?? 100));
-  const [requiresPrep, setRequiresPrep] = useState(ingredient?.requiresPrep ?? false);
   const [vegan, setVegan] = useState<boolean | null>(ingredient?.vegan ?? null);
   const [cereals, setCereals] = useState((ingredient?.allergenDetails.gluten ?? []).join(', '));
   const [nuts, setNuts] = useState((ingredient?.allergenDetails.nuts ?? []).join(', '));
@@ -260,7 +258,6 @@ function IngredientForm({
       densityGPerMl: density ? Number(density) : null,
       itemWeightG: itemWeight ? Number(itemWeight) : null,
       yieldPercent: Number(yieldPercent),
-      requiresPrep,
       vegan,
       // Names only count for an allergen that is ticked.
       allergenDetails: {
@@ -344,19 +341,6 @@ function IngredientForm({
           hint={t('ingredients.eachHint')}
         />
       </div>
-
-      <label className="flex items-center gap-3">
-        <input
-          type="checkbox"
-          className="accent-accent h-5 w-5"
-          checked={requiresPrep}
-          onChange={(e) => setRequiresPrep(e.target.checked)}
-        />
-        <span>
-          {t('ingredients.needsPrep')}
-          <span className="text-ink-soft block text-sm">{t('ingredients.needsPrepHint')}</span>
-        </span>
-      </label>
 
       <fieldset>
         <legend className="label">{t('ingredients.allergens')}</legend>

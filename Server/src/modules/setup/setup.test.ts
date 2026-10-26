@@ -8,7 +8,6 @@ const FULL_SETUP = {
   ...ADMIN,
   language: 'nl',
   unitSystem: 'metric',
-  prepMode: 'running',
   tickedRetention: 'delete',
   stations: ['Koude keuken', 'Sauzen', 'Patisserie'],
   staff: [
@@ -46,7 +45,6 @@ describe('setting a kitchen up in one go', () => {
     const kitchen = await ctx.app.inject({ method: 'GET', url: '/api/kitchen', cookies });
     expect(kitchen.json()).toMatchObject({
       language: 'nl',
-      prepMode: 'running',
       tickedRetention: 'delete',
     });
 

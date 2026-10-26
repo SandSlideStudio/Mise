@@ -230,7 +230,6 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
         name: row.name,
         unitSystem: row.unitSystem,
         language: row.language,
-        prepMode: row.prepMode,
         tickedRetention: row.tickedRetention,
       };
     },
@@ -253,7 +252,6 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
         name: row.name,
         unitSystem: row.unitSystem,
         language: row.language,
-        prepMode: row.prepMode,
         tickedRetention: row.tickedRetention,
       };
     },

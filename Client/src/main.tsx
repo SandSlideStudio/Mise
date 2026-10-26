@@ -21,7 +21,6 @@ import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
 import { RecipeView } from './routes/RecipeView.js';
 import { Recipes } from './routes/Recipes.js';
-import { ServiceDetail, Services } from './routes/ServicesGate.js';
 import { Today } from './routes/Today.js';
 import { Line } from './routes/Line.js';
 import { Login } from './routes/Login.js';
@@ -157,12 +156,6 @@ const rootRoute = createRootRoute({ component: Shell });
 
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/', component: Today }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/services', component: Services }),
-  createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/services/$serviceId',
-    component: ServiceDetail,
-  }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes', component: Recipes }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes/new', component: RecipeEditor }),
   createRoute({

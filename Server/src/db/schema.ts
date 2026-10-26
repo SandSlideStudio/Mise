@@ -2,7 +2,6 @@ import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
   check,
-  date,
   index,
   integer,
   jsonb,
@@ -15,7 +14,7 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
-import type { AllergenDetails, Season, UnitCode } from '@mise/domain';
+import type { AllergenDetails, Season } from '@mise/domain';
 
 /**
  * One server instance is one kitchen, so nothing here is scoped to a tenant.
@@ -33,26 +32,14 @@ export const unitSystemEnum = pgEnum('unit_system', ['metric', 'imperial']);
 export const baseUnitEnum = pgEnum('base_unit', ['g', 'ml', 'each']);
 export const recipeTypeEnum = pgEnum('recipe_type', ['dish', 'prep', 'component']);
 export const recipeStatusEnum = pgEnum('recipe_status', ['draft', 'published', 'archived']);
-export const servicePeriodEnum = pgEnum('service_period', [
-  'breakfast',
-  'lunch',
-  'dinner',
-  'prep_day',
-  'event',
-]);
-export const serviceStatusEnum = pgEnum('service_status', ['planning', 'active', 'closed']);
 export const prepTaskStatusEnum = pgEnum('prep_task_status', [
   'open',
   'in_progress',
   'done',
   'skipped',
 ]);
-export const prepTaskSourceEnum = pgEnum('prep_task_source', ['generated', 'manual']);
-export const prepTaskKindEnum = pgEnum('prep_task_kind', ['recipe', 'ingredient', 'other']);
 /** Mirrors LANGUAGES in @mise/contracts; the API schemas check every value on the way out. */
 export const languageEnum = pgEnum('language', ['en', 'nl', 'fr', 'es', 'de']);
-/** One prep list per service, or one list the kitchen keeps adding to. */
-export const prepModeEnum = pgEnum('prep_mode', ['per_service', 'running']);
 /** What becomes of a line ticked off the running list once it has gone. */
 export const tickedRetentionEnum = pgEnum('ticked_retention', ['keep', 'delete']);
 /** Mirror SERVING_TEMPERATURES and COURSES in @mise/domain. */
@@ -86,7 +73,6 @@ export const kitchens = pgTable('kitchen', {
   name: text('name').notNull(),
   unitSystem: unitSystemEnum('unit_system').notNull().default('metric'),
   language: languageEnum('language').notNull().default('en'),
-  prepMode: prepModeEnum('prep_mode').notNull().default('per_service'),
   tickedRetention: tickedRetentionEnum('ticked_retention').notNull().default('keep'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -189,7 +175,6 @@ export const ingredients = pgTable(
     itemWeightG: real('item_weight_g'),
     /** Edible portion as a percentage of what you buy. Onions are about 90. */
     yieldPercent: real('yield_percent').notNull().default(100),
-    requiresPrep: boolean('requires_prep').notNull().default(false),
     /** True or false once someone has said. Null means nobody has, which is never vegan. */
     vegan: boolean('vegan'),
     /** Which gluten cereals and which nuts, as the law wants them named. */
@@ -309,93 +294,32 @@ export const recipePhotos = pgTable(
 
 // --- mise en place --------------------------------------------------------
 
-export const services = pgTable(
-  'service',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    date: date('date').notNull(),
-    period: servicePeriodEnum('period').notNull(),
-    covers: integer('covers'),
-    notes: text('notes'),
-    status: serviceStatusEnum('status').notNull().default('planning'),
-    generatedAt: timestamp('generated_at', { withTimezone: true }),
-    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [uniqueIndex('service_date_period_key').on(t.date, t.period)],
-);
-
-export const serviceDishes = pgTable(
-  'service_dish',
-  {
-    id: uuid('id').primaryKey().defaultRandom(),
-    serviceId: uuid('service_id')
-      .notNull()
-      .references(() => services.id, { onDelete: 'cascade' }),
-    recipeId: uuid('recipe_id')
-      .notNull()
-      .references(() => recipes.id, { onDelete: 'restrict' }),
-    plannedPortions: real('planned_portions').notNull(),
-  },
-  (t) => [
-    uniqueIndex('service_dish_key').on(t.serviceId, t.recipeId),
-    index('service_dish_recipe_idx').on(t.recipeId),
-    check('service_dish_portions_positive', sql`${t.plannedPortions} > 0`),
-  ],
-);
-
 /**
- * Prep tasks are real rows, not something recomputed on every page load,
- * because people edit them: they add jobs, reassign them, and tick them off.
- *
- * The generation key is what makes regeneration safe. It is stable for a given
- * source, so a second generate updates the quantity on an untouched task
- * instead of creating a duplicate, and leaves finished work alone.
+ * The prep list: one running list for the whole kitchen. Lines go on by hand,
+ * get ticked off, and drop out of sight two hours after they were ticked.
  */
 export const prepTasks = pgTable(
   'prep_task',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    /** Null for a line on the running list, which belongs to no service. */
-    serviceId: uuid('service_id').references(() => services.id, { onDelete: 'cascade' }),
     stationId: uuid('station_id').references(() => stations.id, { onDelete: 'set null' }),
-    kind: prepTaskKindEnum('kind').notNull().default('other'),
-    sourceRecipeId: uuid('source_recipe_id').references(() => recipes.id, { onDelete: 'set null' }),
-    sourceIngredientId: uuid('source_ingredient_id').references(() => ingredients.id, {
-      onDelete: 'set null',
-    }),
-    generationKey: text('generation_key'),
     description: text('description').notNull(),
     quantityBase: numeric('quantity_base', { precision: 14, scale: 4, mode: 'number' }),
     quantityUnit: text('quantity_unit'),
-    source: prepTaskSourceEnum('source').notNull().default('manual'),
     status: prepTaskStatusEnum('status').notNull().default('open'),
     assignedUserId: uuid('assigned_user_id').references(() => users.id, { onDelete: 'set null' }),
     completedBy: uuid('completed_by').references(() => users.id, { onDelete: 'set null' }),
     completedAt: timestamp('completed_at', { withTimezone: true }),
-    notes: jsonb('notes').$type<string[]>().notNull().default([]),
-    usedBy: jsonb('used_by')
-      .$type<
-        { recipeId: string; recipeName: string; quantity: { value: number; unit: UnitCode } }[]
-      >()
-      .notNull()
-      .default([]),
     sortOrder: integer('sort_order').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-    /** Set when a chef changes what the line says, its amount or its station. */
-    editedAt: timestamp('edited_at', { withTimezone: true }),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
-    index('prep_task_service_idx').on(t.serviceId),
     index('prep_task_station_idx').on(t.stationId),
     index('prep_task_assignee_idx').on(t.assignedUserId),
-    index('prep_task_source_recipe_idx').on(t.sourceRecipeId),
-    index('prep_task_source_ingredient_idx').on(t.sourceIngredientId),
     index('prep_task_completed_by_idx').on(t.completedBy),
-    // The running list asks for open lines and lines ticked in the last two hours.
-    index('prep_task_list_idx').on(t.serviceId, t.status, t.completedAt),
-    uniqueIndex('prep_task_generation_key').on(t.serviceId, t.generationKey),
+    // The list asks for open lines and lines ticked in the last two hours.
+    index('prep_task_status_idx').on(t.status, t.completedAt),
   ],
 );
 
@@ -424,18 +348,7 @@ export const recipeComponentRelations = relations(recipeComponents, ({ one }) =>
   }),
 }));
 
-export const serviceRelations = relations(services, ({ many }) => ({
-  dishes: many(serviceDishes),
-  tasks: many(prepTasks),
-}));
-
-export const serviceDishRelations = relations(serviceDishes, ({ one }) => ({
-  service: one(services, { fields: [serviceDishes.serviceId], references: [services.id] }),
-  recipe: one(recipes, { fields: [serviceDishes.recipeId], references: [recipes.id] }),
-}));
-
 export const prepTaskRelations = relations(prepTasks, ({ one }) => ({
-  service: one(services, { fields: [prepTasks.serviceId], references: [services.id] }),
   station: one(stations, { fields: [prepTasks.stationId], references: [stations.id] }),
   assignee: one(users, { fields: [prepTasks.assignedUserId], references: [users.id] }),
 }));

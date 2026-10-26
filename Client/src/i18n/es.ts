@@ -59,7 +59,6 @@ export const es: Record<MessageKey, string> = {
   'shell.languageKitchen': 'Idioma de la cocina ({language})',
 
   'nav.today': 'Hoy',
-  'nav.services': 'Servicios',
   'nav.recipes': 'Recetas',
   'nav.ingredients': 'Ingredientes',
   'nav.settings': 'Ajustes',
@@ -68,12 +67,6 @@ export const es: Record<MessageKey, string> = {
   'role.head_chef': 'Jefe de cocina',
   'role.sous_chef': 'Segundo de cocina',
   'role.cook': 'Cocinero',
-
-  'period.breakfast': 'Desayuno',
-  'period.lunch': 'Almuerzo',
-  'period.dinner': 'Cena',
-  'period.prep_day': 'Día de preparación',
-  'period.event': 'Evento',
 
   'recipeType.dish': 'Plato',
   'recipeType.prep': 'Elaboración',
@@ -100,30 +93,18 @@ export const es: Record<MessageKey, string> = {
 
   'today.night': 'Noche',
   'today.day': 'Día',
-  'today.nothingPlanned': 'Todavía no hay nada planificado para hoy.',
-  'today.covers_one': '{count} cubierto',
-  'today.covers_other': '{count} cubiertos',
   'today.progress': '{done} de {total} hechos',
   'today.progressLabel': 'Mise en place de {period} hecha',
   'today.mine': 'Lo mío',
   'today.all': 'Todo',
-  'today.noPrep': 'Todavía no hay nada en esta lista.',
   'today.nothingMine': 'No hay nada tuyo en esta lista.',
   'today.nothingStation': 'Nada en esta partida.',
-  'today.editList': 'Editar esta lista',
   'today.pending_one': 'Una marca todavía no ha llegado al servidor.',
   'today.pending_other': '{count} marcas todavía no han llegado al servidor.',
   'today.pendingStill': 'Reintentando. Se guardan en esta tableta hasta que se envíen.',
   'today.tickRefused': 'Una marca no se ha guardado: {reason}',
 
-  'task.inProgress': 'En marcha',
-  'task.addedByHand': 'Añadida a mano',
-  'task.sharedBy': 'Compartida por {count}',
   'task.doneBy': 'Hecha por {name}',
-  'task.forRecipes': 'Para {recipes}',
-  'task.colWhat': 'Qué hacer',
-  'task.colFor': 'Para',
-  'task.colWho': 'Quién',
 
   'line.loading': 'Cargando la brigada…',
   'line.notEnrolledTitle': 'Esta tablet no está registrada',
@@ -252,9 +233,9 @@ export const es: Record<MessageKey, string> = {
   'welcome.f1t': 'Fichas técnicas',
   'welcome.f1b':
     'Ajusta al rendimiento o al número de comensales, monta los platos con subrecetas y ve los alérgenos de cada subreceta.',
-  'welcome.f2t': 'Mise en place por partida',
+  'welcome.f2t': 'Una lista de mise en place para la cocina',
   'welcome.f2b':
-    'Pon los platos y los comensales del servicio; Mise suma los componentes compartidos y da a cada partida su lista.',
+    'Los chefs añaden lo que hay que preparar, por partida. Las líneas marcadas desaparecen solas dos horas después.',
   'welcome.f3t': 'La brigada trabaja con tableta',
   'welcome.f3b':
     'Los cocineros marcan un nombre y un PIN, tachan la mise en place y reclaman una tarea, para que nada se haga dos veces. Cada pantalla se actualiza en vivo.',
@@ -298,89 +279,22 @@ export const es: Record<MessageKey, string> = {
   'tour.addLineTitle': 'Añadir a la lista',
   'tour.addLineBody':
     'La mise en place se añade a mano a la lista continua. Si añades lo mismo dos veces, se suma en una sola línea.',
-  'tour.servicesBody':
-    'Planifica un servicio: pon los platos y los comensales, y Mise escribe la lista de cada partida.',
   'tour.recipesBody':
     'Todas las recetas de la cocina, con sus alérgenos. Ajusta las cantidades, o imprímelas para el pase.',
   'tour.ingredientsBody': 'Con lo que se hacen las recetas, con alérgenos y mermas.',
-  'tour.settingsBody': 'Partidas, equipo y PIN, tabletas de cocina, y cómo funciona la cocina.',
+  'tour.settingsBody':
+    'Partidas, equipo y PIN, tabletas de cocina, fichas de plato y copias de seguridad.',
   'tour.accountTitle': 'Tu idioma',
   'tour.accountBody': 'Elige aquí tu idioma, y cierra sesión al terminar el turno.',
   'tour.doneTitle': 'Fin del recorrido',
   'tour.doneBody': 'Todo lo demás está en la barra de arriba.',
 
-  'services.subtitle': 'La semana pasada y las tres siguientes.',
-  'services.plan': 'Planificar un servicio',
-  'services.colService': 'Servicio',
-  'services.colCovers': 'Cubiertos',
-  'services.colPrep': 'Mise en place',
-  'services.empty':
-    'Nada planificado. Un servicio es una comida en una fecha, y su lista de mise en place cuelga de él.',
-  'services.todayTag': 'Hoy',
-  'services.noPrep': 'Todavía sin mise en place',
-  'services.date': 'Fecha',
-  'services.period': 'Momento',
-  'services.coversBooked': 'Cubiertos reservados',
+  'task.remove': 'Quitar {task} de la lista',
+  'task.removeConfirm': '¿Quitar?',
 
-  'service.back': '← Servicios',
-  'service.notFound': 'No se ha encontrado ese servicio.',
-  'service.backToServices': 'Volver a servicios',
-  'service.coversBooked_one': '{count} cubierto reservado',
-  'service.coversBooked_other': '{count} cubiertos reservados',
-  'service.intro':
-    'Añade los platos de esta noche y cuántos de cada uno, y genera. Lo que comparten dos platos se suma, y la lista se ordena por partida, con fondos y bases primero.',
-  'service.theList': 'La lista',
-  'service.lines_one': '{count} línea',
-  'service.lines_other': '{count} líneas',
-  'service.linesDone': '{lines} · {done} hechas',
-  'service.emptyList': 'Todavía no hay nada en esta lista.',
-  'service.emptyListManage': 'Genérala a partir de los platos, o añade una línea a mano.',
-  'service.printList': 'Imprimir la lista',
-  'service.whoDoes': 'Quién hace {task}',
-  'service.removeTask': 'Quitar {task} de la lista',
-  'service.removeConfirm': '¿Quitar?',
-
-  'addTask.title': 'Añadir a la lista',
-  'addTask.body':
-    'Para la mise en place que ninguna receta conoce. Sobrevive a cada nueva generación.',
   'addTask.what': 'Qué hacer',
   'addTask.placeholder': 'Chalotas en brunoise',
   'addTask.submit': 'Añadir la línea',
-
-  'carry.title': 'Pasar al siguiente',
-  'carry.body':
-    'Trabajo que quedó sin terminar en un servicio anterior. Lo que ya está en esta lista se omite, así que pasarlo dos veces no lo duplica.',
-  'carry.one': 'Pasarla',
-  'carry.all': 'Pasar las {count}',
-  'carry.result': '{created} pasadas.',
-  'carry.resultSkipped': '{created} pasadas, {skipped} ya estaban aquí.',
-
-  'menu.title': 'Esta noche',
-  'menu.accounted': '{planned} de {covers} cubiertos repartidos',
-  'menu.planned_one': '{count} cubierto previsto',
-  'menu.planned_other': '{count} cubiertos previstos',
-  'menu.remove': 'Quitar {dish}',
-  'menu.empty': 'Todavía nada. Añade el primer plato abajo.',
-  'menu.addDish': 'Añadir un plato',
-  'menu.coversPlaceholder': 'cubiertos',
-  'menu.covers': 'Cubiertos',
-  'menu.putOn': 'Añadirlo',
-  'menu.noDishes':
-    'Todavía no hay platos en el recetario. Una receta tiene que ser un plato, con un número de raciones, antes de ir a un servicio.',
-  'menu.generate': 'Generar la lista',
-  'menu.generateAgain': 'Generar de nuevo',
-  'menu.ticked_one': '{count} línea marcada sigue marcada',
-  'menu.ticked_other': '{count} líneas marcadas siguen marcadas',
-  'menu.byHand_one': '{count} línea añadida a mano no se toca',
-  'menu.byHand_other': '{count} líneas añadidas a mano no se tocan',
-  'menu.lastGenerated': 'Generada {time}',
-  'menu.safe': 'Volver a generar es seguro. Nunca quita trabajo.',
-  'menu.resultAdded': '{count} añadidas',
-  'menu.resultUpdated': '{count} actualizadas',
-  'menu.resultRemoved': '{count} ya no hacen falta',
-  'menu.resultKept': '{count} sin cambios',
-  'menu.resultDone': 'Hecho: {parts}.',
-  'menu.resultNothing': 'No ha cambiado nada.',
 
   'recipes.subtitle':
     'Usa Sin para ver qué puede comer una mesa con alergias, subrecetas incluidas.',
@@ -462,6 +376,8 @@ export const es: Record<MessageKey, string> = {
   'editor.notePlaceholder': 'picado fino',
   'editor.removeLine': 'Quitar la línea',
   'editor.addLine': 'Añadir una línea',
+  'editor.lines_one': '{count} línea',
+  'editor.lines_other': '{count} líneas',
   'editor.addSection': 'Añadir una sección',
   'editor.hintNext': 'línea siguiente',
   'editor.hintField': 'campo siguiente',
@@ -507,14 +423,13 @@ export const es: Record<MessageKey, string> = {
   'ingredients.explainTitle': 'Para qué sirven los tres números',
   'ingredients.yieldTitle': 'Rendimiento.',
   'ingredients.yieldBody':
-    'Lo que queda después de pelar y limpiar. Por eso una lista puede decir cuánto sacar de la cámara en vez de cuánto acaba en la olla.',
+    'Lo que queda después de pelar y limpiar, como parte de lo que se compra: un kilo de cebollas da unos 900 g aprovechables.',
   'ingredients.densityTitle': 'Gramos por mililitro.',
   'ingredients.densityBody':
     'Permite que una receta escrita en litros dé un peso, y al revés. El aceite ronda 0,92.',
   'ingredients.eachTitle': 'Gramos por unidad.',
   'ingredients.eachBody':
     'Convierte un número de piezas en un peso. Una cebolla ronda 170, un huevo unos 50.',
-  'ingredients.ownPrepLine': 'tiene su propia línea de mise en place',
   'ingredients.byVolume': 'Se mide por volumen',
   'ingredients.counted': 'Se cuenta',
   'ingredients.weighed': 'Se pesa',
@@ -530,9 +445,6 @@ export const es: Record<MessageKey, string> = {
   'ingredients.densityHint': 'Solo para pasar de peso a volumen. El aceite ronda 0,92.',
   'ingredients.eachLabel': 'Gramos por unidad',
   'ingredients.eachHint': 'Solo para pasar de unidades a peso. Un huevo ronda 50.',
-  'ingredients.needsPrep': 'Necesita preparación',
-  'ingredients.needsPrepHint':
-    'Tiene su propia línea de mise en place cada vez que una receta lo usa.',
   'ingredients.allergens': 'Alérgenos',
 
   'settings.cookOnly':
@@ -603,11 +515,6 @@ export const es: Record<MessageKey, string> = {
   'kitchen.language': 'Idioma',
   'kitchen.languageHint':
     'El idioma de la aplicación para quien no haya elegido el suyo. Las recetas se quedan tal como se escribieron.',
-  'kitchen.prepMode': 'Listas de mise en place',
-  'kitchen.perService': 'Una lista por servicio, generada a partir de los platos',
-  'kitchen.running': 'Una lista continua, que se completa a mano',
-  'kitchen.prepModeHint':
-    'Una lista continua empieza vacía. Una línea marcada desaparece dos horas después de marcarla y no se puede desmarcar; si hay que volver a hacerla, añádela de nuevo.',
   'kitchen.retention': 'Líneas que desaparecen de la lista continua',
   'kitchen.retentionKeep': 'Guardarlas en la base de datos, fuera de la vista',
   'kitchen.retentionDelete': 'Eliminarlas para ahorrar espacio',
@@ -733,7 +640,7 @@ export const es: Record<MessageKey, string> = {
   'restore.asideTitle': 'Qué vuelve',
   'restore.asideStaff': 'El equipo, con contraseñas y PIN',
   'restore.asideRecipes': 'Recetas, ingredientes y fotos de emplatado',
-  'restore.asidePrep': 'Servicios y listas de mise en place',
+  'restore.asidePrep': 'La lista de mise en place',
   'restore.asideTablets': 'Las tablets registradas, si el servidor mantiene su dirección',
 
   // Dish cards

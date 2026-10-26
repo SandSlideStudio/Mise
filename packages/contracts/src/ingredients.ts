@@ -3,9 +3,8 @@ import { allergenSchema, idSchema } from './common.js';
 
 /**
  * The raw material catalogue. Density and item weight are what make
- * volume-to-weight and count-to-weight conversion possible later, and yield
- * percent is what makes a prep list say how much to actually pull from the
- * walk-in rather than how much ends up in the pan.
+ * volume-to-weight and count-to-weight conversion possible, and yield percent
+ * says how much of what is bought ends up usable once trimmed.
  */
 
 export const baseUnitSchema = z.enum(['g', 'ml', 'each']);
@@ -23,7 +22,6 @@ export const ingredientSchema = z.object({
   densityGPerMl: z.number().positive().nullable(),
   itemWeightG: z.number().positive().nullable(),
   yieldPercent: z.number().positive().max(100),
-  requiresPrep: z.boolean(),
   /** Null until somebody says, and null is never shown as vegan. */
   vegan: z.boolean().nullable(),
   allergenDetails: allergenDetailsSchema,
@@ -38,7 +36,6 @@ const ingredientFields = z.object({
   densityGPerMl: z.number().positive().nullable().optional(),
   itemWeightG: z.number().positive().nullable().optional(),
   yieldPercent: z.number().positive().max(100),
-  requiresPrep: z.boolean(),
   vegan: z.boolean().nullable().optional(),
   allergenDetails: allergenDetailsSchema.optional(),
   notes: z.string().max(2000).nullable().optional(),
@@ -47,7 +44,6 @@ const ingredientFields = z.object({
 export const createIngredientSchema = ingredientFields.extend({
   allergens: z.array(allergenSchema).default([]),
   yieldPercent: z.number().positive().max(100).default(100),
-  requiresPrep: z.boolean().default(false),
 });
 
 // Built from the fields without defaults: a field left out of an update stays as it is.
