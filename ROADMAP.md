@@ -1,13 +1,11 @@
 # Roadmap
 
-What's planned after 1.0, roughly in the order kitchens ask for it. Nothing here has a date.
+What's planned after 2.0, roughly in order. Nothing here has a date.
 
-- **Costing.** Ingredient prices and purchase units, and a food cost per dish.
-- **Menus.** Group dishes into a menu, and plan a service from a whole menu at once.
-- **Allergen sheet for front of house.** A printable list of every dish and its allergens.
-- **Par levels.** Record what's already made, so the prep list only asks for the rest.
+- **2.1: Costing.** Ingredient prices and purchase units, and a food cost per dish and per menu.
+- **2.2: Temperature and cooling logs.** HACCP records kept on the tablet instead of on paper.
 - **Labels.** Print prep date, use-by and allergens to a label printer when a line is ticked.
-- **Temperature and cooling logs.** Kept on the tablet instead of on paper.
+- **Par levels.** Record what's already made, so the prep list only asks for the rest.
 
 Not planned: shared recipe libraries across several restaurants. That only makes sense once a
 second site exists.

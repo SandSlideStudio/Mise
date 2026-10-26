@@ -24,7 +24,6 @@ function ingredient(id: string, overrides: Partial<Ingredient> = {}): Ingredient
     baseUnit: 'g',
     allergens: [],
     yieldPercent: 100,
-    requiresPrep: false,
     vegan: true,
     ...overrides,
   };

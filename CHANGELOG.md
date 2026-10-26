@@ -3,6 +3,45 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.0.0
+
+**Read this before updating.** Services and generated prep lists are gone. Every kitchen now
+keeps one running prep list. A kitchen with `MISE_VERSION=1` in its `.env` stays on 1.x
+until you change that line to `2`. Make a backup first.
+
+**One prep list**
+
+- Each kitchen keeps one running list. Lines go on by hand and come off when they're ticked or
+  removed.
+- When you update, open lines from today's and future services move onto the running list.
+  Past services and their ticked lines are deleted.
+- "Needs preparing" on ingredients and the choice between prep modes are gone.
+- Backups made with 1.x still restore. Their service lines are left out.
+
+**Adding from a recipe**
+
+- While you type a prep line, matching recipes are suggested. A line added from a recipe links
+  to that recipe, opened at the amount the line asks for.
+- Adding something that's already on the list for the same station adds to that line instead
+  of making a second one.
+
+**Handover note**
+
+- Chefs can leave a note at the top of the prep list for the next shift. It shows who wrote it
+  and when. Clearing the text removes it.
+
+**Menus**
+
+- A new Menus page groups dishes into menus that are a draft, active or archived. Dishes are
+  shown by course and can be reordered, and a menu can be copied for the next season.
+- Each menu has an allergen overview: every dish against the 14 allergens and vegan, grouped
+  by course. Print it or download it as a PDF, in any language and in day or night colours.
+- Download all of a menu's dish cards as one PDF, in menu order. The menu shows which dishes
+  have changed since its cards were last downloaded.
+- Menus are part of every backup.
+- When a kitchen keeps dish cards to chefs and administrators, cooks no longer see the buttons
+  for them.
+
 ## 1.1.0
 
 **Dish cards**

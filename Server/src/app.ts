@@ -21,12 +21,13 @@ import { generateToken } from './lib/crypto.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
-import serviceRoutes from './modules/services/routes.js';
+import prepRoutes from './modules/prep/routes.js';
 import ingredientRoutes from './modules/ingredients/routes.js';
 import recipeRoutes from './modules/recipes/routes.js';
 import photoRoutes from './modules/recipes/photos.js';
 import backupRoutes from './modules/backups/routes.js';
 import dishCardRoutes from './modules/dishcards/routes.js';
+import menuRoutes from './modules/menus/routes.js';
 import { createBackupService, type BackupService } from './modules/backups/service.js';
 import { createOnedrive } from './modules/backups/onedrive.js';
 
@@ -122,12 +123,13 @@ export async function buildApp(
   await app.register(setupRoutes, { prefix: '/api/setup' });
   await app.register(authRoutes, { prefix: '/api/auth' });
   await app.register(kitchenRoutes, { prefix: '/api' });
-  await app.register(serviceRoutes, { prefix: '/api' });
+  await app.register(prepRoutes, { prefix: '/api' });
   await app.register(ingredientRoutes, { prefix: '/api' });
   await app.register(multipart);
   await app.register(recipeRoutes, { prefix: '/api' });
   await app.register(photoRoutes, { prefix: '/api' });
   await app.register(dishCardRoutes, { prefix: '/api' });
+  await app.register(menuRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
   await registerUploads(app, config);
 

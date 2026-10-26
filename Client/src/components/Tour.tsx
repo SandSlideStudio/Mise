@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import type { PrepMode, Role } from '@mise/contracts';
-import { useKitchen } from '../api/kitchen.js';
+import type { Role } from '@mise/contracts';
 import { useCurrentUser, useUpdateMe } from '../api/session.js';
 import { useT, type MessageKey } from '../i18n/index.js';
 import { Plate } from './Plate.js';
@@ -28,7 +27,7 @@ interface Stop {
   body: MessageKey;
 }
 
-function stopsFor(role: Role, prepMode: PrepMode | undefined): Stop[] {
+function stopsFor(role: Role): Stop[] {
   const manager = role !== 'cook';
   const stops: Stop[] = [
     { title: 'tour.welcomeTitle', body: 'tour.welcomeBody' },
@@ -37,11 +36,8 @@ function stopsFor(role: Role, prepMode: PrepMode | undefined): Stop[] {
     { target: 'task', title: 'tour.tickTitle', body: 'tour.tickBody' },
     { target: 'being-made', title: 'task.beingMade', body: 'tour.makingBody' },
   ];
-  if (manager && prepMode === 'running') {
+  if (manager) {
     stops.push({ target: 'add-line', title: 'tour.addLineTitle', body: 'tour.addLineBody' });
-  }
-  if (manager && prepMode !== 'running') {
-    stops.push({ target: 'nav-services', title: 'nav.services', body: 'tour.servicesBody' });
   }
   stops.push({ target: 'nav-recipes', title: 'nav.recipes', body: 'tour.recipesBody' });
   if (manager) {
@@ -69,7 +65,6 @@ function prefersReducedMotion(): boolean {
 
 export function TourHost() {
   const { data: user } = useCurrentUser();
-  const kitchen = useKitchen();
   const update = useUpdateMe();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -102,7 +97,7 @@ export function TourHost() {
   if (phase === 'touring') {
     return (
       <Tour
-        stops={stopsFor(user.role, kitchen.data?.prepMode)}
+        stops={stopsFor(user.role)}
         kitchenName={user.kitchenName}
         onClose={() => setPhase('done')}
       />

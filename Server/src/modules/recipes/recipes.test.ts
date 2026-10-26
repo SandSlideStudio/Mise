@@ -65,13 +65,12 @@ describe('the ingredient catalogue', () => {
     expect(oil.densityGPerMl).toBeCloseTo(0.92);
   });
 
-  it('records trim yield, which is what makes a prep list honest', async () => {
+  it('records trim yield: how much of what is bought is left once trimmed', async () => {
     const onion = await addIngredient(ctx.app, admin, {
       name: 'Onion',
       yieldPercent: 90,
-      requiresPrep: true,
     });
-    expect(onion).toMatchObject({ yieldPercent: 90, requiresPrep: true });
+    expect(onion).toMatchObject({ yieldPercent: 90 });
   });
 
   it('refuses a trim yield over 100 per cent', async () => {
@@ -578,7 +577,6 @@ describe('saving part of a record', () => {
       name: 'Shallot',
       allergens: ['sulphites'],
       yieldPercent: 85,
-      requiresPrep: true,
     });
     await ctx.app.inject({
       method: 'PATCH',
@@ -594,7 +592,6 @@ describe('saving part of a record', () => {
     expect(after.json()).toMatchObject({
       allergens: ['sulphites'],
       yieldPercent: 85,
-      requiresPrep: true,
       notes: 'Banana shallots only',
     });
   });

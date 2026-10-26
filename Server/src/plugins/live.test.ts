@@ -45,7 +45,7 @@ describe('live updates', () => {
     await ctx.app.inject({
       method: 'PATCH',
       url: '/api/kitchen',
-      payload: { prepMode: 'running' },
+      payload: { tickedRetention: 'delete' },
       cookies: { mise_session: admin },
     });
     await vi.waitFor(() => expect(heard).toContain('kitchen'));

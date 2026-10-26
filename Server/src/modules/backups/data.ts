@@ -16,10 +16,10 @@ export const BACKED_UP: PgTable[] = [
   schema.recipes,
   schema.recipeComponents,
   schema.recipePhotos,
-  schema.services,
-  schema.serviceDishes,
   schema.prepTasks,
   schema.dishCardSettings,
+  schema.menus,
+  schema.menuDishes,
 ];
 
 /**
@@ -27,6 +27,15 @@ export const BACKED_UP: PgTable[] = [
  * backup settings hold the key that opens the backups.
  */
 export const NOT_BACKED_UP: PgTable[] = [schema.sessions, schema.backupSettings];
+
+/**
+ * Rows from older backups that this version no longer has a place for. Before
+ * 2.0, a prep line could belong to a service; services are gone, and a
+ * restore shouldn't tip years of finished service lists onto the one list.
+ */
+const LEFT_BEHIND: Record<string, (row: Record<string, unknown>) => boolean> = {
+  prep_task: (row) => row.service_id != null,
+};
 
 /** Rows go back in batches, so no single statement gets large. */
 const BATCH = 500;
@@ -69,7 +78,10 @@ export async function restoreTables(
   const counts = new Map<string, number>();
   for (const table of BACKED_UP) {
     const { name, columns } = getTableConfig(table);
-    const rows = JSON.parse(dumps.get(name) ?? '[]') as Record<string, unknown>[];
+    const leftBehind = LEFT_BEHIND[name];
+    const rows = (JSON.parse(dumps.get(name) ?? '[]') as Record<string, unknown>[]).filter(
+      (row) => !leftBehind?.(row),
+    );
     counts.set(name, rows.length);
     if (rows.length === 0) continue;
 

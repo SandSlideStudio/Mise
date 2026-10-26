@@ -1,7 +1,8 @@
-import { useRef, useState, type CSSProperties, type ReactNode } from 'react';
-import { Link, useNavigate, useParams } from '@tanstack/react-router';
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
-import { formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
+import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
+import { useDishCardSettings } from '../api/dishcards.js';
 import { useStations } from '../api/kitchen.js';
 import { useCurrentUser } from '../api/session.js';
 import {
@@ -37,21 +38,34 @@ import {
  */
 export function RecipeView() {
   const { recipeId } = useParams({ from: '/recipes/$recipeId' });
-  return <RecipePage key={recipeId} recipeId={recipeId} />;
+  const { amount, unit } = useSearch({ from: '/recipes/$recipeId' });
+  const asked: ScaleTarget =
+    amount !== undefined && unit !== undefined && isUnitCode(unit)
+      ? { yieldValue: amount, yieldUnit: unit }
+      : {};
+  return <RecipePage key={recipeId} recipeId={recipeId} asked={asked} />;
 }
 
-function RecipePage({ recipeId }: { recipeId: string }) {
+function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget }) {
   const translator = useT();
   const { t, plural } = translator;
   const navigate = useNavigate();
   const { data: user } = useCurrentUser();
   const stations = useStations();
-  const [target, setTarget] = useState<ScaleTarget>({});
+  const [target, setTarget] = useState<ScaleTarget>(asked);
   const expanded = useExpandedRecipe(recipeId, target);
   const usedBy = useRecipeUsedBy(recipeId);
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipe();
   const [confirming, setConfirming] = useState(false);
+  const cardSettings = useDishCardSettings();
+
+  // An amount this recipe can't be scaled to, such as kilos of something
+  // counted in pieces, opens the spec as written instead of an error.
+  const unscalable = expanded.isError && target === asked && asked.yieldValue !== undefined;
+  useEffect(() => {
+    if (unscalable) setTarget({});
+  }, [unscalable]);
 
   if (!user) return null;
   const canManage = user.role !== 'cook';
@@ -153,7 +167,7 @@ function RecipePage({ recipeId }: { recipeId: string }) {
             </div>
           </div>
 
-          <ScaleControl recipe={recipe} onChange={setTarget} />
+          <ScaleControl recipe={recipe} asked={asked} onChange={setTarget} />
 
           {lines.length === 0 ? (
             <p className="text-ink-soft bg-surface-raised p-8 text-center">{t('recipe.empty')}</p>
@@ -209,7 +223,7 @@ function RecipePage({ recipeId }: { recipeId: string }) {
             >
               {t('recipe.print')}
             </button>
-            {recipe.type === 'dish' ? (
+            {recipe.type === 'dish' && (canManage || cardSettings.data?.access === 'everyone') ? (
               <Link
                 to="/recipes/$recipeId/card"
                 params={{ recipeId: recipe.id }}
@@ -310,14 +324,26 @@ type ScaleMode = 'written' | 'portions' | 'yield' | 'batches';
  */
 function ScaleControl({
   recipe,
+  asked,
   onChange,
 }: {
   recipe: Recipe;
+  /** A size the page was opened at, such as a prep line's amount. */
+  asked: ScaleTarget;
   onChange: (target: ScaleTarget) => void;
 }) {
   const { t } = useT();
-  const [mode, setMode] = useState<ScaleMode>('written');
-  const [values, setValues] = useState({ portions: '', yield: '', batches: '' });
+  // Shown in the unit the recipe is written in: 2000 g asked of a recipe in kg reads 2.
+  const askedYield =
+    asked.yieldValue !== undefined && asked.yieldUnit && isUnitCode(asked.yieldUnit)
+      ? convert({ value: asked.yieldValue, unit: asked.yieldUnit }, recipe.yield.unit)
+      : null;
+  const [mode, setMode] = useState<ScaleMode>(askedYield ? 'yield' : 'written');
+  const [values, setValues] = useState({
+    portions: '',
+    yield: askedYield?.ok ? String(Number(askedYield.value.value.toFixed(3))) : '',
+    batches: '',
+  });
 
   function apply(nextMode: ScaleMode, raw: string) {
     setMode(nextMode);

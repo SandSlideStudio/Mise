@@ -2,7 +2,6 @@ import { Link, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { LANGUAGES, type Language } from '@mise/contracts';
 import { useBackupStatus } from '../api/backups.js';
-import { useKitchen } from '../api/kitchen.js';
 import { useCurrentUser, useLogout, useUpdateMe } from '../api/session.js';
 import { dismissRefusal, useLastRefusal, usePendingTickCount } from '../api/ticks.js';
 import {
@@ -26,16 +25,12 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { data: user } = useCurrentUser();
   const translator = useT();
   const { t } = translator;
-  const kitchen = useKitchen();
   const logout = useLogout();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   if (!user) return null;
 
   const canManage = user.role !== 'cook';
-  // A running-list kitchen does not plan services, so it does not need the page.
-  // Hidden until the setting is known, so the tab never flashes up and vanishes.
-  const plansServices = kitchen.isSuccess ? kitchen.data.prepMode !== 'running' : kitchen.isError;
 
   return (
     <div className="min-h-dvh">
@@ -51,14 +46,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <nav className="border-rule order-last flex w-full min-w-0 items-stretch overflow-x-auto border-t lg:order-none lg:w-auto lg:border-t-0">
             <NavLink to="/" label="nav.today" active={pathname === '/'} />
-            {plansServices ? (
-              <NavLink
-                to="/services"
-                label="nav.services"
-                active={pathname.startsWith('/services')}
-              />
-            ) : null}
             <NavLink to="/recipes" label="nav.recipes" active={pathname.startsWith('/recipes')} />
+            <NavLink to="/menus" label="nav.menus" active={pathname.startsWith('/menus')} />
             {canManage ? (
               <NavLink
                 to="/ingredients"

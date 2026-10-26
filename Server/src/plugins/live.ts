@@ -16,7 +16,7 @@ import { SESSION_COOKIE } from './auth.js';
  * plain HTTP, and it passes through a reverse proxy like Caddy untouched.
  */
 
-export type LiveTopic = 'prep' | 'kitchen' | 'staff';
+export type LiveTopic = 'prep' | 'kitchen' | 'staff' | 'menus';
 
 type Listener = (topic: LiveTopic) => void;
 
@@ -34,10 +34,10 @@ declare module 'fastify' {
 const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
   ['/api/tasks', 'prep'],
   ['/api/running', 'prep'],
-  ['/api/services', 'prep'],
   ['/api/kitchen', 'kitchen'],
   ['/api/stations', 'kitchen'],
   ['/api/dish-cards', 'kitchen'],
+  ['/api/menus', 'menus'],
   ['/api/users', 'staff'],
 ];
 

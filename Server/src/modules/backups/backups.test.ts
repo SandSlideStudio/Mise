@@ -21,7 +21,7 @@ import {
   setUpKitchen,
 } from '../../test/harness.js';
 import { formatRecoveryKey, generateRecoveryKey } from './crypto.js';
-import { BACKED_UP, NOT_BACKED_UP } from './data.js';
+import { BACKED_UP, NOT_BACKED_UP, restoreTables } from './data.js';
 import { isDue, problemOf } from './service.js';
 
 let client: PGlite;
@@ -346,6 +346,23 @@ describe('backing up and restoring', () => {
     await app.backups.run({ force: false });
     status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
     expect(status.files).toHaveLength(2);
+  });
+});
+
+describe('restoring a backup from 1.x', () => {
+  it('brings back the running list but leaves old service lists behind', async () => {
+    // A 1.x backup: one running-list line, and two lines from a service.
+    const prepTask = JSON.stringify([
+      { id: randomUUID(), service_id: null, description: 'Brunoise shallots', status: 'open' },
+      { id: randomUUID(), service_id: randomUUID(), description: 'Chicken stock', status: 'done' },
+      { id: randomUUID(), service_id: randomUUID(), description: 'Velouté', status: 'open' },
+    ]);
+    const counts = await db.transaction((tx) =>
+      restoreTables(tx, new Map([['prep_task', prepTask]])),
+    );
+    expect(counts.get('prep_task')).toBe(1);
+    const rows = await db.select().from(schema.prepTasks);
+    expect(rows.map((row) => row.description)).toEqual(['Brunoise shallots']);
   });
 });
 

@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
 import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js';
-import { prepModeSchema, tickedRetentionSchema } from './services.js';
+import { tickedRetentionSchema } from './prep.js';
 
 /** Stations are how every prep list is grouped, so they exist from day one. */
 export const stationSchema = z.object({
@@ -77,7 +77,6 @@ export const kitchenSchema = z.object({
   unitSystem: z.enum(['metric', 'imperial']),
   /** What the interface speaks for anyone who has not chosen for themselves. */
   language: languageSchema,
-  prepMode: prepModeSchema,
   tickedRetention: tickedRetentionSchema,
 });
 
@@ -85,7 +84,6 @@ export const updateKitchenSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   unitSystem: z.enum(['metric', 'imperial']).optional(),
   language: languageSchema.optional(),
-  prepMode: prepModeSchema.optional(),
   tickedRetention: tickedRetentionSchema.optional(),
 });
 

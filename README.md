@@ -2,10 +2,10 @@
 
 Recipes and prep lists for professional kitchens, running on your own server.
 
-Recipes in Mise are written like specs: weights, yields, sub-recipes and allergens. Put tonight's
-dishes and covers on a service and Mise writes the prep list for each station, adding up anything
-two dishes share. Cooks tick lines off on a tablet by the pass, and every screen in the kitchen
-updates as they do.
+Recipes in Mise are written like specs: weights, yields, sub-recipes and allergens. The kitchen
+keeps one running prep list. Add lines by hand or straight from a recipe, leave a note for the
+next shift, and tick lines off on a tablet by the pass. Every screen in the kitchen updates as you
+do. Menus group your dishes, with an allergen overview and every dish card in one PDF.
 
 One server is one kitchen. Your recipes stay on a machine you own, and there's no account or
 subscription anywhere else.
@@ -58,6 +58,13 @@ whether it is vegan and, for gluten and nuts, which cereal or nut it is. The car
 anything still missing. **Settings → Dish cards** sets the logo, address, which parts show and
 the warning printed at the foot of every card, in each language you print in.
 
+## Menus
+
+Under **Menus**, group dishes into a menu for the floor. Choose **Allergen overview** to print
+one sheet with every dish and its allergens, or download all the menu's dish cards as a single
+PDF. A menu marks the dishes that have changed since its cards were last downloaded, so you know
+which ones to reprint.
+
 ## HTTPS
 
 On a kitchen network that only staff use, plain HTTP on port 3000 works. If Mise can be reached
@@ -85,8 +92,10 @@ docker compose pull
 docker compose up -d
 ```
 
-The database is updated automatically when Mise starts. Make a backup first. `MISE_VERSION=1` in
-`.env` follows every 1.x release; set it to an exact version such as `1.0.0` to stay on that one.
+The database is updated automatically when Mise starts. Make a backup first. `MISE_VERSION=2` in
+`.env` follows every 2.x release; set it to an exact version such as `2.0.0` to stay on that one.
+Kitchens installed before 2.0 have `MISE_VERSION=1` and stay on 1.x until you change it. Read the
+2.0.0 notes first.
 [CHANGELOG.md](CHANGELOG.md) lists what changed in each release.
 
 ## Backups
@@ -108,7 +117,7 @@ keep it away from the server. Without it, nobody can open a backup.
 
 On a new or wiped server, open the setup link and choose **Restore a backup** instead of setting up
 the kitchen. Pick the backup file and type the recovery key. Staff with their passwords and PINs,
-recipes, photos, services and prep lists all come back, and everyone signs in again afterwards.
+recipes, photos, menus and the prep list all come back, and everyone signs in again afterwards.
 
 Test this once before you need it, on a spare machine or a second install.
 
@@ -153,7 +162,7 @@ Send the backups to a NAS, or download one now and then.
 | -------------------- | ------------------------------------------------------------------ |
 | `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.     |
 | `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                          |
-| `MISE_VERSION`       | Which release to run: `1` for the newest 1.x, or an exact version  |
+| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version  |
 | `PORT`               | The port Mise answers on. Default `3000`.                          |
 | `SETUP_TOKEN`        | The one-time code first-run setup asks for. The installer sets it  |
 | `MISE_DOMAIN`        | Your domain name, when using the built-in HTTPS                    |
@@ -193,7 +202,7 @@ running.
 
 | Folder               | What's in it                                                  |
 | -------------------- | ------------------------------------------------------------- |
-| `packages/domain`    | Units, scaling, allergens, recipe trees and prep list maths   |
+| `packages/domain`    | Units, scaling, allergens and recipe trees                    |
 | `packages/contracts` | Request and response schemas shared by the server and web app |
 | `Server`             | The API, database schema and migrations                       |
 | `Client`             | The web app                                                   |
@@ -214,7 +223,7 @@ Then skip `npm run db:up` and run `npm run dev`.
 ## Releasing
 
 Set the new version in the root `package.json`, add a section for it to `CHANGELOG.md`, and push a
-tag such as `v1.0.1`. GitHub Actions runs the checks, builds the image for x86 and ARM, publishes it
+tag such as `v2.0.1`. GitHub Actions runs the checks, builds the image for x86 and ARM, publishes it
 to `ghcr.io/sandslidestudio/mise-kitchen` and creates the release from the changelog.
 
 ## Security

@@ -7,7 +7,7 @@ import { qty, type Quantity, type UnitCode } from './units.js';
  *
  * Two dishes both take the same velouté, the velouté takes chicken stock, and
  * the stock takes vegetables. Three levels deep with a shared component is
- * exactly the shape that makes prep lists worth generating.
+ * the shape that scaling and allergen roll-ups have to get right.
  */
 
 export const STATION = {
@@ -24,15 +24,14 @@ function ingredient(id: string, name: string, overrides: Partial<Ingredient> = {
     baseUnit: 'g',
     allergens: [],
     yieldPercent: 100,
-    requiresPrep: false,
     ...overrides,
   };
 }
 
 export const INGREDIENTS: Ingredient[] = [
   ingredient('i-bones', 'Chicken bones'),
-  ingredient('i-onion', 'Onion', { yieldPercent: 90, requiresPrep: true }),
-  ingredient('i-carrot', 'Carrot', { yieldPercent: 80, requiresPrep: true }),
+  ingredient('i-onion', 'Onion', { yieldPercent: 90 }),
+  ingredient('i-carrot', 'Carrot', { yieldPercent: 80 }),
   ingredient('i-butter', 'Butter', { allergens: ['milk'] }),
   ingredient('i-flour', 'Plain flour', { allergens: ['gluten'] }),
   ingredient('i-cream', 'Double cream', {
@@ -42,7 +41,7 @@ export const INGREDIENTS: Ingredient[] = [
   }),
   ingredient('i-water', 'Water', { baseUnit: 'ml', densityGPerMl: 1.0 }),
   ingredient('i-salt', 'Salt'),
-  ingredient('i-tarragon', 'Tarragon', { requiresPrep: true }),
+  ingredient('i-tarragon', 'Tarragon', {}),
   ingredient('i-egg', 'Egg', { baseUnit: 'each', allergens: ['eggs'], itemWeightG: 50 }),
 ];
 
@@ -127,13 +126,6 @@ export function cyclicBook() {
     components: [...stock.components, sub('r-veloute', 100, 'ml')],
   };
   return createRecipeBook([brokenStock, veloute, pie, fricassee], INGREDIENTS);
-}
-
-/** Find a generated task by its source id, for readable assertions. */
-export function taskFor<T extends { sourceId: string }>(tasks: readonly T[], id: string): T {
-  const found = tasks.find((t) => t.sourceId === id);
-  if (!found) throw new Error(`no task generated for ${id}`);
-  return found;
 }
 
 export function value(q: Quantity): number {

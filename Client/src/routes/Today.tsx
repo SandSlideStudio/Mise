@@ -1,15 +1,22 @@
-import { useEffect, useState, type FormEvent, type ReactNode } from 'react';
-import { Link } from '@tanstack/react-router';
-import type { PrepTask, PrepTaskStatus, ServiceSummary } from '@mise/contracts';
-import { ALL_UNITS, type UnitCode } from '@mise/domain';
-import { useKitchen, useStations } from '../api/kitchen.js';
-import { GONE_AFTER_MS, RUNNING_LIST, useAddRunningTask, useRunningTasks } from '../api/running.js';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import type { PrepTask, PrepTaskStatus, RecipeSummary } from '@mise/contracts';
+import { ALL_UNITS, formatQuantity, isUnitCode, type UnitCode } from '@mise/domain';
+import { useStations } from '../api/kitchen.js';
+import {
+  GONE_AFTER_MS,
+  useAddRunningTask,
+  useDeletePrepTask,
+  useHandoverNote,
+  useRunningTasks,
+  useUpdateHandoverNote,
+  useUpdatePrepTask,
+} from '../api/running.js';
+import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
-import { todayIso, usePrepTasks, useServices, useUpdatePrepTask } from '../api/services.js';
 import { AppShell } from '../components/AppShell.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
-import { clockTime, errorMessage, friendlyDate, periodName, useT } from '../i18n/index.js';
+import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
 import { useNight } from '../lib/theme.js';
 
 /**
@@ -20,8 +27,8 @@ import { useNight } from '../lib/theme.js';
  * anyone needs; the "For …" line under each job is the arithmetic, and it is
  * never hidden behind a tap.
  *
- * A kitchen keeps either a list per service or one running list, and this
- * screen shows whichever it keeps.
+ * The kitchen keeps one running list: lines go on by hand, and a ticked line
+ * is gone two hours after it was ticked.
  */
 
 type Filter = { kind: 'mine' } | { kind: 'all' } | { kind: 'station'; stationId: string };
@@ -30,7 +37,6 @@ export function Today() {
   const { data: user } = useCurrentUser();
   const { t, locale } = useT();
   const stations = useStations();
-  const kitchen = useKitchen();
   const [night, toggleNight] = useNight();
   const today = useToday();
 
@@ -70,18 +76,17 @@ export function Today() {
           </div>
         </div>
 
-        {kitchen.isPending ? (
-          <Quiet>{t('common.loading')}</Quiet>
-        ) : kitchen.isError ? (
-          <LoadError className="mx-4 my-6 sm:mx-7" onRetry={() => void kitchen.refetch()} />
-        ) : kitchen.data?.prepMode === 'running' ? (
-          <RunningPrep />
-        ) : (
-          <ServiceLists date={today} />
-        )}
+        <RunningPrep />
       </main>
     </AppShell>
   );
+}
+
+/** Today where the tablet is, which is where the cook is standing. */
+function todayIso(): string {
+  const now = new Date();
+  const local = new Date(now.getTime() - now.getTimezoneOffset() * 60_000);
+  return local.toISOString().slice(0, 10);
 }
 
 /**
@@ -101,73 +106,6 @@ function useToday(): string {
   return today;
 }
 
-/** A list per service: today's services, each with its own board. */
-function ServiceLists({ date }: { date: string }) {
-  const { data: user } = useCurrentUser();
-  const { t } = useT();
-  const services = useServices({ from: date, to: date });
-
-  if (services.isPending) return <Quiet>{t('common.loading')}</Quiet>;
-  if (services.isError) {
-    return <LoadError className="mx-4 my-6 sm:mx-7" onRetry={() => void services.refetch()} />;
-  }
-
-  if (services.data?.length === 0) {
-    return (
-      <div className="px-4 py-8 sm:px-7 sm:py-10">
-        <div className="border-line border-2 border-dashed p-8 text-center sm:p-10">
-          <p className="text-ink-soft text-xl">{t('today.nothingPlanned')}</p>
-          {user?.role !== 'cook' ? (
-            <Link to="/services" className="btn-primary mt-6">
-              {t('services.plan')}
-            </Link>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <>
-      {services.data?.map((service) => (
-        <ServicePrep key={service.id} service={service} />
-      ))}
-    </>
-  );
-}
-
-function ServicePrep({ service }: { service: ServiceSummary }) {
-  const { data: user } = useCurrentUser();
-  const { t, plural } = useT();
-  const tasks = usePrepTasks(service.id);
-  const update = useUpdatePrepTask(service.id);
-
-  return (
-    <Board
-      title={periodName(t, service.period)}
-      subtitle={service.covers ? plural('today.covers', service.covers) : null}
-      tasks={tasks.data}
-      failed={tasks.isError ? () => void tasks.refetch() : undefined}
-      emptyText={t('today.noPrep')}
-      onToggle={(id, status) =>
-        // Starting a job puts your name on it, so the kitchen sees who has it.
-        update.mutate(
-          status === 'in_progress'
-            ? { id, status, assignedUserId: user?.id ?? null }
-            : { id, status },
-        )
-      }
-      footer={
-        user?.role !== 'cook' ? (
-          <Link to="/services/$serviceId" params={{ serviceId: service.id }} className="btn-quiet">
-            {t('today.editList')}
-          </Link>
-        ) : null
-      }
-    />
-  );
-}
-
 /**
  * One running list for the whole kitchen. Lines go on by hand, and a ticked
  * line is gone two hours after it was ticked, so the list never turns into
@@ -177,7 +115,9 @@ function RunningPrep() {
   const { data: user } = useCurrentUser();
   const { t, locale } = useT();
   const tasks = useRunningTasks();
-  const update = useUpdatePrepTask(RUNNING_LIST);
+  const update = useUpdatePrepTask();
+  const remove = useDeletePrepTask();
+  const canManage = user?.role !== 'cook';
 
   // Lines drop off on the clock, not only when someone taps, so keep time.
   const [now, setNow] = useState(() => Date.now());
@@ -186,29 +126,22 @@ function RunningPrep() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const visible = tasks.data
-    ?.filter(
-      (task) =>
-        !(
-          task.status === 'done' &&
-          task.completedAt &&
-          Date.parse(task.completedAt) + GONE_AFTER_MS <= now
-        ),
-    )
-    .map((task) =>
-      // Say when a ticked line will go, so nobody is surprised when it does.
-      task.status === 'done' && task.completedAt
-        ? {
-            ...task,
-            notes: [
-              ...task.notes,
-              t('running.goneAt', {
-                time: clockTime(locale, new Date(Date.parse(task.completedAt) + GONE_AFTER_MS)),
-              }),
-            ],
-          }
-        : task,
-    );
+  const visible = tasks.data?.filter(
+    (task) =>
+      !(
+        task.status === 'done' &&
+        task.completedAt &&
+        Date.parse(task.completedAt) + GONE_AFTER_MS <= now
+      ),
+  );
+
+  // Say when a ticked line will go, so nobody is surprised when it does.
+  const noteFor = (task: PrepTask) =>
+    task.status === 'done' && task.completedAt
+      ? t('running.goneAt', {
+          time: clockTime(locale, new Date(Date.parse(task.completedAt) + GONE_AFTER_MS)),
+        })
+      : null;
 
   return (
     <Board
@@ -225,14 +158,141 @@ function RunningPrep() {
             : { id, status },
         )
       }
-      header={user?.role !== 'cook' ? <AddRunningLine /> : null}
+      noteFor={noteFor}
+      onRemove={canManage ? (id) => remove.mutate(id) : undefined}
+      header={
+        <>
+          <Handover canEdit={canManage} />
+          {canManage ? <AddRunningLine /> : null}
+        </>
+      }
     />
+  );
+}
+
+/**
+ * The note the last shift left for this one: "fish is late, stock on at 3".
+ * Large enough to read from the pass, with who wrote it and when, so nobody
+ * acts on yesterday's note thinking it is today's. Chefs write it; everyone
+ * reads it.
+ */
+function Handover({ canEdit }: { canEdit: boolean }) {
+  const translator = useT();
+  const { t, locale } = translator;
+  const note = useHandoverNote();
+  const update = useUpdateHandoverNote();
+  const [draft, setDraft] = useState<string | null>(null);
+
+  const text = note.data?.text ?? null;
+  if (!text && !canEdit) return null;
+
+  function save(value: string) {
+    update.mutate(value, { onSuccess: () => setDraft(null) });
+  }
+
+  if (draft !== null) {
+    return (
+      <form
+        className="no-print bg-accent-wash border-accent border-b-2 border-l-[6px] px-4 py-3 sm:px-7"
+        onSubmit={(event) => {
+          event.preventDefault();
+          save(draft);
+        }}
+      >
+        <label className="eyebrow mb-2 block" htmlFor="handover">
+          {t('handover.title')}
+        </label>
+        <textarea
+          id="handover"
+          className="field min-h-24 py-2.5 text-lg"
+          value={draft}
+          maxLength={1000}
+          autoFocus
+          onChange={(e) => setDraft(e.target.value)}
+          placeholder={t('handover.placeholder')}
+        />
+        {update.error ? (
+          <p role="alert" className="text-danger mt-2 text-[15px]">
+            {errorMessage(translator, update.error)}
+          </p>
+        ) : null}
+        <div className="mt-2.5 flex flex-wrap gap-2.5">
+          <button type="submit" className="btn-primary min-h-11" disabled={update.isPending}>
+            {update.isPending ? t('common.saving') : t('handover.save')}
+          </button>
+          <button type="button" className="btn-quiet min-h-11" onClick={() => setDraft(null)}>
+            {t('common.cancel')}
+          </button>
+          {text ? (
+            <button
+              type="button"
+              className="btn-quiet min-h-11 sm:ml-auto"
+              disabled={update.isPending}
+              onClick={() => save('')}
+            >
+              {t('handover.clear')}
+            </button>
+          ) : null}
+        </div>
+      </form>
+    );
+  }
+
+  if (!text) {
+    return (
+      <div className="no-print border-line border-b-2 px-4 py-2.5 sm:px-7">
+        <button
+          type="button"
+          className="text-accent text-[17px] underline underline-offset-4"
+          onClick={() => setDraft('')}
+        >
+          {t('handover.empty')}
+        </button>
+      </div>
+    );
+  }
+
+  const at = note.data?.at ? new Date(note.data.at) : null;
+  return (
+    <div
+      data-tour="handover"
+      className="bg-accent-wash border-accent flex flex-wrap items-start gap-x-6 gap-y-2 border-b-2 border-l-[6px] px-4 py-3 sm:px-7 sm:py-4"
+    >
+      <div className="min-w-0 flex-1">
+        <span className="eyebrow">{t('handover.title')}</span>
+        <p className="mt-1 text-xl leading-snug whitespace-pre-line sm:text-[23px]">{text}</p>
+        {note.data?.byName && at ? (
+          <p className="text-ink-soft mt-1 text-[15px]">
+            {t('handover.by', {
+              name: note.data.byName,
+              when: at.toLocaleString(locale, {
+                weekday: 'short',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+            })}
+          </p>
+        ) : null}
+      </div>
+      {canEdit ? (
+        <button
+          type="button"
+          className="btn-quiet no-print min-h-11"
+          onClick={() => setDraft(text)}
+        >
+          {t('handover.edit')}
+        </button>
+      ) : null}
+    </div>
   );
 }
 
 /**
  * Putting something on the running list. Adding what is already waiting on
  * the same station puts the amount onto that line, and says so.
+ *
+ * Typing offers matching recipes from the book. Picking one links the line to
+ * its spec, so whoever makes it can open the recipe at the amount asked for.
  */
 function AddRunningLine() {
   const translator = useT();
@@ -244,6 +304,31 @@ function AddRunningLine() {
   const [unit, setUnit] = useState<UnitCode>('kg');
   const [stationId, setStationId] = useState('');
   const [mergedInto, setMergedInto] = useState<string | null>(null);
+  const [linked, setLinked] = useState<RecipeSummary | null>(null);
+  const recipes = useRecipes();
+  const amountField = useRef<HTMLInputElement>(null);
+
+  const typed = description.trim().toLocaleLowerCase();
+  const suggestions =
+    linked || typed.length < 2
+      ? []
+      : (recipes.data ?? [])
+          .filter((r) => r.status !== 'archived' && r.name.toLocaleLowerCase().includes(typed))
+          .sort(
+            (a, b) =>
+              Number(!a.name.toLocaleLowerCase().startsWith(typed)) -
+                Number(!b.name.toLocaleLowerCase().startsWith(typed)) ||
+              a.name.localeCompare(b.name),
+          )
+          .slice(0, 5);
+
+  function pick(recipe: RecipeSummary) {
+    setLinked(recipe);
+    setDescription(recipe.name);
+    if (isUnitCode(recipe.yield.unit)) setUnit(recipe.yield.unit);
+    if (recipe.stationId && !stationId) setStationId(recipe.stationId);
+    amountField.current?.focus();
+  }
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -251,6 +336,7 @@ function AddRunningLine() {
       {
         description,
         stationId: stationId || null,
+        recipeId: linked?.id ?? null,
         quantity: amount ? { value: Number(amount), unit } : null,
       },
       {
@@ -260,6 +346,7 @@ function AddRunningLine() {
           setMergedInto(result.merged ? result.task.description : null);
           setDescription('');
           setAmount('');
+          setLinked(null);
         },
       },
     );
@@ -275,11 +362,17 @@ function AddRunningLine() {
         aria-label={t('addTask.what')}
         className="field col-span-3 h-12 text-lg md:col-span-1"
         value={description}
-        onChange={(e) => setDescription(e.target.value)}
+        onChange={(e) => {
+          setDescription(e.target.value);
+          // Changing the words breaks the link to the recipe that was picked.
+          if (linked && e.target.value !== linked.name) setLinked(null);
+        }}
         placeholder={t('addTask.placeholder')}
+        autoComplete="off"
         required
       />
       <input
+        ref={amountField}
         aria-label={t('common.howMuch')}
         type="number"
         inputMode="decimal"
@@ -323,6 +416,35 @@ function AddRunningLine() {
         {t('addTask.submit')}
       </button>
 
+      {suggestions.length > 0 ? (
+        <div className="col-span-3 flex flex-wrap items-center gap-2 md:col-span-5">
+          <span className="eyebrow">{t('addTask.fromBook')}</span>
+          {suggestions.map((recipe) => (
+            <button
+              key={recipe.id}
+              type="button"
+              className="toggle min-h-10 px-3 text-[15px]"
+              onClick={() => pick(recipe)}
+            >
+              {recipe.name}
+              {isUnitCode(recipe.yield.unit) ? (
+                <span className="text-ink-soft">
+                  {' · '}
+                  {t('addTask.makes', {
+                    amount: formatQuantity({ value: recipe.yield.value, unit: recipe.yield.unit }),
+                  })}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+      {linked ? (
+        <p role="status" className="text-brand col-span-3 text-[15px] md:col-span-5">
+          {t('addTask.linked', { name: linked.name })}
+        </p>
+      ) : null}
+
       {mergedInto && !add.isPending ? (
         <p role="status" className="text-ink-soft col-span-3 text-[15px] md:col-span-5">
           {t('running.merged', { name: mergedInto })}
@@ -348,8 +470,9 @@ function Board({
   failed,
   emptyText,
   onToggle,
+  noteFor,
+  onRemove,
   header,
-  footer,
 }: {
   title: string;
   subtitle: string | null;
@@ -358,8 +481,9 @@ function Board({
   failed?: () => void;
   emptyText: string;
   onToggle: (id: string, status: PrepTaskStatus) => void;
+  noteFor?: (task: PrepTask) => string | null;
+  onRemove?: (id: string) => void;
   header?: ReactNode;
-  footer?: ReactNode;
 }) {
   const { data: user } = useCurrentUser();
   const { t } = useT();
@@ -464,8 +588,10 @@ function Board({
                   <PrepTaskRow
                     key={task.id}
                     task={task}
+                    note={noteFor?.(task)}
                     onToggle={(next) => onToggle(task.id, next)}
                     onProgress={(next) => onToggle(task.id, next)}
+                    onRemove={onRemove ? () => onRemove(task.id) : undefined}
                   />
                 ))}
               </ul>
@@ -473,8 +599,6 @@ function Board({
           ))}
         </div>
       )}
-
-      {footer ? <div className="no-print px-4 pt-5 sm:px-7">{footer}</div> : null}
     </section>
   );
 }

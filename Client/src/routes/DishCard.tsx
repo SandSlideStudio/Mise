@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
+import { useMemo, useState } from 'react';
 import { Link, useParams } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { LANGUAGES, type DishCard, type DishCardTheme, type Language } from '@mise/contracts';
@@ -8,6 +7,7 @@ import { useDishCard } from '../api/dishcards.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { DishCardSheet } from '../components/DishCardSheet.js';
+import { PrintSheets, saveFile, usePrinting } from '../components/PrintSheets.js';
 import { createTranslator, errorMessage, LANGUAGE_NAMES, useT } from '../i18n/index.js';
 import { loadCardFonts } from '../lib/dishcard/fonts.js';
 import { layoutDishCard, type CardPage } from '../lib/dishcard/layout.js';
@@ -62,7 +62,7 @@ function CardView({ card }: { card: DishCard }) {
   const [theme, setTheme] = useState<DishCardTheme>(card.settings.theme);
   const [downloading, setDownloading] = useState(false);
   const [downloadFailed, setDownloadFailed] = useState(false);
-  const [printing, setPrinting] = useState(false);
+  const [printing, print] = usePrinting();
 
   const fonts = useQuery({ queryKey: ['card-fonts'], queryFn: loadCardFonts, staleTime: Infinity });
   const [printedAt] = useState(() => new Date());
@@ -76,39 +76,13 @@ function CardView({ card }: { card: DishCard }) {
   const cardT = createTranslator(language).t;
   const title = `${cardT('card.title')} – ${card.dish.name}`;
 
-  // The printout is the card and nothing else, on landscape sheets with no margin.
-  useEffect(() => {
-    if (!printing) return;
-    const root = document.documentElement;
-    const style = document.createElement('style');
-    style.textContent = '@page { size: A4 landscape; margin: 0; }';
-    document.head.append(style);
-    root.classList.add('printing-card');
-    const done = () => setPrinting(false);
-    window.addEventListener('afterprint', done);
-    const timer = window.setTimeout(() => window.print(), 50);
-    return () => {
-      window.clearTimeout(timer);
-      window.removeEventListener('afterprint', done);
-      root.classList.remove('printing-card');
-      style.remove();
-    };
-  }, [printing]);
-
   async function download() {
     if (!pages || !fonts.data) return;
     setDownloading(true);
     setDownloadFailed(false);
     try {
       const blob = await renderDishCardPdf(pages, fonts.data, { title, language });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `${cardT('card.title')} - ${card.dish.name}.pdf`.replace(/[\\/:*?"<>|]/g, '');
-      document.body.append(link);
-      link.click();
-      link.remove();
-      window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+      saveFile(blob, `${cardT('card.title')} - ${card.dish.name}.pdf`);
     } catch {
       setDownloadFailed(true);
     } finally {
@@ -168,12 +142,7 @@ function CardView({ card }: { card: DishCard }) {
         </fieldset>
 
         <div className="flex gap-2.5">
-          <button
-            type="button"
-            className="btn-quiet min-h-11"
-            disabled={!pages}
-            onClick={() => setPrinting(true)}
-          >
+          <button type="button" className="btn-quiet min-h-11" disabled={!pages} onClick={print}>
             {t('card.print')}
           </button>
           <button
@@ -224,18 +193,7 @@ function CardView({ card }: { card: DishCard }) {
         </div>
       ) : null}
 
-      {pages && printing
-        ? createPortal(
-            <div className="print-card">
-              {pages.map((page, index) => (
-                <div key={index} className="print-card-page">
-                  <DishCardSheet page={page} label={`${title} · ${index + 1}/2`} />
-                </div>
-              ))}
-            </div>,
-            document.body,
-          )
-        : null}
+      {pages && printing ? <PrintSheets pages={pages} title={title} /> : null}
     </div>
   );
 }

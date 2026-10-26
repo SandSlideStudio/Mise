@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js';
 import { quantitySchema } from './common.js';
 import { recipeTypeSchema } from './recipes.js';
-import { prepModeSchema, tickedRetentionSchema } from './services.js';
+import { tickedRetentionSchema } from './prep.js';
 
 /**
  * First run only. Reachable while the server has no users at all.
@@ -49,7 +49,6 @@ export const setupRequestSchema = z
     /** Becomes the kitchen's default language. */
     language: languageSchema.optional(),
     unitSystem: z.enum(['metric', 'imperial']).optional(),
-    prepMode: prepModeSchema.optional(),
     tickedRetention: tickedRetentionSchema.optional(),
     /** The browser's time zone, so the nightly backup runs at night where the kitchen is. */
     timeZone: z.string().max(64).optional(),

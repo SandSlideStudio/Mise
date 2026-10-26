@@ -21,7 +21,8 @@ import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
 import { RecipeView } from './routes/RecipeView.js';
 import { Recipes } from './routes/Recipes.js';
-import { ServiceDetail, Services } from './routes/ServicesGate.js';
+import { Menus } from './routes/Menus.js';
+import { MenuDetail } from './routes/MenuDetail.js';
 import { Today } from './routes/Today.js';
 import { Line } from './routes/Line.js';
 import { Login } from './routes/Login.js';
@@ -157,18 +158,20 @@ const rootRoute = createRootRoute({ component: Shell });
 
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/', component: Today }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/services', component: Services }),
-  createRoute({
-    getParentRoute: () => rootRoute,
-    path: '/services/$serviceId',
-    component: ServiceDetail,
-  }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes', component: Recipes }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes/new', component: RecipeEditor }),
   createRoute({
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId',
     component: RecipeView,
+    // A prep line opens its spec at the amount it asks for: ?amount=2000&unit=g.
+    validateSearch: (search: Record<string, unknown>): { amount?: number; unit?: string } => {
+      const amount = Number(search.amount);
+      return {
+        amount: Number.isFinite(amount) && amount > 0 ? amount : undefined,
+        unit: typeof search.unit === 'string' ? search.unit : undefined,
+      };
+    },
   }),
   createRoute({
     getParentRoute: () => rootRoute,
@@ -180,6 +183,13 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId/card',
     component: lazyRouteComponent(() => import('./routes/DishCard.js'), 'DishCardPage'),
+  }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/menus', component: Menus }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/menus/$menuId', component: MenuDetail }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/menus/$menuId/overview',
+    component: lazyRouteComponent(() => import('./routes/MenuOverview.js'), 'MenuOverviewPage'),
   }),
   createRoute({ getParentRoute: () => rootRoute, path: '/ingredients', component: Ingredients }),
   createRoute({ getParentRoute: () => rootRoute, path: '/setup', component: Setup }),

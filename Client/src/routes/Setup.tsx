@@ -5,7 +5,6 @@ import {
   LANGUAGES,
   ROLES,
   type Language,
-  type PrepMode,
   type RecipeType,
   type Role,
   type SetupRequest,
@@ -181,7 +180,6 @@ export function Setup() {
   const [recipes, setRecipes] = useState<RecipeDraft[]>([]);
 
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
-  const [prepMode, setPrepMode] = useState<PrepMode>('per_service');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [enrolDevice, setEnrolDevice] = useState(false);
   const [deviceName, setDeviceName] = useState('');
@@ -309,7 +307,6 @@ export function Setup() {
       password,
       language,
       unitSystem,
-      prepMode,
       tickedRetention,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       stations: stations.map((station) => station.name.trim()),
@@ -819,42 +816,21 @@ export function Setup() {
             {shown === 'settings' ? (
               <>
                 <fieldset className="flex flex-col gap-2">
-                  <legend className="label">{t('kitchen.prepMode')}</legend>
+                  <legend className="label">{t('kitchen.retention')}</legend>
                   <Choice
-                    name="prepMode"
-                    checked={prepMode === 'per_service'}
-                    onChange={() => setPrepMode('per_service')}
-                    title={t('kitchen.perService')}
+                    name="retention"
+                    checked={tickedRetention === 'keep'}
+                    onChange={() => setTickedRetention('keep')}
+                    title={t('kitchen.retentionKeep')}
                   />
                   <Choice
-                    name="prepMode"
-                    checked={prepMode === 'running'}
-                    onChange={() => setPrepMode('running')}
-                    title={t('kitchen.running')}
+                    name="retention"
+                    checked={tickedRetention === 'delete'}
+                    onChange={() => setTickedRetention('delete')}
+                    title={t('kitchen.retentionDelete')}
                   />
-                  <p className="text-ink-soft text-sm text-pretty">{t('kitchen.prepModeHint')}</p>
+                  <p className="text-ink-soft text-sm text-pretty">{t('kitchen.retentionHint')}</p>
                 </fieldset>
-
-                {prepMode === 'running' ? (
-                  <fieldset className="fade-swap flex flex-col gap-2">
-                    <legend className="label">{t('kitchen.retention')}</legend>
-                    <Choice
-                      name="retention"
-                      checked={tickedRetention === 'keep'}
-                      onChange={() => setTickedRetention('keep')}
-                      title={t('kitchen.retentionKeep')}
-                    />
-                    <Choice
-                      name="retention"
-                      checked={tickedRetention === 'delete'}
-                      onChange={() => setTickedRetention('delete')}
-                      title={t('kitchen.retentionDelete')}
-                    />
-                    <p className="text-ink-soft text-sm text-pretty">
-                      {t('kitchen.retentionHint')}
-                    </p>
-                  </fieldset>
-                ) : null}
 
                 <Field label={t('kitchen.units')} htmlFor="units" hint={t('kitchen.unitsHint')}>
                   <select
@@ -946,16 +922,13 @@ export function Setup() {
                     )}
                   </Summary>
                   <Summary title={t('setup.stepSettings')} onEdit={() => goTo(4)}>
-                    <p>{t(prepMode === 'running' ? 'kitchen.running' : 'kitchen.perService')}</p>
-                    {prepMode === 'running' ? (
-                      <p className="text-ink-soft text-sm">
-                        {t(
-                          tickedRetention === 'delete'
-                            ? 'kitchen.retentionDelete'
-                            : 'kitchen.retentionKeep',
-                        )}
-                      </p>
-                    ) : null}
+                    <p>
+                      {t(
+                        tickedRetention === 'delete'
+                          ? 'kitchen.retentionDelete'
+                          : 'kitchen.retentionKeep',
+                      )}
+                    </p>
                     <p className="text-ink-soft text-sm">
                       {t(unitSystem === 'metric' ? 'kitchen.metric' : 'kitchen.imperial')}
                     </p>

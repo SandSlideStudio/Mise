@@ -515,7 +515,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                 <button type="button" className="btn-quiet min-h-10 px-4" onClick={addSection}>
                   {t('editor.addSection')}
                 </button>
-                <span className="text-ink-soft text-[13px]">{plural('service.lines', filled)}</span>
+                <span className="text-ink-soft text-[13px]">{plural('editor.lines', filled)}</span>
                 <span className="text-ink-soft ml-auto hidden gap-[18px] text-[13px] xl:flex">
                   <Hint keys="↵">{t('editor.hintNext')}</Hint>
                   <Hint keys="⇥">{t('editor.hintField')}</Hint>

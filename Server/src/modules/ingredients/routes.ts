@@ -37,7 +37,6 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       densityGPerMl: row.densityGPerMl,
       itemWeightG: row.itemWeightG,
       yieldPercent: row.yieldPercent,
-      requiresPrep: row.requiresPrep,
       vegan: row.vegan,
       allergenDetails: {
         gluten: row.allergenDetails.gluten ?? [],
@@ -108,7 +107,6 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           densityGPerMl: request.body.densityGPerMl ?? null,
           itemWeightG: request.body.itemWeightG ?? null,
           yieldPercent: request.body.yieldPercent,
-          requiresPrep: request.body.requiresPrep,
           vegan: request.body.vegan ?? null,
           allergenDetails: request.body.allergenDetails ?? {},
           notes: request.body.notes ?? null,

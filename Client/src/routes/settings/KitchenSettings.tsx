@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { LANGUAGES, type Language, type PrepMode, type TickedRetention } from '@mise/contracts';
+import { LANGUAGES, type Language, type TickedRetention } from '@mise/contracts';
 import { useKitchen, useUpdateKitchen } from '../../api/kitchen.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 
 /**
  * What this kitchen is called, which units it works in, what it speaks, and
- * how it keeps its prep.
+ * what happens to prep lines once they have been ticked off.
  */
 export function KitchenSettings() {
   const translator = useT();
@@ -15,7 +15,6 @@ export function KitchenSettings() {
   const [name, setName] = useState('');
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [language, setLanguage] = useState<Language>('en');
-  const [prepMode, setPrepMode] = useState<PrepMode>('per_service');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
 
   // Seed the form once the current settings arrive.
@@ -24,7 +23,6 @@ export function KitchenSettings() {
       setName(kitchen.data.name);
       setUnitSystem(kitchen.data.unitSystem);
       setLanguage(kitchen.data.language);
-      setPrepMode(kitchen.data.prepMode);
       setTickedRetention(kitchen.data.tickedRetention);
     }
   }, [kitchen.data]);
@@ -34,7 +32,7 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    update.mutate({ name, unitSystem, language, prepMode, tickedRetention });
+    update.mutate({ name, unitSystem, language, tickedRetention });
   }
 
   return (
@@ -56,38 +54,20 @@ export function KitchenSettings() {
         </div>
 
         <div>
-          <label className="label" htmlFor="prepMode">
-            {t('kitchen.prepMode')}
+          <label className="label" htmlFor="tickedRetention">
+            {t('kitchen.retention')}
           </label>
           <select
-            id="prepMode"
+            id="tickedRetention"
             className="field"
-            value={prepMode}
-            onChange={(e) => setPrepMode(e.target.value as PrepMode)}
+            value={tickedRetention}
+            onChange={(e) => setTickedRetention(e.target.value as TickedRetention)}
           >
-            <option value="per_service">{t('kitchen.perService')}</option>
-            <option value="running">{t('kitchen.running')}</option>
+            <option value="keep">{t('kitchen.retentionKeep')}</option>
+            <option value="delete">{t('kitchen.retentionDelete')}</option>
           </select>
-          <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.prepModeHint')}</p>
+          <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.retentionHint')}</p>
         </div>
-
-        {prepMode === 'running' ? (
-          <div>
-            <label className="label" htmlFor="tickedRetention">
-              {t('kitchen.retention')}
-            </label>
-            <select
-              id="tickedRetention"
-              className="field"
-              value={tickedRetention}
-              onChange={(e) => setTickedRetention(e.target.value as TickedRetention)}
-            >
-              <option value="keep">{t('kitchen.retentionKeep')}</option>
-              <option value="delete">{t('kitchen.retentionDelete')}</option>
-            </select>
-            <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.retentionHint')}</p>
-          </div>
-        ) : null}
 
         <div>
           <label className="label" htmlFor="kitchenLanguage">

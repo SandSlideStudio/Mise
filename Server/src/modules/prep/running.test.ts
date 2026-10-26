@@ -16,7 +16,7 @@ function as(cookie: string) {
 
 interface Line {
   id: string;
-  serviceId: string | null;
+  recipeId: string | null;
   stationId: string | null;
   description: string;
   status: string;
@@ -91,29 +91,33 @@ async function signInCook(): Promise<string> {
 }
 
 describe('the kitchen setting', () => {
-  it('starts on a list per service, and an administrator can switch it', async () => {
+  it('keeps ticked lines by default, and an administrator can switch to deleting them', async () => {
     const before = await ctx.app.inject({ method: 'GET', url: '/api/kitchen', cookies: as(admin) });
-    expect(before.json()).toMatchObject({ prepMode: 'per_service', tickedRetention: 'keep' });
+    expect(before.json()).toMatchObject({ tickedRetention: 'keep' });
+    expect(before.json()).not.toHaveProperty('prepMode');
 
     const after = await ctx.app.inject({
       method: 'PATCH',
       url: '/api/kitchen',
-      payload: { prepMode: 'running', tickedRetention: 'delete' },
+      payload: { tickedRetention: 'delete' },
       cookies: as(admin),
     });
     expect(after.statusCode).toBe(200);
-    expect(after.json()).toMatchObject({ prepMode: 'running', tickedRetention: 'delete' });
+    expect(after.json()).toMatchObject({ tickedRetention: 'delete' });
   });
 });
 
 describe('the running list', () => {
-  it('holds lines that belong to no service', async () => {
+  it('holds the lines added to it', async () => {
     const response = await add({
       description: 'Brunoise shallots',
       quantity: { value: 2, unit: 'kg' },
     });
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toMatchObject({ merged: false, task: { serviceId: null } });
+    expect(response.json()).toMatchObject({
+      merged: false,
+      task: { description: 'Brunoise shallots', status: 'open' },
+    });
     expect(await list()).toHaveLength(1);
   });
 
@@ -200,32 +204,106 @@ describe('the running list', () => {
     const ticked = await setStatus(created.json().task.id, 'done', cook);
     expect(ticked.statusCode).toBe(200);
   });
+});
 
-  it('never applies the two-hour rule to a list that belongs to a service', async () => {
-    const service = await ctx.app.inject({
+describe('lines from a recipe', () => {
+  async function recipe(name: string) {
+    const response = await ctx.app.inject({
       method: 'POST',
-      url: '/api/services',
-      payload: { date: '2026-09-11', period: 'dinner' },
+      url: '/api/recipes',
+      payload: { name, type: 'prep', yield: { value: 1, unit: 'kg' } },
       cookies: as(admin),
     });
-    const serviceId = service.json().id;
-    const task = await ctx.app.inject({
-      method: 'POST',
-      url: `/api/services/${serviceId}/tasks`,
-      payload: { description: 'Chicken stock' },
-      cookies: as(admin),
-    });
-    const id = task.json().id;
-    await setStatus(id, 'done');
-    await tickedHoursAgo(id, 72);
+    return response.json().id as string;
+  }
 
-    const tasks = await ctx.app.inject({
+  it('remembers which recipe a line is for', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const response = await add({
+      description: 'Vijgen Gel',
+      recipeId: gel,
+      quantity: { value: 2, unit: 'kg' },
+    });
+    expect(response.json().task).toMatchObject({
+      recipeId: gel,
+      quantity: { value: 2000, unit: 'g' },
+    });
+  });
+
+  it('links a line typed by hand once the same thing is added from the book', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const typed = await add({ description: 'vijgen gel', quantity: { value: 500, unit: 'g' } });
+    expect(typed.json().task.recipeId).toBeNull();
+
+    const picked = await add({
+      description: 'Vijgen Gel',
+      recipeId: gel,
+      quantity: { value: 1, unit: 'kg' },
+    });
+    expect(picked.json()).toMatchObject({
+      merged: true,
+      task: { recipeId: gel, quantity: { value: 1500, unit: 'g' } },
+    });
+  });
+
+  it('refuses a recipe that does not exist', async () => {
+    const response = await add({
+      description: 'Ghost',
+      recipeId: '00000000-0000-4000-8000-000000000000',
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('keeps the line when its recipe is deleted, without the link', async () => {
+    const gel = await recipe('Vijgen Gel');
+    await add({ description: 'Vijgen Gel', recipeId: gel });
+    await ctx.app.inject({ method: 'DELETE', url: `/api/recipes/${gel}`, cookies: as(admin) });
+    const [line] = await list();
+    expect(line).toMatchObject({ description: 'Vijgen Gel', recipeId: null });
+  });
+});
+
+describe('the handover note', () => {
+  async function note(cookie = admin) {
+    const response = await ctx.app.inject({
       method: 'GET',
-      url: `/api/services/${serviceId}/tasks`,
-      cookies: as(admin),
+      url: '/api/running/note',
+      cookies: as(cookie),
     });
-    expect(tasks.json()).toHaveLength(1);
-    expect((await setStatus(id, 'open')).statusCode).toBe(200);
+    return response.json();
+  }
+
+  function write(text: string, cookie = admin) {
+    return ctx.app.inject({
+      method: 'PUT',
+      url: '/api/running/note',
+      payload: { text },
+      cookies: as(cookie),
+    });
+  }
+
+  it('starts empty, and says who left it and when once written', async () => {
+    expect(await note()).toEqual({ text: null, byName: null, at: null });
+
+    const written = await write('  Vis komt later, fond om 15:00 opzetten.  ');
+    expect(written.statusCode).toBe(200);
+    expect(written.json()).toMatchObject({
+      text: 'Vis komt later, fond om 15:00 opzetten.',
+      byName: 'Escoffier',
+    });
+    expect(written.json().at).not.toBeNull();
+  });
+
+  it('lets a cook read it but not change it', async () => {
+    await write('Vis komt later.');
+    const cook = await signInCook();
+    expect((await note(cook)).text).toBe('Vis komt later.');
+    expect((await write('Nee', cook)).statusCode).toBe(403);
+  });
+
+  it('is cleared by writing nothing', async () => {
+    await write('Vis komt later.');
+    expect((await write('   ')).json()).toEqual({ text: null, byName: null, at: null });
   });
 });
 

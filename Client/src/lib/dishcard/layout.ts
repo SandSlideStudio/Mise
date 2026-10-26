@@ -2,6 +2,7 @@ import type {
   DishCard,
   DishCardFacts,
   DishCardPart,
+  DishCardSettings,
   DishCardTheme,
   Language,
 } from '@mise/contracts';
@@ -127,8 +128,8 @@ export interface LayoutOptions {
   printedAt: Date;
 }
 
-const MARGIN = 15;
-const TOP = 14;
+export const MARGIN = 15;
+export const TOP = 14;
 const BOTTOM = 9;
 
 /** Where a long word may break: the translations mark it in the column names. */
@@ -136,14 +137,25 @@ const SOFT_HYPHEN = '\u00ad';
 const clean = (text: string) => text.replaceAll(SOFT_HYPHEN, '');
 
 /** Height of a line of text at a size, in millimetres. */
-const lineMm = (sizePt: number, leading = 1.25) => sizePt * leading * PT_TO_MM;
+export const lineMm = (sizePt: number, leading = 1.25) => sizePt * leading * PT_TO_MM;
 /** From the top of a line to its baseline, near enough for Barlow. */
-const ascentMm = (sizePt: number) => sizePt * 0.78 * PT_TO_MM;
+export const ascentMm = (sizePt: number) => sizePt * 0.78 * PT_TO_MM;
 
-export function layoutDishCard(card: DishCard, fonts: CardFonts, options: LayoutOptions) {
+/**
+ * What every printed page shares: the type, the palette, the heading over the
+ * page and the foot under it. Used by the dish card and the menu overview.
+ */
+export function createKit(
+  fonts: CardFonts,
+  options: LayoutOptions,
+  settings: DishCardSettings,
+  kitchenName: string,
+  /** The line over the page, when it isn't the dish card's own heading. */
+  headingOverride?: string,
+) {
   const { t, locale } = createTranslator(options.language);
   const p = PALETTES[options.theme];
-  const hidden = new Set<DishCardPart>(card.settings.hidden);
+  const hidden = new Set<DishCardPart>(settings.hidden);
   const shows = (part: DishCardPart) => !hidden.has(part);
   const upper = (text: string) => text.toLocaleUpperCase(locale);
 
@@ -226,14 +238,14 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
 
   // --- shared pieces ------------------------------------------------------------
 
-  const heading = card.settings.title ?? `${t('card.title')} · ${card.kitchenName}`;
+  const heading = headingOverride ?? settings.title ?? `${t('card.title')} · ${kitchenName}`;
   const warning =
-    card.settings.warnings[options.language] ??
-    card.settings.warnings[options.kitchenLanguage] ??
-    Object.values(card.settings.warnings).find(Boolean) ??
+    settings.warnings[options.language] ??
+    settings.warnings[options.kitchenLanguage] ??
+    Object.values(settings.warnings).find(Boolean) ??
     null;
   const location = shows('location')
-    ? [card.settings.locationName, card.settings.address].filter(Boolean).join(' · ')
+    ? [settings.locationName, settings.address].filter(Boolean).join(' · ')
     : '';
   const printed = t('card.printed', {
     date: options.printedAt.toLocaleDateString(locale, {
@@ -244,7 +256,7 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
   });
 
   /** The foot of a page, laid from the bottom up. Returns its top edge. */
-  function footer(ops: Op[], x: number, right: number, page: number): number {
+  function footer(ops: Op[], x: number, right: number, page: number, pages: number): number {
     const w = right - x;
     const parts: { lines: string[]; font: CardFontKey; size: number; color: string }[] = [];
     if (location)
@@ -277,7 +289,7 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
     }
     const baseline = y + ascentMm(last.size);
     text(ops, t('card.madeWithMise'), x, baseline, 'regular', last.size, p.footFaint);
-    const pageText = `${printed} · ${t('card.page', { page, pages: 2 })}`;
+    const pageText = `${printed} · ${t('card.page', { page, pages })}`;
     text(
       ops,
       pageText,
@@ -296,6 +308,17 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
     text(ops, lines[0] ?? '', x, TOP + ascentMm(10), 'condSemibold', 10, p.kick, 0.18);
     return TOP + lineMm(10, 1.1);
   }
+
+  return { t, locale, p, shows, upper, wrap, text, block, width, footer, eyebrow };
+}
+
+export function layoutDishCard(card: DishCard, fonts: CardFonts, options: LayoutOptions) {
+  const { t, p, shows, upper, wrap, text, block, width, footer, eyebrow } = createKit(
+    fonts,
+    options,
+    card.settings,
+    card.kitchenName,
+  );
 
   function chip(
     ops: Op[],
@@ -415,7 +438,7 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
       y += h + 7;
     }
 
-    const footTop = footer(ops, x, right, 1);
+    const footTop = footer(ops, x, right, 1, 2);
 
     // Components on the left, what goes with the dish on the right. Tightened
     // a step at a time if a long dish would run into the foot.
@@ -564,7 +587,7 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
     );
     y = baseline + 6;
 
-    const footTop = footer(ops, x, right, 2);
+    const footTop = footer(ops, x, right, 2, 2);
 
     const allergens = DISH_CARD_ALLERGEN_ORDER;
     const vegan = shows('vegan');

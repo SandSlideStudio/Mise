@@ -176,10 +176,6 @@ export function allergenName(t: Translator['t'], allergen: Allergen | string): s
   return t(`allergen.${allergen}` as MessageKey);
 }
 
-export function periodName(t: Translator['t'], period: string): string {
-  return t(`period.${period}` as MessageKey);
-}
-
 export function roleName(t: Translator['t'], role: string): string {
   return t(`role.${role}` as MessageKey);
 }
