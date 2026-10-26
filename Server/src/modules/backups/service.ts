@@ -37,7 +37,7 @@ import * as webdav from './webdav.js';
 
 /** Bumped when the inside of a backup changes in a way older versions can't read. */
 export const FORMAT = 1;
-const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
+export const SETTINGS_ID = '00000000-0000-4000-8000-000000000001';
 const FILE_PATTERN = /^mise-backup-\d{8}-\d{6}\.mise$/;
 const HOUR = 3_600_000;
 

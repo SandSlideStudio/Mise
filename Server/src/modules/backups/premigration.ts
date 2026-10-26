@@ -5,9 +5,9 @@ import { getTableConfig } from 'drizzle-orm/pg-core';
 import type { Database } from '../../db/client.js';
 import { rows } from '../../db/rows.js';
 import { packEntries, type Entry } from './archive.js';
-import { writeEncrypted } from './crypto.js';
+import { generateRecoveryKey, writeEncrypted } from './crypto.js';
 import { BACKED_UP } from './data.js';
-import { fileName, FORMAT, type Manifest } from './service.js';
+import { fileName, FORMAT, SETTINGS_ID, type Manifest } from './service.js';
 
 /**
  * A backup made just before a newer Mise changes the database.
@@ -50,13 +50,18 @@ export async function backupBeforeMigrating(
   },
 ): Promise<string | null> {
   if (!(await exists(db, 'backup_settings'))) return null;
+  // The recovery key is normally made a couple of minutes after the first
+  // start. A kitchen updated sooner gets it now: the same key Settings will
+  // show, so this backup opens like every later one.
+  await db.execute(
+    sql`insert into backup_settings (id, recovery_key)
+        values (${SETTINGS_ID}, ${generateRecoveryKey()}) on conflict do nothing`,
+  );
   const [settings] = await rows<{ recovery_key: string }>(
     db,
     sql`select recovery_key from backup_settings limit 1`,
   );
-  // The key is made the first time backups are looked at, minutes after the
-  // first start. A kitchen without one has never been used.
-  if (!settings) return null;
+  if (!settings) throw new Error('No recovery key to encrypt the backup with');
 
   const tables: { name: string; json: string }[] = [];
   for (const table of BACKED_UP) {

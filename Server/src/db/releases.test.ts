@@ -237,6 +237,46 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
   });
 });
 
+describe('a kitchen updated before it ever made a recovery key', () => {
+  it('gets its key at the update, and a backup that opens with it', async () => {
+    const client = new PGlite();
+    const db = drizzle(client, { schema }) as unknown as Database;
+    try {
+      await migrate(db as never, { migrationsFolder: migrationsUpTo('0013') });
+      await fill(db, '0013');
+      await db.execute(sql`delete from backup_settings`);
+
+      const backupDir = path.join(scratch, 'before-without-key');
+      const file = await backupBeforeMigrating(db, {
+        uploadDir: path.join(scratch, 'no-photos'),
+        backupDir,
+        version: 'next',
+        say: () => {},
+      });
+      expect(file).not.toBeNull();
+      const [settings] = await rows<{ recovery_key: string }>(
+        db,
+        sql`select recovery_key from backup_settings`,
+      );
+
+      const empty = await createTestDatabase();
+      const target = await serve(empty.db, 'restored-without-key');
+      try {
+        const restored = await target.backups.restore(
+          path.join(backupDir, file!),
+          settings!.recovery_key,
+        );
+        expect(restored).toMatchObject({ kitchenName: 'De Proefkeuken', recipes: 2 });
+      } finally {
+        await target.close();
+        await empty.client.close();
+      }
+    } finally {
+      await client.close();
+    }
+  });
+});
+
 describe('a new server', () => {
   it('has nothing to back up before its first migrations', async () => {
     const client = new PGlite();
