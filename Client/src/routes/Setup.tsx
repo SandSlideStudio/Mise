@@ -11,7 +11,7 @@ import {
   type TickedRetention,
 } from '@mise/contracts';
 import { ALL_UNITS, ONE_PLATE, type UnitCode } from '@mise/domain';
-import type { RestoreResult } from '@mise/contracts';
+import type { BackupDestination, RestoreResult } from '@mise/contracts';
 import { useRestoreBackup } from '../api/backups.js';
 import { RequestFailed } from '../api/client.js';
 import { useEnrollDevice } from '../api/kitchen.js';
@@ -102,6 +102,12 @@ const MIN_PASSWORD = 12;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PIN = /^\d{4,8}$/;
 
+const BACKUP_CHOICE: Record<BackupDestination, MessageKey> = {
+  local: 'backups.whereLocal',
+  webdav: 'backups.whereWebdav',
+  onedrive: 'backups.whereOnedrive',
+};
+
 /** Stable keys for rows that have no id yet. Not crypto.randomUUID: plain HTTP on a LAN lacks it. */
 let lastKey = 0;
 const newKey = () => `row-${++lastKey}`;
@@ -146,7 +152,7 @@ const hasDuplicates = (names: string[]) => new Set(names.map(sameName)).size !==
 
 export function Setup() {
   const translator = useT();
-  const { t } = translator;
+  const { t, plural } = translator;
   const preview = usePreviewLanguage();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -169,6 +175,7 @@ export function Setup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
+  const [pin, setPin] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
   const [editedStations, setEditedStations] = useState<StationDraft[] | null>(null);
@@ -181,6 +188,7 @@ export function Setup() {
   const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [enrolDevice, setEnrolDevice] = useState(false);
+  const [backupsTo, setBackupsTo] = useState<BackupDestination>('local');
   const [deviceName, setDeviceName] = useState('');
 
   // The one-time code a production server asks for. The installer's setup link
@@ -218,6 +226,7 @@ export function Setup() {
         if (!EMAIL.test(email.trim())) found.add('setup.emailInvalid');
         if (password.length < MIN_PASSWORD) found.add('setup.passwordShort');
         else if (password !== confirm) found.add('setup.passwordMismatch');
+        if (pin && !PIN.test(pin)) found.add('setup.pinInvalid');
         break;
       case 'brigade': {
         const named = stations.filter((station) => station.name.trim());
@@ -306,6 +315,7 @@ export function Setup() {
       displayName: displayName.trim(),
       email: email.trim(),
       password,
+      pin: pin || undefined,
       language,
       unitSystem,
       tickedRetention,
@@ -359,7 +369,10 @@ export function Setup() {
             kitchenName: kitchenName.trim(),
             setupTokenRequired: false,
           });
-          void navigate({ to: '/' });
+          // Backups off the machine are connected on the backups page, which
+          // needs the administrator this setup just signed in.
+          if (backupsTo === 'local') void navigate({ to: '/' });
+          else window.location.assign(`/settings?tab=backups&connect=${backupsTo}`);
         }, READY_HOLD_MS + CLOSE_MS);
       },
     });
@@ -689,6 +702,19 @@ export function Setup() {
                   />
                   <PasswordState password={password} confirm={confirm} />
                 </div>
+                <Field label={t('setup.yourPin')} htmlFor="pin" hint={t('setup.yourPinHint')}>
+                  <input
+                    id="pin"
+                    className="field max-w-[220px]"
+                    value={pin}
+                    onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+                    inputMode="numeric"
+                    autoComplete="off"
+                    maxLength={8}
+                    placeholder={t('staff.pinPlaceholder')}
+                    aria-invalid={pin.length > 0 && !PIN.test(pin)}
+                  />
+                </Field>
               </>
             ) : null}
 
@@ -848,6 +874,21 @@ export function Setup() {
                   </select>
                 </Field>
 
+                <fieldset className="border-rule flex flex-col gap-2 border-t pt-6">
+                  <legend className="sr-only">{t('setup.backupsTitle')}</legend>
+                  <SectionTitle>{t('setup.backupsTitle')}</SectionTitle>
+                  {(['local', 'webdav', 'onedrive'] as const).map((value) => (
+                    <Choice
+                      key={value}
+                      name="backups"
+                      checked={backupsTo === value}
+                      onChange={() => setBackupsTo(value)}
+                      title={t(BACKUP_CHOICE[value])}
+                    />
+                  ))}
+                  <p className="text-ink-soft text-sm text-pretty">{t('setup.backupsHint')}</p>
+                </fieldset>
+
                 <section className="border-rule flex flex-col gap-3 border-t pt-6">
                   <SectionTitle>{t('setup.thisDevice')}</SectionTitle>
                   <Switch
@@ -883,6 +924,7 @@ export function Setup() {
                   <Summary title={t('setup.stepYou')} onEdit={() => goTo(1)}>
                     <p>{t('setup.summaryAdmin', { name: displayName.trim() })}</p>
                     <p className="text-ink-soft text-sm">{email.trim()}</p>
+                    {pin ? <p className="text-ink-soft text-sm">{t('setup.summaryPin')}</p> : null}
                   </Summary>
                   <Summary title={t('setup.stationsHeading')} onEdit={() => goTo(2)}>
                     <p>{stations.map((station) => station.name.trim()).join(', ')}</p>
@@ -918,7 +960,9 @@ export function Setup() {
                             <span className="text-ink-soft">
                               {' · '}
                               {t(`recipeType.${recipe.type}`)}
-                              {` · ${recipe.yieldValue} ${recipe.yieldUnit}`}
+                              {recipe.type === 'dish'
+                                ? ` · ${plural('editor.dishPlates', ONE_PLATE.portions)}`
+                                : ` · ${recipe.yieldValue} ${recipe.yieldUnit}`}
                             </span>
                           </li>
                         ))}
@@ -936,6 +980,7 @@ export function Setup() {
                     <p className="text-ink-soft text-sm">
                       {t(unitSystem === 'metric' ? 'kitchen.metric' : 'kitchen.imperial')}
                     </p>
+                    <p className="text-ink-soft text-sm">{t(BACKUP_CHOICE[backupsTo])}</p>
                     <p className="text-ink-soft text-sm">
                       {enrolDevice
                         ? t('setup.summaryTablet', { name: deviceName.trim() })

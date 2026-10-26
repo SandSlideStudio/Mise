@@ -1,12 +1,7 @@
 import { z } from 'zod';
 import { languageSchema } from './auth.js';
 import { allergenSchema, idSchema } from './common.js';
-import {
-  courseSchema,
-  recipeStatusSchema,
-  seasonSchema,
-  servingTemperatureSchema,
-} from './recipes.js';
+import { courseSchema, recipeStatusSchema, servingTemperatureSchema } from './recipes.js';
 
 /**
  * Dish cards: one page per dish for front of house, plus its allergens per
@@ -16,7 +11,7 @@ import {
 
 /** Parts of the card a kitchen can switch off. */
 export const DISH_CARD_PARTS = [
-  'season',
+  'menu',
   'flavour',
   'temperature',
   'course',
@@ -87,7 +82,8 @@ export const dishCardSchema = z.object({
     id: idSchema,
     name: z.string(),
     status: recipeStatusSchema,
-    seasons: z.array(seasonSchema),
+    /** The menus a card says the dish is on: active ones, or the one being printed. */
+    menus: z.array(z.string()),
     flavourProfile: z.array(z.string()),
     servingTemperature: servingTemperatureSchema.nullable(),
     course: courseSchema.nullable(),

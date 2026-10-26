@@ -28,6 +28,9 @@ import photoRoutes from './modules/recipes/photos.js';
 import backupRoutes from './modules/backups/routes.js';
 import dishCardRoutes from './modules/dishcards/routes.js';
 import menuRoutes from './modules/menus/routes.js';
+import updateRoutes from './modules/updates/routes.js';
+import { createUpdateChecker, type UpdateChecker } from './modules/updates/service.js';
+import { kitchens } from './db/schema.js';
 import { createBackupService, type BackupService } from './modules/backups/service.js';
 import { createOnedrive } from './modules/backups/onedrive.js';
 
@@ -41,6 +44,7 @@ declare module 'fastify' {
     /** The code first-run setup must be given, or null when none is needed. */
     setupToken: string | null;
     backups: BackupService;
+    updates: UpdateChecker;
   }
 }
 
@@ -51,6 +55,9 @@ export interface BuildAppOptions {
   serveClient?: boolean;
   /** Where Microsoft's sign-in and Graph live. Pointed at a stand-in by the test suite. */
   microsoft?: { login: string; graph: string; chunkBytes?: number };
+  /** How the update check reaches GitHub, and the version it compares. Set by the test suite. */
+  releases?: (url: string, init: RequestInit) => Promise<Response>;
+  version?: string;
 }
 
 function trustedHops(hops: number | false) {
@@ -109,6 +116,22 @@ export async function buildApp(
     }),
   );
   app.addHook('onClose', async () => app.backups.close());
+  app.decorate(
+    'updates',
+    createUpdateChecker({
+      current: options.version ?? VERSION,
+      log: app.log,
+      fetch: options.releases,
+      enabled: async () => {
+        const [kitchen] = await app.db
+          .select({ updateCheck: kitchens.updateCheck })
+          .from(kitchens)
+          .limit(1);
+        return kitchen?.updateCheck ?? true;
+      },
+    }),
+  );
+  app.addHook('onClose', async () => app.updates.stop());
 
   app.get('/api/health', { config: { rateLimit: false } }, async () => ({
     status: 'ok',
@@ -127,6 +150,7 @@ export async function buildApp(
   await app.register(dishCardRoutes, { prefix: '/api' });
   await app.register(menuRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
+  await app.register(updateRoutes, { prefix: '/api' });
   await registerUploads(app, config);
 
   if (options.serveClient === false) {

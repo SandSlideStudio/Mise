@@ -62,6 +62,7 @@ export const en = {
   'nav.recipes': 'Recipes',
   'nav.ingredients': 'Ingredients',
   'nav.settings': 'Settings',
+  'nav.updateAvailable': 'A newer Mise is out',
 
   'role.admin': 'Administrator',
   'role.head_chef': 'Head chef',
@@ -194,6 +195,13 @@ export const en = {
   'setup.addPerson': 'Add someone',
   'setup.nameMissing': 'Every row needs a name.',
   'setup.pinInvalid': 'A PIN is 4 to 8 digits.',
+  'setup.yourPin': 'Your PIN (optional)',
+  'setup.yourPinHint':
+    'Lets you tap in on the kitchen tablet like the rest of the brigade. Leave it empty to skip; you can set one later.',
+  'setup.summaryPin': 'PIN for the kitchen tablet',
+  'setup.backupsTitle': 'Backups',
+  'setup.backupsHint':
+    'Mise backs up the whole kitchen every night. A copy somewhere else means a dead disk or a theft doesn’t take the backups too. You connect it right after setup; you can also do it later.',
   'setup.recipesTitle': 'Recipes',
   'setup.recipesBody':
     'Put the dishes and prep you already know into the book: a name and what one batch makes. Ingredients and method can follow in the recipe book.',
@@ -506,6 +514,27 @@ export const en = {
   'devices.revokeTitle': 'Signs everyone out of {name} immediately',
 
   'kitchen.loadError': 'Could not load the kitchen settings.',
+  'version.title': 'Mise version',
+  'version.running': 'This kitchen runs Mise {version}.',
+  'version.upToDate': 'That’s the newest release.',
+  'version.newer': 'Mise {version} is out.',
+  'version.whatChanged': 'What changed',
+  'version.checkFailed':
+    'Couldn’t reach GitHub to check for a newer version. Mise tries again tomorrow.',
+  'version.notChecked': 'Not checked yet. Mise looks a minute after it starts, then once a day.',
+  'version.checkLabel': 'Check for a newer version once a day',
+  'version.checkHint':
+    'Mise asks GitHub which release is the newest. Nothing about your kitchen is sent.',
+  'version.howTitle': 'How to update',
+  'version.backupFirst': 'Download a backup first. The database updates itself when Mise starts.',
+  'version.major':
+    '{version} is a new major version. Read what changed first, and set MISE_VERSION to {major} in .env, or the image tag to :{major} on TrueNAS.',
+  'version.howTrueNas': 'TrueNAS',
+  'version.howTrueNasSteps': 'Open Apps, choose the mise app and click Update or Pull Images.',
+  'version.howInstaller': 'Installed with the installer',
+  'version.howInstallerSteps': 'In the mise-kitchen folder, run the install command again:',
+  'version.howDocker': 'Plain Docker',
+  'version.howDockerSteps': 'In the folder with compose.yaml, run:',
   'kitchen.title': 'This kitchen',
   'kitchen.units': 'Units',
   'kitchen.metric': 'Metric — grams and litres',
@@ -527,6 +556,8 @@ export const en = {
   'handover.save': 'Save the note',
   'handover.clear': 'Clear the note',
   'handover.edit': 'Change',
+  'handover.remove': 'Remove the note',
+  'handover.removeConfirm': 'Remove?',
   'handover.by': '{name}, {when}',
   'running.title': 'The list',
   'running.subtitle':
@@ -571,6 +602,15 @@ export const en = {
   'backups.keyPrintBody':
     'You need this key to restore a backup of this kitchen in Mise. Keep it away from the server, in the office safe or at home.',
   'backups.whereTitle': 'Where backups go',
+  'backups.onlyHereTitle': 'Backups only live on this machine',
+  'backups.onlyHereBody':
+    'If it breaks, is stolen or its disk fails, the backups go with it. Send them to a NAS or OneDrive as well.',
+  'backups.onlyHereAction': 'Choose where they go',
+  'backups.connectTitle': 'One more step for your backups',
+  'backups.connectWebdav':
+    'Fill in your NAS or Nextcloud under Where backups go, test it and save.',
+  'backups.connectOnedrive':
+    'Connect OneDrive under Where backups go with the code Microsoft gives you, then save.',
   'backups.whereLocal': 'Only on this machine',
   'backups.whereLocalHint':
     'These are kept on the same machine as Mise. If it breaks, is stolen or its disk fails, they go with it, so download one now and then or send them to a NAS or OneDrive.',
@@ -648,7 +688,6 @@ export const en = {
   'recipe.dishCard': 'Dish card',
   'editor.frontOfHouse': 'Front of house',
   'editor.frontOfHouseHint': 'What the dish card tells the floor.',
-  'editor.seasons': 'Season',
   'editor.flavour': 'Flavour profile',
   'editor.flavourPlaceholder': 'creamy, garlic, fresh',
   'editor.temperature': 'Served',
@@ -659,11 +698,6 @@ export const en = {
   'editor.cutleryPlaceholder': 'small spoon',
   'editor.listHint': 'Separate with commas.',
   'editor.notSet': 'Not set',
-  'season.spring': 'Spring',
-  'season.summer': 'Summer',
-  'season.autumn': 'Autumn',
-  'season.winter': 'Winter',
-  'season.all_year': 'All year',
   'temperature.cold': 'Cold',
   'temperature.room': 'Room temperature',
   'temperature.warm': 'Warm',
@@ -709,7 +743,7 @@ export const en = {
   'card.attentionPhoto': 'This dish has no photo yet.',
   'card.attentionDraft': 'This recipe is still a draft.',
   'card.fixIngredients': 'Open the ingredients',
-  'card.season': 'Season',
+  'card.menu': 'Menu',
   'card.flavour': 'Flavour profile',
   'card.temperature': 'Temperature',
   'card.course': 'Course',
@@ -767,7 +801,7 @@ export const en = {
     'Write it in each language you print in. A card in a language without one uses the warning in the kitchen’s language.',
   'dishCards.warningPlaceholder': 'This dish card is the property of …',
   'dishCards.show': 'On the card',
-  'dishCards.part.season': 'Season',
+  'dishCards.part.menu': 'Menu',
   'dishCards.part.flavour': 'Flavour profile',
   'dishCards.part.temperature': 'Temperature',
   'dishCards.part.course': 'Place on the menu',

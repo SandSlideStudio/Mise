@@ -294,11 +294,28 @@ describe('the handover note', () => {
     expect(written.json().at).not.toBeNull();
   });
 
-  it('lets a cook read it but not change it', async () => {
+  it('lets a cook read it, change it and remove it too', async () => {
     await write('Vis komt later.');
     const cook = await signInCook();
     expect((await note(cook)).text).toBe('Vis komt later.');
-    expect((await write('Nee', cook)).statusCode).toBe(403);
+
+    const changed = await write('Vis is binnen, fond staat op.', cook);
+    expect(changed.statusCode).toBe(200);
+    expect(changed.json()).toMatchObject({
+      text: 'Vis is binnen, fond staat op.',
+      byName: 'Marco',
+    });
+
+    expect((await write('', cook)).json()).toEqual({ text: null, byName: null, at: null });
+  });
+
+  it('is only for people who are signed in', async () => {
+    const response = await ctx.app.inject({
+      method: 'PUT',
+      url: '/api/running/note',
+      payload: { text: 'Hallo' },
+    });
+    expect(response.statusCode).toBe(401);
   });
 
   it('is cleared by writing nothing', async () => {

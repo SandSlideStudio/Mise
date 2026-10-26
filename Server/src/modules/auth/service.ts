@@ -342,6 +342,7 @@ export function createAuthService(db: Database) {
   ): Promise<{ ok: true; userId: string } | { ok: false; error: 'already_set_up' }> {
     // Hashing is slow on purpose, so it happens before a transaction is open.
     const passwordHash = await hashSecret(input.password);
+    const pinHash = input.pin ? await hashSecret(input.pin) : null;
     const staff = await Promise.all(
       (input.staff ?? []).map(async (person) => ({
         ...person,
@@ -382,6 +383,8 @@ export function createAuthService(db: Database) {
           displayName: input.displayName,
           email: input.email,
           passwordHash,
+          pinHash,
+          pinLength: input.pin?.length ?? null,
           role: 'admin',
         })
         .returning({ id: users.id });

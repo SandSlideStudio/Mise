@@ -3,6 +3,41 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.1.0
+
+**Setup**
+
+- Whoever sets up the kitchen can choose a PIN for themselves, so they can tap in on the kitchen
+  tablet straight away.
+- Setup asks where backups should go. Choose a NAS or OneDrive and Mise opens the backups page
+  right after setup to connect it.
+
+**Dish cards and menus**
+
+- Dishes no longer have a season. The dish card says which menu the dish is on instead: the menu
+  you're printing from, or else the active menus it's on. A kitchen that hid the season on its
+  cards keeps the menu hidden.
+
+**Handover note**
+
+- Everyone can write, change and remove the handover note, cooks included. An "X" next to the
+  change button removes it with a second tap.
+
+**Backups**
+
+- The backups page warns while backups only live on the server itself.
+
+**Version**
+
+- **Settings → Kitchen** shows which version of Mise is running. Once a day Mise asks GitHub whether
+  a newer one is out and tells administrators, with a link to what changed and how to update on
+  TrueNAS, with the installer or with plain Docker. Nothing about the kitchen is sent, and it can be
+  switched off. A small dot on Settings shows when an update is waiting.
+
+**Fixes**
+
+- The check page in setup no longer shows an empty amount for a dish.
+
 ## 2.0.1
 
 - First-run setup only asks for a setup code when one was set with `SETUP_TOKEN`, or when Mise

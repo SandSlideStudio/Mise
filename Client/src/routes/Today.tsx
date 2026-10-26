@@ -162,7 +162,7 @@ function RunningPrep() {
       onRemove={canManage ? (id) => remove.mutate(id) : undefined}
       header={
         <>
-          <Handover canEdit={canManage} />
+          <Handover />
           {canManage ? <AddRunningLine /> : null}
         </>
       }
@@ -176,15 +176,16 @@ function RunningPrep() {
  * acts on yesterday's note thinking it is today's. Chefs write it; everyone
  * reads it.
  */
-function Handover({ canEdit }: { canEdit: boolean }) {
+function Handover() {
   const translator = useT();
   const { t, locale } = translator;
   const note = useHandoverNote();
   const update = useUpdateHandoverNote();
   const [draft, setDraft] = useState<string | null>(null);
+  // The X takes two taps, so a stray one on a busy tablet doesn't wipe the note.
+  const [confirmingRemove, setConfirmingRemove] = useState(false);
 
   const text = note.data?.text ?? null;
-  if (!text && !canEdit) return null;
 
   function save(value: string) {
     update.mutate(value, { onSuccess: () => setDraft(null) });
@@ -274,15 +275,31 @@ function Handover({ canEdit }: { canEdit: boolean }) {
           </p>
         ) : null}
       </div>
-      {canEdit ? (
-        <button
-          type="button"
-          className="btn-quiet no-print min-h-11"
-          onClick={() => setDraft(text)}
-        >
+      <div className="no-print flex gap-2">
+        <button type="button" className="btn-quiet min-h-11" onClick={() => setDraft(text)}>
           {t('handover.edit')}
         </button>
-      ) : null}
+        <button
+          type="button"
+          aria-label={confirmingRemove ? t('handover.removeConfirm') : t('handover.remove')}
+          disabled={update.isPending}
+          onClick={() => (confirmingRemove ? save('') : setConfirmingRemove(true))}
+          onBlur={() => setConfirmingRemove(false)}
+          className={`min-h-11 min-w-11 border-2 px-3 text-lg leading-none font-medium transition-colors disabled:opacity-45 ${
+            confirmingRemove
+              ? 'bg-danger border-danger text-white'
+              : 'border-line text-ink-soft bg-surface-raised'
+          }`}
+        >
+          {confirmingRemove ? (
+            <span className="text-[13px] tracking-[0.06em] uppercase">
+              {t('handover.removeConfirm')}
+            </span>
+          ) : (
+            <span aria-hidden>✕</span>
+          )}
+        </button>
+      </div>
     </div>
   );
 }

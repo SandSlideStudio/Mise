@@ -14,7 +14,6 @@ import type {
   Recipe,
   RecipeStatus,
   RecipeType,
-  Season,
   ServingTemperature,
 } from '@mise/contracts';
 import {
@@ -22,7 +21,6 @@ import {
   ALL_UNITS,
   COURSES,
   ONE_PLATE,
-  SEASONS,
   SERVING_TEMPERATURES,
   type Allergen,
   type UnitCode,
@@ -39,7 +37,6 @@ import {
   errorMessage,
   recipeStatusName,
   recipeTypeName,
-  seasonName,
   temperatureName,
   useT,
 } from '../i18n/index.js';
@@ -144,7 +141,6 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [mayContain, setMayContain] = useState<Allergen[]>(
     (recipe?.mayContain ?? []) as Allergen[],
   );
-  const [seasons, setSeasons] = useState<Season[]>(recipe?.seasons ?? []);
   const [flavour, setFlavour] = useState((recipe?.flavourProfile ?? []).join(', '));
   const [temperature, setTemperature] = useState<ServingTemperature | ''>(
     recipe?.servingTemperature ?? '',
@@ -284,7 +280,6 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       tags: splitList(tags),
       declaredAllergens: [],
       mayContain,
-      seasons,
       flavourProfile: splitList(flavour),
       servingTemperature: temperature || null,
       course: course || null,
@@ -661,8 +656,6 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                 <>
                   <div className="bg-field h-px" />
                   <FrontOfHouse
-                    seasons={seasons}
-                    onSeasons={setSeasons}
                     flavour={flavour}
                     onFlavour={setFlavour}
                     temperature={temperature}
@@ -788,8 +781,6 @@ function RailField({
  * dish shows these; a stock keeps whatever it had, untouched.
  */
 function FrontOfHouse(props: {
-  seasons: Season[];
-  onSeasons: (value: Season[]) => void;
   flavour: string;
   onFlavour: (value: string) => void;
   temperature: ServingTemperature | '';
@@ -810,29 +801,6 @@ function FrontOfHouse(props: {
         </h2>
         <p className="text-ink-faint text-xs">{t('editor.frontOfHouseHint')}</p>
       </div>
-
-      <fieldset className="flex flex-col gap-2">
-        <legend className="eyebrow mb-2">{t('editor.seasons')}</legend>
-        <div className="flex flex-wrap gap-1.5">
-          {SEASONS.map((season) => (
-            <button
-              key={season}
-              type="button"
-              aria-pressed={props.seasons.includes(season)}
-              onClick={() =>
-                props.onSeasons(
-                  props.seasons.includes(season)
-                    ? props.seasons.filter((s) => s !== season)
-                    : SEASONS.filter((s) => s === season || props.seasons.includes(s)),
-                )
-              }
-              className="toggle px-2.5 py-1 text-[13px]"
-            >
-              {seasonName(t, season)}
-            </button>
-          ))}
-        </div>
-      </fieldset>
 
       <div className="grid gap-3">
         <RailField label={t('editor.temperature')} htmlFor="temperature">

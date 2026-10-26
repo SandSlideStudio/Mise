@@ -62,6 +62,7 @@ export const es: Record<MessageKey, string> = {
   'nav.recipes': 'Recetas',
   'nav.ingredients': 'Ingredientes',
   'nav.settings': 'Ajustes',
+  'nav.updateAvailable': 'Hay una versión más nueva de Mise',
 
   'role.admin': 'Administrador',
   'role.head_chef': 'Jefe de cocina',
@@ -194,6 +195,13 @@ export const es: Record<MessageKey, string> = {
   'setup.addPerson': 'Añadir a alguien',
   'setup.nameMissing': 'Cada fila necesita un nombre.',
   'setup.pinInvalid': 'Un PIN tiene de 4 a 8 cifras.',
+  'setup.yourPin': 'Tu PIN (opcional)',
+  'setup.yourPinHint':
+    'Para entrar en la tableta de la cocina como el resto de la brigada. Déjalo vacío para saltarlo; puedes ponerlo más tarde.',
+  'setup.summaryPin': 'PIN para la tableta de la cocina',
+  'setup.backupsTitle': 'Copias de seguridad',
+  'setup.backupsHint':
+    'Mise hace cada noche una copia de toda la cocina. Una copia en otro sitio evita que un disco roto o un robo se lleve también las copias. Lo conectas justo después de la configuración; también puedes hacerlo más tarde.',
   'setup.recipesTitle': 'Recetas',
   'setup.recipesBody':
     'Añade al recetario los platos y la mise en place que ya conoces: un nombre y lo que rinde una tanda. Ingredientes y elaboración pueden venir después.',
@@ -511,6 +519,30 @@ export const es: Record<MessageKey, string> = {
   'devices.revokeTitle': 'Cierra al momento la sesión de todos en {name}',
 
   'kitchen.loadError': 'No se pudieron cargar los ajustes de la cocina.',
+  'version.title': 'Versión de Mise',
+  'version.running': 'Esta cocina usa Mise {version}.',
+  'version.upToDate': 'Es la versión más reciente.',
+  'version.newer': 'Ya está Mise {version}.',
+  'version.whatChanged': 'Qué ha cambiado',
+  'version.checkFailed':
+    'No se pudo conectar con GitHub para buscar una versión más nueva. Mise lo intentará mañana.',
+  'version.notChecked':
+    'Aún no se ha comprobado. Mise mira un minuto después de arrancar y luego una vez al día.',
+  'version.checkLabel': 'Buscar una versión más nueva una vez al día',
+  'version.checkHint':
+    'Mise pregunta a GitHub cuál es la versión más reciente. No se envía nada sobre tu cocina.',
+  'version.howTitle': 'Cómo actualizar',
+  'version.backupFirst':
+    'Descarga antes una copia de seguridad. La base de datos se actualiza sola al arrancar Mise.',
+  'version.major':
+    '{version} es una nueva versión principal. Lee primero qué ha cambiado y pon MISE_VERSION a {major} en .env, o la etiqueta de la imagen a :{major} en TrueNAS.',
+  'version.howTrueNas': 'TrueNAS',
+  'version.howTrueNasSteps': 'Abre Apps, elige la app mise y pulsa Update o Pull Images.',
+  'version.howInstaller': 'Instalado con el instalador',
+  'version.howInstallerSteps':
+    'En la carpeta mise-kitchen, vuelve a ejecutar el comando de instalación:',
+  'version.howDocker': 'Docker solo',
+  'version.howDockerSteps': 'En la carpeta con compose.yaml, ejecuta:',
   'kitchen.title': 'Esta cocina',
   'kitchen.units': 'Unidades',
   'kitchen.metric': 'Métrico — gramos y litros',
@@ -532,6 +564,8 @@ export const es: Record<MessageKey, string> = {
   'handover.save': 'Guardar la nota',
   'handover.clear': 'Borrar la nota',
   'handover.edit': 'Cambiar',
+  'handover.remove': 'Quitar la nota',
+  'handover.removeConfirm': '¿Quitar?',
   'handover.by': '{name}, {when}',
   'running.title': 'La lista',
   'running.subtitle':
@@ -579,6 +613,15 @@ export const es: Record<MessageKey, string> = {
   'backups.keyPrintBody':
     'Con esta clave se restaura una copia de esta cocina en Mise. No la guardes junto al servidor: mejor en la caja fuerte de la oficina o en casa.',
   'backups.whereTitle': 'Adónde van las copias',
+  'backups.onlyHereTitle': 'Las copias solo están en esta máquina',
+  'backups.onlyHereBody':
+    'Si se estropea, la roban o falla su disco, las copias se pierden con ella. Envíalas también a un NAS o a OneDrive.',
+  'backups.onlyHereAction': 'Elegir adónde van',
+  'backups.connectTitle': 'Un paso más para tus copias',
+  'backups.connectWebdav':
+    'Rellena tu NAS o Nextcloud en Adónde van las copias, pruébalo y guarda.',
+  'backups.connectOnedrive':
+    'Conecta OneDrive en Adónde van las copias con el código que te da Microsoft y luego guarda.',
   'backups.whereLocal': 'Solo en esta máquina',
   'backups.whereLocalHint':
     'Se guardan en la misma máquina que Mise. Si se estropea, la roban o falla su disco, se pierden con ella. Así que descarga una de vez en cuando, o envíalas a un NAS o a OneDrive.',
@@ -659,7 +702,6 @@ export const es: Record<MessageKey, string> = {
   'recipe.dishCard': 'Ficha de plato',
   'editor.frontOfHouse': 'Sala',
   'editor.frontOfHouseHint': 'Lo que la ficha de plato le cuenta a la sala.',
-  'editor.seasons': 'Temporada',
   'editor.flavour': 'Perfil de sabor',
   'editor.flavourPlaceholder': 'cremoso, ajo, fresco',
   'editor.temperature': 'Se sirve',
@@ -670,11 +712,6 @@ export const es: Record<MessageKey, string> = {
   'editor.cutleryPlaceholder': 'cuchara pequeña',
   'editor.listHint': 'Separa con comas.',
   'editor.notSet': 'Sin indicar',
-  'season.spring': 'Primavera',
-  'season.summer': 'Verano',
-  'season.autumn': 'Otoño',
-  'season.winter': 'Invierno',
-  'season.all_year': 'Todo el año',
   'temperature.cold': 'Frío',
   'temperature.room': 'Temperatura ambiente',
   'temperature.warm': 'Templado',
@@ -722,7 +759,7 @@ export const es: Record<MessageKey, string> = {
   'card.attentionPhoto': 'Este plato aún no tiene foto.',
   'card.attentionDraft': 'Esta receta todavía es un borrador.',
   'card.fixIngredients': 'Abrir los ingredientes',
-  'card.season': 'Temporada',
+  'card.menu': 'Menú',
   'card.flavour': 'Perfil de sabor',
   'card.temperature': 'Temperatura',
   'card.course': 'Lugar en el menú',
@@ -782,7 +819,7 @@ export const es: Record<MessageKey, string> = {
     'Escríbelo en cada idioma en que imprimas. Una ficha en un idioma sin aviso usa el del idioma de la cocina.',
   'dishCards.warningPlaceholder': 'Esta ficha de plato es propiedad de …',
   'dishCards.show': 'En la ficha',
-  'dishCards.part.season': 'Temporada',
+  'dishCards.part.menu': 'Menú',
   'dishCards.part.flavour': 'Perfil de sabor',
   'dishCards.part.temperature': 'Temperatura',
   'dishCards.part.course': 'Lugar en el menú',

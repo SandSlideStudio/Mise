@@ -12,6 +12,8 @@ import { renderDishCardPdf } from './pdf.js';
  */
 export async function renderMenuCards(options: {
   dishIds: string[];
+  /** Printed on every card as the menu the dish is on. */
+  menuName: string;
   title: string;
   language: Language;
   kitchenLanguage: Language;
@@ -23,8 +25,9 @@ export async function renderMenuCards(options: {
   const pages: CardPage[] = [];
   for (const [index, id] of options.dishIds.entries()) {
     const card = await api.get<DishCard>(`/recipes/${id}/card`);
+    const onThisMenu = { ...card, dish: { ...card.dish, menus: [options.menuName] } };
     pages.push(
-      ...layoutDishCard(card, fonts, {
+      ...layoutDishCard(onThisMenu, fonts, {
         language: options.language,
         kitchenLanguage: options.kitchenLanguage,
         theme: options.theme,

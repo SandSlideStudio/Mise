@@ -98,7 +98,7 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
 
   // --- the handover note ---------------------------------------------------
 
-  /** What the last shift left for this one. Everyone reads it; chefs write it. */
+  /** What the last shift left for this one. Anyone on the brigade can read, write or remove it. */
   async function readNote() {
     const [kitchen] = await app.db
       .select({
@@ -127,10 +127,10 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
   r.put(
     '/running/note',
     {
-      onRequest: [app.requireRole(...MANAGERS)],
+      onRequest: [app.requireUser],
       schema: {
         body: updateHandoverNoteSchema,
-        response: { 200: handoverNoteSchema, 403: errorSchema },
+        response: { 200: handoverNoteSchema, 401: errorSchema },
       },
     },
     async (request) => {

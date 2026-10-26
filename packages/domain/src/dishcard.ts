@@ -20,7 +20,6 @@ import { err, ok, type Result } from './result.js';
 // --- front-of-house vocabulary ---------------------------------------------
 
 /** Fixed lists, so the card can say them in whichever language it is printed in. */
-export const SEASONS = ['spring', 'summer', 'autumn', 'winter', 'all_year'] as const;
 export const SERVING_TEMPERATURES = ['cold', 'room', 'warm', 'hot', 'hot_and_cold'] as const;
 export const COURSES = [
   'amuse',
@@ -33,13 +32,8 @@ export const COURSES = [
   'side',
 ] as const;
 
-export type Season = (typeof SEASONS)[number];
 export type ServingTemperature = (typeof SERVING_TEMPERATURES)[number];
 export type Course = (typeof COURSES)[number];
-
-export function isSeason(value: string): value is Season {
-  return (SEASONS as readonly string[]).includes(value);
-}
 
 /**
  * The order allergens run across a card. Not the order of the law: the order

@@ -11,7 +11,6 @@ import {
   cardAllergenName,
   courseName,
   createTranslator,
-  seasonName,
   temperatureName,
 } from '../../i18n/index.js';
 import { measure, PT_TO_MM, type CardFontKey, type CardFonts } from './fonts.js';
@@ -399,8 +398,8 @@ export function layoutDishCard(card: DishCard, fonts: CardFonts, options: Layout
     // What the dish is, in a row of boxes.
     const facts: [string, string][] = [];
     const dish = card.dish;
-    if (shows('season') && dish.seasons.length > 0) {
-      facts.push([t('card.season'), dish.seasons.map((s) => seasonName(t, s)).join(', ')]);
+    if (shows('menu') && dish.menus.length > 0) {
+      facts.push([t('card.menu'), dish.menus.join(' · ')]);
     }
     if (shows('flavour') && dish.flavourProfile.length > 0) {
       facts.push([t('card.flavour'), dish.flavourProfile.join(' / ')]);

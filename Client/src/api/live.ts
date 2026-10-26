@@ -17,7 +17,7 @@ const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
   prep: [['tasks'], ['handover']],
   kitchen: [['kitchen'], ['stations'], ['me'], ['dish-card-settings'], ['dish-card']],
   staff: [['users'], ['roster'], ['me']],
-  menus: [['menus'], ['menu'], ['menu-overview']],
+  menus: [['menus'], ['menu'], ['menu-overview'], ['dish-card']],
 };
 
 const TOPICS = Object.keys(KEYS_BY_TOPIC) as Topic[];

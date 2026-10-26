@@ -46,6 +46,8 @@ export const setupRequestSchema = z
     displayName: z.string().trim().min(1).max(120),
     email: z.email(),
     password: passwordSchema,
+    /** Optional, so the person setting up can tap in on the kitchen tablet straight away. */
+    pin: pinSchema.optional(),
     /** Becomes the kitchen's default language. */
     language: languageSchema.optional(),
     unitSystem: z.enum(['metric', 'imperial']).optional(),

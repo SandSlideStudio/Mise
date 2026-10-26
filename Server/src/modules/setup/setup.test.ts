@@ -95,6 +95,48 @@ describe('setting a kitchen up in one go', () => {
     expect(signedIn.statusCode).toBe(200);
   });
 
+  it('gives the person setting up a PIN for the tablet when they choose one', async () => {
+    const response = await setUp({ ...FULL_SETUP, pin: '2468' });
+    const cookies = { mise_session: cookieFrom(response, 'mise_session')! };
+    const enrolled = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookies,
+    });
+    const device = cookieFrom(enrolled, 'mise_device')!;
+    const roster = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/auth/roster',
+      cookies: { mise_device: device },
+    });
+    const me = roster
+      .json()
+      .find((p: { displayName: string }) => p.displayName === ADMIN.displayName);
+    expect(me.pinLength).toBe(4);
+
+    const signedIn = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/pin-login',
+      payload: { userId: me.id, pin: '2468' },
+      cookies: { mise_device: device },
+    });
+    expect(signedIn.statusCode).toBe(200);
+  });
+
+  it('leaves the person setting up without a PIN when they skip it', async () => {
+    const response = await setUp(FULL_SETUP);
+    const cookies = { mise_session: cookieFrom(response, 'mise_session')! };
+    const users = await ctx.app.inject({ method: 'GET', url: '/api/users', cookies });
+    const me = users.json().find((u: { role: string }) => u.role === 'admin');
+    expect(me.hasPin).toBe(false);
+  });
+
+  it('refuses a PIN that is not 4 to 8 digits', async () => {
+    expect((await setUp({ ...FULL_SETUP, pin: '12' })).statusCode).toBe(400);
+    expect((await setUp({ ...FULL_SETUP, pin: 'abcd' })).statusCode).toBe(400);
+  });
+
   it('refuses a person or recipe on a station that is not in the list', async () => {
     const response = await setUp({
       ...FULL_SETUP,

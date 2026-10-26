@@ -61,6 +61,7 @@ export const nl: Record<MessageKey, string> = {
   'nav.recipes': 'Recepten',
   'nav.ingredients': 'Ingrediënten',
   'nav.settings': 'Instellingen',
+  'nav.updateAvailable': 'Er is een nieuwere Mise',
 
   'role.admin': 'Beheerder',
   'role.head_chef': 'Chef-kok',
@@ -192,6 +193,13 @@ export const nl: Record<MessageKey, string> = {
   'setup.addPerson': 'Iemand toevoegen',
   'setup.nameMissing': 'Elke regel heeft een naam nodig.',
   'setup.pinInvalid': 'Een pincode is 4 tot 8 cijfers.',
+  'setup.yourPin': 'Je pincode (optioneel)',
+  'setup.yourPinHint':
+    'Zo tik je net als de rest van de brigade in op de keukentablet. Laat leeg om over te slaan; later instellen kan ook.',
+  'setup.summaryPin': 'Pincode voor de keukentablet',
+  'setup.backupsTitle': 'Back-ups',
+  'setup.backupsHint':
+    'Mise maakt elke nacht een back-up van de hele keuken. Een kopie ergens anders betekent dat een kapotte schijf of een diefstal de back-ups niet ook meeneemt. Je koppelt het direct na de installatie; later kan ook.',
   'setup.recipesTitle': 'Recepten',
   'setup.recipesBody':
     'Zet de gerechten en mise en place die je al kent in het receptenboek: een naam en wat één batch oplevert. Ingrediënten en werkwijze kunnen later.',
@@ -512,6 +520,29 @@ export const nl: Record<MessageKey, string> = {
   'devices.revokeTitle': 'Logt meteen iedereen uit op {name}',
 
   'kitchen.loadError': 'De keukeninstellingen konden niet geladen worden.',
+  'version.title': 'Versie van Mise',
+  'version.running': 'Deze keuken draait Mise {version}.',
+  'version.upToDate': 'Dat is de nieuwste versie.',
+  'version.newer': 'Mise {version} is uit.',
+  'version.whatChanged': 'Wat is er veranderd',
+  'version.checkFailed':
+    'GitHub was niet bereikbaar om op een nieuwere versie te controleren. Mise probeert het morgen opnieuw.',
+  'version.notChecked':
+    'Nog niet gecontroleerd. Mise kijkt een minuut na het starten, en daarna eens per dag.',
+  'version.checkLabel': 'Eens per dag op een nieuwere versie controleren',
+  'version.checkHint':
+    'Mise vraagt GitHub welke versie de nieuwste is. Er wordt niets over je keuken verstuurd.',
+  'version.howTitle': 'Zo werk je bij',
+  'version.backupFirst':
+    'Download eerst een back-up. De database werkt zichzelf bij als Mise start.',
+  'version.major':
+    '{version} is een nieuwe hoofdversie. Lees eerst wat er veranderd is, en zet MISE_VERSION op {major} in .env, of de image-tag op :{major} in TrueNAS.',
+  'version.howTrueNas': 'TrueNAS',
+  'version.howTrueNasSteps': 'Open Apps, kies de app mise en klik op Update of Pull Images.',
+  'version.howInstaller': 'Geïnstalleerd met het installatieprogramma',
+  'version.howInstallerSteps': 'Voer in de map mise-kitchen het installatiecommando opnieuw uit:',
+  'version.howDocker': 'Gewoon Docker',
+  'version.howDockerSteps': 'Voer in de map met compose.yaml uit:',
   'kitchen.title': 'Deze keuken',
   'kitchen.units': 'Eenheden',
   'kitchen.metric': 'Metrisch — grammen en liters',
@@ -533,6 +564,8 @@ export const nl: Record<MessageKey, string> = {
   'handover.save': 'Notitie opslaan',
   'handover.clear': 'Notitie wissen',
   'handover.edit': 'Wijzigen',
+  'handover.remove': 'Notitie verwijderen',
+  'handover.removeConfirm': 'Verwijderen?',
   'handover.by': '{name}, {when}',
   'running.title': 'De lijst',
   'running.subtitle': 'Eén lijst voor de hele keuken. Afgevinkte regels verdwijnen na twee uur.',
@@ -579,6 +612,15 @@ export const nl: Record<MessageKey, string> = {
   'backups.keyPrintBody':
     'Met deze sleutel zet je een back-up van deze keuken terug in Mise. Bewaar hem niet bij de server, maar in de kluis op kantoor of thuis.',
   'backups.whereTitle': 'Waar back-ups heen gaan',
+  'backups.onlyHereTitle': 'Back-ups staan alleen op deze machine',
+  'backups.onlyHereBody':
+    'Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn de back-ups ook weg. Stuur ze ook naar een NAS of OneDrive.',
+  'backups.onlyHereAction': 'Kies waar ze heen gaan',
+  'backups.connectTitle': 'Nog één stap voor je back-ups',
+  'backups.connectWebdav':
+    'Vul je NAS of Nextcloud in onder Waar back-ups heen gaan, test hem en sla op.',
+  'backups.connectOnedrive':
+    'Koppel OneDrive onder Waar back-ups heen gaan met de code die Microsoft je geeft, en sla daarna op.',
   'backups.whereLocal': 'Alleen op deze machine',
   'backups.whereLocalHint':
     'Deze staan op dezelfde machine als Mise. Gaat die kapot, wordt hij gestolen of faalt de schijf, dan zijn ze ook weg. Download er dus af en toe een, of stuur ze naar een NAS of OneDrive.',
@@ -659,7 +701,6 @@ export const nl: Record<MessageKey, string> = {
   'recipe.dishCard': 'Gerechtenkaart',
   'editor.frontOfHouse': 'Bediening',
   'editor.frontOfHouseHint': 'Wat de gerechtenkaart de bediening vertelt.',
-  'editor.seasons': 'Seizoen',
   'editor.flavour': 'Smaakprofiel',
   'editor.flavourPlaceholder': 'romig, knoflook, fris',
   'editor.temperature': 'Temperatuur',
@@ -670,11 +711,6 @@ export const nl: Record<MessageKey, string> = {
   'editor.cutleryPlaceholder': 'kleine lepel',
   'editor.listHint': 'Scheid met komma’s.',
   'editor.notSet': 'Niet ingevuld',
-  'season.spring': 'Lente',
-  'season.summer': 'Zomer',
-  'season.autumn': 'Herfst',
-  'season.winter': 'Winter',
-  'season.all_year': 'Hele jaar',
   'temperature.cold': 'Koud',
   'temperature.room': 'Kamertemperatuur',
   'temperature.warm': 'Lauw',
@@ -721,7 +757,7 @@ export const nl: Record<MessageKey, string> = {
   'card.attentionPhoto': 'Dit gerecht heeft nog geen foto.',
   'card.attentionDraft': 'Dit recept is nog een concept.',
   'card.fixIngredients': 'Naar de ingrediënten',
-  'card.season': 'Seizoen',
+  'card.menu': 'Menu',
   'card.flavour': 'Smaakprofiel',
   'card.temperature': 'Temperatuur',
   'card.course': 'Menu plaatsing',
@@ -781,7 +817,7 @@ export const nl: Record<MessageKey, string> = {
     'Schrijf hem in elke taal waarin je afdrukt. Een kaart in een taal zonder waarschuwing gebruikt die in de taal van de keuken.',
   'dishCards.warningPlaceholder': 'Deze gerechtenkaart is eigendom van …',
   'dishCards.show': 'Op de kaart',
-  'dishCards.part.season': 'Seizoen',
+  'dishCards.part.menu': 'Menu',
   'dishCards.part.flavour': 'Smaakprofiel',
   'dishCards.part.temperature': 'Temperatuur',
   'dishCards.part.course': 'Menu plaatsing',
