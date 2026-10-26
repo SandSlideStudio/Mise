@@ -8,6 +8,9 @@ What's planned after 2.0, roughly in order. Nothing here has a date.
     command that only works with the installer's folder.
   - The recipe editor hides the batch fields when a recipe is a dish: one batch makes,
     portions, prep minutes, keeps hours and storage.
+  - The backups page stops assuming an SD card. Backups kept on the server go when the server
+    goes, whatever it stores them on, so the advice to download one now and then says that in
+    every language.
 - **2.1: Costing.** Ingredient prices and purchase units, and a food cost per dish and per menu.
 - **2.2: Temperature and cooling logs.** HACCP records kept on the tablet instead of on paper.
 - **Labels.** Print prep date, use-by and allergens to a label printer when a line is ticked.
