@@ -71,7 +71,10 @@ function MenuView({ menu }: { menu: Menu }) {
     update.mutate({ dishes: next });
   }
 
-  const changed = menu.dishes.filter((dish) => dish.changedSinceCards).length;
+  // Never printed means nothing has changed since: the printing panel says the cards are still to do.
+  const changed = menu.cardsPrintedAt
+    ? menu.dishes.filter((dish) => dish.changedSinceCards).length
+    : 0;
 
   return (
     <div className="flex flex-col gap-6">

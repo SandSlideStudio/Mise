@@ -60,6 +60,7 @@ export const de: Record<MessageKey, string> = {
 
   'nav.today': 'Heute',
   'nav.recipes': 'Rezepte',
+  'nav.dishes': 'Gerichte',
   'nav.ingredients': 'Zutaten',
   'nav.settings': 'Einstellungen',
   'nav.updateAvailable': 'Eine neuere Mise-Version ist da',
@@ -318,11 +319,10 @@ export const de: Record<MessageKey, string> = {
   'task.openRecipe': 'Rezept für {task} öffnen',
 
   'recipes.subtitle':
-    'Mit Frei von siehst du, was ein Tisch mit Allergie essen kann, Unterrezepte eingeschlossen.',
+    'Vorbereitungen und Komponenten. Mit Frei von siehst du, was ein Allergietisch bekommen kann, Unterrezepte inklusive. Gerichte haben einen eigenen Reiter.',
   'recipes.search': 'Im Rezeptbuch suchen',
   'recipes.sort': 'Art',
   'recipes.anySort': 'Jede Art',
-  'recipes.dishes': 'Gerichte',
   'recipes.prep': 'Vorbereitungen',
   'recipes.components': 'Komponenten',
   'recipes.freeFrom': 'Frei von…',
@@ -849,6 +849,26 @@ export const de: Record<MessageKey, string> = {
     'Jede Karte endet mit einer kleinen Zeile, dass sie mit Mise erstellt wurde.',
   // Menus
   'nav.menus': 'Menüs',
+  'dishes.subtitle':
+    'Jedes Gericht als seine Karte: was der Service liest, mit den Allergenen aus jedem Unterrezept berechnet.',
+  'dishes.new': 'Neues Gericht',
+  'dishes.search': 'Gericht suchen',
+  'dishes.anyCourse': 'Jeder Gang',
+  'dishes.onMenu': 'Nur auf einem aktiven Menü',
+  'dishes.noMatch': 'Kein Gericht passt.',
+  'dishes.empty':
+    'Noch keine Gerichte. Ein Gericht ist, was an den Pass geht: Leg eins an, dann steht es hier als seine Karte.',
+  'dishes.count_one': '{count} Gericht',
+  'dishes.count_other': '{count} Gerichte',
+  'dishes.countFreeFrom': '{shown} von {total} Gerichten sind frei von {allergen}',
+  'dishes.countFiltered': '{shown} von {total} Gerichten',
+  'dishes.notOnMenu': 'Auf keinem Menü',
+  'dishes.broken':
+    'Die Allergene lassen sich nicht berechnen: Ein Unterrezept fehlt oder verwendet sich selbst.',
+  'dishes.openSpec': 'Rezept',
+  'dishes.print': 'Drucken oder PDF',
+  'dishes.kept':
+    'Diese Küche behält Gerichtekarten Köchen und Administratoren vor. Das Rezept kannst du trotzdem öffnen.',
   'menus.subtitle':
     'Die Gerichte, die der Service zusammen verkauft. Die Allergenübersicht eines Menüs drucken, oder alle Gerichtkarten auf einmal.',
   'menus.name': 'Name des Menüs',

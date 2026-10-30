@@ -21,6 +21,8 @@ import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
 import { RecipeView } from './routes/RecipeView.js';
 import { Recipes } from './routes/Recipes.js';
+import { Dishes } from './routes/Dishes.js';
+import { DishView } from './routes/DishView.js';
 import { Menus } from './routes/Menus.js';
 import { MenuDetail } from './routes/MenuDetail.js';
 import { Today } from './routes/Today.js';
@@ -159,7 +161,22 @@ const rootRoute = createRootRoute({ component: Shell });
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/', component: Today }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes', component: Recipes }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/recipes/new', component: RecipeEditor }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/recipes/new',
+    component: RecipeEditor,
+    // "New dish" on the Dishes page starts the editor as a dish: ?type=dish.
+    validateSearch: (
+      search: Record<string, unknown>,
+    ): { type?: 'dish' | 'prep' | 'component' } => ({
+      type:
+        search.type === 'dish' || search.type === 'prep' || search.type === 'component'
+          ? search.type
+          : undefined,
+    }),
+  }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes', component: Dishes }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes/$dishId', component: DishView }),
   createRoute({
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId',

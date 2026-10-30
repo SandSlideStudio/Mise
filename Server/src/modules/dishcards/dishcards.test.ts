@@ -239,6 +239,56 @@ describe('the dish card', () => {
   });
 });
 
+describe('the dishes page', () => {
+  it('lists every dish with the front of its card and its allergens, and no preps', async () => {
+    const dish = await luchtigeMais();
+    await post('/api/menus', { name: 'Winterkaart', status: 'active', dishes: [dish.id] });
+    const response = await ctx.app.inject({ method: 'GET', url: '/api/dishes', cookies: admin });
+    expect(response.statusCode).toBe(200);
+    const dishes = response.json();
+    expect(dishes).toHaveLength(1);
+    expect(dishes[0]).toMatchObject({
+      id: dish.id,
+      name: 'Luchtige Mais',
+      course: 'middle',
+      servingTemperature: 'cold',
+      menus: ['Winterkaart'],
+      photoUrl: null,
+      facts: { contains: ['mustard', 'sulphites'], vegan: 'yes' },
+    });
+  });
+
+  it('is there for everyone signed in, even when the cards are kept to chefs', async () => {
+    await luchtigeMais();
+    await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/dish-cards/settings',
+      payload: { access: 'managers' },
+      cookies: admin,
+    });
+    const created = await post('/api/users', { displayName: 'Marco', role: 'cook', pin: '4821' });
+    const enrolled = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookies: admin,
+    });
+    const signedIn = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/pin-login',
+      payload: { userId: created.id, pin: '4821' },
+      cookies: { mise_device: cookieFrom(enrolled, 'mise_device')! },
+    });
+    const cook = { mise_session: cookieFrom(signedIn, 'mise_session')! };
+    const dishes = await ctx.app.inject({ method: 'GET', url: '/api/dishes', cookies: cook });
+    expect(dishes.statusCode).toBe(200);
+    expect(dishes.json()).toHaveLength(1);
+
+    const anonymous = await ctx.app.inject({ method: 'GET', url: '/api/dishes' });
+    expect(anonymous.statusCode).toBe(401);
+  });
+});
+
 describe('dish card settings', () => {
   it('start with nothing filled in and a white card', async () => {
     const response = await ctx.app.inject({

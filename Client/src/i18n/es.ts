@@ -60,6 +60,7 @@ export const es: Record<MessageKey, string> = {
 
   'nav.today': 'Hoy',
   'nav.recipes': 'Recetas',
+  'nav.dishes': 'Platos',
   'nav.ingredients': 'Ingredientes',
   'nav.settings': 'Ajustes',
   'nav.updateAvailable': 'Hay una versión más nueva de Mise',
@@ -314,11 +315,10 @@ export const es: Record<MessageKey, string> = {
   'task.openRecipe': 'Abrir la receta de {task}',
 
   'recipes.subtitle':
-    'Usa Sin para ver qué puede comer una mesa con alergias, subrecetas incluidas.',
+    'Mise en place y componentes. Usa Sin para ver lo que puede tomar una mesa con alergias, subrecetas incluidas. Los platos tienen su propia pestaña.',
   'recipes.search': 'Buscar en el recetario',
   'recipes.sort': 'Tipo',
   'recipes.anySort': 'Cualquier tipo',
-  'recipes.dishes': 'Platos',
   'recipes.prep': 'Elaboraciones',
   'recipes.components': 'Componentes',
   'recipes.freeFrom': 'Sin…',
@@ -841,6 +841,25 @@ export const es: Record<MessageKey, string> = {
   'dishCards.miseLine': 'Cada ficha termina con una pequeña línea que dice que se hizo con Mise.',
   // Menus
   'nav.menus': 'Menús',
+  'dishes.subtitle':
+    'Cada plato como su ficha: lo que lee la sala, con los alérgenos calculados a partir de cada subreceta.',
+  'dishes.new': 'Nuevo plato',
+  'dishes.search': 'Buscar un plato',
+  'dishes.anyCourse': 'Cualquier pase',
+  'dishes.onMenu': 'Solo en un menú activo',
+  'dishes.noMatch': 'Ningún plato coincide.',
+  'dishes.empty':
+    'Aún no hay platos. Un plato es lo que sale al pase: añade uno y aparecerá aquí como su ficha.',
+  'dishes.count_one': '{count} plato',
+  'dishes.count_other': '{count} platos',
+  'dishes.countFreeFrom': '{shown} de {total} platos sin {allergen}',
+  'dishes.countFiltered': '{shown} de {total} platos',
+  'dishes.notOnMenu': 'En ningún menú',
+  'dishes.broken': 'No se pueden calcular los alérgenos: falta una subreceta o se usa a sí misma.',
+  'dishes.openSpec': 'Receta',
+  'dishes.print': 'Imprimir o PDF',
+  'dishes.kept':
+    'Esta cocina reserva las fichas de plato a chefs y administradores. La receta sigue abierta para ti.',
   'menus.subtitle':
     'Los platos que la sala vende juntos. Imprime el resumen de alérgenos de un menú, o todas sus fichas de plato a la vez.',
   'menus.name': 'Nombre del menú',

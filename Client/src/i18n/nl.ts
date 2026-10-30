@@ -59,6 +59,7 @@ export const nl: Record<MessageKey, string> = {
 
   'nav.today': 'Vandaag',
   'nav.recipes': 'Recepten',
+  'nav.dishes': 'Gerechten',
   'nav.ingredients': 'Ingrediënten',
   'nav.settings': 'Instellingen',
   'nav.updateAvailable': 'Er is een nieuwere Mise',
@@ -313,11 +314,10 @@ export const nl: Record<MessageKey, string> = {
   'task.openRecipe': 'Open het recept voor {task}',
 
   'recipes.subtitle':
-    'Gebruik Vrij van om te zien wat een tafel met een allergie kan eten, subrecepten inbegrepen.',
+    'Mise-en-place en componenten. Met Vrij van zie je wat een allergietafel kan krijgen, subrecepten meegeteld. Gerechten hebben een eigen tabblad.',
   'recipes.search': 'Zoek in het boek',
   'recipes.sort': 'Soort',
   'recipes.anySort': 'Elke soort',
-  'recipes.dishes': 'Gerechten',
   'recipes.prep': 'Prep',
   'recipes.components': 'Onderdelen',
   'recipes.freeFrom': 'Vrij van…',
@@ -839,6 +839,26 @@ export const nl: Record<MessageKey, string> = {
   'dishCards.miseLine': 'Elke kaart eindigt met een klein regeltje dat hij met Mise gemaakt is.',
   // Menus
   'nav.menus': 'Menu’s',
+  'dishes.subtitle':
+    'Elk gerecht als zijn kaart: wat de bediening leest, met de allergenen uitgerekend uit elk subrecept.',
+  'dishes.new': 'Nieuw gerecht',
+  'dishes.search': 'Zoek een gerecht',
+  'dishes.anyCourse': 'Elke gang',
+  'dishes.onMenu': 'Alleen op een actief menu',
+  'dishes.noMatch': 'Geen gerecht gevonden.',
+  'dishes.empty':
+    'Nog geen gerechten. Een gerecht is wat naar de pass gaat: voeg er een toe en het staat hier als zijn kaart.',
+  'dishes.count_one': '{count} gerecht',
+  'dishes.count_other': '{count} gerechten',
+  'dishes.countFreeFrom': '{shown} van {total} gerechten zijn vrij van {allergen}',
+  'dishes.countFiltered': '{shown} van {total} gerechten',
+  'dishes.notOnMenu': 'Niet op een menu',
+  'dishes.broken':
+    'De allergenen zijn niet uit te rekenen: een subrecept ontbreekt of gebruikt zichzelf.',
+  'dishes.openSpec': 'Recept',
+  'dishes.print': 'Printen of pdf',
+  'dishes.kept':
+    'Deze keuken houdt gerechtenkaarten voor chefs en beheerders. Het recept kun je wel openen.',
   'menus.subtitle':
     'De gerechten die de bediening samen verkoopt. Druk het allergenenoverzicht van een menu af, of alle gerechtenkaarten tegelijk.',
   'menus.name': 'Naam van het menu',

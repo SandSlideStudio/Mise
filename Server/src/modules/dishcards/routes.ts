@@ -9,6 +9,7 @@ import { z } from 'zod';
 import {
   dishCardSchema,
   dishCardSettingsSchema,
+  dishSummarySchema,
   errorSchema,
   idSchema,
   updateDishCardSettingsSchema,
@@ -112,6 +113,17 @@ const dishCardRoutes: FastifyPluginAsync = async (app) => {
       if (previous) await unlink(path.join(uploadDir, path.basename(previous))).catch(() => {});
       return serialiseSettings(await svc.settings());
     },
+  );
+
+  // The Dishes page. What a dish contains is no secret from anyone who cooks
+  // it, so this follows sign-in, not who may open the printable cards.
+  r.get(
+    '/dishes',
+    {
+      onRequest: [app.requireUser],
+      schema: { response: { 200: z.array(dishSummarySchema), 401: errorSchema } },
+    },
+    async () => svc.summaries(),
   );
 
   r.get(

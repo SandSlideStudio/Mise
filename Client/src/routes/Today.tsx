@@ -373,7 +373,7 @@ function AddRunningLine() {
     <form
       onSubmit={onSubmit}
       data-tour="add-line"
-      className="no-print bg-surface-raised border-line grid grid-cols-[minmax(0,1fr)_96px_84px] gap-2.5 border-b-2 px-4 py-3 sm:px-7 md:grid-cols-[minmax(0,1fr)_110px_90px_200px_auto]"
+      className="no-print bg-surface-raised border-line grid grid-cols-[minmax(0,1fr)_96px_84px] gap-2.5 border-b-2 px-4 py-3 sm:px-7 md:grid-cols-[minmax(0,1fr)_132px_90px_200px_auto]"
     >
       <input
         aria-label={t('addTask.what')}

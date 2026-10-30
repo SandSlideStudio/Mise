@@ -58,6 +58,7 @@ export const fr: Record<MessageKey, string> = {
 
   'nav.today': "Aujourd'hui",
   'nav.recipes': 'Recettes',
+  'nav.dishes': 'Plats',
   'nav.ingredients': 'Ingrédients',
   'nav.settings': 'Réglages',
   'nav.updateAvailable': 'Une version plus récente de Mise est sortie',
@@ -319,11 +320,10 @@ export const fr: Record<MessageKey, string> = {
   'task.openRecipe': 'Ouvrir la recette de {task}',
 
   'recipes.subtitle':
-    'Utilisez Sans pour voir ce qu’une table allergique peut manger, sous-recettes comprises.',
+    'Mises en place et composants. « Sans » montre ce qu’une table allergique peut avoir, sous-recettes comprises. Les plats ont leur propre onglet.',
   'recipes.search': 'Chercher dans le livre',
   'recipes.sort': 'Type',
   'recipes.anySort': 'Tous les types',
-  'recipes.dishes': 'Plats',
   'recipes.prep': 'Préparations',
   'recipes.components': 'Éléments',
   'recipes.freeFrom': 'Sans…',
@@ -850,6 +850,26 @@ export const fr: Record<MessageKey, string> = {
     'Chaque fiche se termine par une petite ligne indiquant qu’elle a été faite avec Mise.',
   // Menus
   'nav.menus': 'Menus',
+  'dishes.subtitle':
+    'Chaque plat sous forme de fiche : ce que lit la salle, avec les allergènes calculés à partir de chaque sous-recette.',
+  'dishes.new': 'Nouveau plat',
+  'dishes.search': 'Chercher un plat',
+  'dishes.anyCourse': 'Tous les services',
+  'dishes.onMenu': 'Seulement sur un menu actif',
+  'dishes.noMatch': 'Aucun plat ne correspond.',
+  'dishes.empty':
+    'Pas encore de plats. Un plat est ce qui part au passe : ajoutez-en un et il apparaît ici sous forme de fiche.',
+  'dishes.count_one': '{count} plat',
+  'dishes.count_other': '{count} plats',
+  'dishes.countFreeFrom': '{shown} plats sur {total} sans {allergen}',
+  'dishes.countFiltered': '{shown} plats sur {total}',
+  'dishes.notOnMenu': 'Sur aucun menu',
+  'dishes.broken':
+    'Les allergènes ne peuvent pas être calculés : une sous-recette manque ou s’utilise elle-même.',
+  'dishes.openSpec': 'Recette',
+  'dishes.print': 'Imprimer ou PDF',
+  'dishes.kept':
+    'Cette cuisine réserve les fiches plats aux chefs et administrateurs. La recette vous reste ouverte.',
   'menus.subtitle':
     'Les plats que la salle vend ensemble. Imprimez la vue d’ensemble des allergènes d’un menu, ou toutes ses fiches plats d’un coup.',
   'menus.name': 'Nom du menu',

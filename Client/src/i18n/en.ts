@@ -60,6 +60,7 @@ export const en = {
 
   'nav.today': 'Today',
   'nav.recipes': 'Recipes',
+  'nav.dishes': 'Dishes',
   'nav.ingredients': 'Ingredients',
   'nav.settings': 'Settings',
   'nav.updateAvailable': 'A newer Mise is out',
@@ -311,11 +312,11 @@ export const en = {
   'task.recipe': 'Recipe',
   'task.openRecipe': 'Open the recipe for {task}',
 
-  'recipes.subtitle': 'Use Free from to see what an allergy table can have, sub-recipes included.',
+  'recipes.subtitle':
+    'Preps and components. Use Free from to see what an allergy table can have, sub-recipes included. Dishes have their own tab.',
   'recipes.search': 'Search the book',
   'recipes.sort': 'Sort',
   'recipes.anySort': 'Any sort',
-  'recipes.dishes': 'Dishes',
   'recipes.prep': 'Prep',
   'recipes.components': 'Components',
   'recipes.freeFrom': 'Free from…',
@@ -823,6 +824,25 @@ export const en = {
   'dishCards.miseLine': 'Every card ends with a small line saying it was made with Mise.',
   // Menus
   'nav.menus': 'Menus',
+  'dishes.subtitle':
+    'Every dish as its card: what the floor reads, with the allergens worked out from every sub-recipe.',
+  'dishes.new': 'New dish',
+  'dishes.search': 'Find a dish',
+  'dishes.anyCourse': 'Any course',
+  'dishes.onMenu': 'Only on an active menu',
+  'dishes.noMatch': 'No dish matches.',
+  'dishes.empty':
+    'No dishes yet. A dish is what goes out to the pass: add one and it shows here as its card.',
+  'dishes.count_one': '{count} dish',
+  'dishes.count_other': '{count} dishes',
+  'dishes.countFreeFrom': '{shown} of {total} dishes are free from {allergen}',
+  'dishes.countFiltered': '{shown} of {total} dishes',
+  'dishes.notOnMenu': 'Not on a menu',
+  'dishes.broken': 'The allergens can’t be worked out: a sub-recipe is missing or uses itself.',
+  'dishes.openSpec': 'Recipe',
+  'dishes.print': 'Print or PDF',
+  'dishes.kept':
+    'This kitchen keeps dish cards to chefs and administrators. The recipe is still open to you.',
   'menus.subtitle':
     'The dishes front of house sells together. Print a menu’s allergen overview, or all its dish cards at once.',
   'menus.name': 'Menu name',

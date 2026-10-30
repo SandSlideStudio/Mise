@@ -45,6 +45,7 @@ const RELEASES = [
   { version: '1.1.0', last: '0009' },
   { version: '2.0.1', last: '0013' },
   { version: '2.1.0', last: '0015' },
+  { version: '2.1.1', last: '0017' },
 ] as const;
 
 const DRIZZLE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../drizzle');
@@ -99,9 +100,14 @@ async function fill(db: Database, last: string) {
              ('${SAUCE}', 0, 250, 250, 'g', '${BUTTER}', null),
              ('${DISH}', 0, 1500, 1500, 'g', '${COD}', null),
              ('${DISH}', 1, 500, 0.5, 'l', null, '${SAUCE}')`);
-  // Every release so far sent backups to one place; this one, a NAS.
-  await run(`insert into backup_settings (id, recovery_key, destination, webdav_url)
-             values ('${SETTINGS_ID}', '${generateRecoveryKey()}', 'webdav', 'http://nas.local/dav')`);
+  // Before 2.1.1 backups went to one place; since, to any. Either way, a NAS.
+  await run(
+    at('0016')
+      ? `insert into backup_settings (id, recovery_key, send_to_webdav, webdav_url)
+         values ('${SETTINGS_ID}', '${generateRecoveryKey()}', true, 'http://nas.local/dav')`
+      : `insert into backup_settings (id, recovery_key, destination, webdav_url)
+         values ('${SETTINGS_ID}', '${generateRecoveryKey()}', 'webdav', 'http://nas.local/dav')`,
+  );
 
   if (!at('0010')) {
     // 1.x: tonight's service with an open line, and one on the running list.

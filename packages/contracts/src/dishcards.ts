@@ -103,6 +103,24 @@ export const dishCardSchema = z.object({
   settings: dishCardSettingsSchema,
 });
 
+/**
+ * One dish as the Dishes page shows it: the front of its card, small. The
+ * allergens are null when the dish can't be worked out (a sub-recipe is
+ * missing or circular); the page says so rather than guess.
+ */
+export const dishSummarySchema = z.object({
+  id: idSchema,
+  name: z.string(),
+  status: recipeStatusSchema,
+  course: courseSchema.nullable(),
+  servingTemperature: servingTemperatureSchema.nullable(),
+  flavourProfile: z.array(z.string()),
+  menus: z.array(z.string()),
+  photoUrl: z.string().nullable(),
+  facts: dishCardFactsSchema.nullable(),
+});
+
+export type DishSummary = z.infer<typeof dishSummarySchema>;
 export type DishCardPart = z.infer<typeof dishCardPartSchema>;
 export type DishCardTheme = z.infer<typeof dishCardThemeSchema>;
 export type DishCardAccess = z.infer<typeof dishCardAccessSchema>;
