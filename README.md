@@ -56,8 +56,10 @@ whoever sets up the kitchen can choose one during setup.
 ## Dish cards
 
 Every dish has a dish card for the floor: its photo and what it is on the front, and every
-allergen for each of its components on the back. Open a dish and choose **Dish card**, pick the
-language and day or night, then print it or download the PDF.
+allergen for each of its components on the back. Dishes have their own **Dishes** tab, where each
+one shows as its card, grouped by course, with **Free from** to see what an allergy table can
+have. Open a dish to see its whole card on screen, then choose **Print or PDF**, pick the language
+and day or night, and print it or download the PDF. Preps and components stay under **Recipes**.
 
 Fill in the **Front of house** part of a dish in the recipe editor, and say on each ingredient
 whether it is vegan and, for gluten and nuts, which cereal or nut it is. The card page lists

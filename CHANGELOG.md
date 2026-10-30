@@ -3,6 +3,32 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.2.0
+
+**Dishes**
+
+- Dishes have their own **Dishes** tab, between Recipes and Menus, and are no longer listed under
+  Recipes. Each dish shows as the front of its card, grouped by course: the menu it's on, how it
+  is served, its allergens and whether it's vegan.
+- Find a dish, filter by course, see only the dishes on an active menu, or use **Free from** to see
+  what an allergy table can have.
+- A dish opens as its card on screen, front and back, with the same parts as the printed card, in
+  the screen's language and colours. From there, open its recipe, edit it, or print it.
+- In a kitchen that keeps dish cards to chefs and administrators, cooks still see the Dishes tab,
+  and a dish opens its recipe for them.
+- **New dish** on the Dishes tab starts the editor as a dish.
+
+**Fixes**
+
+- A menu whose dish cards were never downloaded no longer says its dishes changed since printing.
+- The amount field when adding to the prep list is wide enough for its placeholder.
+- The upgrade test now covers 2.1.1 as well.
+
+**Roadmap**
+
+- Temperature and cooling logs and costing are moved back until there's been more research into
+  the rules around them.
+
 ## 2.1.1
 
 Security and safer updates, from an independent audit.
