@@ -240,6 +240,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   wrong_password: 'error.wrongPassword',
   password_needed: 'error.passwordNeeded',
   too_many_requests: 'error.tooManyRequests',
+  domain_locks_you_out: 'error.domainLocksYouOut',
   internal_error: 'error.generic',
   backup_bad_key: 'backups.reason.bad_key',
   backup_wrong_key: 'backups.reason.wrong_key',

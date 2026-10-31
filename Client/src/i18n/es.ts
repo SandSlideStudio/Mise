@@ -938,4 +938,18 @@ export const es: Record<MessageKey, string> = {
   'error.passwordNeeded':
     'Aprobar desde fuera necesita una contraseña, y esta cuenta no tiene. Apruébalo desde la cocina.',
   'error.tooManyRequests': 'Hay demasiados dispositivos esperando aprobación. Inténtalo más tarde.',
+  'settings.tabConnection': 'Conexión',
+  'connection.domainTitle': 'Dirección desde fuera',
+  'connection.domainBody':
+    'Si Mise es accesible por internet, escribe la dirección que lleva a él, como mise.tucocina.es. Desde fuera de la cocina, Mise solo responde en esa dirección: la IP sola, o el nombre de otra web en el mismo servidor, no encuentra nada. En la red de la cocina y la VPN, todas las direcciones siguen funcionando.',
+  'connection.domainLabel': 'Dominio',
+  'connection.domainSet': 'Desde fuera, Mise solo responde en {domain}.',
+  'connection.domainUnset':
+    'Sin definir: desde fuera, cualquier dirección que llegue a este servidor lleva a Mise.',
+  'connection.domainClear': 'Borrar',
+  'connection.domainUseCurrent': 'Usar {domain}, la dirección en la que estás',
+  'connection.domainShared':
+    '¿Varias webs en una sola IP pública? Pon delante un proxy inverso (como Nginx Proxy Manager o Caddy) que envíe este dominio a Mise y los demás a sus propias webs.',
+  'error.domainLocksYouOut':
+    'Estás conectado por otra dirección, así que te quedarías fuera. Configúralo desde la cocina, o abre primero Mise por la nueva dirección.',
 };

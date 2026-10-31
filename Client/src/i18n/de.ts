@@ -951,4 +951,18 @@ export const de: Record<MessageKey, string> = {
   'error.passwordNeeded':
     'Freigeben von außen braucht ein Passwort, und dieses Konto hat keins. Gib es aus der Küche frei.',
   'error.tooManyRequests': 'Zu viele Geräte warten auf Freigabe. Versuch es später noch einmal.',
+  'settings.tabConnection': 'Verbindung',
+  'connection.domainTitle': 'Adresse von außen',
+  'connection.domainBody':
+    'Wenn Mise über das Internet erreichbar ist, trag die Adresse ein, die dorthin führt, etwa mise.deinekueche.de. Von außerhalb der Küche antwortet Mise dann nur unter dieser Adresse: die bloße IP oder der Name einer anderen Website auf demselben Server findet nichts. Im Küchennetz und im VPN funktioniert weiterhin jede Adresse.',
+  'connection.domainLabel': 'Domain',
+  'connection.domainSet': 'Von außen antwortet Mise nur unter {domain}.',
+  'connection.domainUnset':
+    'Nicht gesetzt: Von außen führt jede Adresse, die diesen Server erreicht, zu Mise.',
+  'connection.domainClear': 'Leeren',
+  'connection.domainUseCurrent': '{domain} verwenden, die aktuelle Adresse',
+  'connection.domainShared':
+    'Mehrere Websites auf einer öffentlichen IP? Stell einen Reverse Proxy davor (etwa Nginx Proxy Manager oder Caddy), der diese Domain zu Mise schickt und die anderen zu ihren eigenen Seiten.',
+  'error.domainLocksYouOut':
+    'Du bist über eine andere Adresse verbunden und würdest dich aussperren. Stell es aus der Küche ein oder öffne Mise zuerst über die neue Adresse.',
 };

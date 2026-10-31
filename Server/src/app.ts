@@ -23,6 +23,7 @@ import { fromOwnNetwork } from './lib/network.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
 import accessRoutes from './modules/access/routes.js';
+import connectionRoutes from './modules/connection/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
 import prepRoutes from './modules/prep/routes.js';
 import ingredientRoutes from './modules/ingredients/routes.js';
@@ -163,6 +164,7 @@ export async function buildApp(
   await app.register(menuRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
   await app.register(updateRoutes, { prefix: '/api' });
+  await app.register(connectionRoutes, { prefix: '/api' });
   await registerUploads(app, config);
 
   if (options.serveClient === false) {

@@ -948,4 +948,18 @@ export const fr: Record<MessageKey, string> = {
   'error.passwordNeeded':
     'Approuver depuis l’extérieur demande un mot de passe, et ce compte n’en a pas. Approuvez depuis la cuisine.',
   'error.tooManyRequests': 'Trop d’appareils attendent une approbation. Réessayez plus tard.',
+  'settings.tabConnection': 'Connexion',
+  'connection.domainTitle': 'Adresse depuis l’extérieur',
+  'connection.domainBody':
+    'Si Mise est accessible par internet, saisissez l’adresse qui y mène, comme mise.votrecuisine.fr. Depuis l’extérieur, Mise ne répond alors que sur cette adresse : l’IP seule, ou le nom d’un autre site sur le même serveur, ne trouve rien. Sur le réseau de la cuisine et le VPN, toutes les adresses continuent de fonctionner.',
+  'connection.domainLabel': 'Domaine',
+  'connection.domainSet': 'Depuis l’extérieur, Mise ne répond que sur {domain}.',
+  'connection.domainUnset':
+    'Non défini : depuis l’extérieur, toute adresse qui atteint ce serveur mène à Mise.',
+  'connection.domainClear': 'Effacer',
+  'connection.domainUseCurrent': 'Utiliser {domain}, l’adresse actuelle',
+  'connection.domainShared':
+    'Plusieurs sites sur une même IP publique ? Placez devant un reverse proxy (comme Nginx Proxy Manager ou Caddy) qui envoie ce domaine vers Mise et les autres vers leurs sites.',
+  'error.domainLocksYouOut':
+    'Vous êtes connecté par une autre adresse : vous vous bloqueriez. Réglez-la depuis la cuisine, ou ouvrez d’abord Mise par la nouvelle adresse.',
 };

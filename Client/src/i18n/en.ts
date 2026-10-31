@@ -921,6 +921,20 @@ export const en = {
   'error.passwordNeeded':
     'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
   'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
+  'settings.tabConnection': 'Connection',
+  'connection.domainTitle': 'Address from outside',
+  'connection.domainBody':
+    'If Mise can be reached over the internet, enter the address that leads to it, such as mise.yourkitchen.com. From outside the kitchen, Mise then answers only on that address: the bare IP, or another website’s name on the same server, finds nothing. On the kitchen network and VPN, every address keeps working.',
+  'connection.domainLabel': 'Domain',
+  'connection.domainSet': 'From outside, Mise answers only on {domain}.',
+  'connection.domainUnset':
+    'Not set: from outside, any address that reaches this server leads to Mise.',
+  'connection.domainClear': 'Clear',
+  'connection.domainUseCurrent': 'Use {domain}, the address you’re on now',
+  'connection.domainShared':
+    'Several websites on one public IP? Put a reverse proxy in front (such as Nginx Proxy Manager or Caddy) that sends this domain to Mise and the others to their own sites.',
+  'error.domainLocksYouOut':
+    'You’re connected through a different address, so this would lock you out. Set it from inside the kitchen, or open Mise through the new address first.',
 } as const;
 
 export type MessageKey = keyof typeof en;

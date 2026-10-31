@@ -3,6 +3,11 @@ import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { ApiError } from '../lib/errors.js';
 import { insideKitchen } from '../lib/network.js';
 import {
+  createConnectionService,
+  plainHost,
+  type ConnectionService,
+} from '../modules/connection/service.js';
+import {
   ACCESS_COOKIE,
   COOKIE_DAYS,
   createAccessService,
@@ -25,6 +30,7 @@ import {
 declare module 'fastify' {
   interface FastifyInstance {
     access: AccessService;
+    connection: ConnectionService;
     /** Whether this request comes from the kitchen's own network or VPN. */
     insideKitchen: (request: FastifyRequest) => boolean;
     setAccessCookie: (reply: FastifyReply, token: string) => void;
@@ -43,6 +49,7 @@ const OPEN_ROUTES = new Set(['/api/health', '/api/access/status', '/api/access/r
 
 const accessPlugin: FastifyPluginAsync = async (app) => {
   app.decorate('access', createAccessService(app.db));
+  app.decorate('connection', createConnectionService(app.db));
   app.decorate('insideKitchen', (request: FastifyRequest) =>
     insideKitchen(request, app.config.TRUST_PROXY),
   );
@@ -60,6 +67,18 @@ const accessPlugin: FastifyPluginAsync = async (app) => {
 
   app.addHook('onRequest', async (request, reply) => {
     request.inside = app.insideKitchen(request);
+    const open = app.config.OUTSIDE_ACCESS === 'open';
+
+    // From outside, only the kitchen's own address leads here once one is set,
+    // like a website on a shared server. Anything else (the bare IP, another
+    // site's name pointed at the same machine) finds nothing at all.
+    if (!request.inside && !open) {
+      const domain = await app.connection.outsideDomain();
+      if (domain && plainHost(request.hostname) !== domain) {
+        return reply.code(404).type('text/plain; charset=utf-8').send('Not found');
+      }
+    }
+
     if (!request.inside) {
       const token = request.cookies[ACCESS_COOKIE];
       const device = token ? await app.access.approved(token) : null;
@@ -72,7 +91,7 @@ const accessPlugin: FastifyPluginAsync = async (app) => {
 
     const route = request.routeOptions.url;
     if (!route?.startsWith('/api/') || OPEN_ROUTES.has(route)) return;
-    if (request.inside || request.remoteDevice || app.config.OUTSIDE_ACCESS === 'open') return;
+    if (request.inside || request.remoteDevice || open) return;
     // Before anyone has set the kitchen up there is nobody to approve anything:
     // setup itself stays reachable, behind its setup code.
     if (route.startsWith('/api/setup') && (await app.auth.needsSetup())) return;

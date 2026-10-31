@@ -134,6 +134,13 @@
       "when": 1793451889296,
       "tag": "0018_remote_devices",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1793459949408,
+      "tag": "0019_connection_settings",
+      "breakpoints": true
     }
   ]
 }

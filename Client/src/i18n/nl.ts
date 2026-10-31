@@ -940,4 +940,18 @@ export const nl: Record<MessageKey, string> = {
     'Goedkeuren van buitenaf vraagt een wachtwoord, en dit account heeft er geen. Keur het goed vanuit de keuken.',
   'error.tooManyRequests':
     'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
+  'settings.tabConnection': 'Verbinding',
+  'connection.domainTitle': 'Adres van buitenaf',
+  'connection.domainBody':
+    'Als Mise via internet bereikbaar is, vul dan het adres in dat ernaartoe leidt, zoals mise.jouwkeuken.nl. Van buiten de keuken antwoordt Mise dan alleen op dat adres: het kale IP-adres, of de naam van een andere website op dezelfde server, vindt niets. Op het keukennetwerk en de VPN blijft elk adres werken.',
+  'connection.domainLabel': 'Domein',
+  'connection.domainSet': 'Van buitenaf antwoordt Mise alleen op {domain}.',
+  'connection.domainUnset':
+    'Niet ingesteld: van buitenaf leidt elk adres dat deze server bereikt naar Mise.',
+  'connection.domainClear': 'Wissen',
+  'connection.domainUseCurrent': 'Gebruik {domain}, het adres waarop je nu zit',
+  'connection.domainShared':
+    'Meerdere websites op één publiek IP-adres? Zet er een reverse proxy voor (zoals Nginx Proxy Manager of Caddy) die dit domein naar Mise stuurt en de andere naar hun eigen sites.',
+  'error.domainLocksYouOut':
+    'Je bent verbonden via een ander adres, dus hiermee sluit je jezelf buiten. Stel het in vanuit de keuken, of open Mise eerst via het nieuwe adres.',
 };

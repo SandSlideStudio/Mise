@@ -25,12 +25,14 @@ export const BACKED_UP: PgTable[] = [
 /**
  * Left out on purpose. Everyone signs in again after a restore, the backup
  * settings hold the key that opens the backups, and outside devices are
- * approved for this server, not for whichever one a backup lands on.
+ * approved for this server, not for whichever one a backup lands on; the
+ * same goes for how the server is reached.
  */
 export const NOT_BACKED_UP: PgTable[] = [
   schema.sessions,
   schema.backupSettings,
   schema.remoteDevices,
+  schema.connectionSettings,
 ];
 
 /**

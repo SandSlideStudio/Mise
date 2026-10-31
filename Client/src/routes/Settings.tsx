@@ -9,9 +9,10 @@ import { DeviceSettings } from './settings/DeviceSettings.js';
 import { OutsideDeviceSettings } from './settings/OutsideDeviceSettings.js';
 import { KitchenSettings } from './settings/KitchenSettings.js';
 import { BackupSettings } from './settings/BackupSettings.js';
+import { ConnectionSettings } from './settings/ConnectionSettings.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
 
-type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'backups';
+type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups';
 
 const TABS: { id: TabId; label: MessageKey; adminOnly?: boolean }[] = [
   { id: 'staff', label: 'settings.tabStaff' },
@@ -19,6 +20,7 @@ const TABS: { id: TabId; label: MessageKey; adminOnly?: boolean }[] = [
   { id: 'devices', label: 'settings.tabDevices' },
   { id: 'kitchen', label: 'settings.tabKitchen' },
   { id: 'dishCards', label: 'settings.tabDishCards' },
+  { id: 'connection', label: 'settings.tabConnection', adminOnly: true },
   { id: 'backups', label: 'settings.tabBackups', adminOnly: true },
 ];
 
@@ -80,6 +82,7 @@ export function Settings() {
         ) : null}
         {tab === 'kitchen' ? <KitchenSettings /> : null}
         {tab === 'dishCards' ? <DishCardSettings /> : null}
+        {tab === 'connection' && user.role === 'admin' ? <ConnectionSettings /> : null}
         {tab === 'backups' && user.role === 'admin' ? <BackupSettings /> : null}
 
         <AboutLine className="border-line mt-12 border-t pt-4" />

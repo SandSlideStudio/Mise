@@ -504,3 +504,18 @@ export const menuDishes = pgTable(
 
 /** One prep line as stored. */
 export type PrepTaskRow = typeof prepTasks.$inferSelect;
+
+/**
+ * How this server is reached. Exactly one row, created when first looked at.
+ * Kept out of backups: it describes this machine and its address, not the
+ * kitchen, and a restore onto a new server must not lock out whoever runs it.
+ */
+export const connectionSettings = pgTable('connection_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /**
+   * The one address that leads to Mise from outside the kitchen, such as
+   * mise.example.com. Null: any address does. Inside the kitchen, any always does.
+   */
+  outsideDomain: text('outside_domain'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
