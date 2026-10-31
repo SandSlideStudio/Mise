@@ -39,6 +39,8 @@ const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
   ['/api/dish-cards', 'kitchen'],
   ['/api/menus', 'menus'],
   ['/api/users', 'staff'],
+  // A device asking for outside access, and the answer.
+  ['/api/access', 'staff'],
 ];
 
 const WRITES = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);

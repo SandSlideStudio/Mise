@@ -15,6 +15,7 @@ import {
   updateBackupSettingsSchema,
 } from '@mise/contracts';
 import { safeEqual } from '../../lib/crypto.js';
+import { describeAgent } from '../access/service.js';
 import { ApiError } from '../../lib/errors.js';
 import { BackupFailure } from './failure.js';
 import { AlreadySetUpError, validTimeZone } from './service.js';
@@ -162,7 +163,7 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
         },
       },
     },
-    async (request) => {
+    async (request, reply) => {
       if (!(await app.auth.needsSetup())) throw ApiError.notFound('This page');
 
       const fields: Record<string, string> = {};
@@ -207,6 +208,16 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
           });
         const timeZone = fields.timeZone;
         if (timeZone && validTimeZone(timeZone)) await app.backups.update({ timeZone });
+        // Restored from outside, with the setup code: this device may come back in.
+        if (!request.inside) {
+          const { token } = await app.access.approveNew({
+            name: describeAgent(request.headers['user-agent']),
+            userAgent: request.headers['user-agent'] ?? null,
+            address: request.ip,
+            userId: null,
+          });
+          app.setAccessCookie(reply, token);
+        }
         return result;
       } finally {
         await unlink(upload).catch(() => {});

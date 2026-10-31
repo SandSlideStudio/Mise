@@ -146,6 +146,42 @@ export const devices = pgTable('device', {
 });
 
 /**
+ * A phone or laptop outside the kitchen's network that asked to reach Mise.
+ *
+ * From outside, nothing but the request page answers until a chef or an
+ * administrator approves the device, so a stranger can't even reach the
+ * sign-in form. The token lives in the device's cookie; only its hash is here.
+ * Approval lasts until it is revoked, or until the device goes 90 days unused.
+ * Kept out of backups: approvals belong to this server, like sessions.
+ */
+export const remoteDevices = pgTable(
+  'remote_device',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    /** What the person asking reads out, so the approver knows it is them. */
+    code: text('code').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    status: text('status', { enum: ['pending', 'approved'] })
+      .notNull()
+      .default('pending'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
+    /** The approving device's name when approved from outside; null from the kitchen. */
+    approvedFrom: text('approved_from'),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    userAgent: text('user_agent'),
+    address: text('address'),
+  },
+  (t) => [
+    uniqueIndex('remote_device_token_key').on(t.tokenHash),
+    index('remote_device_status_idx').on(t.status),
+    check('remote_device_status_known', sql`${t.status} in ('pending', 'approved')`),
+  ],
+);
+
+/**
  * Sessions live in the database rather than in a signed token, so letting
  * someone go ends their access on the next request instead of whenever a token
  * happens to expire.

@@ -52,3 +52,30 @@ export function fromOwnNetwork(request: FastifyRequest): boolean {
   // The socket's own peer, never a header: nothing here is taken on trust.
   return isPrivateAddress(request.socket.remoteAddress ?? '');
 }
+
+/** Headers that name the original client. Each must agree it is local. */
+const CLIENT_HEADERS = ['cf-connecting-ip', 'true-client-ip', 'fly-client-ip', 'x-real-ip'];
+
+/**
+ * Whether a request counts as inside the kitchen for outside access: the
+ * kitchen's own network or VPN, with no approval needed.
+ *
+ * Straight from a private address, yes. Through a proxy or tunnel, only when
+ * the admin said a proxy is in front (trustProxy), that proxy itself sits on
+ * a private address, and every address it passes on is private too. So a
+ * Cloudflare Tunnel's visitors are outside, a VPN's members are inside, and a
+ * header made up by someone on the internet changes nothing: they never reach
+ * the socket from a private address.
+ */
+export function insideKitchen(request: FastifyRequest, trustProxy: number | false): boolean {
+  if (!isPrivateAddress(request.socket.remoteAddress ?? '')) return false;
+  if (!FORWARDING_HEADERS.some((name) => request.headers[name] !== undefined)) return true;
+  if (trustProxy === false) return false;
+  // Without X-Forwarded-For, request.ip is only the proxy itself.
+  if (request.headers['x-forwarded-for'] === undefined) return false;
+  if (!isPrivateAddress(request.ip)) return false;
+  return CLIENT_HEADERS.every((name) => {
+    const value = request.headers[name];
+    return value === undefined || isPrivateAddress(String(value).trim());
+  });
+}

@@ -474,7 +474,7 @@ export const fr: Record<MessageKey, string> = {
     "Seuls les chefs et les administrateurs peuvent modifier l'organisation de la cuisine.",
   'settings.tabStaff': 'Équipe',
   'settings.tabStations': 'Postes',
-  'settings.tabDevices': 'Tablettes',
+  'settings.tabDevices': 'Appareils',
   'settings.tabKitchen': 'Cuisine',
 
   'staff.loadError': "Impossible de charger la liste de l'équipe.",
@@ -908,4 +908,44 @@ export const fr: Record<MessageKey, string> = {
   'menus.backToMenu': '← Le menu',
   'menus.overviewTitle': 'Allergènes du menu',
   'menus.dish': 'Plat',
+  'access.eyebrow': 'Hors de la cuisine',
+  'access.title': 'Demander l’accès',
+  'access.body':
+    'Hors de la cuisine, Mise ne s’ouvre que sur les appareils approuvés par la cuisine. Donnez un nom à cet appareil et demandez l’accès. Un chef ou l’administrateur l’approuve dans Réglages → Appareils.',
+  'access.nameLabel': 'Nom de cet appareil',
+  'access.namePlaceholder': 'ex. Téléphone de Sam',
+  'access.ask': 'Demander l’accès',
+  'access.asking': 'Demande…',
+  'access.waitingTitle': 'En attente d’approbation',
+  'access.waitingBody':
+    '« {name} » a demandé l’accès. Demandez à un chef ou à l’administrateur de l’approuver dans Réglages → Appareils, et lisez-lui ce code pour qu’il sache que c’est vous :',
+  'access.codeLabel': 'Code',
+  'access.checking': 'Cette page ouvre Mise d’elle-même dès l’approbation.',
+  'access.whyTitle': 'Pourquoi demander ?',
+  'access.whyBody':
+    'Recettes, équipe et allergènes appartiennent à la cuisine. Demander d’abord signifie que personne sur internet ne peut même atteindre la page de connexion. L’approbation dure jusqu’à son retrait, ou jusqu’à 90 jours sans utilisation de cet appareil.',
+  'outside.title': 'Hors de la cuisine',
+  'outside.body':
+    'Téléphones et ordinateurs hors du réseau de la cuisine ou du VPN. Ils n’atteignent qu’une page de demande tant que personne ne les approuve ici. L’approbation dure jusqu’à son retrait, ou jusqu’à 90 jours sans utilisation.',
+  'outside.waiting': 'En attente d’approbation',
+  'outside.approved': 'Approuvés',
+  'outside.empty':
+    'Aucun appareil extérieur. Quelqu’un qui ouvre Mise hors de la cuisine peut demander l’accès ; sa demande apparaît ici.',
+  'outside.code': 'Code',
+  'outside.checkCode': 'N’approuvez que si la personne qui demande voit ce même code à l’écran.',
+  'outside.passwordLabel': 'Votre mot de passe',
+  'outside.passwordWhy': 'Vous êtes hors de la cuisine : approuver redemande votre mot de passe.',
+  'outside.approve': 'Approuver',
+  'outside.deny': 'Refuser',
+  'outside.approvedBy': 'approuvé par {name} le {date}',
+  'outside.approvedByFrom': 'approuvé par {name} depuis {device} le {date}',
+  'outside.approvedOn': 'approuvé le {date}',
+  'outside.thisDevice': 'Cet appareil',
+  'outside.revokeSelf': 'Cet appareil devra redemander l’accès',
+  'outside.reallyRevokeSelf': 'Bloquer cet appareil ?',
+  'error.accessRequired': 'Cet appareil n’est pas approuvé pour l’accès hors de la cuisine.',
+  'error.wrongPassword': 'Ce mot de passe n’est pas le bon.',
+  'error.passwordNeeded':
+    'Approuver depuis l’extérieur demande un mot de passe, et ce compte n’en a pas. Approuvez depuis la cuisine.',
+  'error.tooManyRequests': 'Trop d’appareils attendent une approbation. Réessayez plus tard.',
 };

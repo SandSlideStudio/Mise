@@ -473,7 +473,7 @@ export const de: Record<MessageKey, string> = {
     'Nur Küchenchefs und Administratoren können die Einrichtung der Küche ändern.',
   'settings.tabStaff': 'Team',
   'settings.tabStations': 'Posten',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Geräte',
   'settings.tabKitchen': 'Küche',
 
   'staff.loadError': 'Die Teamliste konnte nicht geladen werden.',
@@ -908,4 +908,47 @@ export const de: Record<MessageKey, string> = {
   'menus.backToMenu': '← Das Menü',
   'menus.overviewTitle': 'Allergenübersicht',
   'menus.dish': 'Gericht',
+  'access.eyebrow': 'Außerhalb der Küche',
+  'access.title': 'Zugang anfragen',
+  'access.body':
+    'Außerhalb der Küche öffnet sich Mise nur auf Geräten, die die Küche freigegeben hat. Gib diesem Gerät einen Namen und frag an. Ein Koch mit Leitung oder der Administrator gibt es unter Einstellungen → Geräte frei.',
+  'access.nameLabel': 'Name für dieses Gerät',
+  'access.namePlaceholder': 'z. B. Sams Handy',
+  'access.ask': 'Zugang anfragen',
+  'access.asking': 'Wird angefragt…',
+  'access.waitingTitle': 'Warten auf Freigabe',
+  'access.waitingBody':
+    '„{name}“ hat angefragt. Bitte einen Koch mit Leitung oder den Administrator, es unter Einstellungen → Geräte freizugeben, und lies diesen Code vor, damit klar ist, dass du es bist:',
+  'access.codeLabel': 'Code',
+  'access.checking': 'Diese Seite öffnet Mise von selbst, sobald es freigegeben ist.',
+  'access.whyTitle': 'Warum anfragen?',
+  'access.whyBody':
+    'Rezepte, Team und Allergene gehören der Küche. Erst anfragen heißt: Niemand im Internet kommt auch nur bis zur Anmeldeseite. Die Freigabe gilt, bis sie widerrufen wird oder dieses Gerät 90 Tage nicht benutzt wurde.',
+  'outside.title': 'Außerhalb der Küche',
+  'outside.body':
+    'Handys und Laptops außerhalb des Küchennetzes oder VPN. Sie sehen nur eine Anfrageseite, bis jemand sie hier freigibt. Die Freigabe gilt, bis du sie widerrufst oder das Gerät 90 Tage nicht benutzt wurde.',
+  'outside.waiting': 'Warten auf Freigabe',
+  'outside.approved': 'Freigegeben',
+  'outside.empty':
+    'Keine Geräte von außen. Wer Mise außerhalb der Küche öffnet, kann Zugang anfragen; die Anfrage erscheint hier.',
+  'outside.code': 'Code',
+  'outside.checkCode':
+    'Gib nur frei, wenn die anfragende Person genau diesen Code auf dem Bildschirm sieht.',
+  'outside.passwordLabel': 'Dein Passwort',
+  'outside.passwordWhy':
+    'Du bist außerhalb der Küche, deshalb fragt die Freigabe erneut nach deinem Passwort.',
+  'outside.approve': 'Freigeben',
+  'outside.deny': 'Ablehnen',
+  'outside.approvedBy': 'freigegeben von {name} am {date}',
+  'outside.approvedByFrom': 'freigegeben von {name} über {device} am {date}',
+  'outside.approvedOn': 'freigegeben am {date}',
+  'outside.thisDevice': 'Dieses Gerät',
+  'outside.revokeSelf': 'Dieses Gerät muss danach neu anfragen',
+  'outside.reallyRevokeSelf': 'Dieses Gerät aussperren?',
+  'error.accessRequired':
+    'Dieses Gerät ist nicht für den Zugang von außerhalb der Küche freigegeben.',
+  'error.wrongPassword': 'Das Passwort stimmt nicht.',
+  'error.passwordNeeded':
+    'Freigeben von außen braucht ein Passwort, und dieses Konto hat keins. Gib es aus der Küche frei.',
+  'error.tooManyRequests': 'Zu viele Geräte warten auf Freigabe. Versuch es später noch einmal.',
 };

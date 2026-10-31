@@ -49,6 +49,17 @@ const configSchema = z.object({
       return z.NEVER;
     }),
   /**
+   * Who may reach Mise from outside the kitchen's network. "approved", the
+   * default, lets in only devices a chef or administrator approved in
+   * Settings → Devices. "open" turns that off: a way back in if every
+   * approved device is lost on a server with no local network. Not for
+   * everyday use.
+   */
+  OUTSIDE_ACCESS: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.enum(['approved', 'open']).default('approved'),
+  ),
+  /**
    * The one-time code that first-run setup asks for in production, so a fresh
    * server can't be claimed by whoever finds it first. The installer sets it;
    * if it's missing, the server makes one up and prints the setup link.

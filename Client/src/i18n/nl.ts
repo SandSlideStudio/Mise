@@ -469,7 +469,7 @@ export const nl: Record<MessageKey, string> = {
   'settings.cookOnly': 'Alleen chefs en beheerders kunnen de inrichting van de keuken wijzigen.',
   'settings.tabStaff': 'Personeel',
   'settings.tabStations': 'Posten',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Apparaten',
   'settings.tabKitchen': 'Keuken',
 
   'staff.loadError': 'De personeelslijst kon niet geladen worden.',
@@ -898,4 +898,46 @@ export const nl: Record<MessageKey, string> = {
   'menus.backToMenu': '← Het menu',
   'menus.overviewTitle': 'Allergenenoverzicht',
   'menus.dish': 'Gerecht',
+  'access.eyebrow': 'Buiten de keuken',
+  'access.title': 'Vraag toegang',
+  'access.body':
+    'Buiten de keuken opent Mise alleen op apparaten die de keuken heeft goedgekeurd. Geef dit apparaat een naam en vraag toegang. Een chef of de beheerder keurt het goed bij Instellingen → Apparaten.',
+  'access.nameLabel': 'Naam voor dit apparaat',
+  'access.namePlaceholder': 'bijv. Telefoon van Sam',
+  'access.ask': 'Vraag toegang',
+  'access.asking': 'Vragen…',
+  'access.waitingTitle': 'Wacht op goedkeuring',
+  'access.waitingBody':
+    '“{name}” heeft toegang gevraagd. Vraag een chef of de beheerder het goed te keuren bij Instellingen → Apparaten, en lees deze code voor zodat ze weten dat jij het bent:',
+  'access.codeLabel': 'Code',
+  'access.checking': 'Deze pagina opent Mise vanzelf zodra het is goedgekeurd.',
+  'access.whyTitle': 'Waarom vragen?',
+  'access.whyBody':
+    'Recepten, personeel en allergenen zijn van de keuken. Door eerst te vragen kan niemand op internet zelfs maar bij het inlogscherm komen. Goedkeuring blijft tot ze wordt ingetrokken, of tot dit apparaat 90 dagen niet is gebruikt.',
+  'outside.title': 'Buiten de keuken',
+  'outside.body':
+    'Telefoons en laptops buiten het keukennetwerk of de VPN. Ze zien alleen een aanvraagpagina tot iemand ze hier goedkeurt. Goedkeuring blijft tot je ze intrekt, of tot het apparaat 90 dagen niet is gebruikt.',
+  'outside.waiting': 'Wacht op goedkeuring',
+  'outside.approved': 'Goedgekeurd',
+  'outside.empty':
+    'Geen apparaten van buiten. Wie Mise van buiten de keuken opent, kan toegang vragen; die aanvraag verschijnt hier.',
+  'outside.code': 'Code',
+  'outside.checkCode': 'Keur alleen goed als degene die vraagt dezelfde code op het scherm ziet.',
+  'outside.passwordLabel': 'Je wachtwoord',
+  'outside.passwordWhy':
+    'Je bent buiten de keuken, dus goedkeuren vraagt opnieuw om je wachtwoord.',
+  'outside.approve': 'Goedkeuren',
+  'outside.deny': 'Weigeren',
+  'outside.approvedBy': 'goedgekeurd door {name} op {date}',
+  'outside.approvedByFrom': 'goedgekeurd door {name} vanaf {device} op {date}',
+  'outside.approvedOn': 'goedgekeurd op {date}',
+  'outside.thisDevice': 'Dit apparaat',
+  'outside.revokeSelf': 'Dit apparaat moet daarna opnieuw toegang vragen',
+  'outside.reallyRevokeSelf': 'Dit apparaat buitensluiten?',
+  'error.accessRequired': 'Dit apparaat is niet goedgekeurd voor toegang van buiten de keuken.',
+  'error.wrongPassword': 'Dat wachtwoord klopt niet.',
+  'error.passwordNeeded':
+    'Goedkeuren van buitenaf vraagt een wachtwoord, en dit account heeft er geen. Keur het goed vanuit de keuken.',
+  'error.tooManyRequests':
+    'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
 };

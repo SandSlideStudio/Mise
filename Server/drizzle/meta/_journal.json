@@ -127,6 +127,13 @@
       "when": 1793050168351,
       "tag": "0017_drop_single_backup_destination",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793451889296,
+      "tag": "0018_remote_devices",
+      "breakpoints": true
     }
   ]
 }

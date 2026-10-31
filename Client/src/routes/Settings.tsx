@@ -6,6 +6,7 @@ import { useT, type MessageKey } from '../i18n/index.js';
 import { StaffSettings } from './settings/StaffSettings.js';
 import { StationSettings } from './settings/StationSettings.js';
 import { DeviceSettings } from './settings/DeviceSettings.js';
+import { OutsideDeviceSettings } from './settings/OutsideDeviceSettings.js';
 import { KitchenSettings } from './settings/KitchenSettings.js';
 import { BackupSettings } from './settings/BackupSettings.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
@@ -71,7 +72,12 @@ export function Settings() {
 
         {tab === 'staff' ? <StaffSettings /> : null}
         {tab === 'stations' ? <StationSettings /> : null}
-        {tab === 'devices' ? <DeviceSettings /> : null}
+        {tab === 'devices' ? (
+          <>
+            <DeviceSettings />
+            <OutsideDeviceSettings />
+          </>
+        ) : null}
         {tab === 'kitchen' ? <KitchenSettings /> : null}
         {tab === 'dishCards' ? <DishCardSettings /> : null}
         {tab === 'backups' && user.role === 'admin' ? <BackupSettings /> : null}

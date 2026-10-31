@@ -465,7 +465,7 @@ export const en = {
   'settings.cookOnly': 'Only chefs and administrators can change how the kitchen is set up.',
   'settings.tabStaff': 'Staff',
   'settings.tabStations': 'Stations',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Devices',
   'settings.tabKitchen': 'Kitchen',
 
   'staff.loadError': 'Could not load the staff list.',
@@ -881,6 +881,46 @@ export const en = {
   'menus.backToMenu': '← The menu',
   'menus.overviewTitle': 'Allergen overview',
   'menus.dish': 'Dish',
+  'access.eyebrow': 'Outside the kitchen',
+  'access.title': 'Ask for access',
+  'access.body':
+    'From outside the kitchen, Mise only opens on devices the kitchen has approved. Give this device a name and ask. A chef or the administrator approves it in Settings → Devices.',
+  'access.nameLabel': 'Name for this device',
+  'access.namePlaceholder': 'e.g. Sam’s phone',
+  'access.ask': 'Ask for access',
+  'access.asking': 'Asking…',
+  'access.waitingTitle': 'Waiting for approval',
+  'access.waitingBody':
+    '“{name}” has asked. Ask a chef or the administrator to approve it in Settings → Devices, and read them this code so they know it’s you:',
+  'access.codeLabel': 'Code',
+  'access.checking': 'This page opens Mise by itself once it’s approved.',
+  'access.whyTitle': 'Why ask?',
+  'access.whyBody':
+    'Recipes, staff and allergen records belong to the kitchen. Asking first means nobody on the internet can even reach the sign-in page. Approval lasts until it’s taken back, or until this device goes 90 days unused.',
+  'outside.title': 'Outside the kitchen',
+  'outside.body':
+    'Phones and laptops outside the kitchen network or VPN. They reach nothing but a request page until someone approves them here. An approval lasts until you take it back, or until the device goes 90 days unused.',
+  'outside.waiting': 'Waiting for approval',
+  'outside.approved': 'Approved',
+  'outside.empty':
+    'No outside devices. Someone who opens Mise from outside the kitchen can ask for access, and their request appears here.',
+  'outside.code': 'Code',
+  'outside.checkCode': 'Approve only if the person asking sees this same code on their screen.',
+  'outside.passwordLabel': 'Your password',
+  'outside.passwordWhy': 'You’re outside the kitchen, so approving asks for your password again.',
+  'outside.approve': 'Approve',
+  'outside.deny': 'Turn down',
+  'outside.approvedBy': 'approved by {name} on {date}',
+  'outside.approvedByFrom': 'approved by {name} from {device} on {date}',
+  'outside.approvedOn': 'approved on {date}',
+  'outside.thisDevice': 'This device',
+  'outside.revokeSelf': 'This device will need to ask again',
+  'outside.reallyRevokeSelf': 'Lock this device out?',
+  'error.accessRequired': 'This device isn’t approved for access from outside the kitchen.',
+  'error.wrongPassword': 'That password isn’t right.',
+  'error.passwordNeeded':
+    'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
+  'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
 } as const;
 
 export type MessageKey = keyof typeof en;

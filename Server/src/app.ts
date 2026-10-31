@@ -13,6 +13,7 @@ import type { Database } from './db/client.js';
 import configPlugin from './plugins/config.js';
 import dbPlugin from './plugins/db.js';
 import authPlugin from './plugins/auth.js';
+import accessPlugin from './plugins/access.js';
 import errorsPlugin from './plugins/errors.js';
 import livePlugin from './plugins/live.js';
 import securityPlugin from './plugins/security.js';
@@ -21,6 +22,7 @@ import { generateToken } from './lib/crypto.js';
 import { fromOwnNetwork } from './lib/network.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
+import accessRoutes from './modules/access/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
 import prepRoutes from './modules/prep/routes.js';
 import ingredientRoutes from './modules/ingredients/routes.js';
@@ -112,6 +114,7 @@ export async function buildApp(
   });
   await app.register(dbPlugin, { db: options.db });
   await app.register(authPlugin);
+  await app.register(accessPlugin);
   await app.register(livePlugin);
   app.decorate(
     'backups',
@@ -149,6 +152,7 @@ export async function buildApp(
 
   await app.register(setupRoutes, { prefix: '/api/setup' });
   await app.register(authRoutes, { prefix: '/api/auth' });
+  await app.register(accessRoutes, { prefix: '/api/access' });
   await app.register(kitchenRoutes, { prefix: '/api' });
   await app.register(prepRoutes, { prefix: '/api' });
   await app.register(ingredientRoutes, { prefix: '/api' });

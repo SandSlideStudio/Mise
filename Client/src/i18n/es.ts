@@ -469,7 +469,7 @@ export const es: Record<MessageKey, string> = {
     'Solo los chefs y los administradores pueden cambiar cómo está montada la cocina.',
   'settings.tabStaff': 'Equipo',
   'settings.tabStations': 'Partidas',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Dispositivos',
   'settings.tabKitchen': 'Cocina',
 
   'staff.loadError': 'No se pudo cargar la lista del equipo.',
@@ -898,4 +898,44 @@ export const es: Record<MessageKey, string> = {
   'menus.backToMenu': '← El menú',
   'menus.overviewTitle': 'Resumen de alérgenos',
   'menus.dish': 'Plato',
+  'access.eyebrow': 'Fuera de la cocina',
+  'access.title': 'Pide acceso',
+  'access.body':
+    'Fuera de la cocina, Mise solo se abre en dispositivos que la cocina ha aprobado. Ponle un nombre a este dispositivo y pide acceso. Un chef o el administrador lo aprueba en Ajustes → Dispositivos.',
+  'access.nameLabel': 'Nombre de este dispositivo',
+  'access.namePlaceholder': 'p. ej. Móvil de Sam',
+  'access.ask': 'Pedir acceso',
+  'access.asking': 'Pidiendo…',
+  'access.waitingTitle': 'Esperando aprobación',
+  'access.waitingBody':
+    '“{name}” ha pedido acceso. Pide a un chef o al administrador que lo apruebe en Ajustes → Dispositivos, y léele este código para que sepa que eres tú:',
+  'access.codeLabel': 'Código',
+  'access.checking': 'Esta página abre Mise sola en cuanto se apruebe.',
+  'access.whyTitle': '¿Por qué pedir?',
+  'access.whyBody':
+    'Las recetas, el equipo y los alérgenos son de la cocina. Pedir primero significa que nadie en internet puede ni siquiera llegar a la página de acceso. La aprobación dura hasta que se retire, o hasta que este dispositivo pase 90 días sin usarse.',
+  'outside.title': 'Fuera de la cocina',
+  'outside.body':
+    'Móviles y portátiles fuera de la red de la cocina o de la VPN. Solo ven una página de solicitud hasta que alguien los aprueba aquí. La aprobación dura hasta que la retires, o hasta que el dispositivo pase 90 días sin usarse.',
+  'outside.waiting': 'Esperando aprobación',
+  'outside.approved': 'Aprobados',
+  'outside.empty':
+    'No hay dispositivos de fuera. Quien abra Mise desde fuera de la cocina puede pedir acceso, y su solicitud aparece aquí.',
+  'outside.code': 'Código',
+  'outside.checkCode': 'Aprueba solo si quien lo pide ve este mismo código en su pantalla.',
+  'outside.passwordLabel': 'Tu contraseña',
+  'outside.passwordWhy': 'Estás fuera de la cocina, así que aprobar vuelve a pedir tu contraseña.',
+  'outside.approve': 'Aprobar',
+  'outside.deny': 'Rechazar',
+  'outside.approvedBy': 'aprobado por {name} el {date}',
+  'outside.approvedByFrom': 'aprobado por {name} desde {device} el {date}',
+  'outside.approvedOn': 'aprobado el {date}',
+  'outside.thisDevice': 'Este dispositivo',
+  'outside.revokeSelf': 'Este dispositivo tendrá que volver a pedir acceso',
+  'outside.reallyRevokeSelf': '¿Dejar fuera este dispositivo?',
+  'error.accessRequired': 'Este dispositivo no está aprobado para entrar desde fuera de la cocina.',
+  'error.wrongPassword': 'Esa contraseña no es correcta.',
+  'error.passwordNeeded':
+    'Aprobar desde fuera necesita una contraseña, y esta cuenta no tiene. Apruébalo desde la cocina.',
+  'error.tooManyRequests': 'Hay demasiados dispositivos esperando aprobación. Inténtalo más tarde.',
 };

@@ -13,6 +13,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { isAccessRequired, markAccessRequired, useAccessRequired } from './api/access.js';
 import { useLiveUpdates } from './api/live.js';
 import { useTickSender } from './api/ticks.js';
 import { useCurrentUser, useSetupStatus } from './api/session.js';
@@ -28,6 +29,7 @@ import { MenuDetail } from './routes/MenuDetail.js';
 import { Today } from './routes/Today.js';
 import { Line } from './routes/Line.js';
 import { Login } from './routes/Login.js';
+import { AccessRequest } from './routes/AccessRequest.js';
 import { Settings } from './routes/Settings.js';
 import { Setup } from './routes/Setup.js';
 import { applyTheme } from './lib/theme.js';
@@ -42,11 +44,16 @@ import './styles.css';
 
 applyTheme();
 
-/** A 401 from anything means the session ended: show the sign-in screen. */
+/**
+ * A 401 from anything means the session ended: show the sign-in screen. A
+ * device outside the kitchen that isn't (or is no longer) approved gets the
+ * request page instead.
+ */
 function signedOutElsewhere(error: unknown): void {
   if (error instanceof RequestFailed && error.isUnauthenticated) {
     queryClient.setQueryData(['me'], null);
   }
+  if (isAccessRequired(error)) markAccessRequired();
 }
 
 /** How often a screen that can't reach the server tries again. */
@@ -61,7 +68,8 @@ const queryClient: QueryClient = new QueryClient({
       // the prep list honest without anyone reaching for reload.
       refetchOnWindowFocus: true,
       staleTime: 30_000,
-      retry: 1,
+      // Once, for a dropped connection; asking again won't change a no.
+      retry: (count, error) => count < 1 && !(error instanceof RequestFailed && error.status < 500),
     },
   },
 });
@@ -76,14 +84,16 @@ function Shell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const setupStatus = useSetupStatus();
   const currentUser = useCurrentUser();
+  const accessRequired = useAccessRequired();
 
   const needsSetup = setupStatus.data?.needsSetup === true;
   // Only a real "nobody is signed in" counts. A server error is not a sign-out.
   const signedOut = currentUser.isSuccess && currentUser.data === null;
   // Only when there's nothing to show yet; a failed background refresh keeps the screen.
   const unreachable =
-    (setupStatus.isError && setupStatus.data === undefined) ||
-    (currentUser.isError && currentUser.data === undefined);
+    !accessRequired &&
+    ((setupStatus.isError && setupStatus.data === undefined) ||
+      (currentUser.isError && currentUser.data === undefined));
   const isPublicRoute = pathname === '/login' || pathname === '/line' || pathname === '/setup';
 
   useEffect(() => {
@@ -115,6 +125,8 @@ function Shell() {
       void navigate({ to: '/login', replace: true });
     }
   }, [needsSetup, signedOut, pathname, isPublicRoute, setupStatus.isPending, navigate]);
+
+  if (accessRequired) return <AccessRequest />;
 
   if (setupStatus.isPending || currentUser.isPending) {
     return (

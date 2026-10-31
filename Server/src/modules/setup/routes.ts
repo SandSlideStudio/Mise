@@ -13,6 +13,7 @@ import {
 import { ApiError } from '../../lib/errors.js';
 import { safeEqual } from '../../lib/crypto.js';
 import { PASSWORD_SESSION_DAYS } from '../auth/service.js';
+import { describeAgent } from '../access/service.js';
 import { failed } from '../backups/routes.js';
 import { validTimeZone } from '../backups/service.js';
 
@@ -181,6 +182,18 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
         userAgent: request.headers['user-agent'] ?? null,
       });
       app.setSessionCookie(reply, session.token, session.expiresAt);
+      // Set up from outside, which took the setup code: that device is the
+      // first one approved, or a server with no local network could never
+      // let anyone in.
+      if (!request.inside) {
+        const { token } = await app.access.approveNew({
+          name: describeAgent(request.headers['user-agent']),
+          userAgent: request.headers['user-agent'] ?? null,
+          address: request.ip,
+          userId: result.userId,
+        });
+        app.setAccessCookie(reply, token);
+      }
 
       return {
         user: {

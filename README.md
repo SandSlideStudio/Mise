@@ -49,7 +49,7 @@ is printed in the log: `docker compose logs app`.
 Chefs and managers sign in with an email and password, on any device.
 
 Cooks sign in on a kitchen tablet by tapping their name and typing their PIN. That only works on a
-tablet you've enrolled: sign in on it as the administrator, go to **Settings → Tablets** and enrol
+tablet you've enrolled: sign in on it as the administrator, go to **Settings → Devices** and enrol
 it. Five wrong PINs lock that person out for 15 minutes. Anyone can have a PIN, managers included;
 whoever sets up the kitchen can choose one during setup.
 

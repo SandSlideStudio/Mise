@@ -16,7 +16,7 @@ type Topic = 'prep' | 'kitchen' | 'staff' | 'menus';
 const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
   prep: [['tasks'], ['handover']],
   kitchen: [['kitchen'], ['stations'], ['me'], ['dish-card-settings'], ['dish-card'], ['dishes']],
-  staff: [['users'], ['roster'], ['me']],
+  staff: [['users'], ['roster'], ['me'], ['remote-devices']],
   menus: [['menus'], ['menu'], ['menu-overview'], ['dish-card'], ['dishes']],
 };
 
