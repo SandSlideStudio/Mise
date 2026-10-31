@@ -965,4 +965,29 @@ export const de: Record<MessageKey, string> = {
     'Andere Websites auf derselben öffentlichen IP? Was sie bereits ausliefert (Apache, LiteSpeed oder Nginx, oft über ein Panel wie cPanel oder Plesk eingerichtet), muss diese Domain an Mise weiterreichen und dabei den Domainnamen in der Anfrage behalten. Läuft Mise über einen anderen Anschluss als diese Seiten, ist nichts weiter nötig.',
   'error.domainLocksYouOut':
     'Du bist über eine andere Adresse verbunden und würdest dich aussperren. Stell es aus der Küche ein oder öffne Mise zuerst über die neue Adresse.',
+  'proxy.title': 'Hinter einem anderen Webserver',
+  'proxy.body':
+    'Beantwortet schon ein anderer Webserver in deinem Netz (etwa Apache mit deinen Websites) deine Domains? Lass ihn deine Mise-Domain weiterreichen, mit eigenem Zertifikat. Mise muss dann wissen, welche Maschine das ist, um zu erkennen, wer zu Hause ist und wer draußen.',
+  'proxy.trusted': 'Mise glaubt {address}, wer jeder Besucher ist.',
+  'proxy.none':
+    'Kein Webserver vertraut: Alles, was über eine andere Maschine kommt, gilt als draußen.',
+  'proxy.stop': 'Nicht mehr vertrauen',
+  'proxy.seen': 'Anfragen für {host} kommen über {address}. Ist das dein Webserver?',
+  'proxy.trust': '{address} vertrauen',
+  'proxy.addressLabel': 'Oder gib die Adresse des Webservers ein',
+  'proxy.trustTyped': 'Vertrauen',
+  'proxy.apacheTitle': 'Apache einrichten',
+  'proxy.miseAddress': 'Mise in deinem Netz',
+  'proxy.step1': 'Prüf auf der Apache-Maschine, ob sie Mise erreicht. Das sollte „ok“ ausgeben:',
+  'proxy.step1Bridge':
+    'Apache in einer VM auf derselben TrueNAS wie Mise, und es kommt nichts zurück? TrueNAS-VMs erreichen ihren eigenen Host oft nicht. Leg unter Network in TrueNAS eine Bridge (br0) an, verschieb die Adresse des Hosts darauf und häng die Netzwerkkarte der VM an br0.',
+  'proxy.step2': 'Speichere das als /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Schalte es ein und hol das Zertifikat, wie bei deinen anderen Seiten:',
+  'proxy.step4':
+    'Öffne einmal https://{domain} und komm dann zurück: Mise zeigt die Adresse, über die es kam, und du vertraust ihr.',
+  'proxy.router':
+    'Am Router ändert sich nichts: Port 80 und 443 gehen schon zu Apache. Lass die Domain auf deine IP zu Hause zeigen, wie deine anderen Seiten.',
+  'proxy.copy': 'Kopieren',
+  'proxy.copied': 'Kopiert',
+  'error.proxyNotLocal': 'Nimm die Adresse eines Webservers im Küchennetz, etwa 192.168.1.60.',
 };

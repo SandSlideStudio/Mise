@@ -50,6 +50,8 @@ describe('the address that leads to Mise from outside', () => {
     });
     expect(response.json()).toEqual({
       outsideDomain: null,
+      trustedProxy: null,
+      seenProxy: null,
       currentHost: '192.168.1.5',
       inside: true,
     });
@@ -188,6 +190,143 @@ describe('the address that leads to Mise from outside', () => {
       expect(response.statusCode).toBe(401);
     } finally {
       await open.close();
+    }
+  });
+});
+
+describe('behind the web server that hosts the other sites', () => {
+  /** Apache in a VM on the kitchen network, passing the domain on. */
+  const APACHE = '192.168.1.60';
+
+  function viaApache(
+    visitor: string,
+    options: InjectOptions & { cookie?: string; proto?: string },
+  ) {
+    const { proto = 'https', ...rest } = options;
+    return from(APACHE, DOMAIN, {
+      ...rest,
+      headers: {
+        ...rest.headers,
+        'x-forwarded-for': visitor,
+        'x-forwarded-host': DOMAIN,
+        'x-forwarded-proto': proto,
+      },
+    });
+  }
+
+  function trust(session: string, trustedProxy: string | null) {
+    return from(INSIDE, 'mise.local', {
+      method: 'PUT',
+      url: '/api/connection',
+      payload: { trustedProxy },
+      cookie: `mise_session=${session}`,
+    });
+  }
+
+  it('offers the web server it sees passing requests on', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    await viaApache(OUTSIDE, { method: 'GET', url: '/api/access/status' });
+    const response = await from(INSIDE, 'mise.local', {
+      method: 'GET',
+      url: '/api/connection',
+      cookie: `mise_session=${admin}`,
+    });
+    expect(response.json().seenProxy).toMatchObject({ address: APACHE, host: DOMAIN });
+  });
+
+  it('until trusted, everyone through it counts as outside', async () => {
+    await setUpKitchen(ctx.app);
+    const fromHome = await viaApache('192.168.1.30', { method: 'GET', url: '/api/auth/me' });
+    expect(fromHome.json().error.code).toBe('access_required');
+  });
+
+  it('once trusted, sees the real visitor: home is inside, the internet is outside', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    expect((await trust(admin, `::ffff:${APACHE}`)).json().trustedProxy).toBe(APACHE);
+
+    const fromHome = await viaApache('192.168.1.30', { method: 'GET', url: '/api/auth/me' });
+    expect(fromHome.statusCode).toBe(401);
+    const fromPhone = await viaApache(OUTSIDE, { method: 'GET', url: '/api/auth/me' });
+    expect(fromPhone.json().error.code).toBe('access_required');
+
+    // And asks are counted against the visitor, not against Apache.
+    const asked = await viaApache(OUTSIDE, {
+      method: 'POST',
+      url: '/api/access/request',
+      payload: { name: 'Phone' },
+    });
+    expect(asked.statusCode).toBe(200);
+    const list = await from(INSIDE, 'mise.local', {
+      method: 'GET',
+      url: '/api/access/devices',
+      cookie: `mise_session=${admin}`,
+    });
+    expect(list.json().devices[0].address).toBe(OUTSIDE);
+  });
+
+  it('keeps cookies to HTTPS when the web server says the visitor came over it', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    await trust(admin, APACHE);
+    const phone = await approvedOutside(ctx.app);
+    const signedIn = await viaApache(OUTSIDE, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+      cookie: phone,
+    });
+    expect(signedIn.statusCode).toBe(200);
+    expect(signedIn.cookies.find((c) => c.name === 'mise_session')?.secure).toBe(true);
+
+    // Plain HTTP on the kitchen network stays as it was.
+    const local = await from(INSIDE, 'mise.local', {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(local.cookies.find((c) => c.name === 'mise_session')?.secure).toBeFalsy();
+  });
+
+  it("doesn't take a claimed HTTPS from a web server it doesn't trust", async () => {
+    await setUpKitchen(ctx.app);
+    const phone = await approvedOutside(ctx.app);
+    const signedIn = await viaApache(OUTSIDE, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+      cookie: phone,
+    });
+    expect(signedIn.cookies.find((c) => c.name === 'mise_session')?.secure).toBeFalsy();
+  });
+
+  it('only trusts a machine on the kitchen network', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    for (const bad of ['203.0.113.7', 'not-an-address', '999.1.1.1']) {
+      expect((await trust(admin, bad)).statusCode, bad).toBe(400);
+    }
+  });
+
+  it('keeps the domain when only the web server changes, and the other way round', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    await setDomain(admin, DOMAIN);
+    const trusted = await trust(admin, APACHE);
+    expect(trusted.json()).toMatchObject({ outsideDomain: DOMAIN, trustedProxy: APACHE });
+    expect((await trust(admin, null)).json()).toMatchObject({
+      outsideDomain: DOMAIN,
+      trustedProxy: null,
+    });
+  });
+
+  it('remembers both after a restart', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    await setDomain(admin, DOMAIN);
+    await trust(admin, APACHE);
+    const again = await buildApp(TEST_CONFIG, { db: ctx.db, serveClient: false });
+    try {
+      await again.ready();
+      expect(again.connection.outsideDomain()).toBe(DOMAIN);
+      expect(again.connection.trustedProxy()).toBe(APACHE);
+    } finally {
+      await again.close();
     }
   });
 });

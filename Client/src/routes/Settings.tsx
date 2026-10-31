@@ -10,6 +10,7 @@ import { OutsideDeviceSettings } from './settings/OutsideDeviceSettings.js';
 import { KitchenSettings } from './settings/KitchenSettings.js';
 import { BackupSettings } from './settings/BackupSettings.js';
 import { ConnectionSettings } from './settings/ConnectionSettings.js';
+import { ProxySettings } from './settings/ProxySettings.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
 
 type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups';
@@ -82,7 +83,12 @@ export function Settings() {
         ) : null}
         {tab === 'kitchen' ? <KitchenSettings /> : null}
         {tab === 'dishCards' ? <DishCardSettings /> : null}
-        {tab === 'connection' && user.role === 'admin' ? <ConnectionSettings /> : null}
+        {tab === 'connection' && user.role === 'admin' ? (
+          <>
+            <ConnectionSettings />
+            <ProxySettings />
+          </>
+        ) : null}
         {tab === 'backups' && user.role === 'admin' ? <BackupSettings /> : null}
 
         <AboutLine className="border-line mt-12 border-t pt-4" />

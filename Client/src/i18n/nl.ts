@@ -954,4 +954,31 @@ export const nl: Record<MessageKey, string> = {
     'Andere websites op hetzelfde publieke IP-adres? Wat die nu al serveert (Apache, LiteSpeed of Nginx, vaak ingesteld via een paneel als cPanel of Plesk) moet dit domein doorsturen naar Mise, met de domeinnaam behouden. Draait Mise op een andere verbinding dan die sites, dan is er niets extra nodig.',
   'error.domainLocksYouOut':
     'Je bent verbonden via een ander adres, dus hiermee sluit je jezelf buiten. Stel het in vanuit de keuken, of open Mise eerst via het nieuwe adres.',
+  'proxy.title': 'Achter een andere webserver',
+  'proxy.body':
+    'Beantwoordt een andere webserver op je netwerk (bijvoorbeeld Apache, met je websites) al je domeinen? Laat die je Mise-domein doorsturen, met een eigen certificaat. Mise moet dan weten welke machine dat is, zodat het kan zien wie thuis is en wie buiten.',
+  'proxy.trusted': 'Mise gelooft {address} over wie elke bezoeker is.',
+  'proxy.none':
+    'Geen webserver vertrouwd: alles wat via een andere machine binnenkomt telt als buiten.',
+  'proxy.stop': 'Niet meer vertrouwen',
+  'proxy.seen': 'Verzoeken voor {host} komen binnen via {address}. Is dat je webserver?',
+  'proxy.trust': 'Vertrouw {address}',
+  'proxy.addressLabel': 'Of typ het adres van de webserver',
+  'proxy.trustTyped': 'Vertrouwen',
+  'proxy.apacheTitle': 'Apache instellen',
+  'proxy.miseAddress': 'Mise op je netwerk',
+  'proxy.step1':
+    'Controleer op de Apache-machine of die Mise kan bereiken. Dit hoort "ok" te tonen:',
+  'proxy.step1Bridge':
+    'Draait Apache in een VM op dezelfde TrueNAS als Mise en komt er niets terug? TrueNAS-VM’s kunnen hun eigen host vaak niet bereiken. Maak in TrueNAS onder Network een bridge (br0), zet het adres van de host daarop en koppel de netwerkkaart van de VM aan br0.',
+  'proxy.step2': 'Sla dit op als /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Zet het aan en haal het certificaat op, net als bij je andere sites:',
+  'proxy.step4':
+    'Open https://{domain} één keer en kom dan hier terug: Mise toont het adres waarlangs het binnenkwam, en dat vertrouw je.',
+  'proxy.router':
+    'Aan je router verandert niets: poort 80 en 443 gaan al naar Apache. Laat het domein naar je thuis-IP wijzen, net als je andere sites.',
+  'proxy.copy': 'Kopiëren',
+  'proxy.copied': 'Gekopieerd',
+  'error.proxyNotLocal':
+    'Gebruik het adres van een webserver op het keukennetwerk, zoals 192.168.1.60.',
 };

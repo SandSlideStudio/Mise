@@ -935,6 +935,31 @@ export const en = {
     'Other websites on the same public IP? Whatever already serves them (Apache, LiteSpeed or Nginx, often set up through a panel like cPanel or Plesk) has to pass this domain on to Mise, keeping the domain name in the request. If Mise runs on a different connection from those sites, nothing else is needed.',
   'error.domainLocksYouOut':
     'You’re connected through a different address, so this would lock you out. Set it from inside the kitchen, or open Mise through the new address first.',
+  'proxy.title': 'Behind another web server',
+  'proxy.body':
+    'Does another web server on your network (Apache, say, with your websites) already answer for your domains? Let it pass your Mise domain on, with its own certificate. Mise then has to know which machine that is, so it can tell who is at home and who is outside.',
+  'proxy.trusted': 'Mise takes {address} at its word about who each visitor is.',
+  'proxy.none': 'No web server trusted: anything passed on by another machine counts as outside.',
+  'proxy.stop': 'Stop trusting',
+  'proxy.seen': 'Requests for {host} are arriving through {address}. Is that your web server?',
+  'proxy.trust': 'Trust {address}',
+  'proxy.addressLabel': 'Or type the web server’s address',
+  'proxy.trustTyped': 'Trust',
+  'proxy.apacheTitle': 'Set up Apache',
+  'proxy.miseAddress': 'Mise on your network',
+  'proxy.step1': 'On the Apache machine, check it can reach Mise. This should print "ok":',
+  'proxy.step1Bridge':
+    'Apache in a VM on the same TrueNAS as Mise, and nothing comes back? TrueNAS VMs often can’t reach their own host. Create a bridge (br0) under Network in TrueNAS, move the host’s address onto it, and attach the VM’s network card to br0.',
+  'proxy.step2': 'Save this as /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Turn it on and get its certificate, the same way as your other sites:',
+  'proxy.step4':
+    'Open https://{domain} once, then come back here: Mise shows the address it came through, and you trust it.',
+  'proxy.router':
+    'Your router doesn’t change: ports 80 and 443 already go to Apache. Point the domain at your home IP, like your other sites.',
+  'proxy.copy': 'Copy',
+  'proxy.copied': 'Copied',
+  'error.proxyNotLocal':
+    'Use the address of a web server on the kitchen network, such as 192.168.1.60.',
 } as const;
 
 export type MessageKey = keyof typeof en;

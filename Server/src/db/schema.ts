@@ -517,5 +517,10 @@ export const connectionSettings = pgTable('connection_settings', {
    * mise.example.com. Null: any address does. Inside the kitchen, any always does.
    */
   outsideDomain: text('outside_domain'),
+  /**
+   * The web server in front of Mise, such as Apache passing a domain on.
+   * Only requests from this address may say who the visitor really is.
+   */
+  trustedProxy: text('trusted_proxy'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

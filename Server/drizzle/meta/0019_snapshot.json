@@ -1,5 +1,5 @@
 {
-  "id": "c0ce40e6-789c-4dd2-8b4a-3214e484e144",
+  "id": "29573798-69cc-4f94-b64c-a003c4cea035",
   "prevId": "d7f24ce1-9ce8-4dab-8a56-ce3a56689bf6",
   "version": "7",
   "dialect": "postgresql",
@@ -152,6 +152,12 @@
         },
         "outside_domain": {
           "name": "outside_domain",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "trusted_proxy": {
+          "name": "trusted_proxy",
           "type": "text",
           "primaryKey": false,
           "notNull": false

@@ -33,6 +33,8 @@ declare module 'fastify' {
     /** Rejects the request unless it comes from an enrolled kitchen device. */
     requireDevice: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     setSessionCookie: (reply: FastifyReply, token: string, expiresAt: Date) => void;
+    /** Cookies only over HTTPS: always with COOKIE_SECURE, or whenever this request came over it. */
+    secureCookies: (request: FastifyRequest) => boolean;
     clearSessionCookie: (reply: FastifyReply) => void;
   }
 
@@ -100,11 +102,16 @@ const authPlugin: FastifyPluginAsync = async (app) => {
     }
   });
 
+  app.decorate(
+    'secureCookies',
+    (request: FastifyRequest) => app.config.COOKIE_SECURE || request.protocol === 'https',
+  );
+
   app.decorate('setSessionCookie', (reply: FastifyReply, token: string, expiresAt: Date) => {
     reply.setCookie(SESSION_COOKIE, token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: app.config.COOKIE_SECURE,
+      secure: app.secureCookies(reply.request),
       path: '/',
       expires: expiresAt,
       signed: false,

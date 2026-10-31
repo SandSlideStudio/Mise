@@ -1,55 +1,81 @@
 import { eq } from 'drizzle-orm';
 import type { Database } from '../../db/client.js';
 import { connectionSettings } from '../../db/schema.js';
+import { plainAddress } from '../../lib/network.js';
 
 /** The one row's id. */
 export const CONNECTION_ID = '00000000-0000-4000-8000-000000000002';
 
 /**
- * How long the outside address is remembered between looks at the database.
- * Every request from outside is checked against it, so it is not read each
- * time; a change made here takes effect at once, one made by a restore within
- * this long.
+ * What every request is checked against, kept in memory: the proxy check runs
+ * inside Fastify before any hook, where there is no time to ask the database.
+ * Loaded when the server starts and changed only through this service.
  */
-const REMEMBER_MS = 5_000;
+export interface ConnectionState {
+  outsideDomain: string | null;
+  trustedProxy: string | null;
+}
+
+export function emptyConnectionState(): ConnectionState {
+  return { outsideDomain: null, trustedProxy: null };
+}
 
 /** A host name as compared: lower case, no trailing dot. */
 export function plainHost(host: string): string {
   return host.trim().toLowerCase().replace(/\.$/, '');
 }
 
-export function createConnectionService(db: Database) {
-  let cached: { domain: string | null; at: number } | null = null;
+/** The last web server seen passing requests on, offered for trusting. */
+export interface SeenProxy {
+  address: string;
+  host: string;
+  at: Date;
+}
 
-  async function read() {
-    const [row] = await db
-      .select()
-      .from(connectionSettings)
-      .where(eq(connectionSettings.id, CONNECTION_ID))
-      .limit(1);
-    return row ?? null;
-  }
+export function createConnectionService(db: Database, state: ConnectionState) {
+  let seen: SeenProxy | null = null;
 
   return {
-    /** The address that leads to Mise from outside, or null for any. */
-    async outsideDomain(): Promise<string | null> {
-      if (cached && Date.now() - cached.at < REMEMBER_MS) return cached.domain;
-      const domain = (await read())?.outsideDomain ?? null;
-      cached = { domain, at: Date.now() };
-      return domain;
+    async load(): Promise<void> {
+      const [row] = await db
+        .select()
+        .from(connectionSettings)
+        .where(eq(connectionSettings.id, CONNECTION_ID))
+        .limit(1);
+      state.outsideDomain = row?.outsideDomain ?? null;
+      state.trustedProxy = row?.trustedProxy ?? null;
     },
 
-    async setOutsideDomain(domain: string | null): Promise<void> {
-      const value = domain ? plainHost(domain) : null;
+    /** The address that leads to Mise from outside, or null for any. */
+    outsideDomain: () => state.outsideDomain,
+    /** The web server in front of Mise, or null. */
+    trustedProxy: () => state.trustedProxy,
+
+    async update(changes: Partial<ConnectionState>): Promise<void> {
+      const next: ConnectionState = {
+        outsideDomain:
+          changes.outsideDomain === undefined
+            ? state.outsideDomain
+            : changes.outsideDomain && plainHost(changes.outsideDomain),
+        trustedProxy:
+          changes.trustedProxy === undefined
+            ? state.trustedProxy
+            : changes.trustedProxy && plainAddress(changes.trustedProxy),
+      };
       await db
         .insert(connectionSettings)
-        .values({ id: CONNECTION_ID, outsideDomain: value })
+        .values({ id: CONNECTION_ID, ...next })
         .onConflictDoUpdate({
           target: connectionSettings.id,
-          set: { outsideDomain: value, updatedAt: new Date() },
+          set: { ...next, updatedAt: new Date() },
         });
-      cached = { domain: value, at: Date.now() };
+      Object.assign(state, next);
     },
+
+    sawProxy(address: string, host: string): void {
+      seen = { address: plainAddress(address), host: plainHost(host), at: new Date() };
+    },
+    seenProxy: () => seen,
   };
 }
 

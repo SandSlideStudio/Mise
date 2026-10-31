@@ -952,4 +952,30 @@ export const es: Record<MessageKey, string> = {
     '¿Otras webs en la misma IP pública? Lo que ya las sirve (Apache, LiteSpeed o Nginx, a menudo configurado con un panel como cPanel o Plesk) tiene que pasar este dominio a Mise, conservando el nombre de dominio en la petición. Si Mise funciona en otra conexión distinta de esas webs, no hace falta nada más.',
   'error.domainLocksYouOut':
     'Estás conectado por otra dirección, así que te quedarías fuera. Configúralo desde la cocina, o abre primero Mise por la nueva dirección.',
+  'proxy.title': 'Detrás de otro servidor web',
+  'proxy.body':
+    '¿Otro servidor web de tu red (Apache, por ejemplo, con tus webs) ya responde por tus dominios? Deja que pase tu dominio de Mise, con su propio certificado. Mise necesita saber qué máquina es, para distinguir quién está en casa y quién fuera.',
+  'proxy.trusted': 'Mise cree a {address} sobre quién es cada visitante.',
+  'proxy.none':
+    'Ningún servidor web de confianza: todo lo que llega a través de otra máquina cuenta como de fuera.',
+  'proxy.stop': 'Dejar de confiar',
+  'proxy.seen': 'Las peticiones para {host} llegan a través de {address}. ¿Es tu servidor web?',
+  'proxy.trust': 'Confiar en {address}',
+  'proxy.addressLabel': 'O escribe la dirección del servidor web',
+  'proxy.trustTyped': 'Confiar',
+  'proxy.apacheTitle': 'Configurar Apache',
+  'proxy.miseAddress': 'Mise en tu red',
+  'proxy.step1': 'En la máquina de Apache, comprueba que llega a Mise. Debería mostrar "ok":',
+  'proxy.step1Bridge':
+    '¿Apache en una VM en la misma TrueNAS que Mise y no vuelve nada? Las VM de TrueNAS a menudo no llegan a su propio host. Crea un puente (br0) en Network de TrueNAS, pasa la dirección del host a él y conecta la tarjeta de red de la VM a br0.',
+  'proxy.step2': 'Guarda esto como /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Actívalo y consigue su certificado, igual que con tus otras webs:',
+  'proxy.step4':
+    'Abre https://{domain} una vez y vuelve aquí: Mise muestra la dirección por la que llegó, y confías en ella.',
+  'proxy.router':
+    'Tu router no cambia: los puertos 80 y 443 ya van a Apache. Apunta el dominio a la IP de tu casa, como tus otras webs.',
+  'proxy.copy': 'Copiar',
+  'proxy.copied': 'Copiado',
+  'error.proxyNotLocal':
+    'Usa la dirección de un servidor web de la red de la cocina, como 192.168.1.60.',
 };

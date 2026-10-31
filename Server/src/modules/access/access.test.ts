@@ -442,16 +442,18 @@ describe('who counts as inside', () => {
 
   it('believes a trusted proxy on the kitchen network about who it passes on', () => {
     // Fastify has already read X-Forwarded-For into ip.
-    expect(insideKitchen(request('172.18.0.2', { 'x-forwarded-for': INSIDE }, INSIDE), 1)).toBe(
-      true,
-    );
-    expect(insideKitchen(request('172.18.0.2', { 'x-forwarded-for': OUTSIDE }, OUTSIDE), 1)).toBe(
-      false,
-    );
+    expect(
+      insideKitchen(request('172.18.0.2', { 'x-forwarded-for': INSIDE }, INSIDE), () => true),
+    ).toBe(true);
+    expect(
+      insideKitchen(request('172.18.0.2', { 'x-forwarded-for': OUTSIDE }, OUTSIDE), () => true),
+    ).toBe(false);
   });
 
   it('never believes a proxy on a public address', () => {
-    expect(insideKitchen(request(OUTSIDE, { 'x-forwarded-for': INSIDE }, INSIDE), 1)).toBe(false);
+    expect(insideKitchen(request(OUTSIDE, { 'x-forwarded-for': INSIDE }, INSIDE), () => true)).toBe(
+      false,
+    );
   });
 
   it('takes a tunnel at its word about the visitor being outside', () => {
@@ -460,11 +462,13 @@ describe('who counts as inside', () => {
       { 'x-forwarded-for': INSIDE, 'cf-connecting-ip': OUTSIDE },
       INSIDE,
     );
-    expect(insideKitchen(tunnel, 1)).toBe(false);
+    expect(insideKitchen(tunnel, () => true)).toBe(false);
   });
 
   it('counts a proxy that only says Forwarded as outside', () => {
-    expect(insideKitchen(request('172.18.0.2', { forwarded: `for=${INSIDE}` }), 1)).toBe(false);
+    expect(insideKitchen(request('172.18.0.2', { forwarded: `for=${INSIDE}` }), () => true)).toBe(
+      false,
+    );
   });
 });
 

@@ -1,11 +1,12 @@
 import fp from 'fastify-plugin';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { ApiError } from '../lib/errors.js';
-import { insideKitchen } from '../lib/network.js';
+import { forwarded, insideKitchen, isPrivateAddress } from '../lib/network.js';
 import {
   createConnectionService,
   plainHost,
   type ConnectionService,
+  type ConnectionState,
 } from '../modules/connection/service.js';
 import {
   ACCESS_COOKIE,
@@ -47,17 +48,24 @@ declare module 'fastify' {
 /** Open to everyone: how to ask, and whether the server is up. */
 const OPEN_ROUTES = new Set(['/api/health', '/api/access/status', '/api/access/request']);
 
-const accessPlugin: FastifyPluginAsync = async (app) => {
+const accessPlugin: FastifyPluginAsync<{ connectionState: ConnectionState }> = async (
+  app,
+  options,
+) => {
   app.decorate('access', createAccessService(app.db));
-  app.decorate('connection', createConnectionService(app.db));
+  app.decorate('connection', createConnectionService(app.db, options.connectionState));
+  app.addHook('onReady', async () => app.connection.load());
   app.decorate('insideKitchen', (request: FastifyRequest) =>
-    insideKitchen(request, app.config.TRUST_PROXY),
+    insideKitchen(
+      request,
+      (proxy) => app.config.TRUST_PROXY !== false || proxy === app.connection.trustedProxy(),
+    ),
   );
   app.decorate('setAccessCookie', (reply: FastifyReply, token: string) => {
     reply.setCookie(ACCESS_COOKIE, token, {
       httpOnly: true,
       sameSite: 'lax',
-      secure: app.config.COOKIE_SECURE,
+      secure: app.secureCookies(reply.request),
       path: '/',
       maxAge: COOKIE_DAYS * 86_400,
     });
@@ -68,12 +76,17 @@ const accessPlugin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async (request, reply) => {
     request.inside = app.insideKitchen(request);
     const open = app.config.OUTSIDE_ACCESS === 'open';
+    // A web server on the kitchen network passing requests on: offered in
+    // Settings → Connection as the one to trust.
+    const peer = request.socket.remoteAddress ?? '';
+    if (forwarded(request) && isPrivateAddress(peer))
+      app.connection.sawProxy(peer, request.hostname);
 
     // From outside, only the kitchen's own address leads here once one is set,
     // like a website on a shared server. Anything else (the bare IP, another
     // site's name pointed at the same machine) finds nothing at all.
     if (!request.inside && !open) {
-      const domain = await app.connection.outsideDomain();
+      const domain = app.connection.outsideDomain();
       if (domain && plainHost(request.hostname) !== domain) {
         return reply.code(404).type('text/plain; charset=utf-8').send('Not found');
       }

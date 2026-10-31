@@ -237,7 +237,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
       reply.setCookie(DEVICE_COOKIE, device.token, {
         httpOnly: true,
         sameSite: 'lax',
-        secure: app.config.COOKIE_SECURE,
+        secure: app.secureCookies(request),
         path: '/',
         expires: new Date(Date.now() + DEVICE_TOKEN_DAYS * 86_400_000),
       });

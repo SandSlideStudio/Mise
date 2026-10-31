@@ -61,16 +61,20 @@ const CLIENT_HEADERS = ['cf-connecting-ip', 'true-client-ip', 'fly-client-ip', '
  * kitchen's own network or VPN, with no approval needed.
  *
  * Straight from a private address, yes. Through a proxy or tunnel, only when
- * the admin said a proxy is in front (trustProxy), that proxy itself sits on
- * a private address, and every address it passes on is private too. So a
+ * that proxy is one Mise was told to trust (trusts), it sits on a private
+ * address itself, and every address it passes on is private too. So a
  * Cloudflare Tunnel's visitors are outside, a VPN's members are inside, and a
  * header made up by someone on the internet changes nothing: they never reach
  * the socket from a private address.
  */
-export function insideKitchen(request: FastifyRequest, trustProxy: number | false): boolean {
-  if (!isPrivateAddress(request.socket.remoteAddress ?? '')) return false;
+export function insideKitchen(
+  request: FastifyRequest,
+  trusts: (proxy: string) => boolean,
+): boolean {
+  const peer = request.socket.remoteAddress ?? '';
+  if (!isPrivateAddress(peer)) return false;
   if (!FORWARDING_HEADERS.some((name) => request.headers[name] !== undefined)) return true;
-  if (trustProxy === false) return false;
+  if (!trusts(plainAddress(peer))) return false;
   // Without X-Forwarded-For, request.ip is only the proxy itself.
   if (request.headers['x-forwarded-for'] === undefined) return false;
   if (!isPrivateAddress(request.ip)) return false;
@@ -78,4 +82,17 @@ export function insideKitchen(request: FastifyRequest, trustProxy: number | fals
     const value = request.headers[name];
     return value === undefined || isPrivateAddress(String(value).trim());
   });
+}
+
+/** Whether a request came through a proxy or tunnel, by the headers one adds. */
+export function forwarded(request: FastifyRequest): boolean {
+  return FORWARDING_HEADERS.some((name) => request.headers[name] !== undefined);
+}
+
+/** An address as compared: "::ffff:192.168.1.60" and "192.168.1.60" are the same machine. */
+export function plainAddress(address: string): string {
+  return address
+    .trim()
+    .toLowerCase()
+    .replace(/^::ffff:/, '');
 }

@@ -962,4 +962,31 @@ export const fr: Record<MessageKey, string> = {
     'D’autres sites sur la même IP publique ? Ce qui les sert déjà (Apache, LiteSpeed ou Nginx, souvent configuré via un panneau comme cPanel ou Plesk) doit transmettre ce domaine à Mise, en conservant le nom de domaine dans la requête. Si Mise tourne sur une autre connexion que ces sites, rien de plus n’est nécessaire.',
   'error.domainLocksYouOut':
     'Vous êtes connecté par une autre adresse : vous vous bloqueriez. Réglez-la depuis la cuisine, ou ouvrez d’abord Mise par la nouvelle adresse.',
+  'proxy.title': 'Derrière un autre serveur web',
+  'proxy.body':
+    'Un autre serveur web de votre réseau (Apache, par exemple, avec vos sites) répond déjà pour vos domaines ? Laissez-le transmettre votre domaine Mise, avec son propre certificat. Mise doit alors savoir de quelle machine il s’agit, pour distinguer qui est sur place et qui est à l’extérieur.',
+  'proxy.trusted': 'Mise croit {address} sur l’identité de chaque visiteur.',
+  'proxy.none':
+    'Aucun serveur web approuvé : tout ce qui passe par une autre machine compte comme extérieur.',
+  'proxy.stop': 'Ne plus faire confiance',
+  'proxy.seen': 'Les requêtes pour {host} arrivent par {address}. Est-ce votre serveur web ?',
+  'proxy.trust': 'Faire confiance à {address}',
+  'proxy.addressLabel': 'Ou saisissez l’adresse du serveur web',
+  'proxy.trustTyped': 'Faire confiance',
+  'proxy.apacheTitle': 'Configurer Apache',
+  'proxy.miseAddress': 'Mise sur votre réseau',
+  'proxy.step1':
+    'Sur la machine Apache, vérifiez qu’elle atteint Mise. Ceci doit afficher « ok » :',
+  'proxy.step1Bridge':
+    'Apache dans une VM sur le même TrueNAS que Mise, et rien ne revient ? Les VM TrueNAS n’atteignent souvent pas leur propre hôte. Créez un pont (br0) dans Network sur TrueNAS, placez-y l’adresse de l’hôte et reliez la carte réseau de la VM à br0.',
+  'proxy.step2': 'Enregistrez ceci sous /etc/apache2/sites-available/mise.conf :',
+  'proxy.step3': 'Activez-le et obtenez son certificat, comme pour vos autres sites :',
+  'proxy.step4':
+    'Ouvrez https://{domain} une fois, puis revenez ici : Mise affiche l’adresse par laquelle c’est arrivé, et vous lui faites confiance.',
+  'proxy.router':
+    'Rien ne change sur votre routeur : les ports 80 et 443 vont déjà vers Apache. Faites pointer le domaine vers votre IP, comme vos autres sites.',
+  'proxy.copy': 'Copier',
+  'proxy.copied': 'Copié',
+  'error.proxyNotLocal':
+    'Utilisez l’adresse d’un serveur web du réseau de la cuisine, comme 192.168.1.60.',
 };

@@ -19,7 +19,8 @@ import livePlugin from './plugins/live.js';
 import securityPlugin from './plugins/security.js';
 import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
-import { fromOwnNetwork } from './lib/network.js';
+import { fromOwnNetwork, plainAddress } from './lib/network.js';
+import { emptyConnectionState, type ConnectionState } from './modules/connection/service.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
 import accessRoutes from './modules/access/routes.js';
@@ -66,14 +67,22 @@ export interface BuildAppOptions {
   version?: string;
 }
 
-function trustedHops(hops: number | false) {
-  return hops === false ? false : (_address: string, hop: number) => hop < hops;
+/**
+ * Which proxies may say who the visitor is. TRUST_PROXY trusts that many
+ * hops, wherever they are; the web server named in Settings → Connection is
+ * trusted for its own one hop and nothing else.
+ */
+function trustedProxies(hops: number | false, state: ConnectionState) {
+  return (address: string, hop: number) =>
+    (hops !== false && hop < hops) ||
+    (hop === 0 && state.trustedProxy !== null && plainAddress(address) === state.trustedProxy);
 }
 
 export async function buildApp(
   config: Config,
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
+  const connectionState = emptyConnectionState();
   const app = Fastify({
     logger: {
       level: config.NODE_ENV === 'test' ? 'silent' : 'info',
@@ -85,9 +94,8 @@ export async function buildApp(
             }
           : undefined,
     },
-    // Only believe X-Forwarded-For when the admin says a proxy is in front,
-    // and then only as many hops as there are proxies.
-    trustProxy: trustedHops(config.TRUST_PROXY),
+    // Only believe X-Forwarded-For from a proxy the admin said is in front.
+    trustProxy: trustedProxies(config.TRUST_PROXY, connectionState),
     // Errors are still logged. A line for every request is noise in a kitchen,
     // and on a Raspberry Pi's SD card each one is a write.
     logController: new LogController({ disableRequestLogging: config.NODE_ENV === 'production' }),
@@ -115,7 +123,7 @@ export async function buildApp(
   });
   await app.register(dbPlugin, { db: options.db });
   await app.register(authPlugin);
-  await app.register(accessPlugin);
+  await app.register(accessPlugin, { connectionState });
   await app.register(livePlugin);
   app.decorate(
     'backups',
