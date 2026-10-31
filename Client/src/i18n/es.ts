@@ -949,7 +949,7 @@ export const es: Record<MessageKey, string> = {
   'connection.domainClear': 'Borrar',
   'connection.domainUseCurrent': 'Usar {domain}, la dirección en la que estás',
   'connection.domainShared':
-    '¿Varias webs en una sola IP pública? Pon delante un proxy inverso (como Nginx Proxy Manager o Caddy) que envíe este dominio a Mise y los demás a sus propias webs.',
+    '¿Otras webs en la misma IP pública? Lo que ya las sirve (Apache, LiteSpeed o Nginx, a menudo configurado con un panel como cPanel o Plesk) tiene que pasar este dominio a Mise, conservando el nombre de dominio en la petición. Si Mise funciona en otra conexión distinta de esas webs, no hace falta nada más.',
   'error.domainLocksYouOut':
     'Estás conectado por otra dirección, así que te quedarías fuera. Configúralo desde la cocina, o abre primero Mise por la nueva dirección.',
 };

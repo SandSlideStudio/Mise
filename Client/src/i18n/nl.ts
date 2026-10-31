@@ -951,7 +951,7 @@ export const nl: Record<MessageKey, string> = {
   'connection.domainClear': 'Wissen',
   'connection.domainUseCurrent': 'Gebruik {domain}, het adres waarop je nu zit',
   'connection.domainShared':
-    'Meerdere websites op één publiek IP-adres? Zet er een reverse proxy voor (zoals Nginx Proxy Manager of Caddy) die dit domein naar Mise stuurt en de andere naar hun eigen sites.',
+    'Andere websites op hetzelfde publieke IP-adres? Wat die nu al serveert (Apache, LiteSpeed of Nginx, vaak ingesteld via een paneel als cPanel of Plesk) moet dit domein doorsturen naar Mise, met de domeinnaam behouden. Draait Mise op een andere verbinding dan die sites, dan is er niets extra nodig.',
   'error.domainLocksYouOut':
     'Je bent verbonden via een ander adres, dus hiermee sluit je jezelf buiten. Stel het in vanuit de keuken, of open Mise eerst via het nieuwe adres.',
 };

@@ -962,7 +962,7 @@ export const de: Record<MessageKey, string> = {
   'connection.domainClear': 'Leeren',
   'connection.domainUseCurrent': '{domain} verwenden, die aktuelle Adresse',
   'connection.domainShared':
-    'Mehrere Websites auf einer öffentlichen IP? Stell einen Reverse Proxy davor (etwa Nginx Proxy Manager oder Caddy), der diese Domain zu Mise schickt und die anderen zu ihren eigenen Seiten.',
+    'Andere Websites auf derselben öffentlichen IP? Was sie bereits ausliefert (Apache, LiteSpeed oder Nginx, oft über ein Panel wie cPanel oder Plesk eingerichtet), muss diese Domain an Mise weiterreichen und dabei den Domainnamen in der Anfrage behalten. Läuft Mise über einen anderen Anschluss als diese Seiten, ist nichts weiter nötig.',
   'error.domainLocksYouOut':
     'Du bist über eine andere Adresse verbunden und würdest dich aussperren. Stell es aus der Küche ein oder öffne Mise zuerst über die neue Adresse.',
 };

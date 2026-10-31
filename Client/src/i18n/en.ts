@@ -932,7 +932,7 @@ export const en = {
   'connection.domainClear': 'Clear',
   'connection.domainUseCurrent': 'Use {domain}, the address you’re on now',
   'connection.domainShared':
-    'Several websites on one public IP? Put a reverse proxy in front (such as Nginx Proxy Manager or Caddy) that sends this domain to Mise and the others to their own sites.',
+    'Other websites on the same public IP? Whatever already serves them (Apache, LiteSpeed or Nginx, often set up through a panel like cPanel or Plesk) has to pass this domain on to Mise, keeping the domain name in the request. If Mise runs on a different connection from those sites, nothing else is needed.',
   'error.domainLocksYouOut':
     'You’re connected through a different address, so this would lock you out. Set it from inside the kitchen, or open Mise through the new address first.',
 } as const;

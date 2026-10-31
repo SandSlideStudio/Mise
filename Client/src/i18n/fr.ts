@@ -959,7 +959,7 @@ export const fr: Record<MessageKey, string> = {
   'connection.domainClear': 'Effacer',
   'connection.domainUseCurrent': 'Utiliser {domain}, l’adresse actuelle',
   'connection.domainShared':
-    'Plusieurs sites sur une même IP publique ? Placez devant un reverse proxy (comme Nginx Proxy Manager ou Caddy) qui envoie ce domaine vers Mise et les autres vers leurs sites.',
+    'D’autres sites sur la même IP publique ? Ce qui les sert déjà (Apache, LiteSpeed ou Nginx, souvent configuré via un panneau comme cPanel ou Plesk) doit transmettre ce domaine à Mise, en conservant le nom de domaine dans la requête. Si Mise tourne sur une autre connexion que ces sites, rien de plus n’est nécessaire.',
   'error.domainLocksYouOut':
     'Vous êtes connecté par une autre adresse : vous vous bloqueriez. Réglez-la depuis la cuisine, ou ouvrez d’abord Mise par la nouvelle adresse.',
 };
