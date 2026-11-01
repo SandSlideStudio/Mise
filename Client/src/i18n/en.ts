@@ -960,6 +960,82 @@ export const en = {
   'proxy.copied': 'Copied',
   'error.proxyNotLocal':
     'Use the address of a web server on the kitchen network, such as 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Plain HTTP keeps working throughout. HTTPS is what lets tablets keep working offline and install Mise as an app, and it’s a must for anything reachable from the internet.',
+  'https.on': 'On',
+  'https.off': 'Off',
+  'https.kitchenTitle': 'On the kitchen network',
+  'https.kitchenBody':
+    'Mise makes a certificate of its own for the addresses your tablets use. No domain or internet needed. Each tablet trusts it once, from the trust page.',
+  'https.renews': 'Renews by itself. The current one lasts until {date}.',
+  'https.trustEachTablet': 'On each tablet, open this page once and follow the steps:',
+  'https.namesLabel': 'Addresses the tablets use',
+  'https.namesHint':
+    'The address in the tablets’ address bar, without http:// or a port. Several? Separate them with commas.',
+  'https.making': 'Making…',
+  'https.turnOn': 'Turn on',
+  'https.turnOff': 'Turn off',
+  'https.updateNames': 'Update addresses',
+  'https.portNote':
+    'HTTPS answers on port {port}. On TrueNAS, the app needs that port published too.',
+  'https.domainTitle': 'For your domain',
+  'https.domainTitleFor': 'For {domain}',
+  'https.domainBody':
+    'A free certificate from Let’s Encrypt, which every browser trusts with no steps on the device. Mise gets it and renews it by itself.',
+  'https.domainNeedsAddress': 'Set the address from outside above first.',
+  'https.domainBehindProxy':
+    'Mise is behind your own web server, which handles HTTPS for this domain. You don’t need this.',
+  'https.domainStep1': '{domain} points at your public IP address.',
+  'https.domainStep2':
+    'Your router passes port 80 on to Mise’s port {http}, and port 443 to Mise’s port {https}. On a cloud server, the install does this.',
+  'https.domainStep3': 'Then ask for the certificate:',
+  'https.getCertificate': 'Get certificate',
+  'https.asking': 'Asking Let’s Encrypt…',
+  'https.askingNote': 'This usually takes a few seconds, at most two minutes.',
+  'https.failedHint':
+    'Most often port 80 isn’t reaching Mise yet, or the domain doesn’t point here yet. Let’s Encrypt allows only a few failed tries an hour.',
+  'https.renewFailed': 'The last renewal failed, and Mise will try again: {reason}',
+  'trust.eyebrow': 'This device',
+  'trust.title': 'Trust the kitchen certificate',
+  'trust.body':
+    'Once per device. Afterwards Mise opens over HTTPS here, keeps working when the network drops, and can be installed as an app.',
+  'trust.notOn': 'HTTPS isn’t on yet. An administrator turns it on in Settings → Connection.',
+  'trust.trusted': 'This device trusts it',
+  'trust.trustedBody': 'You’re on Mise over HTTPS. Keep using this address from now on.',
+  'trust.openMise': 'Open Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Other',
+  'trust.download': 'Download the kitchen certificate.',
+  'trust.downloadIos':
+    'In Safari, download the kitchen certificate and allow it when asked about a configuration profile.',
+  'trust.downloadButton': 'Download certificate',
+  'trust.ios1':
+    'Open Settings, tap “Profile Downloaded” near the top, then Install, and enter your passcode.',
+  'trust.ios2': 'Go to Settings → General → About → Certificate Trust Settings.',
+  'trust.ios3': 'Turn on full trust for “Mise”.',
+  'trust.android1':
+    'Open Settings and search for “CA certificate” (often under Security → Encryption & credentials → Install a certificate).',
+  'trust.android2':
+    'Choose “CA certificate”, tap “Install anyway”, and pick mise-kitchen.crt from your downloads.',
+  'trust.windows1': 'Open the downloaded file, choose “Install Certificate”, then “Current User”.',
+  'trust.windows2':
+    'Choose “Place all certificates in the following store”, pick “Trusted Root Certification Authorities”, finish, and restart the browser.',
+  'trust.mac1': 'Open the downloaded file. Keychain Access adds it to your login keychain.',
+  'trust.mac2':
+    'Double-click “Mise”, open Trust, and set “When using this certificate” to “Always Trust”.',
+  'trust.other1':
+    'Add the downloaded file to the system’s or browser’s trusted certificate authorities. Firefox keeps its own list: Settings → Privacy & Security → Certificates → Authorities → Import.',
+  'trust.check':
+    'Check it worked: this opens this page over HTTPS. A warning instead means a step was missed.',
+  'trust.checkButton': 'Check',
+  'trust.fingerprint': 'Fingerprint, to compare',
+  'error.badName':
+    'That is not an address or host name. Use something like 192.168.1.50 or mise.local.',
+  'error.noDomain': 'Set the address from outside first.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -48,7 +48,7 @@ describe('the address that leads to Mise from outside', () => {
       url: '/api/connection',
       cookie: `mise_session=${admin}`,
     });
-    expect(response.json()).toEqual({
+    expect(response.json()).toMatchObject({
       outsideDomain: null,
       trustedProxy: null,
       seenProxy: null,

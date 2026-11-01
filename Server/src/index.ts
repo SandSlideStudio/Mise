@@ -77,6 +77,19 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => void shutdown('SIGINT'));
 
   await app.listen({ port: config.PORT, host: config.HOST });
+  // HTTPS next to it, as soon as a certificate is on in Settings → Connection.
+  await app.httpsListener.start(config.HTTPS_PORT, config.HOST).catch((error: unknown) => {
+    app.log.error({ error }, `HTTPS could not start on port ${config.HTTPS_PORT}`);
+  });
+
+  // Certificates close to running out are renewed: at start, then twice a day.
+  const renew = () =>
+    app.auth
+      .kitchen()
+      .then((kitchen) => app.connection.renew(kitchen?.name ?? 'Kitchen'))
+      .catch((error: unknown) => app.log.warn({ error }, 'could not renew certificates'));
+  await renew();
+  setInterval(() => void renew(), 12 * 3_600_000).unref();
 
   // Whether a newer Mise is out: a minute after start, then daily, if allowed.
   app.updates.start();

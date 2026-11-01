@@ -981,4 +981,82 @@ export const nl: Record<MessageKey, string> = {
   'proxy.copied': 'Gekopieerd',
   'error.proxyNotLocal':
     'Gebruik het adres van een webserver op het keukennetwerk, zoals 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Gewoon HTTP blijft altijd werken. Met HTTPS kunnen tablets offline doorwerken en Mise als app installeren, en het is een must voor alles wat via internet bereikbaar is.',
+  'https.on': 'Aan',
+  'https.off': 'Uit',
+  'https.kitchenTitle': 'Op het keukennetwerk',
+  'https.kitchenBody':
+    'Mise maakt een eigen certificaat voor de adressen die je tablets gebruiken. Geen domein of internet nodig. Elke tablet vertrouwt het één keer, via de vertrouwenspagina.',
+  'https.renews': 'Vernieuwt zichzelf. Het huidige geldt tot {date}.',
+  'https.trustEachTablet': 'Open op elke tablet één keer deze pagina en volg de stappen:',
+  'https.namesLabel': 'Adressen die de tablets gebruiken',
+  'https.namesHint':
+    'Het adres in de adresbalk van de tablets, zonder http:// of poort. Meerdere? Scheid ze met komma’s.',
+  'https.making': 'Maken…',
+  'https.turnOn': 'Aanzetten',
+  'https.turnOff': 'Uitzetten',
+  'https.updateNames': 'Adressen bijwerken',
+  'https.portNote':
+    'HTTPS antwoordt op poort {port}. Op TrueNAS moet de app die poort ook publiceren.',
+  'https.domainTitle': 'Voor je domein',
+  'https.domainTitleFor': 'Voor {domain}',
+  'https.domainBody':
+    'Een gratis certificaat van Let’s Encrypt, dat elke browser vertrouwt zonder stappen op het apparaat. Mise haalt het op en vernieuwt het zelf.',
+  'https.domainNeedsAddress': 'Stel eerst hierboven het adres van buitenaf in.',
+  'https.domainBehindProxy':
+    'Mise staat achter je eigen webserver, die HTTPS voor dit domein regelt. Dit heb je niet nodig.',
+  'https.domainStep1': '{domain} wijst naar je publieke IP-adres.',
+  'https.domainStep2':
+    'Je router stuurt poort 80 door naar poort {http} van Mise, en poort 443 naar poort {https}. Op een cloudserver regelt de installatie dit.',
+  'https.domainStep3': 'Vraag dan het certificaat aan:',
+  'https.getCertificate': 'Certificaat ophalen',
+  'https.asking': 'Let’s Encrypt vragen…',
+  'https.askingNote': 'Dit duurt meestal een paar seconden, hooguit twee minuten.',
+  'https.failedHint':
+    'Meestal komt poort 80 nog niet bij Mise aan, of wijst het domein nog niet hierheen. Let’s Encrypt staat maar een paar mislukte pogingen per uur toe.',
+  'https.renewFailed': 'De laatste vernieuwing mislukte; Mise probeert het opnieuw: {reason}',
+  'trust.eyebrow': 'Dit apparaat',
+  'trust.title': 'Vertrouw het keukencertificaat',
+  'trust.body':
+    'Eén keer per apparaat. Daarna opent Mise hier via HTTPS, blijft het werken als het netwerk wegvalt en kun je het als app installeren.',
+  'trust.notOn':
+    'HTTPS staat nog niet aan. Een beheerder zet het aan bij Instellingen → Verbinding.',
+  'trust.trusted': 'Dit apparaat vertrouwt het',
+  'trust.trustedBody': 'Je zit via HTTPS op Mise. Gebruik voortaan dit adres.',
+  'trust.openMise': 'Open Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Anders',
+  'trust.download': 'Download het keukencertificaat.',
+  'trust.downloadIos':
+    'Download in Safari het keukencertificaat en sta het toe als er naar een configuratieprofiel wordt gevraagd.',
+  'trust.downloadButton': 'Certificaat downloaden',
+  'trust.ios1':
+    'Open Instellingen, tik bovenaan op “Profiel gedownload”, dan op Installeer, en voer je toegangscode in.',
+  'trust.ios2': 'Ga naar Instellingen → Algemeen → Info → Certificaatvertrouwensinstellingen.',
+  'trust.ios3': 'Zet volledig vertrouwen aan voor “Mise”.',
+  'trust.android1':
+    'Open Instellingen en zoek op “CA-certificaat” (vaak onder Beveiliging → Versleuteling en inloggegevens → Certificaat installeren).',
+  'trust.android2':
+    'Kies “CA-certificaat”, tik op “Toch installeren” en kies mise-kitchen.crt uit je downloads.',
+  'trust.windows1':
+    'Open het gedownloade bestand, kies “Certificaat installeren” en dan “Huidige gebruiker”.',
+  'trust.windows2':
+    'Kies “Alle certificaten in het onderstaande archief opslaan”, kies “Vertrouwde basiscertificeringsinstanties”, rond af en herstart de browser.',
+  'trust.mac1':
+    'Open het gedownloade bestand. Sleutelhangertoegang voegt het toe aan je inlogsleutelhanger.',
+  'trust.mac2':
+    'Dubbelklik op “Mise”, open Vertrouw, en zet “Bij gebruik van dit certificaat” op “Altijd vertrouwen”.',
+  'trust.other1':
+    'Voeg het gedownloade bestand toe aan de vertrouwde certificeringsinstanties van het systeem of de browser. Firefox heeft een eigen lijst: Instellingen → Privacy & Beveiliging → Certificaten → Autoriteiten → Importeren.',
+  'trust.check':
+    'Controleer of het gelukt is: dit opent deze pagina via HTTPS. Krijg je een waarschuwing, dan is er een stap overgeslagen.',
+  'trust.checkButton': 'Controleren',
+  'trust.fingerprint': 'Vingerafdruk, om te vergelijken',
+  'error.badName': 'Dat is geen adres of hostnaam. Gebruik iets als 192.168.1.50 of mise.local.',
+  'error.noDomain': 'Stel eerst het adres van buitenaf in.',
 };

@@ -978,4 +978,82 @@ export const es: Record<MessageKey, string> = {
   'proxy.copied': 'Copiado',
   'error.proxyNotLocal':
     'Usa la dirección de un servidor web de la red de la cocina, como 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'El HTTP normal sigue funcionando siempre. HTTPS permite que las tablets sigan trabajando sin conexión e instalen Mise como app, y es imprescindible para todo lo accesible desde internet.',
+  'https.on': 'Activado',
+  'https.off': 'Desactivado',
+  'https.kitchenTitle': 'En la red de la cocina',
+  'https.kitchenBody':
+    'Mise crea un certificado propio para las direcciones que usan tus tablets. Sin dominio ni internet. Cada tablet confía en él una vez, desde la página de confianza.',
+  'https.renews': 'Se renueva solo. El actual vale hasta el {date}.',
+  'https.trustEachTablet': 'En cada tablet, abre esta página una vez y sigue los pasos:',
+  'https.namesLabel': 'Direcciones que usan las tablets',
+  'https.namesHint':
+    'La dirección en la barra de las tablets, sin http:// ni puerto. ¿Varias? Sepáralas con comas.',
+  'https.making': 'Creando…',
+  'https.turnOn': 'Activar',
+  'https.turnOff': 'Desactivar',
+  'https.updateNames': 'Actualizar direcciones',
+  'https.portNote':
+    'HTTPS responde en el puerto {port}. En TrueNAS, la app también debe publicar ese puerto.',
+  'https.domainTitle': 'Para tu dominio',
+  'https.domainTitleFor': 'Para {domain}',
+  'https.domainBody':
+    'Un certificado gratuito de Let’s Encrypt, en el que confía cualquier navegador sin pasos en el dispositivo. Mise lo obtiene y lo renueva solo.',
+  'https.domainNeedsAddress': 'Primero configura arriba la dirección desde fuera.',
+  'https.domainBehindProxy':
+    'Mise está detrás de tu propio servidor web, que gestiona HTTPS para este dominio. No lo necesitas.',
+  'https.domainStep1': '{domain} apunta a tu dirección IP pública.',
+  'https.domainStep2':
+    'Tu router reenvía el puerto 80 al puerto {http} de Mise, y el 443 al puerto {https}. En un servidor en la nube, la instalación lo hace.',
+  'https.domainStep3': 'Luego pide el certificado:',
+  'https.getCertificate': 'Obtener certificado',
+  'https.asking': 'Preguntando a Let’s Encrypt…',
+  'https.askingNote': 'Suele tardar unos segundos, dos minutos como mucho.',
+  'https.failedHint':
+    'Lo más habitual es que el puerto 80 aún no llegue a Mise, o que el dominio aún no apunte aquí. Let’s Encrypt solo permite unos pocos intentos fallidos por hora.',
+  'https.renewFailed': 'La última renovación falló; Mise lo volverá a intentar: {reason}',
+  'trust.eyebrow': 'Este dispositivo',
+  'trust.title': 'Confía en el certificado de la cocina',
+  'trust.body':
+    'Una vez por dispositivo. Después Mise se abre aquí por HTTPS, sigue funcionando si se cae la red y se puede instalar como app.',
+  'trust.notOn': 'HTTPS aún no está activado. Un administrador lo activa en Ajustes → Conexión.',
+  'trust.trusted': 'Este dispositivo confía en él',
+  'trust.trustedBody': 'Estás en Mise por HTTPS. A partir de ahora usa esta dirección.',
+  'trust.openMise': 'Abrir Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Otro',
+  'trust.download': 'Descarga el certificado de la cocina.',
+  'trust.downloadIos':
+    'En Safari, descarga el certificado y permítelo cuando pregunte por un perfil de configuración.',
+  'trust.downloadButton': 'Descargar certificado',
+  'trust.ios1':
+    'Abre Ajustes, toca “Perfil descargado” arriba, luego Instalar, e introduce tu código.',
+  'trust.ios2': 'Ve a Ajustes → General → Información → Ajustes de confianza de certificados.',
+  'trust.ios3': 'Activa la confianza total para “Mise”.',
+  'trust.android1':
+    'Abre Ajustes y busca “certificado de CA” (a menudo en Seguridad → Cifrado y credenciales → Instalar un certificado).',
+  'trust.android2':
+    'Elige “Certificado de CA”, toca “Instalar de todos modos” y selecciona mise-kitchen.crt en tus descargas.',
+  'trust.windows1':
+    'Abre el archivo descargado, elige “Instalar certificado” y luego “Usuario actual”.',
+  'trust.windows2':
+    'Elige “Colocar todos los certificados en el siguiente almacén”, selecciona “Entidades de certificación raíz de confianza”, termina y reinicia el navegador.',
+  'trust.mac1':
+    'Abre el archivo descargado. Acceso a Llaveros lo añade a tu llavero de inicio de sesión.',
+  'trust.mac2':
+    'Haz doble clic en “Mise”, abre Confiar y pon “Al usar este certificado” en “Confiar siempre”.',
+  'trust.other1':
+    'Añade el archivo a las autoridades de certificación de confianza del sistema o del navegador. Firefox tiene su propia lista: Ajustes → Privacidad y seguridad → Certificados → Autoridades → Importar.',
+  'trust.check':
+    'Comprueba que funcionó: esto abre esta página por HTTPS. Si sale un aviso, faltó un paso.',
+  'trust.checkButton': 'Comprobar',
+  'trust.fingerprint': 'Huella, para comparar',
+  'error.badName':
+    'No es una dirección ni un nombre de host. Usa algo como 192.168.1.50 o mise.local.',
+  'error.noDomain': 'Primero configura la dirección desde fuera.',
 };

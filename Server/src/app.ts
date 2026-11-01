@@ -21,10 +21,12 @@ import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
 import { fromOwnNetwork, plainAddress } from './lib/network.js';
 import { emptyConnectionState, type ConnectionState } from './modules/connection/service.js';
+import { createHttpsListener, type HttpsListener } from './modules/connection/listener.js';
+import type { issueDomainCertificate } from './modules/connection/acme.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
 import accessRoutes from './modules/access/routes.js';
-import connectionRoutes from './modules/connection/routes.js';
+import connectionRoutes, { acmeChallengeRoute } from './modules/connection/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
 import prepRoutes from './modules/prep/routes.js';
 import ingredientRoutes from './modules/ingredients/routes.js';
@@ -52,6 +54,7 @@ declare module 'fastify' {
     setupCodeNeeded: (request: FastifyRequest) => boolean;
     backups: BackupService;
     updates: UpdateChecker;
+    httpsListener: HttpsListener;
   }
 }
 
@@ -65,6 +68,8 @@ export interface BuildAppOptions {
   /** How the update check reaches GitHub, and the version it compares. Set by the test suite. */
   releases?: (url: string, init: RequestInit) => Promise<Response>;
   version?: string;
+  /** How a Let's Encrypt certificate is fetched. Replaced by the test suite. */
+  acme?: typeof issueDomainCertificate;
 }
 
 /**
@@ -83,7 +88,10 @@ export async function buildApp(
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
   const connectionState = emptyConnectionState();
-  const app = Fastify({
+  // HTTPS runs the same handler as HTTP; see modules/connection/listener.ts.
+  const httpsListener = createHttpsListener(() => app.log);
+  const app: FastifyInstance = Fastify({
+    serverFactory: (handler) => httpsListener.serverFactory(handler),
     logger: {
       level: config.NODE_ENV === 'test' ? 'silent' : 'info',
       transport:
@@ -102,6 +110,7 @@ export async function buildApp(
     bodyLimit: 2 * 1024 * 1024,
   });
 
+  app.decorate('httpsListener', httpsListener);
   app.decorate('setupToken', setupTokenFor(config));
   const always = setupCodeAlways(config);
   app.decorate(
@@ -123,7 +132,13 @@ export async function buildApp(
   });
   await app.register(dbPlugin, { db: options.db });
   await app.register(authPlugin);
-  await app.register(accessPlugin, { connectionState });
+  await app.register(accessPlugin, {
+    connectionState,
+    listener: httpsListener,
+    directoryUrl: config.ACME_DIRECTORY,
+    issue: options.acme,
+  });
+  app.addHook('onClose', async () => httpsListener.close());
   await app.register(livePlugin);
   app.decorate(
     'backups',
@@ -173,6 +188,7 @@ export async function buildApp(
   await app.register(backupRoutes, { prefix: '/api' });
   await app.register(updateRoutes, { prefix: '/api' });
   await app.register(connectionRoutes, { prefix: '/api' });
+  await app.register(acmeChallengeRoute);
   await registerUploads(app, config);
 
   if (options.serveClient === false) {

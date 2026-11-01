@@ -989,4 +989,83 @@ export const fr: Record<MessageKey, string> = {
   'proxy.copied': 'Copié',
   'error.proxyNotLocal':
     'Utilisez l’adresse d’un serveur web du réseau de la cuisine, comme 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Le HTTP simple continue de fonctionner. Le HTTPS permet aux tablettes de travailler hors ligne et d’installer Mise comme une app, et il est indispensable pour tout ce qui est accessible depuis internet.',
+  'https.on': 'Activé',
+  'https.off': 'Désactivé',
+  'https.kitchenTitle': 'Sur le réseau de la cuisine',
+  'https.kitchenBody':
+    'Mise crée son propre certificat pour les adresses qu’utilisent vos tablettes. Aucun domaine ni internet nécessaire. Chaque tablette lui fait confiance une fois, depuis la page de confiance.',
+  'https.renews': 'Se renouvelle tout seul. L’actuel est valable jusqu’au {date}.',
+  'https.trustEachTablet': 'Sur chaque tablette, ouvrez cette page une fois et suivez les étapes :',
+  'https.namesLabel': 'Adresses utilisées par les tablettes',
+  'https.namesHint':
+    'L’adresse dans la barre d’adresse des tablettes, sans http:// ni port. Plusieurs ? Séparez-les par des virgules.',
+  'https.making': 'Création…',
+  'https.turnOn': 'Activer',
+  'https.turnOff': 'Désactiver',
+  'https.updateNames': 'Mettre à jour les adresses',
+  'https.portNote':
+    'Le HTTPS répond sur le port {port}. Sur TrueNAS, l’app doit aussi publier ce port.',
+  'https.domainTitle': 'Pour votre domaine',
+  'https.domainTitleFor': 'Pour {domain}',
+  'https.domainBody':
+    'Un certificat gratuit de Let’s Encrypt, reconnu par tous les navigateurs sans rien faire sur l’appareil. Mise l’obtient et le renouvelle tout seul.',
+  'https.domainNeedsAddress': 'Définissez d’abord l’adresse depuis l’extérieur ci-dessus.',
+  'https.domainBehindProxy':
+    'Mise est derrière votre propre serveur web, qui gère le HTTPS pour ce domaine. Vous n’en avez pas besoin.',
+  'https.domainStep1': '{domain} pointe vers votre adresse IP publique.',
+  'https.domainStep2':
+    'Votre routeur redirige le port 80 vers le port {http} de Mise, et le 443 vers le port {https}. Sur un serveur cloud, l’installation s’en charge.',
+  'https.domainStep3': 'Puis demandez le certificat :',
+  'https.getCertificate': 'Obtenir le certificat',
+  'https.asking': 'Demande à Let’s Encrypt…',
+  'https.askingNote': 'Cela prend en général quelques secondes, deux minutes au plus.',
+  'https.failedHint':
+    'Le plus souvent, le port 80 n’atteint pas encore Mise, ou le domaine ne pointe pas encore ici. Let’s Encrypt n’autorise que quelques échecs par heure.',
+  'https.renewFailed': 'Le dernier renouvellement a échoué ; Mise réessaiera : {reason}',
+  'trust.eyebrow': 'Cet appareil',
+  'trust.title': 'Faire confiance au certificat de la cuisine',
+  'trust.body':
+    'Une fois par appareil. Ensuite Mise s’ouvre ici en HTTPS, continue de fonctionner quand le réseau tombe et peut être installé comme une app.',
+  'trust.notOn':
+    'Le HTTPS n’est pas encore activé. Un administrateur l’active dans Réglages → Connexion.',
+  'trust.trusted': 'Cet appareil lui fait confiance',
+  'trust.trustedBody': 'Vous êtes sur Mise en HTTPS. Utilisez désormais cette adresse.',
+  'trust.openMise': 'Ouvrir Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Autre',
+  'trust.download': 'Téléchargez le certificat de la cuisine.',
+  'trust.downloadIos':
+    'Dans Safari, téléchargez le certificat et autorisez-le quand un profil de configuration est proposé.',
+  'trust.downloadButton': 'Télécharger le certificat',
+  'trust.ios1':
+    'Ouvrez Réglages, touchez « Profil téléchargé » en haut, puis Installer, et saisissez votre code.',
+  'trust.ios2': 'Allez dans Réglages → Général → Informations → Réglages des certificats.',
+  'trust.ios3': 'Activez la confiance totale pour « Mise ».',
+  'trust.android1':
+    'Ouvrez Paramètres et cherchez « certificat CA » (souvent dans Sécurité → Chiffrement et identifiants → Installer un certificat).',
+  'trust.android2':
+    'Choisissez « Certificat CA », touchez « Installer quand même » et sélectionnez mise-kitchen.crt dans vos téléchargements.',
+  'trust.windows1':
+    'Ouvrez le fichier téléchargé, choisissez « Installer le certificat », puis « Utilisateur actuel ».',
+  'trust.windows2':
+    'Choisissez « Placer tous les certificats dans le magasin suivant », sélectionnez « Autorités de certification racines de confiance », terminez et redémarrez le navigateur.',
+  'trust.mac1':
+    'Ouvrez le fichier téléchargé. Trousseaux d’accès l’ajoute à votre trousseau de session.',
+  'trust.mac2':
+    'Double-cliquez sur « Mise », ouvrez Se fier, et réglez « Lors de l’utilisation de ce certificat » sur « Toujours approuver ».',
+  'trust.other1':
+    'Ajoutez le fichier aux autorités de certification de confiance du système ou du navigateur. Firefox a sa propre liste : Paramètres → Vie privée et sécurité → Certificats → Autorités → Importer.',
+  'trust.check':
+    'Vérifiez : ceci ouvre cette page en HTTPS. Un avertissement signifie qu’une étape a été oubliée.',
+  'trust.checkButton': 'Vérifier',
+  'trust.fingerprint': 'Empreinte, pour comparer',
+  'error.badName':
+    'Ce n’est pas une adresse ni un nom d’hôte. Utilisez par exemple 192.168.1.50 ou mise.local.',
+  'error.noDomain': 'Définissez d’abord l’adresse depuis l’extérieur.',
 };

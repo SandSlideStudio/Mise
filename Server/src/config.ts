@@ -10,6 +10,10 @@ const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   HOST: z.string().default('0.0.0.0'),
+  /** Where HTTPS answers, once a certificate is turned on in Settings → Connection. */
+  HTTPS_PORT: z.coerce.number().int().min(1).max(65535).default(3443),
+  /** Where certificates for the kitchen's domain come from. Changed only for testing. */
+  ACME_DIRECTORY: z.url().default('https://acme-v02.api.letsencrypt.org/directory'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   SESSION_SECRET: z
     .string()

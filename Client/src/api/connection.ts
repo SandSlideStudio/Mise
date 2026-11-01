@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { Connection, UpdateConnection } from '@mise/contracts';
+import type { Connection, KitchenHttps, TrustInfo, UpdateConnection } from '@mise/contracts';
 import { api } from './client.js';
 
 /** Settings → Connection: how this server is reached. Administrators only. */
@@ -17,6 +17,42 @@ export function useUpdateConnection() {
     mutationFn: (input: UpdateConnection) => api.put<Connection>('/connection', input),
     onSuccess: (connection) => queryClient.setQueryData(['connection'], connection),
   });
+}
+
+/** Every HTTPS change answers with the whole connection, which replaces what was shown. */
+function useConnectionChange<T>(send: (input: T) => Promise<Connection>) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: send,
+    onSuccess: (connection) => queryClient.setQueryData(['connection'], connection),
+  });
+}
+
+export const useEnableKitchenHttps = () =>
+  useConnectionChange((input: KitchenHttps) =>
+    api.put<Connection>('/connection/kitchen-https', input),
+  );
+export const useDisableKitchenHttps = () =>
+  useConnectionChange(() => api.delete<Connection>('/connection/kitchen-https'));
+export const useEnableDomainHttps = () =>
+  useConnectionChange(() => api.post<Connection>('/connection/domain-https'));
+export const useDisableDomainHttps = () =>
+  useConnectionChange(() => api.delete<Connection>('/connection/domain-https'));
+
+/** For the trust page, before anyone signs in. */
+export function useTrustInfo() {
+  return useQuery({
+    queryKey: ['trust'],
+    queryFn: () => api.get<TrustInfo>('/connection/trust'),
+  });
+}
+
+/** The kitchen certificate's own address for this device: https://192.168.1.50:3443 */
+export function httpsAddress(names: string[], port: number): string {
+  const here = window.location.hostname.toLowerCase();
+  const name = names.includes(here) ? here : (names[0] ?? here);
+  const host = name.includes(':') ? `[${name}]` : name;
+  return `https://${host}${port === 443 ? '' : `:${port}`}`;
 }
 
 /** What people paste: "https://mise.example.com/login" → "mise.example.com". */

@@ -11,6 +11,7 @@ import { KitchenSettings } from './settings/KitchenSettings.js';
 import { BackupSettings } from './settings/BackupSettings.js';
 import { ConnectionSettings } from './settings/ConnectionSettings.js';
 import { ProxySettings } from './settings/ProxySettings.js';
+import { HttpsSettings } from './settings/HttpsSettings.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
 
 type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups';
@@ -86,6 +87,7 @@ export function Settings() {
         {tab === 'connection' && user.role === 'admin' ? (
           <>
             <ConnectionSettings />
+            <HttpsSettings />
             <ProxySettings />
           </>
         ) : null}

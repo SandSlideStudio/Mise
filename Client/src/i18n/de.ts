@@ -990,4 +990,83 @@ export const de: Record<MessageKey, string> = {
   'proxy.copy': 'Kopieren',
   'proxy.copied': 'Kopiert',
   'error.proxyNotLocal': 'Nimm die Adresse eines Webservers im Küchennetz, etwa 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Normales HTTP funktioniert weiterhin. HTTPS lässt Tablets offline weiterarbeiten und Mise als App installieren, und es ist Pflicht für alles, was aus dem Internet erreichbar ist.',
+  'https.on': 'An',
+  'https.off': 'Aus',
+  'https.kitchenTitle': 'Im Küchennetz',
+  'https.kitchenBody':
+    'Mise erstellt ein eigenes Zertifikat für die Adressen, die deine Tablets nutzen. Keine Domain, kein Internet nötig. Jedes Tablet vertraut ihm einmal, über die Vertrauensseite.',
+  'https.renews': 'Erneuert sich selbst. Das aktuelle gilt bis {date}.',
+  'https.trustEachTablet': 'Öffne auf jedem Tablet einmal diese Seite und folge den Schritten:',
+  'https.namesLabel': 'Adressen, die die Tablets nutzen',
+  'https.namesHint':
+    'Die Adresse in der Adressleiste der Tablets, ohne http:// oder Port. Mehrere? Mit Kommas trennen.',
+  'https.making': 'Wird erstellt…',
+  'https.turnOn': 'Einschalten',
+  'https.turnOff': 'Ausschalten',
+  'https.updateNames': 'Adressen aktualisieren',
+  'https.portNote':
+    'HTTPS antwortet auf Port {port}. Auf TrueNAS muss die App diesen Port auch freigeben.',
+  'https.domainTitle': 'Für deine Domain',
+  'https.domainTitleFor': 'Für {domain}',
+  'https.domainBody':
+    'Ein kostenloses Zertifikat von Let’s Encrypt, dem jeder Browser ohne Schritte am Gerät vertraut. Mise holt und erneuert es selbst.',
+  'https.domainNeedsAddress': 'Leg zuerst oben die Adresse von außen fest.',
+  'https.domainBehindProxy':
+    'Mise steht hinter deinem eigenen Webserver, der HTTPS für diese Domain übernimmt. Das brauchst du nicht.',
+  'https.domainStep1': '{domain} zeigt auf deine öffentliche IP-Adresse.',
+  'https.domainStep2':
+    'Dein Router leitet Port 80 an Mises Port {http} weiter und Port 443 an Port {https}. Auf einem Cloud-Server erledigt das die Installation.',
+  'https.domainStep3': 'Dann das Zertifikat anfordern:',
+  'https.getCertificate': 'Zertifikat holen',
+  'https.asking': 'Let’s Encrypt wird gefragt…',
+  'https.askingNote': 'Das dauert meist ein paar Sekunden, höchstens zwei Minuten.',
+  'https.failedHint':
+    'Meist erreicht Port 80 Mise noch nicht, oder die Domain zeigt noch nicht hierher. Let’s Encrypt erlaubt nur wenige Fehlversuche pro Stunde.',
+  'https.renewFailed': 'Die letzte Erneuerung schlug fehl; Mise versucht es erneut: {reason}',
+  'trust.eyebrow': 'Dieses Gerät',
+  'trust.title': 'Dem Küchenzertifikat vertrauen',
+  'trust.body':
+    'Einmal pro Gerät. Danach öffnet sich Mise hier über HTTPS, läuft weiter, wenn das Netz ausfällt, und lässt sich als App installieren.',
+  'trust.notOn':
+    'HTTPS ist noch nicht an. Ein Administrator schaltet es unter Einstellungen → Verbindung ein.',
+  'trust.trusted': 'Dieses Gerät vertraut ihm',
+  'trust.trustedBody': 'Du bist über HTTPS bei Mise. Nutze ab jetzt diese Adresse.',
+  'trust.openMise': 'Mise öffnen',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Andere',
+  'trust.download': 'Lade das Küchenzertifikat herunter.',
+  'trust.downloadIos':
+    'Lade das Zertifikat in Safari herunter und erlaube es, wenn nach einem Konfigurationsprofil gefragt wird.',
+  'trust.downloadButton': 'Zertifikat herunterladen',
+  'trust.ios1':
+    'Öffne Einstellungen, tippe oben auf „Profil geladen“, dann auf Installieren, und gib deinen Code ein.',
+  'trust.ios2': 'Geh zu Einstellungen → Allgemein → Info → Zertifikatsvertrauenseinstellungen.',
+  'trust.ios3': 'Aktiviere volles Vertrauen für „Mise“.',
+  'trust.android1':
+    'Öffne Einstellungen und suche nach „CA-Zertifikat“ (oft unter Sicherheit → Verschlüsselung & Anmeldedaten → Zertifikat installieren).',
+  'trust.android2':
+    'Wähle „CA-Zertifikat“, tippe auf „Trotzdem installieren“ und wähle mise-kitchen.crt aus deinen Downloads.',
+  'trust.windows1':
+    'Öffne die heruntergeladene Datei, wähle „Zertifikat installieren“, dann „Aktueller Benutzer“.',
+  'trust.windows2':
+    'Wähle „Alle Zertifikate in folgendem Speicher speichern“, nimm „Vertrauenswürdige Stammzertifizierungsstellen“, schließ ab und starte den Browser neu.',
+  'trust.mac1':
+    'Öffne die heruntergeladene Datei. Die Schlüsselbundverwaltung fügt es deinem Anmeldeschlüsselbund hinzu.',
+  'trust.mac2':
+    'Doppelklicke auf „Mise“, öffne Vertrauen und stell „Bei Verwendung dieses Zertifikats“ auf „Immer vertrauen“.',
+  'trust.other1':
+    'Füge die Datei den vertrauenswürdigen Zertifizierungsstellen des Systems oder Browsers hinzu. Firefox hat eine eigene Liste: Einstellungen → Datenschutz & Sicherheit → Zertifikate → Zertifizierungsstellen → Importieren.',
+  'trust.check':
+    'Prüfe, ob es geklappt hat: Das öffnet diese Seite über HTTPS. Eine Warnung heißt, dass ein Schritt fehlt.',
+  'trust.checkButton': 'Prüfen',
+  'trust.fingerprint': 'Fingerabdruck zum Vergleichen',
+  'error.badName':
+    'Das ist keine Adresse und kein Hostname. Nimm etwa 192.168.1.50 oder mise.local.',
+  'error.noDomain': 'Leg zuerst die Adresse von außen fest.',
 };

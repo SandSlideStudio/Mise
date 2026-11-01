@@ -1,5 +1,5 @@
 {
-  "id": "29573798-69cc-4f94-b64c-a003c4cea035",
+  "id": "2532ea73-3de6-414c-a598-79a454f7fc4d",
   "prevId": "d7f24ce1-9ce8-4dab-8a56-ce3a56689bf6",
   "version": "7",
   "dialect": "postgresql",
@@ -158,6 +158,92 @@
         },
         "trusted_proxy": {
           "name": "trusted_proxy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kitchen_https": {
+          "name": "kitchen_https",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "kitchen_ca_cert": {
+          "name": "kitchen_ca_cert",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kitchen_ca_key": {
+          "name": "kitchen_ca_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kitchen_cert": {
+          "name": "kitchen_cert",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kitchen_key": {
+          "name": "kitchen_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kitchen_names": {
+          "name": "kitchen_names",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "kitchen_expires_at": {
+          "name": "kitchen_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "domain_https": {
+          "name": "domain_https",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "domain_cert": {
+          "name": "domain_cert",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "domain_key": {
+          "name": "domain_key",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "domain_cert_for": {
+          "name": "domain_cert_for",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "domain_expires_at": {
+          "name": "domain_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "domain_error": {
+          "name": "domain_error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "acme_account_key": {
+          "name": "acme_account_key",
           "type": "text",
           "primaryKey": false,
           "notNull": false

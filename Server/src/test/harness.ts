@@ -41,6 +41,8 @@ export const TEST_CONFIG: Config = {
   NODE_ENV: 'test',
   PORT: 0,
   HOST: '127.0.0.1',
+  HTTPS_PORT: 0,
+  ACME_DIRECTORY: 'https://acme.invalid/directory',
   DATABASE_URL: 'postgres://unused',
   SESSION_SECRET: 'a-test-secret-that-is-at-least-32-characters-long',
   COOKIE_SECURE: false,

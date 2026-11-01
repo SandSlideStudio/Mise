@@ -8,6 +8,8 @@ import {
   type ConnectionService,
   type ConnectionState,
 } from '../modules/connection/service.js';
+import type { HttpsListener } from '../modules/connection/listener.js';
+import type { issueDomainCertificate } from '../modules/connection/acme.js';
 import {
   ACCESS_COOKIE,
   COOKIE_DAYS,
@@ -48,12 +50,28 @@ declare module 'fastify' {
 /** Open to everyone: how to ask, and whether the server is up. */
 const OPEN_ROUTES = new Set(['/api/health', '/api/access/status', '/api/access/request']);
 
-const accessPlugin: FastifyPluginAsync<{ connectionState: ConnectionState }> = async (
-  app,
-  options,
-) => {
+interface AccessOptions {
+  connectionState: ConnectionState;
+  listener: HttpsListener;
+  directoryUrl: string;
+  issue?: typeof issueDomainCertificate;
+}
+
+/** Let's Encrypt asks here over plain HTTP; it must never be sent elsewhere. */
+export const ACME_ROUTE = '/.well-known/acme-challenge/:token';
+
+const accessPlugin: FastifyPluginAsync<AccessOptions> = async (app, options) => {
   app.decorate('access', createAccessService(app.db));
-  app.decorate('connection', createConnectionService(app.db, options.connectionState));
+  app.decorate(
+    'connection',
+    createConnectionService({
+      db: app.db,
+      state: options.connectionState,
+      listener: options.listener,
+      directoryUrl: options.directoryUrl,
+      issue: options.issue,
+    }),
+  );
   app.addHook('onReady', async () => app.connection.load());
   app.decorate('insideKitchen', (request: FastifyRequest) =>
     insideKitchen(
@@ -90,6 +108,20 @@ const accessPlugin: FastifyPluginAsync<{ connectionState: ConnectionState }> = a
       if (domain && plainHost(request.hostname) !== domain) {
         return reply.code(404).type('text/plain; charset=utf-8').send('Not found');
       }
+    }
+
+    // The kitchen's domain has a certificate: plain HTTP there goes over to
+    // HTTPS. Not behind a proxy, which does its own HTTPS, and never Let's
+    // Encrypt's own check, which only ever comes over HTTP.
+    const secureDomain = app.connection.httpsDomain();
+    if (
+      secureDomain &&
+      !('encrypted' in request.socket && request.socket.encrypted) &&
+      !forwarded(request) &&
+      plainHost(request.hostname) === secureDomain &&
+      request.routeOptions.url !== ACME_ROUTE
+    ) {
+      return reply.redirect(`https://${secureDomain}${request.url}`, 301);
     }
 
     if (!request.inside) {

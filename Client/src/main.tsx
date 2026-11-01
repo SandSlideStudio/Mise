@@ -30,6 +30,7 @@ import { Today } from './routes/Today.js';
 import { Line } from './routes/Line.js';
 import { Login } from './routes/Login.js';
 import { AccessRequest } from './routes/AccessRequest.js';
+import { Trust } from './routes/Trust.js';
 import { Settings } from './routes/Settings.js';
 import { Setup } from './routes/Setup.js';
 import { applyTheme } from './lib/theme.js';
@@ -94,7 +95,9 @@ function Shell() {
     !accessRequired &&
     ((setupStatus.isError && setupStatus.data === undefined) ||
       (currentUser.isError && currentUser.data === undefined));
-  const isPublicRoute = pathname === '/login' || pathname === '/line' || pathname === '/setup';
+  // /trust is for tablets that haven't signed in yet, or can't.
+  const isPublicRoute =
+    pathname === '/login' || pathname === '/line' || pathname === '/setup' || pathname === '/trust';
 
   useEffect(() => {
     if (!unreachable) return;
@@ -223,6 +226,7 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/ingredients', component: Ingredients }),
   createRoute({ getParentRoute: () => rootRoute, path: '/setup', component: Setup }),
   createRoute({ getParentRoute: () => rootRoute, path: '/login', component: Login }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/trust', component: Trust }),
   createRoute({ getParentRoute: () => rootRoute, path: '/line', component: Line }),
   createRoute({ getParentRoute: () => rootRoute, path: '/settings', component: Settings }),
 ]);

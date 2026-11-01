@@ -522,5 +522,31 @@ export const connectionSettings = pgTable('connection_settings', {
    * Only requests from this address may say who the visitor really is.
    */
   trustedProxy: text('trusted_proxy'),
+
+  /**
+   * The kitchen certificate: Mise's own small certificate authority, which each
+   * tablet trusts once, and the certificate it signs for the addresses the
+   * tablets use. The authority outlives every certificate it signs, so turning
+   * HTTPS off and on again, or renewing, never asks a tablet to trust anew.
+   */
+  kitchenHttps: boolean('kitchen_https').notNull().default(false),
+  kitchenCaCert: text('kitchen_ca_cert'),
+  kitchenCaKey: text('kitchen_ca_key'),
+  kitchenCert: text('kitchen_cert'),
+  kitchenKey: text('kitchen_key'),
+  kitchenNames: jsonb('kitchen_names').$type<string[]>(),
+  kitchenExpiresAt: timestamp('kitchen_expires_at', { withTimezone: true }),
+
+  /** A free Let's Encrypt certificate for the outside address, renewed by Mise. */
+  domainHttps: boolean('domain_https').notNull().default(false),
+  domainCert: text('domain_cert'),
+  domainKey: text('domain_key'),
+  /** The name the certificate above was issued for. */
+  domainCertFor: text('domain_cert_for'),
+  domainExpiresAt: timestamp('domain_expires_at', { withTimezone: true }),
+  /** Why the last attempt to get or renew it failed, in Let's Encrypt's words. */
+  domainError: text('domain_error'),
+  acmeAccountKey: text('acme_account_key'),
+
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
