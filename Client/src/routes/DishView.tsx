@@ -31,28 +31,16 @@ export function DishView() {
             ← {t('nav.dishes')}
           </Link>
           <div className="flex flex-wrap gap-2">
-            <Link
-              to="/recipes/$recipeId"
-              params={{ recipeId: dishId }}
-              className="btn-quiet min-h-11"
-            >
+            <Link to="/dishes/$dishId/recipe" params={{ dishId }} className="btn-quiet min-h-11">
               {t('dishes.openSpec')}
             </Link>
             {canManage ? (
-              <Link
-                to="/recipes/$recipeId/edit"
-                params={{ recipeId: dishId }}
-                className="btn-quiet min-h-11"
-              >
+              <Link to="/dishes/$dishId/edit" params={{ dishId }} className="btn-quiet min-h-11">
                 {t('common.edit')}
               </Link>
             ) : null}
             {card.data ? (
-              <Link
-                to="/recipes/$recipeId/card"
-                params={{ recipeId: dishId }}
-                className="btn-primary min-h-11"
-              >
+              <Link to="/dishes/$dishId/card" params={{ dishId }} className="btn-primary min-h-11">
                 {t('dishes.print')}
               </Link>
             ) : null}

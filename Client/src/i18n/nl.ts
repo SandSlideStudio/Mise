@@ -738,7 +738,7 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.detailsHint':
     'De wet wil dat het graan en de noot op een gerechtenkaart bij naam genoemd worden.',
   'card.title': 'Gerechtenkaart',
-  'card.back': '← Het recept',
+  'card.back': '← Het gerecht',
   'card.language': 'Taal van de kaart',
   'card.theme': 'Uiterlijk',
   'card.themeDay': 'Dag',

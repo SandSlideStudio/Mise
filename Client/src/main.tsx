@@ -189,6 +189,18 @@ function Shell() {
 
 const rootRoute = createRootRoute({ component: Shell });
 
+/** A prep line opens its spec at the amount it asks for: ?amount=2000&unit=g. */
+function scaleSearch(search: Record<string, unknown>): { amount?: number; unit?: string } {
+  const amount = Number(search.amount);
+  return {
+    amount: Number.isFinite(amount) && amount > 0 ? amount : undefined,
+    unit: typeof search.unit === 'string' ? search.unit : undefined,
+  };
+}
+
+// Loaded when first opened: the fonts and PDF code are only needed there.
+const DishCardPage = lazyRouteComponent(() => import('./routes/DishCard.js'), 'DishCardPage');
+
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/', component: Today }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes', component: Recipes }),
@@ -196,41 +208,48 @@ const routeTree = rootRoute.addChildren([
     getParentRoute: () => rootRoute,
     path: '/recipes/new',
     component: RecipeEditor,
-    // "New dish" on the Dishes page starts the editor as a dish: ?type=dish.
-    validateSearch: (
-      search: Record<string, unknown>,
-    ): { type?: 'dish' | 'prep' | 'component' } => ({
-      type:
-        search.type === 'dish' || search.type === 'prep' || search.type === 'component'
-          ? search.type
-          : undefined,
+    // A new component rather than a prep: ?type=component. Dishes start under Dishes.
+    validateSearch: (search: Record<string, unknown>): { type?: 'prep' | 'component' } => ({
+      type: search.type === 'prep' || search.type === 'component' ? search.type : undefined,
     }),
   }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/dishes', component: Dishes }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/dishes/$dishId', component: DishView }),
   createRoute({
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId',
     component: RecipeView,
-    // A prep line opens its spec at the amount it asks for: ?amount=2000&unit=g.
-    validateSearch: (search: Record<string, unknown>): { amount?: number; unit?: string } => {
-      const amount = Number(search.amount);
-      return {
-        amount: Number.isFinite(amount) && amount > 0 ? amount : undefined,
-        unit: typeof search.unit === 'string' ? search.unit : undefined,
-      };
-    },
+    validateSearch: scaleSearch,
   }),
   createRoute({
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId/edit',
     component: RecipeEditor,
   }),
-  // Loaded when first opened: the fonts and PDF code are only needed here.
+  // An older link to a dish card; it moves on to the Dishes tab.
   createRoute({
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId/card',
-    component: lazyRouteComponent(() => import('./routes/DishCard.js'), 'DishCardPage'),
+    component: DishCardPage,
+  }),
+
+  // Dishes have pages of their own, under their own tab.
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes', component: Dishes }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes/new', component: RecipeEditor }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes/$dishId', component: DishView }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/dishes/$dishId/recipe',
+    component: RecipeView,
+    validateSearch: scaleSearch,
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/dishes/$dishId/edit',
+    component: RecipeEditor,
+  }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/dishes/$dishId/card',
+    component: DishCardPage,
   }),
   createRoute({ getParentRoute: () => rootRoute, path: '/menus', component: Menus }),
   createRoute({ getParentRoute: () => rootRoute, path: '/menus/$menuId', component: MenuDetail }),

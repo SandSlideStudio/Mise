@@ -745,7 +745,7 @@ export const de: Record<MessageKey, string> = {
   'ingredients.detailsHint':
     'Das Gesetz verlangt, dass Getreide und Nuss auf einer Gerichtkarte beim Namen genannt werden.',
   'card.title': 'Gerichtkarte',
-  'card.back': '← Das Rezept',
+  'card.back': '← Das Gericht',
   'card.language': 'Sprache der Karte',
   'card.theme': 'Aussehen',
   'card.themeDay': 'Tag',

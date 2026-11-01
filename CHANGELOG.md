@@ -3,6 +3,17 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.2.1
+
+- **New dish** on the Dishes tab no longer opens the editor under Recipes. Dishes have their own
+  pages under Dishes: the new dish, its recipe, its editor and its print page, with the Dishes tab
+  marked throughout.
+- The Recipes editor makes preps and components only. A dish can no longer be made there, and a
+  prep or component can't be turned into a dish, or the other way round.
+- Links to a dish under Recipes, from bookmarks or older pages, open the same page under Dishes.
+- Back from a dish's recipe or print page goes to the dish's card.
+- The upgrade test now covers 2.2.0 as well.
+
 ## 2.2.0
 
 Reach Mise safely from anywhere, set HTTPS up from inside the app, and keep working when the

@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate, useParams } from '@tanstack/react-router';
+import { useRightSection } from '../lib/section.js';
 import type {
   ComponentRef,
   Course,
@@ -90,9 +91,11 @@ function blankLine(section = ''): EditorLine {
 
 export function RecipeEditor() {
   const { t } = useT();
-  const params = useParams({ strict: false }) as { recipeId?: string };
-  const recipeId = params.recipeId;
+  const params = useParams({ strict: false }) as { recipeId?: string; dishId?: string };
+  const recipeId = params.recipeId ?? params.dishId;
   const existing = useRecipe(recipeId);
+  // A dish edited under Recipes, or a prep under Dishes: moved to its own tab.
+  useRightSection(existing.data, 'edit');
 
   if (recipeId && existing.isPending) {
     return (
@@ -117,10 +120,11 @@ export function RecipeEditor() {
   return <EditorForm key={recipeId ?? 'new'} recipe={existing.data} />;
 }
 
-/** A new recipe opened from the Dishes page starts out as a dish. */
+/** A new one under Dishes is a dish; under Recipes, a prep unless it asks for a component. */
 function typeFromAddress(): RecipeType {
+  if (window.location.pathname.startsWith('/dishes')) return 'dish';
   const asked = new URLSearchParams(window.location.search).get('type');
-  return asked === 'dish' || asked === 'component' ? asked : 'prep';
+  return asked === 'component' ? 'component' : 'prep';
 }
 
 function EditorForm({ recipe }: { recipe?: Recipe }) {
@@ -359,7 +363,9 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
               className="btn-quiet min-h-11 px-4"
               onClick={() =>
                 recipe
-                  ? void navigate({ to: '/recipes/$recipeId', params: { recipeId: recipe.id } })
+                  ? recipe.type === 'dish'
+                    ? void navigate({ to: '/dishes/$dishId', params: { dishId: recipe.id } })
+                    : void navigate({ to: '/recipes/$recipeId', params: { recipeId: recipe.id } })
                   : void navigate({ to: type === 'dish' ? '/dishes' : '/recipes' })
               }
             >
@@ -565,20 +571,24 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                   </select>
                 </RailField>
 
-                <RailField label={t('recipes.sort')} htmlFor="type">
-                  <select
-                    id="type"
-                    className="field min-h-10"
-                    value={type}
-                    onChange={(e) => setType(e.target.value as RecipeType)}
-                  >
-                    {(['dish', 'prep', 'component'] as const).map((value) => (
-                      <option key={value} value={value}>
-                        {recipeTypeName(t, value)}
-                      </option>
-                    ))}
-                  </select>
-                </RailField>
+                {/* A dish stays a dish, and a prep or component never becomes one:
+                    dishes are made and kept under their own tab. */}
+                {isDish ? null : (
+                  <RailField label={t('recipes.sort')} htmlFor="type">
+                    <select
+                      id="type"
+                      className="field min-h-10"
+                      value={type}
+                      onChange={(e) => setType(e.target.value as RecipeType)}
+                    >
+                      {(['prep', 'component'] as const).map((value) => (
+                        <option key={value} value={value}>
+                          {recipeTypeName(t, value)}
+                        </option>
+                      ))}
+                    </select>
+                  </RailField>
+                )}
 
                 {isDish ? null : (
                   <>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
+import { sectionPath, useRightSection } from '../lib/section.js';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
 import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
 import { useDishCardSettings } from '../api/dishcards.js';
@@ -37,8 +38,10 @@ import {
  * prep list uses, so a scaled spec and a prep list can never disagree.
  */
 export function RecipeView() {
-  const { recipeId } = useParams({ from: '/recipes/$recipeId' });
-  const { amount, unit } = useSearch({ from: '/recipes/$recipeId' });
+  // Under Recipes for preps and components, under Dishes for a dish.
+  const params = useParams({ strict: false }) as { recipeId?: string; dishId?: string };
+  const recipeId = (params.recipeId ?? params.dishId)!;
+  const { amount, unit } = useSearch({ strict: false }) as { amount?: number; unit?: string };
   const asked: ScaleTarget =
     amount !== undefined && unit !== undefined && isUnitCode(unit)
       ? { yieldValue: amount, yieldUnit: unit }
@@ -66,6 +69,9 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   useEffect(() => {
     if (unscalable) setTarget({});
   }, [unscalable]);
+
+  // An older link to a dish under Recipes, or a prep under Dishes: moved to its own tab.
+  useRightSection(expanded.data?.recipe, 'view');
 
   if (!user) return null;
   const canManage = user.role !== 'cook';
@@ -109,12 +115,23 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   return (
     <AppShell>
       <main className="mx-auto max-w-[880px] px-0 py-4 sm:px-6 sm:py-8">
-        <Link
-          to={recipe.type === 'dish' ? '/dishes' : '/recipes'}
-          className="no-print eyebrow hover:text-ink mb-3 ml-4 inline-block sm:mb-4 sm:ml-0"
-        >
-          {recipe.type === 'dish' ? `← ${t('nav.dishes')}` : t('recipe.back')}
-        </Link>
+        {recipe.type === 'dish' ? (
+          // A dish's recipe is opened from its card: back to the card.
+          <Link
+            to="/dishes/$dishId"
+            params={{ dishId: recipe.id }}
+            className="no-print eyebrow hover:text-ink mb-3 ml-4 inline-block sm:mb-4 sm:ml-0"
+          >
+            {t('card.back')}
+          </Link>
+        ) : (
+          <Link
+            to="/recipes"
+            className="no-print eyebrow hover:text-ink mb-3 ml-4 inline-block sm:mb-4 sm:ml-0"
+          >
+            {t('recipe.back')}
+          </Link>
+        )}
 
         <Plate className="border-x-0 print:hidden sm:border-x">
           <header className="bg-surface-raised border-line border-b px-4 pt-5 pb-4 sm:px-8 sm:pt-7 sm:pb-5">
@@ -208,13 +225,23 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
 
           <div className="no-print border-line bg-surface-raised flex flex-wrap gap-2.5 border-t px-4 py-4 sm:px-8 sm:py-5">
             {canManage ? (
-              <Link
-                to="/recipes/$recipeId/edit"
-                params={{ recipeId: recipe.id }}
-                className="btn-primary grow sm:grow-0"
-              >
-                {t('common.edit')}
-              </Link>
+              recipe.type === 'dish' ? (
+                <Link
+                  to="/dishes/$dishId/edit"
+                  params={{ dishId: recipe.id }}
+                  className="btn-primary grow sm:grow-0"
+                >
+                  {t('common.edit')}
+                </Link>
+              ) : (
+                <Link
+                  to="/recipes/$recipeId/edit"
+                  params={{ recipeId: recipe.id }}
+                  className="btn-primary grow sm:grow-0"
+                >
+                  {t('common.edit')}
+                </Link>
+              )
             ) : null}
             <button
               type="button"
@@ -225,8 +252,8 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
             </button>
             {recipe.type === 'dish' && (canManage || cardSettings.data?.access === 'everyone') ? (
               <Link
-                to="/recipes/$recipeId/card"
-                params={{ recipeId: recipe.id }}
+                to="/dishes/$dishId/card"
+                params={{ dishId: recipe.id }}
                 className="btn-quiet grow sm:grow-0"
               >
                 {t('recipe.dishCard')}
@@ -242,11 +269,9 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
                     duplicate.mutate(
                       { id: recipe.id, name: t('recipe.copyName', { name: recipe.name }) },
                       {
+                        // A copy of a dish is a dish, edited under Dishes.
                         onSuccess: (copy) =>
-                          void navigate({
-                            to: '/recipes/$recipeId/edit',
-                            params: { recipeId: copy.id },
-                          }),
+                          void navigate({ href: sectionPath(copy.id, copy.type, 'edit') }),
                       },
                     )
                   }
