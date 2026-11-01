@@ -550,3 +550,23 @@ export const connectionSettings = pgTable('connection_settings', {
 
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * Answers to changes a device saved while offline and sent later. Each such
+ * change carries its own id; if the answer never made it back (the wifi
+ * dropped again mid-send), the device sends it once more and gets this same
+ * answer, instead of the change being made twice. Kept a week, and out of
+ * backups.
+ */
+export const writeReceipts = pgTable(
+  'write_receipt',
+  {
+    /** The person and the change's own id: one person's ids never answer another's. */
+    key: text('key').primaryKey(),
+    status: integer('status').notNull(),
+    contentType: text('content_type'),
+    body: text('body'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('write_receipt_created_idx').on(t.createdAt)],
+);

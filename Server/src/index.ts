@@ -96,9 +96,11 @@ async function main(): Promise<void> {
 
   // Expired sessions are cleared out at start and then once an hour.
   const purge = () =>
-    app.auth.purgeExpiredSessions().catch((error: unknown) => {
-      app.log.warn({ error }, 'could not clear expired sessions');
-    });
+    Promise.all([app.auth.purgeExpiredSessions(), app.purgeWriteReceipts()]).catch(
+      (error: unknown) => {
+        app.log.warn({ error }, 'could not clear expired sessions');
+      },
+    );
   await purge();
   setInterval(() => void purge(), 3_600_000).unref();
 

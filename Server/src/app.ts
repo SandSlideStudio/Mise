@@ -17,6 +17,7 @@ import accessPlugin from './plugins/access.js';
 import errorsPlugin from './plugins/errors.js';
 import livePlugin from './plugins/live.js';
 import securityPlugin from './plugins/security.js';
+import writesPlugin from './plugins/writes.js';
 import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
 import { fromOwnNetwork, plainAddress } from './lib/network.js';
@@ -139,6 +140,7 @@ export async function buildApp(
     issue: options.acme,
   });
   app.addHook('onClose', async () => httpsListener.close());
+  await app.register(writesPlugin);
   await app.register(livePlugin);
   app.decorate(
     'backups',

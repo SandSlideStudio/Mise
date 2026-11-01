@@ -33,6 +33,7 @@ export const NOT_BACKED_UP: PgTable[] = [
   schema.backupSettings,
   schema.remoteDevices,
   schema.connectionSettings,
+  schema.writeReceipts,
 ];
 
 /**

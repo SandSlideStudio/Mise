@@ -141,6 +141,13 @@
       "when": 1793566578367,
       "tag": "0019_connection_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1793568271128,
+      "tag": "0020_write_receipts",
+      "breakpoints": true
     }
   ]
 }

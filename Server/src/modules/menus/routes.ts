@@ -12,6 +12,7 @@ import {
   updateMenuSchema,
 } from '@mise/contracts';
 import { ApiError } from '../../lib/errors.js';
+import { ensureUnchanged } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService } from '../dishcards/service.js';
 import { createMenusService, type MenuFailure } from './service.js';
@@ -114,6 +115,9 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      const before = await svc.getMenu(request.params.id);
+      if (!before) throw ApiError.notFound('That menu');
+      await ensureUnchanged(request, new Date(before.updatedAt), () => before);
       const result = await svc.updateMenu(request.params.id, request.body);
       if (!result.ok) throw failureToError(result.error);
       return result.menu;
