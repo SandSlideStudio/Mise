@@ -72,7 +72,7 @@ export function Dishes() {
           description={t('dishes.subtitle')}
           aside={
             canManage ? (
-              <Link to="/recipes/new" search={{ type: 'dish' }} className="btn-primary min-h-11">
+              <Link to="/dishes/new" className="btn-primary min-h-11">
                 {t('dishes.new')}
               </Link>
             ) : null
@@ -221,7 +221,7 @@ function DishTile({ dish, opensCard }: { dish: DishSummary; opensCard: boolean }
       {body}
     </Link>
   ) : (
-    <Link to="/recipes/$recipeId" params={{ recipeId: dish.id }} className={className}>
+    <Link to="/dishes/$dishId/recipe" params={{ dishId: dish.id }} className={className}>
       {body}
     </Link>
   );

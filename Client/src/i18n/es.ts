@@ -739,7 +739,7 @@ export const es: Record<MessageKey, string> = {
   'ingredients.detailsHint':
     'La ley pide que el cereal y el fruto de cáscara figuren por su nombre en la ficha de plato.',
   'card.title': 'Ficha de plato',
-  'card.back': '← La receta',
+  'card.back': '← El plato',
   'card.language': 'Idioma de la ficha',
   'card.theme': 'Aspecto',
   'card.themeDay': 'Día',

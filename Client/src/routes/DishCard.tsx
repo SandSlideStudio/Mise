@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Link, useParams } from '@tanstack/react-router';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useNavigate, useParams, useRouterState } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { LANGUAGES, type DishCard, type DishCardTheme, type Language } from '@mise/contracts';
 import { RequestFailed } from '../api/client.js';
@@ -21,7 +21,16 @@ import { renderDishCardPdf } from '../lib/dishcard/pdf.js';
  * or night starts at the kitchen's choice and can be turned for one print.
  */
 export function DishCardPage() {
-  const { recipeId } = useParams({ from: '/recipes/$recipeId/card' });
+  const params = useParams({ strict: false }) as { recipeId?: string; dishId?: string };
+  const recipeId = (params.recipeId ?? params.dishId)!;
+  const navigate = useNavigate();
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  // Cards are for dishes, and dishes live under Dishes: an older link moves there.
+  useEffect(() => {
+    if (pathname.startsWith('/recipes/')) {
+      void navigate({ to: '/dishes/$dishId/card', params: { dishId: recipeId }, replace: true });
+    }
+  }, [pathname, recipeId, navigate]);
   const translator = useT();
   const { t } = translator;
   const card = useDishCard(recipeId);
@@ -30,8 +39,8 @@ export function DishCardPage() {
     <AppShell>
       <main className="mx-auto max-w-[1180px] px-4 py-6 sm:px-6 sm:py-8">
         <Link
-          to="/recipes/$recipeId"
-          params={{ recipeId }}
+          to="/dishes/$dishId"
+          params={{ dishId: recipeId }}
           className="no-print eyebrow hover:text-ink mb-4 inline-block"
         >
           {t('card.back')}

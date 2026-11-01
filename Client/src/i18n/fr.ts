@@ -746,7 +746,7 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.detailsHint':
     'La loi demande que la céréale et le fruit à coque soient nommés sur une fiche plat.',
   'card.title': 'Fiche plat',
-  'card.back': '← La recette',
+  'card.back': '← Le plat',
   'card.language': 'Langue de la fiche',
   'card.theme': 'Apparence',
   'card.themeDay': 'Jour',

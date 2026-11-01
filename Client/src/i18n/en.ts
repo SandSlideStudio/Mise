@@ -725,7 +725,7 @@ export const en = {
   'ingredients.nutsPlaceholder': 'hazelnut, walnut',
   'ingredients.detailsHint': 'The law wants the cereal and the nut named on a dish card.',
   'card.title': 'Dish card',
-  'card.back': '← The recipe',
+  'card.back': '← The dish',
   'card.language': 'Card language',
   'card.theme': 'Look',
   'card.themeDay': 'Day',

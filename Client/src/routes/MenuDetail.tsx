@@ -108,8 +108,8 @@ function MenuView({ menu }: { menu: Menu }) {
                   ) : null}
                   <div className="border-rule flex flex-wrap items-center gap-x-3 gap-y-1 border-b px-4 py-2.5 sm:px-6">
                     <Link
-                      to="/recipes/$recipeId"
-                      params={{ recipeId: dish.recipeId }}
+                      to="/dishes/$dishId"
+                      params={{ dishId: dish.recipeId }}
                       className="min-w-0 flex-1 text-[19px] font-medium hover:underline"
                     >
                       {dish.name}

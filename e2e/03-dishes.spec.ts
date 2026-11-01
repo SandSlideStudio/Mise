@@ -46,3 +46,49 @@ test('a dish shows on the Dishes tab as its card, and free-from filters it', asy
   await expect(page.getByRole('heading', { name: dish }).first()).toBeVisible();
   await expect(page.getByRole('link', { name: 'Print or PDF' })).toBeVisible();
 });
+
+/** Dishes are made and kept under Dishes; Recipes is preps and components. */
+test('a new dish is made under Dishes, and Recipes cannot make one', async ({ page }) => {
+  await signIn(page);
+  const nav = page.getByRole('navigation');
+
+  await nav.getByRole('link', { name: 'Dishes' }).click();
+  await page.getByRole('link', { name: 'New dish' }).click();
+  await page.waitForURL(/\/dishes\/new$/);
+  await expect(nav.getByRole('link', { name: 'Dishes' })).toHaveAttribute('aria-current', 'page');
+  await expect(page.locator('#type')).toHaveCount(0);
+
+  const dish = unique('Beetroot tartare');
+  await page.getByLabel('Recipe name').fill(dish);
+  await page.locator('form button[type=submit]').last().click();
+  await page.waitForURL(/\/dishes\/[0-9a-f-]{36}$/);
+  const dishId = page.url().split('/').at(-1)!;
+  await expect(nav.getByRole('link', { name: 'Dishes' })).toHaveAttribute('aria-current', 'page');
+
+  // Its recipe, editor and print page are all under Dishes too.
+  for (const [link, path] of [
+    ['Recipe', `/dishes/${dishId}/recipe`],
+    ['Edit', `/dishes/${dishId}/edit`],
+  ] as const) {
+    await page.goto(`/dishes/${dishId}`);
+    await page.getByRole('link', { name: link, exact: true }).click();
+    await page.waitForURL((url) => url.pathname === path);
+    await expect(nav.getByRole('link', { name: 'Dishes' })).toHaveAttribute('aria-current', 'page');
+  }
+
+  // The Recipes editor offers preps and components, never a dish.
+  await page.goto('/recipes/new');
+  await expect(nav.getByRole('link', { name: 'Recipes' })).toHaveAttribute('aria-current', 'page');
+  const kinds = await page
+    .locator('#type option')
+    .evaluateAll((options) => options.map((option) => (option as HTMLOptionElement).value));
+  expect(kinds).toEqual(['prep', 'component']);
+
+  // Older links to a dish under Recipes move to Dishes.
+  await page.goto(`/recipes/${dishId}`);
+  await page.waitForURL((url) => url.pathname === `/dishes/${dishId}/recipe`);
+  await page.goto(`/recipes/${dishId}/edit`);
+  await page.waitForURL((url) => url.pathname === `/dishes/${dishId}/edit`);
+  await page.goto(`/recipes/${dishId}/card`);
+  await page.waitForURL((url) => url.pathname === `/dishes/${dishId}/card`);
+});
