@@ -236,6 +236,14 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   not_authenticated: 'error.notAuthenticated',
   forbidden: 'error.forbidden',
   setup_token: 'error.setupToken',
+  access_required: 'error.accessRequired',
+  wrong_password: 'error.wrongPassword',
+  password_needed: 'error.passwordNeeded',
+  too_many_requests: 'error.tooManyRequests',
+  domain_locks_you_out: 'error.domainLocksYouOut',
+  proxy_not_local: 'error.proxyNotLocal',
+  bad_name: 'error.badName',
+  no_domain: 'error.noDomain',
   internal_error: 'error.generic',
   backup_bad_key: 'backups.reason.bad_key',
   backup_wrong_key: 'backups.reason.wrong_key',
@@ -254,6 +262,13 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
 };
 
 export function errorMessage(translator: Translator, error: unknown): string {
+  // No answer at all: Mise, or the network, is down.
+  if (error instanceof TypeError || (error instanceof Error && error.message === 'offline')) {
+    return translator.t('error.offline');
+  }
+  if (error instanceof RequestFailed && [502, 503, 504].includes(error.status)) {
+    return translator.t('error.offline');
+  }
   if (!(error instanceof RequestFailed)) return translator.t('error.generic');
 
   if (error.code === 'account_locked') {

@@ -10,6 +10,7 @@ import type {
 import { useNavigate } from '@tanstack/react-router';
 import { api, RequestFailed } from './client.js';
 import { sendPending } from './ticks.js';
+import { forgetKept } from './offline.js';
 
 /** Whether this server has ever been set up, the language it speaks, and its name. */
 export function useSetupStatus() {
@@ -89,6 +90,8 @@ export function useLogout() {
       await navigate({ to: user?.onTablet ? '/line' : '/login' });
       queryClient.getMutationCache().clear();
       queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'setup-status' });
+      // And what was kept on the device for offline use: the next person starts clean.
+      await forgetKept();
       queryClient.setQueryData(['me'], null);
     },
   });

@@ -7,9 +7,12 @@ import type {
   SessionUser,
   UpdatePrepTask,
 } from '@mise/contracts';
-import { api } from './client.js';
+import { useCallback } from 'react';
+import { api, isQueued, sendOrQueue } from './client.js';
 import { isRefusal, sendTick, usePendingOverlay } from './ticks.js';
+import { useCurrentUser } from './session.js';
 import { enqueue } from '../lib/retryQueue.js';
+import { remove as removeFromOutbox, useOutbox, type OutboxEntry } from '../lib/outbox.js';
 
 /**
  * The prep list: one list for the whole kitchen, added to by hand, under the
@@ -23,39 +26,132 @@ export const RUNNING_LIST = 'running';
 /** A ticked line is gone this long after it was ticked. */
 export const GONE_AFTER_MS = 2 * 60 * 60 * 1000;
 
+/** A line added while Mise couldn't be reached carries this in front of its id until it's sent. */
+export const WAITING = 'waiting:';
+export const isWaiting = (id: string) => id.startsWith(WAITING);
+
+/**
+ * The list as this person will see it once their waiting changes are sent:
+ * new lines at the bottom, edits made, removed lines gone. Drawn over what
+ * the server last said, never written into it, so each change simply stops
+ * showing as waiting once it's in.
+ */
+function useWaitingOverlay(): (tasks: PrepTask[]) => PrepTask[] {
+  const { data: user } = useCurrentUser();
+  const entries = useOutbox(user?.id);
+  const key = entries.map((entry) => entry.id).join(',');
+  return useCallback(
+    (tasks: PrepTask[]) => {
+      if (entries.length === 0) return tasks;
+      let list = tasks;
+      for (const entry of entries) list = applyWaiting(list, entry);
+      return list;
+    },
+    // The entries live outside React; their ids say when to redraw.
+    [key],
+  );
+}
+
+function applyWaiting(tasks: PrepTask[], entry: OutboxEntry): PrepTask[] {
+  if (entry.method === 'POST' && entry.path === '/running/tasks') {
+    const body = entry.body as CreatePrepTask;
+    return [
+      ...tasks,
+      {
+        id: `${WAITING}${entry.id}`,
+        stationId: body.stationId ?? null,
+        recipeId: body.recipeId ?? null,
+        description: body.description,
+        quantity: body.quantity ?? null,
+        status: 'open',
+        assignedUserId: body.assignedUserId ?? null,
+        assignedUserName: null,
+        completedByName: null,
+        completedAt: null,
+        sortOrder: Number.MAX_SAFE_INTEGER,
+      },
+    ];
+  }
+  const task = /^\/tasks\/([^/]+)$/.exec(entry.path)?.[1];
+  if (!task) return tasks;
+  if (entry.method === 'DELETE') return tasks.filter((line) => line.id !== task);
+  if (entry.method === 'PATCH') {
+    const body = entry.body as UpdatePrepTask;
+    return tasks.map((line) => (line.id === task ? ({ ...line, ...body } as PrepTask) : line));
+  }
+  return tasks;
+}
+
 export function useRunningTasks() {
-  const overlay = usePendingOverlay();
+  const ticks = usePendingOverlay();
+  const waiting = useWaitingOverlay();
   return useQuery({
     queryKey: ['tasks', RUNNING_LIST],
     queryFn: () => api.get<PrepTask[]>('/running/tasks'),
     // Lines drop off on the clock as well as on a tap, so keep asking.
     refetchInterval: 60_000,
-    select: overlay,
+    select: useCallback((tasks: PrepTask[]) => waiting(ticks(tasks)), [ticks, waiting]),
   });
 }
 
 /** The note above the list for the next shift. */
 export function useHandoverNote() {
+  const { data: user } = useCurrentUser();
+  const entries = useOutbox(user?.id);
+  // A note written while Mise couldn't be reached shows as written.
+  const waiting = entries.filter((entry) => entry.path === '/running/note').at(-1);
+  const waitingKey = waiting?.id ?? '';
   return useQuery({
     queryKey: ['handover'],
     queryFn: () => api.get<HandoverNote>('/running/note'),
+    select: useCallback(
+      (note: HandoverNote): HandoverNote => {
+        if (!waiting) return note;
+        const text = (waiting.body as { text: string | null }).text;
+        return text
+          ? {
+              text,
+              byName: user?.displayName ?? null,
+              at: new Date(waiting.queuedAt).toISOString(),
+            }
+          : { text: null, byName: null, at: null };
+      },
+      [waitingKey, user?.displayName],
+    ),
   });
 }
 
 export function useUpdateHandoverNote() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (text: string) => api.put<HandoverNote>('/running/note', { text }),
-    onSuccess: (note) => queryClient.setQueryData(['handover'], note),
+    networkMode: 'always',
+    mutationFn: (text: string) => {
+      // The version written over, so someone else's newer note isn't lost unseen.
+      const before = queryClient.getQueryData<HandoverNote>(['handover']);
+      return sendOrQueue<HandoverNote>(
+        'PUT',
+        '/running/note',
+        { text },
+        { label: { key: 'offline.label.note' }, base: before?.at ?? 'none' },
+      );
+    },
+    onSuccess: (note) => {
+      if (!isQueued(note)) queryClient.setQueryData(['handover'], note);
+    },
   });
 }
 
 export function useAddRunningTask() {
   const queryClient = useQueryClient();
   return useMutation({
+    networkMode: 'always',
     mutationFn: (input: CreatePrepTask) =>
-      api.post<AddRunningTaskResponse>('/running/tasks', input),
-    onSuccess: () => invalidateTasks(queryClient),
+      sendOrQueue<AddRunningTaskResponse>('POST', '/running/tasks', input, {
+        label: { key: 'offline.label.addLine', vars: { name: input.description } },
+      }),
+    onSuccess: (result) => {
+      if (!isQueued(result)) invalidateTasks(queryClient);
+    },
   });
 }
 
@@ -83,8 +179,15 @@ export function useUpdatePrepTask() {
     networkMode: 'always',
     mutationFn: async (input: TaskUpdate): Promise<PrepTask | null> => {
       const { id, ...change } = input;
+      // Not on the server yet, so there is nothing to change there.
+      if (isWaiting(id)) return null;
       const user = queryClient.getQueryData<SessionUser | null>(['me']);
-      if (!isTick(input) || !user) return api.patch<PrepTask>(`/tasks/${id}`, change);
+      if (!isTick(input) || !user) {
+        const result = await sendOrQueue<PrepTask>('PATCH', `/tasks/${id}`, change, {
+          label: { key: 'offline.label.editLine' },
+        });
+        return isQueued(result) ? null : result;
+      }
       const entry = enqueue({
         userId: user.id,
         taskId: id,
@@ -128,7 +231,17 @@ export function useUpdatePrepTask() {
 export function useDeletePrepTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/tasks/${id}`),
+    networkMode: 'always',
+    mutationFn: async (id: string) => {
+      // A line that was itself still waiting to be added is simply never sent.
+      if (isWaiting(id)) {
+        removeFromOutbox(id.slice(WAITING.length));
+        return;
+      }
+      await sendOrQueue<void>('DELETE', `/tasks/${id}`, undefined, {
+        label: { key: 'offline.label.removeLine' },
+      });
+    },
     onSuccess: () => invalidateTasks(queryClient),
   });
 }

@@ -14,6 +14,7 @@ import {
 import { eq } from 'drizzle-orm';
 import { isUnitCode } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
+import { ensureUnchanged } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { kitchens, recipes } from '../../db/schema.js';
 import { createPrepService } from './service.js';
@@ -134,6 +135,8 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      const before = await readNote();
+      await ensureUnchanged(request, before.at ? new Date(before.at) : null, () => before);
       const text = request.body.text;
       await app.db.update(kitchens).set(
         text

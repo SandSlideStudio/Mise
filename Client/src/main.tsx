@@ -1,7 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RequestFailed } from './api/client.js';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { RequestFailed, setOutboxUser } from './api/client.js';
+import { useOutboxSender } from './api/outbox.js';
+import { KEPT_FOR_MS, keepOnDevice, persister, useLoadAhead } from './api/offline.js';
 import {
   createRootRoute,
   createRoute,
@@ -13,6 +16,7 @@ import {
   useRouterState,
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
+import { isAccessRequired, markAccessRequired, useAccessRequired } from './api/access.js';
 import { useLiveUpdates } from './api/live.js';
 import { useTickSender } from './api/ticks.js';
 import { useCurrentUser, useSetupStatus } from './api/session.js';
@@ -21,14 +25,19 @@ import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
 import { RecipeView } from './routes/RecipeView.js';
 import { Recipes } from './routes/Recipes.js';
+import { Dishes } from './routes/Dishes.js';
+import { DishView } from './routes/DishView.js';
 import { Menus } from './routes/Menus.js';
 import { MenuDetail } from './routes/MenuDetail.js';
 import { Today } from './routes/Today.js';
 import { Line } from './routes/Line.js';
 import { Login } from './routes/Login.js';
+import { AccessRequest } from './routes/AccessRequest.js';
+import { Trust } from './routes/Trust.js';
 import { Settings } from './routes/Settings.js';
 import { Setup } from './routes/Setup.js';
 import { applyTheme } from './lib/theme.js';
+import { VERSION } from './version.js';
 import { TourHost } from './components/Tour.js';
 // Self-hosted, so a kitchen server with no internet still draws its own type.
 import '@fontsource/barlow/400.css';
@@ -40,11 +49,24 @@ import './styles.css';
 
 applyTheme();
 
-/** A 401 from anything means the session ended: show the sign-in screen. */
+// Over HTTPS (or on this machine itself), keep the app on the device so it
+// opens with no server. Browsers allow service workers nowhere else.
+if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}
+
+/**
+ * A 401 from anything means the session ended: show the sign-in screen. A
+ * device outside the kitchen that isn't (or is no longer) approved gets the
+ * request page instead.
+ */
 function signedOutElsewhere(error: unknown): void {
   if (error instanceof RequestFailed && error.isUnauthenticated) {
     queryClient.setQueryData(['me'], null);
   }
+  if (isAccessRequired(error)) markAccessRequired();
 }
 
 /** How often a screen that can't reach the server tries again. */
@@ -59,7 +81,8 @@ const queryClient: QueryClient = new QueryClient({
       // the prep list honest without anyone reaching for reload.
       refetchOnWindowFocus: true,
       staleTime: 30_000,
-      retry: 1,
+      // Once, for a dropped connection; asking again won't change a no.
+      retry: (count, error) => count < 1 && !(error instanceof RequestFailed && error.status < 500),
     },
   },
 });
@@ -74,15 +97,19 @@ function Shell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const setupStatus = useSetupStatus();
   const currentUser = useCurrentUser();
+  const accessRequired = useAccessRequired();
 
   const needsSetup = setupStatus.data?.needsSetup === true;
   // Only a real "nobody is signed in" counts. A server error is not a sign-out.
   const signedOut = currentUser.isSuccess && currentUser.data === null;
   // Only when there's nothing to show yet; a failed background refresh keeps the screen.
   const unreachable =
-    (setupStatus.isError && setupStatus.data === undefined) ||
-    (currentUser.isError && currentUser.data === undefined);
-  const isPublicRoute = pathname === '/login' || pathname === '/line' || pathname === '/setup';
+    !accessRequired &&
+    ((setupStatus.isError && setupStatus.data === undefined) ||
+      (currentUser.isError && currentUser.data === undefined));
+  // /trust is for tablets that haven't signed in yet, or can't.
+  const isPublicRoute =
+    pathname === '/login' || pathname === '/line' || pathname === '/setup' || pathname === '/trust';
 
   useEffect(() => {
     if (!unreachable) return;
@@ -94,6 +121,10 @@ function Shell() {
   }, [unreachable, setupStatus, currentUser]);
 
   useLiveUpdates(currentUser.data != null);
+  // Changes kept on the device while Mise couldn't be reached go out from here.
+  setOutboxUser(currentUser.data?.id ?? null);
+  useOutboxSender();
+  useLoadAhead(currentUser.data != null);
   // Saved ticks keep being sent whichever screen is open.
   useTickSender();
 
@@ -113,6 +144,8 @@ function Shell() {
       void navigate({ to: '/login', replace: true });
     }
   }, [needsSetup, signedOut, pathname, isPublicRoute, setupStatus.isPending, navigate]);
+
+  if (accessRequired) return <AccessRequest />;
 
   if (setupStatus.isPending || currentUser.isPending) {
     return (
@@ -159,7 +192,22 @@ const rootRoute = createRootRoute({ component: Shell });
 const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/', component: Today }),
   createRoute({ getParentRoute: () => rootRoute, path: '/recipes', component: Recipes }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/recipes/new', component: RecipeEditor }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/recipes/new',
+    component: RecipeEditor,
+    // "New dish" on the Dishes page starts the editor as a dish: ?type=dish.
+    validateSearch: (
+      search: Record<string, unknown>,
+    ): { type?: 'dish' | 'prep' | 'component' } => ({
+      type:
+        search.type === 'dish' || search.type === 'prep' || search.type === 'component'
+          ? search.type
+          : undefined,
+    }),
+  }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes', component: Dishes }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/dishes/$dishId', component: DishView }),
   createRoute({
     getParentRoute: () => rootRoute,
     path: '/recipes/$recipeId',
@@ -194,6 +242,7 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/ingredients', component: Ingredients }),
   createRoute({ getParentRoute: () => rootRoute, path: '/setup', component: Setup }),
   createRoute({ getParentRoute: () => rootRoute, path: '/login', component: Login }),
+  createRoute({ getParentRoute: () => rootRoute, path: '/trust', component: Trust }),
   createRoute({ getParentRoute: () => rootRoute, path: '/line', component: Line }),
   createRoute({ getParentRoute: () => rootRoute, path: '/settings', component: Settings }),
 ]);
@@ -214,10 +263,27 @@ if (!rootElement) throw new Error('Missing #root element');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister,
+        maxAge: KEPT_FOR_MS,
+        // A new version may shape things differently: start its cache afresh.
+        buster: VERSION,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) =>
+            keepOnDevice(query.queryKey, query.state.status === 'success'),
+          // Changes waiting have their own, safer place (lib/outbox.ts).
+          shouldDehydrateMutation: () => false,
+        },
+      }}
+      // What was kept shows at once, but it may be hours old: ask again for
+      // all of it now, rather than trusting it as fresh.
+      onSuccess={() => void queryClient.invalidateQueries()}
+    >
       <I18nProvider>
         <RouterProvider router={router} />
       </I18nProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </StrictMode>,
 );

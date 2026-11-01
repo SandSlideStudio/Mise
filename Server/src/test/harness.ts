@@ -41,6 +41,8 @@ export const TEST_CONFIG: Config = {
   NODE_ENV: 'test',
   PORT: 0,
   HOST: '127.0.0.1',
+  HTTPS_PORT: 0,
+  ACME_DIRECTORY: 'https://acme.invalid/directory',
   DATABASE_URL: 'postgres://unused',
   SESSION_SECRET: 'a-test-secret-that-is-at-least-32-characters-long',
   COOKIE_SECURE: false,
@@ -48,6 +50,7 @@ export const TEST_CONFIG: Config = {
   BACKUP_DIR: './data/test-backups',
   CLIENT_DIR: '../Client/dist',
   TRUST_PROXY: false,
+  OUTSIDE_ACCESS: 'approved',
   ONEDRIVE_CLIENT_ID: 'test-client',
 };
 
@@ -150,4 +153,18 @@ export async function setUpKitchen(app: FastifyInstance): Promise<string> {
   const cookie = cookieFrom(response, 'mise_session');
   if (!cookie) throw new Error('Setup did not return a session cookie');
   return cookie;
+}
+
+/**
+ * A cookie for a device approved for outside access, so a test can send
+ * requests from a public address and still reach past the door.
+ */
+export async function approvedOutside(app: FastifyInstance): Promise<string> {
+  const { token } = await app.access.approveNew({
+    name: 'Test phone',
+    userAgent: null,
+    address: '203.0.113.50',
+    userId: null,
+  });
+  return `mise_access=${token}`;
 }

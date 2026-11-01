@@ -10,6 +10,10 @@ const configSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(3000),
   HOST: z.string().default('0.0.0.0'),
+  /** Where HTTPS answers, once a certificate is turned on in Settings → Connection. */
+  HTTPS_PORT: z.coerce.number().int().min(1).max(65535).default(3443),
+  /** Where certificates for the kitchen's domain come from. Changed only for testing. */
+  ACME_DIRECTORY: z.url().default('https://acme-v02.api.letsencrypt.org/directory'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL is required'),
   SESSION_SECRET: z
     .string()
@@ -48,6 +52,17 @@ const configSchema = z.object({
       ctx.addIssue({ code: 'custom', message: 'Use false, true, or a number of proxies' });
       return z.NEVER;
     }),
+  /**
+   * Who may reach Mise from outside the kitchen's network. "approved", the
+   * default, lets in only devices a chef or administrator approved in
+   * Settings → Devices. "open" turns that off: a way back in if every
+   * approved device is lost on a server with no local network. Not for
+   * everyday use.
+   */
+  OUTSIDE_ACCESS: z.preprocess(
+    (value) => (value === '' ? undefined : value),
+    z.enum(['approved', 'open']).default('approved'),
+  ),
   /**
    * The one-time code that first-run setup asks for in production, so a fresh
    * server can't be claimed by whoever finds it first. The installer sets it;

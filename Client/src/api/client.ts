@@ -1,4 +1,6 @@
 import type { ApiError } from '@mise/contracts';
+import { markReachable, markUnreachable } from '../lib/connectivity.js';
+import { add as addToOutbox, entriesFor, newWriteId, type OutboxEntry } from '../lib/outbox.js';
 
 /**
  * The one place that knows how to talk to a Mise server.
@@ -30,6 +32,9 @@ export class RequestFailed extends Error {
   }
 }
 
+/** A proxy in front answering for a Mise that is down. As good as no answer. */
+const UNREACHABLE = new Set([502, 503, 504]);
+
 interface RequestOptions {
   headers?: Record<string, string>;
   method?: 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
@@ -50,17 +55,16 @@ function buildUrl(path: string, query?: RequestOptions['query']): string {
 }
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-  const response = await fetch(buildUrl(path, options.query), {
-    method: options.method ?? 'GET',
-    headers: {
-      ...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
-      ...options.headers,
-    },
-    body: options.body === undefined ? undefined : JSON.stringify(options.body),
-    // Sessions are httpOnly cookies, so every request has to carry them.
-    credentials: 'same-origin',
-    signal: options.signal,
-  });
+  let response: Response;
+  try {
+    response = await send(path, options);
+  } catch (error) {
+    // No answer at all: the network, or Mise itself, is down.
+    if (!(error instanceof DOMException && error.name === 'AbortError')) markUnreachable();
+    throw error;
+  }
+  if (UNREACHABLE.has(response.status)) markUnreachable();
+  else markReachable();
 
   if (response.status === 204) return undefined as T;
 
@@ -71,6 +75,77 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw new RequestFailed(response.status, parsed as ApiError | null, response.statusText);
   }
   return parsed as T;
+}
+
+function send(path: string, options: RequestOptions): Promise<Response> {
+  return fetch(buildUrl(path, options.query), {
+    method: options.method ?? 'GET',
+    headers: {
+      ...(options.body === undefined ? {} : { 'content-type': 'application/json' }),
+      ...options.headers,
+    },
+    body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    // Sessions are httpOnly cookies, so every request has to carry them.
+    credentials: 'same-origin',
+    signal: options.signal,
+  });
+}
+
+// --- changes that may wait ---------------------------------------------------
+
+/** What a change that was saved on the device, rather than sent, resolves to. */
+export const QUEUED: unique symbol = Symbol('queued');
+export type Queued = typeof QUEUED;
+export const isQueued = (value: unknown): value is Queued => value === QUEUED;
+
+let currentUserId: string | null = null;
+/** Who is signed in, so a waiting change is kept as theirs. Set by the shell. */
+export function setOutboxUser(id: string | null): void {
+  currentUserId = id;
+}
+
+/** Whether the answer means "no answer": try again later rather than give up. */
+function noAnswer(error: unknown): boolean {
+  if (error instanceof RequestFailed) return UNREACHABLE.has(error.status);
+  return !(error instanceof DOMException && error.name === 'AbortError');
+}
+
+/**
+ * Send a change, or keep it on the device when Mise can't be reached, to be
+ * sent later in order (see api/outbox.ts). Resolves with the server's answer,
+ * or QUEUED; the caller then shows the change itself until the real answer
+ * comes. Behind any change already waiting, it waits too, so changes never
+ * overtake each other.
+ */
+export async function sendOrQueue<T>(
+  method: OutboxEntry['method'],
+  path: string,
+  body: unknown,
+  offline: { label: OutboxEntry['label']; base?: string | null },
+): Promise<T | Queued> {
+  const id = newWriteId();
+  const userId = currentUserId;
+  const queue = (): Queued => {
+    if (!userId) throw new Error('offline');
+    addToOutbox({
+      id,
+      userId,
+      method,
+      path,
+      body,
+      label: offline.label,
+      ...(offline.base !== undefined && offline.base !== null ? { base: offline.base } : {}),
+    });
+    return QUEUED;
+  };
+
+  if (userId && entriesFor(userId).length > 0) return queue();
+  try {
+    return await request<T>(path, { method, body, headers: { 'x-mise-write': id } });
+  } catch (error) {
+    if (noAnswer(error)) return queue();
+    throw error;
+  }
 }
 
 export const api = {

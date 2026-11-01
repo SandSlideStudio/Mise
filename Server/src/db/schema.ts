@@ -146,6 +146,42 @@ export const devices = pgTable('device', {
 });
 
 /**
+ * A phone or laptop outside the kitchen's network that asked to reach Mise.
+ *
+ * From outside, nothing but the request page answers until a chef or an
+ * administrator approves the device, so a stranger can't even reach the
+ * sign-in form. The token lives in the device's cookie; only its hash is here.
+ * Approval lasts until it is revoked, or until the device goes 90 days unused.
+ * Kept out of backups: approvals belong to this server, like sessions.
+ */
+export const remoteDevices = pgTable(
+  'remote_device',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    name: text('name').notNull(),
+    /** What the person asking reads out, so the approver knows it is them. */
+    code: text('code').notNull(),
+    tokenHash: text('token_hash').notNull(),
+    status: text('status', { enum: ['pending', 'approved'] })
+      .notNull()
+      .default('pending'),
+    requestedAt: timestamp('requested_at', { withTimezone: true }).notNull().defaultNow(),
+    approvedAt: timestamp('approved_at', { withTimezone: true }),
+    approvedBy: uuid('approved_by').references(() => users.id, { onDelete: 'set null' }),
+    /** The approving device's name when approved from outside; null from the kitchen. */
+    approvedFrom: text('approved_from'),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    userAgent: text('user_agent'),
+    address: text('address'),
+  },
+  (t) => [
+    uniqueIndex('remote_device_token_key').on(t.tokenHash),
+    index('remote_device_status_idx').on(t.status),
+    check('remote_device_status_known', sql`${t.status} in ('pending', 'approved')`),
+  ],
+);
+
+/**
  * Sessions live in the database rather than in a signed token, so letting
  * someone go ends their access on the next request instead of whenever a token
  * happens to expire.
@@ -468,3 +504,69 @@ export const menuDishes = pgTable(
 
 /** One prep line as stored. */
 export type PrepTaskRow = typeof prepTasks.$inferSelect;
+
+/**
+ * How this server is reached. Exactly one row, created when first looked at.
+ * Kept out of backups: it describes this machine and its address, not the
+ * kitchen, and a restore onto a new server must not lock out whoever runs it.
+ */
+export const connectionSettings = pgTable('connection_settings', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  /**
+   * The one address that leads to Mise from outside the kitchen, such as
+   * mise.example.com. Null: any address does. Inside the kitchen, any always does.
+   */
+  outsideDomain: text('outside_domain'),
+  /**
+   * The web server in front of Mise, such as Apache passing a domain on.
+   * Only requests from this address may say who the visitor really is.
+   */
+  trustedProxy: text('trusted_proxy'),
+
+  /**
+   * The kitchen certificate: Mise's own small certificate authority, which each
+   * tablet trusts once, and the certificate it signs for the addresses the
+   * tablets use. The authority outlives every certificate it signs, so turning
+   * HTTPS off and on again, or renewing, never asks a tablet to trust anew.
+   */
+  kitchenHttps: boolean('kitchen_https').notNull().default(false),
+  kitchenCaCert: text('kitchen_ca_cert'),
+  kitchenCaKey: text('kitchen_ca_key'),
+  kitchenCert: text('kitchen_cert'),
+  kitchenKey: text('kitchen_key'),
+  kitchenNames: jsonb('kitchen_names').$type<string[]>(),
+  kitchenExpiresAt: timestamp('kitchen_expires_at', { withTimezone: true }),
+
+  /** A free Let's Encrypt certificate for the outside address, renewed by Mise. */
+  domainHttps: boolean('domain_https').notNull().default(false),
+  domainCert: text('domain_cert'),
+  domainKey: text('domain_key'),
+  /** The name the certificate above was issued for. */
+  domainCertFor: text('domain_cert_for'),
+  domainExpiresAt: timestamp('domain_expires_at', { withTimezone: true }),
+  /** Why the last attempt to get or renew it failed, in Let's Encrypt's words. */
+  domainError: text('domain_error'),
+  acmeAccountKey: text('acme_account_key'),
+
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Answers to changes a device saved while offline and sent later. Each such
+ * change carries its own id; if the answer never made it back (the wifi
+ * dropped again mid-send), the device sends it once more and gets this same
+ * answer, instead of the change being made twice. Kept a week, and out of
+ * backups.
+ */
+export const writeReceipts = pgTable(
+  'write_receipt',
+  {
+    /** The person and the change's own id: one person's ids never answer another's. */
+    key: text('key').primaryKey(),
+    status: integer('status').notNull(),
+    contentType: text('content_type'),
+    body: text('body'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('write_receipt_created_idx').on(t.createdAt)],
+);

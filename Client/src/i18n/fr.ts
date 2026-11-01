@@ -58,6 +58,7 @@ export const fr: Record<MessageKey, string> = {
 
   'nav.today': "Aujourd'hui",
   'nav.recipes': 'Recettes',
+  'nav.dishes': 'Plats',
   'nav.ingredients': 'Ingrédients',
   'nav.settings': 'Réglages',
   'nav.updateAvailable': 'Une version plus récente de Mise est sortie',
@@ -319,11 +320,10 @@ export const fr: Record<MessageKey, string> = {
   'task.openRecipe': 'Ouvrir la recette de {task}',
 
   'recipes.subtitle':
-    'Utilisez Sans pour voir ce qu’une table allergique peut manger, sous-recettes comprises.',
+    'Mises en place et composants. « Sans » montre ce qu’une table allergique peut avoir, sous-recettes comprises. Les plats ont leur propre onglet.',
   'recipes.search': 'Chercher dans le livre',
   'recipes.sort': 'Type',
   'recipes.anySort': 'Tous les types',
-  'recipes.dishes': 'Plats',
   'recipes.prep': 'Préparations',
   'recipes.components': 'Éléments',
   'recipes.freeFrom': 'Sans…',
@@ -474,7 +474,7 @@ export const fr: Record<MessageKey, string> = {
     "Seuls les chefs et les administrateurs peuvent modifier l'organisation de la cuisine.",
   'settings.tabStaff': 'Équipe',
   'settings.tabStations': 'Postes',
-  'settings.tabDevices': 'Tablettes',
+  'settings.tabDevices': 'Appareils',
   'settings.tabKitchen': 'Cuisine',
 
   'staff.loadError': "Impossible de charger la liste de l'équipe.",
@@ -850,6 +850,26 @@ export const fr: Record<MessageKey, string> = {
     'Chaque fiche se termine par une petite ligne indiquant qu’elle a été faite avec Mise.',
   // Menus
   'nav.menus': 'Menus',
+  'dishes.subtitle':
+    'Chaque plat sous forme de fiche : ce que lit la salle, avec les allergènes calculés à partir de chaque sous-recette.',
+  'dishes.new': 'Nouveau plat',
+  'dishes.search': 'Chercher un plat',
+  'dishes.anyCourse': 'Tous les services',
+  'dishes.onMenu': 'Seulement sur un menu actif',
+  'dishes.noMatch': 'Aucun plat ne correspond.',
+  'dishes.empty':
+    'Pas encore de plats. Un plat est ce qui part au passe : ajoutez-en un et il apparaît ici sous forme de fiche.',
+  'dishes.count_one': '{count} plat',
+  'dishes.count_other': '{count} plats',
+  'dishes.countFreeFrom': '{shown} plats sur {total} sans {allergen}',
+  'dishes.countFiltered': '{shown} plats sur {total}',
+  'dishes.notOnMenu': 'Sur aucun menu',
+  'dishes.broken':
+    'Les allergènes ne peuvent pas être calculés : une sous-recette manque ou s’utilise elle-même.',
+  'dishes.openSpec': 'Recette',
+  'dishes.print': 'Imprimer ou PDF',
+  'dishes.kept':
+    'Cette cuisine réserve les fiches plats aux chefs et administrateurs. La recette vous reste ouverte.',
   'menus.subtitle':
     'Les plats que la salle vend ensemble. Imprimez la vue d’ensemble des allergènes d’un menu, ou toutes ses fiches plats d’un coup.',
   'menus.name': 'Nom du menu',
@@ -888,4 +908,198 @@ export const fr: Record<MessageKey, string> = {
   'menus.backToMenu': '← Le menu',
   'menus.overviewTitle': 'Allergènes du menu',
   'menus.dish': 'Plat',
+  'access.eyebrow': 'Hors de la cuisine',
+  'access.title': 'Demander l’accès',
+  'access.body':
+    'Hors de la cuisine, Mise ne s’ouvre que sur les appareils approuvés par la cuisine. Donnez un nom à cet appareil et demandez l’accès. Un chef ou l’administrateur l’approuve dans Réglages → Appareils.',
+  'access.nameLabel': 'Nom de cet appareil',
+  'access.namePlaceholder': 'ex. Téléphone de Sam',
+  'access.ask': 'Demander l’accès',
+  'access.asking': 'Demande…',
+  'access.waitingTitle': 'En attente d’approbation',
+  'access.waitingBody':
+    '« {name} » a demandé l’accès. Demandez à un chef ou à l’administrateur de l’approuver dans Réglages → Appareils, et lisez-lui ce code pour qu’il sache que c’est vous :',
+  'access.codeLabel': 'Code',
+  'access.checking': 'Cette page ouvre Mise d’elle-même dès l’approbation.',
+  'access.whyTitle': 'Pourquoi demander ?',
+  'access.whyBody':
+    'Recettes, équipe et allergènes appartiennent à la cuisine. Demander d’abord signifie que personne sur internet ne peut même atteindre la page de connexion. L’approbation dure jusqu’à son retrait, ou jusqu’à 90 jours sans utilisation de cet appareil.',
+  'outside.title': 'Hors de la cuisine',
+  'outside.body':
+    'Téléphones et ordinateurs hors du réseau de la cuisine ou du VPN. Ils n’atteignent qu’une page de demande tant que personne ne les approuve ici. L’approbation dure jusqu’à son retrait, ou jusqu’à 90 jours sans utilisation.',
+  'outside.waiting': 'En attente d’approbation',
+  'outside.approved': 'Approuvés',
+  'outside.empty':
+    'Aucun appareil extérieur. Quelqu’un qui ouvre Mise hors de la cuisine peut demander l’accès ; sa demande apparaît ici.',
+  'outside.code': 'Code',
+  'outside.checkCode': 'N’approuvez que si la personne qui demande voit ce même code à l’écran.',
+  'outside.passwordLabel': 'Votre mot de passe',
+  'outside.passwordWhy': 'Vous êtes hors de la cuisine : approuver redemande votre mot de passe.',
+  'outside.approve': 'Approuver',
+  'outside.deny': 'Refuser',
+  'outside.approvedBy': 'approuvé par {name} le {date}',
+  'outside.approvedByFrom': 'approuvé par {name} depuis {device} le {date}',
+  'outside.approvedOn': 'approuvé le {date}',
+  'outside.thisDevice': 'Cet appareil',
+  'outside.revokeSelf': 'Cet appareil devra redemander l’accès',
+  'outside.reallyRevokeSelf': 'Bloquer cet appareil ?',
+  'error.accessRequired': 'Cet appareil n’est pas approuvé pour l’accès hors de la cuisine.',
+  'error.wrongPassword': 'Ce mot de passe n’est pas le bon.',
+  'error.passwordNeeded':
+    'Approuver depuis l’extérieur demande un mot de passe, et ce compte n’en a pas. Approuvez depuis la cuisine.',
+  'error.tooManyRequests': 'Trop d’appareils attendent une approbation. Réessayez plus tard.',
+  'settings.tabConnection': 'Connexion',
+  'connection.domainTitle': 'Adresse depuis l’extérieur',
+  'connection.domainBody':
+    'Si Mise est accessible par internet, saisissez l’adresse qui y mène, comme mise.votrecuisine.fr. Depuis l’extérieur, Mise ne répond alors que sur cette adresse : l’IP seule, ou le nom d’un autre site sur le même serveur, ne trouve rien. Sur le réseau de la cuisine et le VPN, toutes les adresses continuent de fonctionner.',
+  'connection.domainLabel': 'Domaine',
+  'connection.domainSet': 'Depuis l’extérieur, Mise ne répond que sur {domain}.',
+  'connection.domainUnset':
+    'Non défini : depuis l’extérieur, toute adresse qui atteint ce serveur mène à Mise.',
+  'connection.domainClear': 'Effacer',
+  'connection.domainUseCurrent': 'Utiliser {domain}, l’adresse actuelle',
+  'connection.domainShared':
+    'D’autres sites sur la même IP publique ? Ce qui les sert déjà (Apache, LiteSpeed ou Nginx, souvent configuré via un panneau comme cPanel ou Plesk) doit transmettre ce domaine à Mise, en conservant le nom de domaine dans la requête. Si Mise tourne sur une autre connexion que ces sites, rien de plus n’est nécessaire.',
+  'error.domainLocksYouOut':
+    'Vous êtes connecté par une autre adresse : vous vous bloqueriez. Réglez-la depuis la cuisine, ou ouvrez d’abord Mise par la nouvelle adresse.',
+  'proxy.title': 'Derrière un autre serveur web',
+  'proxy.body':
+    'Un autre serveur web de votre réseau (Apache, par exemple, avec vos sites) répond déjà pour vos domaines ? Laissez-le transmettre votre domaine Mise, avec son propre certificat. Mise doit alors savoir de quelle machine il s’agit, pour distinguer qui est sur place et qui est à l’extérieur.',
+  'proxy.trusted': 'Mise croit {address} sur l’identité de chaque visiteur.',
+  'proxy.none':
+    'Aucun serveur web approuvé : tout ce qui passe par une autre machine compte comme extérieur.',
+  'proxy.stop': 'Ne plus faire confiance',
+  'proxy.seen': 'Les requêtes pour {host} arrivent par {address}. Est-ce votre serveur web ?',
+  'proxy.trust': 'Faire confiance à {address}',
+  'proxy.addressLabel': 'Ou saisissez l’adresse du serveur web',
+  'proxy.trustTyped': 'Faire confiance',
+  'proxy.apacheTitle': 'Configurer Apache',
+  'proxy.miseAddress': 'Mise sur votre réseau',
+  'proxy.step1':
+    'Sur la machine Apache, vérifiez qu’elle atteint Mise. Ceci doit afficher « ok » :',
+  'proxy.step1Bridge':
+    'Apache dans une VM sur le même TrueNAS que Mise, et rien ne revient ? Les VM TrueNAS n’atteignent souvent pas leur propre hôte. Créez un pont (br0) dans Network sur TrueNAS, placez-y l’adresse de l’hôte et reliez la carte réseau de la VM à br0.',
+  'proxy.step2': 'Enregistrez ceci sous /etc/apache2/sites-available/mise.conf :',
+  'proxy.step3': 'Activez-le et obtenez son certificat, comme pour vos autres sites :',
+  'proxy.step4':
+    'Ouvrez https://{domain} une fois, puis revenez ici : Mise affiche l’adresse par laquelle c’est arrivé, et vous lui faites confiance.',
+  'proxy.router':
+    'Rien ne change sur votre routeur : les ports 80 et 443 vont déjà vers Apache. Faites pointer le domaine vers votre IP, comme vos autres sites.',
+  'proxy.copy': 'Copier',
+  'proxy.copied': 'Copié',
+  'error.proxyNotLocal':
+    'Utilisez l’adresse d’un serveur web du réseau de la cuisine, comme 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Le HTTP simple continue de fonctionner. Le HTTPS permet aux tablettes de travailler hors ligne et d’installer Mise comme une app, et il est indispensable pour tout ce qui est accessible depuis internet.',
+  'https.on': 'Activé',
+  'https.off': 'Désactivé',
+  'https.kitchenTitle': 'Sur le réseau de la cuisine',
+  'https.kitchenBody':
+    'Mise crée son propre certificat pour les adresses qu’utilisent vos tablettes. Aucun domaine ni internet nécessaire. Chaque tablette lui fait confiance une fois, depuis la page de confiance.',
+  'https.renews': 'Se renouvelle tout seul. L’actuel est valable jusqu’au {date}.',
+  'https.trustEachTablet': 'Sur chaque tablette, ouvrez cette page une fois et suivez les étapes :',
+  'https.namesLabel': 'Adresses utilisées par les tablettes',
+  'https.namesHint':
+    'L’adresse dans la barre d’adresse des tablettes, sans http:// ni port. Plusieurs ? Séparez-les par des virgules.',
+  'https.making': 'Création…',
+  'https.turnOn': 'Activer',
+  'https.turnOff': 'Désactiver',
+  'https.updateNames': 'Mettre à jour les adresses',
+  'https.portNote':
+    'Le HTTPS répond sur le port {port}. Sur TrueNAS, l’app doit aussi publier ce port.',
+  'https.domainTitle': 'Pour votre domaine',
+  'https.domainTitleFor': 'Pour {domain}',
+  'https.domainBody':
+    'Un certificat gratuit de Let’s Encrypt, reconnu par tous les navigateurs sans rien faire sur l’appareil. Mise l’obtient et le renouvelle tout seul.',
+  'https.domainNeedsAddress': 'Définissez d’abord l’adresse depuis l’extérieur ci-dessus.',
+  'https.domainBehindProxy':
+    'Mise est derrière votre propre serveur web, qui gère le HTTPS pour ce domaine. Vous n’en avez pas besoin.',
+  'https.domainStep1': '{domain} pointe vers votre adresse IP publique.',
+  'https.domainStep2':
+    'Votre routeur redirige le port 80 vers le port {http} de Mise, et le 443 vers le port {https}. Sur un serveur cloud, l’installation s’en charge.',
+  'https.domainStep3': 'Puis demandez le certificat :',
+  'https.getCertificate': 'Obtenir le certificat',
+  'https.asking': 'Demande à Let’s Encrypt…',
+  'https.askingNote': 'Cela prend en général quelques secondes, deux minutes au plus.',
+  'https.failedHint':
+    'Le plus souvent, le port 80 n’atteint pas encore Mise, ou le domaine ne pointe pas encore ici. Let’s Encrypt n’autorise que quelques échecs par heure.',
+  'https.renewFailed': 'Le dernier renouvellement a échoué ; Mise réessaiera : {reason}',
+  'trust.eyebrow': 'Cet appareil',
+  'trust.title': 'Faire confiance au certificat de la cuisine',
+  'trust.body':
+    'Une fois par appareil. Ensuite Mise s’ouvre ici en HTTPS, continue de fonctionner quand le réseau tombe et peut être installé comme une app.',
+  'trust.notOn':
+    'Le HTTPS n’est pas encore activé. Un administrateur l’active dans Réglages → Connexion.',
+  'trust.trusted': 'Cet appareil lui fait confiance',
+  'trust.trustedBody': 'Vous êtes sur Mise en HTTPS. Utilisez désormais cette adresse.',
+  'trust.openMise': 'Ouvrir Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Autre',
+  'trust.download': 'Téléchargez le certificat de la cuisine.',
+  'trust.downloadIos':
+    'Dans Safari, téléchargez le certificat et autorisez-le quand un profil de configuration est proposé.',
+  'trust.downloadButton': 'Télécharger le certificat',
+  'trust.ios1':
+    'Ouvrez Réglages, touchez « Profil téléchargé » en haut, puis Installer, et saisissez votre code.',
+  'trust.ios2': 'Allez dans Réglages → Général → Informations → Réglages des certificats.',
+  'trust.ios3': 'Activez la confiance totale pour « Mise ».',
+  'trust.android1':
+    'Ouvrez Paramètres et cherchez « certificat CA » (souvent dans Sécurité → Chiffrement et identifiants → Installer un certificat).',
+  'trust.android2':
+    'Choisissez « Certificat CA », touchez « Installer quand même » et sélectionnez mise-kitchen.crt dans vos téléchargements.',
+  'trust.windows1':
+    'Ouvrez le fichier téléchargé, choisissez « Installer le certificat », puis « Utilisateur actuel ».',
+  'trust.windows2':
+    'Choisissez « Placer tous les certificats dans le magasin suivant », sélectionnez « Autorités de certification racines de confiance », terminez et redémarrez le navigateur.',
+  'trust.mac1':
+    'Ouvrez le fichier téléchargé. Trousseaux d’accès l’ajoute à votre trousseau de session.',
+  'trust.mac2':
+    'Double-cliquez sur « Mise », ouvrez Se fier, et réglez « Lors de l’utilisation de ce certificat » sur « Toujours approuver ».',
+  'trust.other1':
+    'Ajoutez le fichier aux autorités de certification de confiance du système ou du navigateur. Firefox a sa propre liste : Paramètres → Vie privée et sécurité → Certificats → Autorités → Importer.',
+  'trust.check':
+    'Vérifiez : ceci ouvre cette page en HTTPS. Un avertissement signifie qu’une étape a été oubliée.',
+  'trust.checkButton': 'Vérifier',
+  'trust.fingerprint': 'Empreinte, pour comparer',
+  'error.badName':
+    'Ce n’est pas une adresse ni un nom d’hôte. Utilisez par exemple 192.168.1.50 ou mise.local.',
+  'error.noDomain': 'Définissez d’abord l’adresse depuis l’extérieur.',
+  'offline.title': 'Hors ligne.',
+  'offline.body':
+    'Mise est injoignable depuis {time}. Vous voyez ce que cet appareil avait, et les modifications sont gardées ici jusqu’à ce que Mise réponde.',
+  'offline.waiting_one': '1 modification en attente.',
+  'offline.waiting_other': '{count} modifications en attente.',
+  'offline.sending_one': 'Envoi d’1 modification faite hors ligne…',
+  'offline.sending_other': 'Envoi de {count} modifications faites hors ligne…',
+  'offline.dropped': '{what} n’a pas pu être enregistré : {reason}',
+  'offline.lineWaiting': 'En attente d’envoi',
+  'offline.conflictTitle': 'Modifié sur un autre appareil',
+  'offline.conflictBody':
+    'Pendant que vous étiez hors ligne, quelqu’un a modifié {what}. Quelle version garder ?',
+  'offline.yours': 'La vôtre',
+  'offline.theirs': 'Actuellement dans Mise',
+  'offline.keepMine': 'Garder la mienne',
+  'offline.keepTheirs': 'Garder celle de Mise',
+  'offline.items_one': '1 élément',
+  'offline.items_other': '{count} éléments',
+  'offline.field.note': 'Note',
+  'offline.field.notes': 'Notes',
+  'offline.field.method': 'Méthode',
+  'offline.field.description': 'Description',
+  'offline.field.tags': 'Étiquettes',
+  'offline.field.components': 'Composants',
+  'offline.field.dishes': 'Plats',
+  'offline.label.note': 'la note de relève',
+  'offline.label.addLine': 'la ligne de mise en place « {name} »',
+  'offline.label.editLine': 'une modification de ligne de mise en place',
+  'offline.label.removeLine': 'la suppression d’une ligne',
+  'offline.label.recipe': 'la recette « {name} »',
+  'offline.label.menu': 'le menu « {name} »',
+  'offline.label.ingredient': 'l’ingrédient « {name} »',
+  'error.offline':
+    'Mise est injoignable pour l’instant, et ceci a besoin de la connexion. Réessayez quand elle sera revenue.',
 };

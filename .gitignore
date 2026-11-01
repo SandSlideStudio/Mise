@@ -14,3 +14,7 @@ Thumbs.db
 # Local design references and working notes, not part of the project.
 design/
 docs/design-brief.md
+
+# Browser tests
+test-results/
+playwright-report/

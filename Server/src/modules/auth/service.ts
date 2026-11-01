@@ -91,6 +91,27 @@ export function createAuthService(db: Database) {
     return { token, expiresAt: options.expiresAt, userId };
   }
 
+  /**
+   * Someone already signed in proves it is still them, with the same lockout
+   * as signing in. Used before approving a device from outside the kitchen.
+   */
+  async function confirmPassword(
+    userId: string,
+    password: string,
+    address: string,
+  ): Promise<'ok' | 'wrong' | 'no_password' | { lockedUntil: Date }> {
+    const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+    if (!user?.passwordHash) return 'no_password';
+    const reserved = await reserveAttempt(user, address);
+    if ('lockedUntil' in reserved) return { lockedUntil: reserved.lockedUntil };
+    if (!(await verifySecret(user.passwordHash, password))) {
+      await failedAttempt(user.id, address, reserved.attempt);
+      return 'wrong';
+    }
+    lockout.succeeded(user.id, address);
+    return 'ok';
+  }
+
   /** Email and password, for chefs and managers on any device. */
   async function loginWithPassword(
     email: string,
@@ -412,6 +433,7 @@ export function createAuthService(db: Database) {
     loginWithPin,
     /** Start a person's count over everywhere, after an administrator resets them. */
     forgetFailures: (userId: string) => lockout.forget(userId),
+    confirmPassword,
     markTourSeen,
     resolveSession,
     revokeSession,

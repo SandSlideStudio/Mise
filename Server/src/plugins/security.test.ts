@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { useTestContext } from '../test/harness.js';
+import { approvedOutside, useTestContext } from '../test/harness.js';
 
 const ctx = useTestContext();
 
@@ -35,13 +35,14 @@ describe('health', () => {
 
 describe('sign-in rate limit', () => {
   it("can't be dodged by sending a different X-Forwarded-For each time", async () => {
+    const phone = await approvedOutside(ctx.app);
     const statuses: number[] = [];
     for (let i = 0; i < 12; i += 1) {
       const response = await ctx.app.inject({
         method: 'POST',
         url: '/api/auth/login',
         payload: { email: 'nobody@example.com', password: 'not-a-real-password' },
-        headers: { 'x-forwarded-for': `203.0.113.${i}` },
+        headers: { 'x-forwarded-for': `203.0.113.${i}`, cookie: phone },
       });
       statuses.push(response.statusCode);
     }

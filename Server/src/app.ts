@@ -13,14 +13,21 @@ import type { Database } from './db/client.js';
 import configPlugin from './plugins/config.js';
 import dbPlugin from './plugins/db.js';
 import authPlugin from './plugins/auth.js';
+import accessPlugin from './plugins/access.js';
 import errorsPlugin from './plugins/errors.js';
 import livePlugin from './plugins/live.js';
 import securityPlugin from './plugins/security.js';
+import writesPlugin from './plugins/writes.js';
 import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
-import { fromOwnNetwork } from './lib/network.js';
+import { fromOwnNetwork, plainAddress } from './lib/network.js';
+import { emptyConnectionState, type ConnectionState } from './modules/connection/service.js';
+import { createHttpsListener, type HttpsListener } from './modules/connection/listener.js';
+import type { issueDomainCertificate } from './modules/connection/acme.js';
 import setupRoutes from './modules/setup/routes.js';
 import authRoutes from './modules/auth/routes.js';
+import accessRoutes from './modules/access/routes.js';
+import connectionRoutes, { acmeChallengeRoute } from './modules/connection/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
 import prepRoutes from './modules/prep/routes.js';
 import ingredientRoutes from './modules/ingredients/routes.js';
@@ -48,6 +55,7 @@ declare module 'fastify' {
     setupCodeNeeded: (request: FastifyRequest) => boolean;
     backups: BackupService;
     updates: UpdateChecker;
+    httpsListener: HttpsListener;
   }
 }
 
@@ -61,17 +69,30 @@ export interface BuildAppOptions {
   /** How the update check reaches GitHub, and the version it compares. Set by the test suite. */
   releases?: (url: string, init: RequestInit) => Promise<Response>;
   version?: string;
+  /** How a Let's Encrypt certificate is fetched. Replaced by the test suite. */
+  acme?: typeof issueDomainCertificate;
 }
 
-function trustedHops(hops: number | false) {
-  return hops === false ? false : (_address: string, hop: number) => hop < hops;
+/**
+ * Which proxies may say who the visitor is. TRUST_PROXY trusts that many
+ * hops, wherever they are; the web server named in Settings → Connection is
+ * trusted for its own one hop and nothing else.
+ */
+function trustedProxies(hops: number | false, state: ConnectionState) {
+  return (address: string, hop: number) =>
+    (hops !== false && hop < hops) ||
+    (hop === 0 && state.trustedProxy !== null && plainAddress(address) === state.trustedProxy);
 }
 
 export async function buildApp(
   config: Config,
   options: BuildAppOptions = {},
 ): Promise<FastifyInstance> {
-  const app = Fastify({
+  const connectionState = emptyConnectionState();
+  // HTTPS runs the same handler as HTTP; see modules/connection/listener.ts.
+  const httpsListener = createHttpsListener(() => app.log);
+  const app: FastifyInstance = Fastify({
+    serverFactory: (handler) => httpsListener.serverFactory(handler),
     logger: {
       level: config.NODE_ENV === 'test' ? 'silent' : 'info',
       transport:
@@ -82,15 +103,15 @@ export async function buildApp(
             }
           : undefined,
     },
-    // Only believe X-Forwarded-For when the admin says a proxy is in front,
-    // and then only as many hops as there are proxies.
-    trustProxy: trustedHops(config.TRUST_PROXY),
+    // Only believe X-Forwarded-For from a proxy the admin said is in front.
+    trustProxy: trustedProxies(config.TRUST_PROXY, connectionState),
     // Errors are still logged. A line for every request is noise in a kitchen,
     // and on a Raspberry Pi's SD card each one is a write.
     logController: new LogController({ disableRequestLogging: config.NODE_ENV === 'production' }),
     bodyLimit: 2 * 1024 * 1024,
   });
 
+  app.decorate('httpsListener', httpsListener);
   app.decorate('setupToken', setupTokenFor(config));
   const always = setupCodeAlways(config);
   app.decorate(
@@ -112,6 +133,14 @@ export async function buildApp(
   });
   await app.register(dbPlugin, { db: options.db });
   await app.register(authPlugin);
+  await app.register(accessPlugin, {
+    connectionState,
+    listener: httpsListener,
+    directoryUrl: config.ACME_DIRECTORY,
+    issue: options.acme,
+  });
+  app.addHook('onClose', async () => httpsListener.close());
+  await app.register(writesPlugin);
   await app.register(livePlugin);
   app.decorate(
     'backups',
@@ -149,6 +178,7 @@ export async function buildApp(
 
   await app.register(setupRoutes, { prefix: '/api/setup' });
   await app.register(authRoutes, { prefix: '/api/auth' });
+  await app.register(accessRoutes, { prefix: '/api/access' });
   await app.register(kitchenRoutes, { prefix: '/api' });
   await app.register(prepRoutes, { prefix: '/api' });
   await app.register(ingredientRoutes, { prefix: '/api' });
@@ -159,6 +189,8 @@ export async function buildApp(
   await app.register(menuRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
   await app.register(updateRoutes, { prefix: '/api' });
+  await app.register(connectionRoutes, { prefix: '/api' });
+  await app.register(acmeChallengeRoute);
   await registerUploads(app, config);
 
   if (options.serveClient === false) {

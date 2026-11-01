@@ -1,5 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { DishCard, DishCardSettings, UpdateDishCardSettings } from '@mise/contracts';
+import type {
+  DishCard,
+  DishCardSettings,
+  DishSummary,
+  UpdateDishCardSettings,
+} from '@mise/contracts';
 import { api, BASE_URL, RequestFailed } from './client.js';
 
 /** Dish cards, and how this kitchen wants them to look. */
@@ -63,5 +68,13 @@ export function useRemoveLogo() {
   return useMutation({
     mutationFn: () => api.delete<DishCardSettings>('/dish-cards/logo'),
     onSuccess: saved,
+  });
+}
+
+/** Every dish with the front of its card, for the Dishes page. */
+export function useDishes() {
+  return useQuery({
+    queryKey: ['dishes'],
+    queryFn: () => api.get<DishSummary[]>('/dishes'),
   });
 }

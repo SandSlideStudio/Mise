@@ -60,6 +60,7 @@ export const en = {
 
   'nav.today': 'Today',
   'nav.recipes': 'Recipes',
+  'nav.dishes': 'Dishes',
   'nav.ingredients': 'Ingredients',
   'nav.settings': 'Settings',
   'nav.updateAvailable': 'A newer Mise is out',
@@ -311,11 +312,11 @@ export const en = {
   'task.recipe': 'Recipe',
   'task.openRecipe': 'Open the recipe for {task}',
 
-  'recipes.subtitle': 'Use Free from to see what an allergy table can have, sub-recipes included.',
+  'recipes.subtitle':
+    'Preps and components. Use Free from to see what an allergy table can have, sub-recipes included. Dishes have their own tab.',
   'recipes.search': 'Search the book',
   'recipes.sort': 'Sort',
   'recipes.anySort': 'Any sort',
-  'recipes.dishes': 'Dishes',
   'recipes.prep': 'Prep',
   'recipes.components': 'Components',
   'recipes.freeFrom': 'Free from…',
@@ -464,7 +465,7 @@ export const en = {
   'settings.cookOnly': 'Only chefs and administrators can change how the kitchen is set up.',
   'settings.tabStaff': 'Staff',
   'settings.tabStations': 'Stations',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Devices',
   'settings.tabKitchen': 'Kitchen',
 
   'staff.loadError': 'Could not load the staff list.',
@@ -823,6 +824,25 @@ export const en = {
   'dishCards.miseLine': 'Every card ends with a small line saying it was made with Mise.',
   // Menus
   'nav.menus': 'Menus',
+  'dishes.subtitle':
+    'Every dish as its card: what the floor reads, with the allergens worked out from every sub-recipe.',
+  'dishes.new': 'New dish',
+  'dishes.search': 'Find a dish',
+  'dishes.anyCourse': 'Any course',
+  'dishes.onMenu': 'Only on an active menu',
+  'dishes.noMatch': 'No dish matches.',
+  'dishes.empty':
+    'No dishes yet. A dish is what goes out to the pass: add one and it shows here as its card.',
+  'dishes.count_one': '{count} dish',
+  'dishes.count_other': '{count} dishes',
+  'dishes.countFreeFrom': '{shown} of {total} dishes are free from {allergen}',
+  'dishes.countFiltered': '{shown} of {total} dishes',
+  'dishes.notOnMenu': 'Not on a menu',
+  'dishes.broken': 'The allergens can’t be worked out: a sub-recipe is missing or uses itself.',
+  'dishes.openSpec': 'Recipe',
+  'dishes.print': 'Print or PDF',
+  'dishes.kept':
+    'This kitchen keeps dish cards to chefs and administrators. The recipe is still open to you.',
   'menus.subtitle':
     'The dishes front of house sells together. Print a menu’s allergen overview, or all its dish cards at once.',
   'menus.name': 'Menu name',
@@ -861,6 +881,195 @@ export const en = {
   'menus.backToMenu': '← The menu',
   'menus.overviewTitle': 'Allergen overview',
   'menus.dish': 'Dish',
+  'access.eyebrow': 'Outside the kitchen',
+  'access.title': 'Ask for access',
+  'access.body':
+    'From outside the kitchen, Mise only opens on devices the kitchen has approved. Give this device a name and ask. A chef or the administrator approves it in Settings → Devices.',
+  'access.nameLabel': 'Name for this device',
+  'access.namePlaceholder': 'e.g. Sam’s phone',
+  'access.ask': 'Ask for access',
+  'access.asking': 'Asking…',
+  'access.waitingTitle': 'Waiting for approval',
+  'access.waitingBody':
+    '“{name}” has asked. Ask a chef or the administrator to approve it in Settings → Devices, and read them this code so they know it’s you:',
+  'access.codeLabel': 'Code',
+  'access.checking': 'This page opens Mise by itself once it’s approved.',
+  'access.whyTitle': 'Why ask?',
+  'access.whyBody':
+    'Recipes, staff and allergen records belong to the kitchen. Asking first means nobody on the internet can even reach the sign-in page. Approval lasts until it’s taken back, or until this device goes 90 days unused.',
+  'outside.title': 'Outside the kitchen',
+  'outside.body':
+    'Phones and laptops outside the kitchen network or VPN. They reach nothing but a request page until someone approves them here. An approval lasts until you take it back, or until the device goes 90 days unused.',
+  'outside.waiting': 'Waiting for approval',
+  'outside.approved': 'Approved',
+  'outside.empty':
+    'No outside devices. Someone who opens Mise from outside the kitchen can ask for access, and their request appears here.',
+  'outside.code': 'Code',
+  'outside.checkCode': 'Approve only if the person asking sees this same code on their screen.',
+  'outside.passwordLabel': 'Your password',
+  'outside.passwordWhy': 'You’re outside the kitchen, so approving asks for your password again.',
+  'outside.approve': 'Approve',
+  'outside.deny': 'Turn down',
+  'outside.approvedBy': 'approved by {name} on {date}',
+  'outside.approvedByFrom': 'approved by {name} from {device} on {date}',
+  'outside.approvedOn': 'approved on {date}',
+  'outside.thisDevice': 'This device',
+  'outside.revokeSelf': 'This device will need to ask again',
+  'outside.reallyRevokeSelf': 'Lock this device out?',
+  'error.accessRequired': 'This device isn’t approved for access from outside the kitchen.',
+  'error.wrongPassword': 'That password isn’t right.',
+  'error.passwordNeeded':
+    'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
+  'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
+  'settings.tabConnection': 'Connection',
+  'connection.domainTitle': 'Address from outside',
+  'connection.domainBody':
+    'If Mise can be reached over the internet, enter the address that leads to it, such as mise.yourkitchen.com. From outside the kitchen, Mise then answers only on that address: the bare IP, or another website’s name on the same server, finds nothing. On the kitchen network and VPN, every address keeps working.',
+  'connection.domainLabel': 'Domain',
+  'connection.domainSet': 'From outside, Mise answers only on {domain}.',
+  'connection.domainUnset':
+    'Not set: from outside, any address that reaches this server leads to Mise.',
+  'connection.domainClear': 'Clear',
+  'connection.domainUseCurrent': 'Use {domain}, the address you’re on now',
+  'connection.domainShared':
+    'Other websites on the same public IP? Whatever already serves them (Apache, LiteSpeed or Nginx, often set up through a panel like cPanel or Plesk) has to pass this domain on to Mise, keeping the domain name in the request. If Mise runs on a different connection from those sites, nothing else is needed.',
+  'error.domainLocksYouOut':
+    'You’re connected through a different address, so this would lock you out. Set it from inside the kitchen, or open Mise through the new address first.',
+  'proxy.title': 'Behind another web server',
+  'proxy.body':
+    'Does another web server on your network (Apache, say, with your websites) already answer for your domains? Let it pass your Mise domain on, with its own certificate. Mise then has to know which machine that is, so it can tell who is at home and who is outside.',
+  'proxy.trusted': 'Mise takes {address} at its word about who each visitor is.',
+  'proxy.none': 'No web server trusted: anything passed on by another machine counts as outside.',
+  'proxy.stop': 'Stop trusting',
+  'proxy.seen': 'Requests for {host} are arriving through {address}. Is that your web server?',
+  'proxy.trust': 'Trust {address}',
+  'proxy.addressLabel': 'Or type the web server’s address',
+  'proxy.trustTyped': 'Trust',
+  'proxy.apacheTitle': 'Set up Apache',
+  'proxy.miseAddress': 'Mise on your network',
+  'proxy.step1': 'On the Apache machine, check it can reach Mise. This should print "ok":',
+  'proxy.step1Bridge':
+    'Apache in a VM on the same TrueNAS as Mise, and nothing comes back? TrueNAS VMs often can’t reach their own host. Create a bridge (br0) under Network in TrueNAS, move the host’s address onto it, and attach the VM’s network card to br0.',
+  'proxy.step2': 'Save this as /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Turn it on and get its certificate, the same way as your other sites:',
+  'proxy.step4':
+    'Open https://{domain} once, then come back here: Mise shows the address it came through, and you trust it.',
+  'proxy.router':
+    'Your router doesn’t change: ports 80 and 443 already go to Apache. Point the domain at your home IP, like your other sites.',
+  'proxy.copy': 'Copy',
+  'proxy.copied': 'Copied',
+  'error.proxyNotLocal':
+    'Use the address of a web server on the kitchen network, such as 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Plain HTTP keeps working throughout. HTTPS is what lets tablets keep working offline and install Mise as an app, and it’s a must for anything reachable from the internet.',
+  'https.on': 'On',
+  'https.off': 'Off',
+  'https.kitchenTitle': 'On the kitchen network',
+  'https.kitchenBody':
+    'Mise makes a certificate of its own for the addresses your tablets use. No domain or internet needed. Each tablet trusts it once, from the trust page.',
+  'https.renews': 'Renews by itself. The current one lasts until {date}.',
+  'https.trustEachTablet': 'On each tablet, open this page once and follow the steps:',
+  'https.namesLabel': 'Addresses the tablets use',
+  'https.namesHint':
+    'The address in the tablets’ address bar, without http:// or a port. Several? Separate them with commas.',
+  'https.making': 'Making…',
+  'https.turnOn': 'Turn on',
+  'https.turnOff': 'Turn off',
+  'https.updateNames': 'Update addresses',
+  'https.portNote':
+    'HTTPS answers on port {port}. On TrueNAS, the app needs that port published too.',
+  'https.domainTitle': 'For your domain',
+  'https.domainTitleFor': 'For {domain}',
+  'https.domainBody':
+    'A free certificate from Let’s Encrypt, which every browser trusts with no steps on the device. Mise gets it and renews it by itself.',
+  'https.domainNeedsAddress': 'Set the address from outside above first.',
+  'https.domainBehindProxy':
+    'Mise is behind your own web server, which handles HTTPS for this domain. You don’t need this.',
+  'https.domainStep1': '{domain} points at your public IP address.',
+  'https.domainStep2':
+    'Your router passes port 80 on to Mise’s port {http}, and port 443 to Mise’s port {https}. On a cloud server, the install does this.',
+  'https.domainStep3': 'Then ask for the certificate:',
+  'https.getCertificate': 'Get certificate',
+  'https.asking': 'Asking Let’s Encrypt…',
+  'https.askingNote': 'This usually takes a few seconds, at most two minutes.',
+  'https.failedHint':
+    'Most often port 80 isn’t reaching Mise yet, or the domain doesn’t point here yet. Let’s Encrypt allows only a few failed tries an hour.',
+  'https.renewFailed': 'The last renewal failed, and Mise will try again: {reason}',
+  'trust.eyebrow': 'This device',
+  'trust.title': 'Trust the kitchen certificate',
+  'trust.body':
+    'Once per device. Afterwards Mise opens over HTTPS here, keeps working when the network drops, and can be installed as an app.',
+  'trust.notOn': 'HTTPS isn’t on yet. An administrator turns it on in Settings → Connection.',
+  'trust.trusted': 'This device trusts it',
+  'trust.trustedBody': 'You’re on Mise over HTTPS. Keep using this address from now on.',
+  'trust.openMise': 'Open Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Other',
+  'trust.download': 'Download the kitchen certificate.',
+  'trust.downloadIos':
+    'In Safari, download the kitchen certificate and allow it when asked about a configuration profile.',
+  'trust.downloadButton': 'Download certificate',
+  'trust.ios1':
+    'Open Settings, tap “Profile Downloaded” near the top, then Install, and enter your passcode.',
+  'trust.ios2': 'Go to Settings → General → About → Certificate Trust Settings.',
+  'trust.ios3': 'Turn on full trust for “Mise”.',
+  'trust.android1':
+    'Open Settings and search for “CA certificate” (often under Security → Encryption & credentials → Install a certificate).',
+  'trust.android2':
+    'Choose “CA certificate”, tap “Install anyway”, and pick mise-kitchen.crt from your downloads.',
+  'trust.windows1': 'Open the downloaded file, choose “Install Certificate”, then “Current User”.',
+  'trust.windows2':
+    'Choose “Place all certificates in the following store”, pick “Trusted Root Certification Authorities”, finish, and restart the browser.',
+  'trust.mac1': 'Open the downloaded file. Keychain Access adds it to your login keychain.',
+  'trust.mac2':
+    'Double-click “Mise”, open Trust, and set “When using this certificate” to “Always Trust”.',
+  'trust.other1':
+    'Add the downloaded file to the system’s or browser’s trusted certificate authorities. Firefox keeps its own list: Settings → Privacy & Security → Certificates → Authorities → Import.',
+  'trust.check':
+    'Check it worked: this opens this page over HTTPS. A warning instead means a step was missed.',
+  'trust.checkButton': 'Check',
+  'trust.fingerprint': 'Fingerprint, to compare',
+  'error.badName':
+    'That is not an address or host name. Use something like 192.168.1.50 or mise.local.',
+  'error.noDomain': 'Set the address from outside first.',
+  'offline.title': 'Offline.',
+  'offline.body':
+    'Mise can’t be reached since {time}. This shows what this device had, and changes are kept here until Mise answers again.',
+  'offline.waiting_one': '1 change is waiting.',
+  'offline.waiting_other': '{count} changes are waiting.',
+  'offline.sending_one': 'Sending 1 change made while offline…',
+  'offline.sending_other': 'Sending {count} changes made while offline…',
+  'offline.dropped': '{what} couldn’t be saved: {reason}',
+  'offline.lineWaiting': 'Waiting to be sent',
+  'offline.conflictTitle': 'Changed on another device',
+  'offline.conflictBody':
+    'While you were offline, someone else changed {what}. Which version should stay?',
+  'offline.yours': 'Yours',
+  'offline.theirs': 'Now in Mise',
+  'offline.keepMine': 'Keep mine',
+  'offline.keepTheirs': 'Keep what’s in Mise',
+  'offline.items_one': '1 item',
+  'offline.items_other': '{count} items',
+  'offline.field.note': 'Note',
+  'offline.field.notes': 'Notes',
+  'offline.field.method': 'Method',
+  'offline.field.description': 'Description',
+  'offline.field.tags': 'Tags',
+  'offline.field.components': 'Components',
+  'offline.field.dishes': 'Dishes',
+  'offline.label.note': 'the handover note',
+  'offline.label.addLine': 'the prep line “{name}”',
+  'offline.label.editLine': 'a change to a prep line',
+  'offline.label.removeLine': 'removing a prep line',
+  'offline.label.recipe': 'the recipe “{name}”',
+  'offline.label.menu': 'the menu “{name}”',
+  'offline.label.ingredient': 'the ingredient “{name}”',
+  'error.offline':
+    'Mise can’t be reached right now, and this needs the connection. Try again once it’s back.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -56,19 +56,23 @@ services:
     environment:
       NODE_ENV: production
       PORT: 3000
+      HTTPS_PORT: 3443
       HOST: 0.0.0.0
       DATABASE_URL: postgres://mise:${POSTGRES_PASSWORD}@db:5432/mise
       SESSION_SECRET: ${SESSION_SECRET:?Set SESSION_SECRET in .env}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       TRUST_PROXY: ${TRUST_PROXY:-false}
+      OUTSIDE_ACCESS: ${OUTSIDE_ACCESS:-approved}
       SETUP_TOKEN: ${SETUP_TOKEN:-}
       UPLOAD_DIR: /data/uploads
       BACKUP_DIR: /data/backups
       ONEDRIVE_CLIENT_ID: ${ONEDRIVE_CLIENT_ID:-}
     ports:
-      # With HTTPS, MISE_BIND=127.0.0.1 keeps this port off the network so
+      # With Caddy in front, MISE_BIND=127.0.0.1 keeps these off the network so
       # every request goes through Caddy.
       - '${MISE_BIND:-0.0.0.0}:${PORT:-3000}:3000'
+      # HTTPS, once a certificate is turned on in Settings → Connection.
+      - '${MISE_BIND:-0.0.0.0}:${HTTPS_PORT:-3443}:3443'
     volumes:
       - uploads:/data/uploads
       - backups:/data/backups

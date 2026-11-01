@@ -6,6 +6,7 @@ import { createDatabase } from './db/client.js';
 import { pendingMigrations, runMigrations } from './db/migrate.js';
 import { VERSION } from './lib/version.js';
 import { backupBeforeMigrating } from './modules/backups/premigration.js';
+import { createAccessService } from './modules/access/service.js';
 
 /**
  * Mise may run as any user, such as the one TrueNAS gives its apps. Say so
@@ -59,7 +60,30 @@ async function backUpIfUpdating(config: Config): Promise<void> {
   }
 }
 
+/**
+ * `node Server/dist/index.js approve-device ABC-123`: approve a device asking
+ * for outside access, by the code on its screen, from the server itself. For
+ * a server with no kitchen network where no device is approved yet. Whoever
+ * can run this can reach the database anyway, so it asks nothing more.
+ */
+async function approveDevice(code: string | undefined): Promise<void> {
+  const config = loadConfig();
+  const { db, sql } = createDatabase(config.DATABASE_URL, { max: 1 });
+  try {
+    const name = code ? await createAccessService(db).approveByCode(code) : null;
+    if (!name) {
+      throw new Error(
+        'No device is waiting with that code. Open Mise on the device, ask for access, and use the code it shows.',
+      );
+    }
+    console.log(`Approved "${name}". It can sign in now.`);
+  } finally {
+    await sql.end();
+  }
+}
+
 async function main(): Promise<void> {
+  if (process.argv[2] === 'approve-device') return approveDevice(process.argv[3]);
   const config = loadConfig();
 
   await checkDataFolders(config);
@@ -77,15 +101,30 @@ async function main(): Promise<void> {
   process.on('SIGINT', () => void shutdown('SIGINT'));
 
   await app.listen({ port: config.PORT, host: config.HOST });
+  // HTTPS next to it, as soon as a certificate is on in Settings → Connection.
+  await app.httpsListener.start(config.HTTPS_PORT, config.HOST).catch((error: unknown) => {
+    app.log.error({ error }, `HTTPS could not start on port ${config.HTTPS_PORT}`);
+  });
+
+  // Certificates close to running out are renewed: at start, then twice a day.
+  const renew = () =>
+    app.auth
+      .kitchen()
+      .then((kitchen) => app.connection.renew(kitchen?.name ?? 'Kitchen'))
+      .catch((error: unknown) => app.log.warn({ error }, 'could not renew certificates'));
+  await renew();
+  setInterval(() => void renew(), 12 * 3_600_000).unref();
 
   // Whether a newer Mise is out: a minute after start, then daily, if allowed.
   app.updates.start();
 
   // Expired sessions are cleared out at start and then once an hour.
   const purge = () =>
-    app.auth.purgeExpiredSessions().catch((error: unknown) => {
-      app.log.warn({ error }, 'could not clear expired sessions');
-    });
+    Promise.all([app.auth.purgeExpiredSessions(), app.purgeWriteReceipts()]).catch(
+      (error: unknown) => {
+        app.log.warn({ error }, 'could not clear expired sessions');
+      },
+    );
   await purge();
   setInterval(() => void purge(), 3_600_000).unref();
 

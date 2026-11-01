@@ -4,6 +4,7 @@ import { LANGUAGES, type Language } from '@mise/contracts';
 import { useBackupStatus } from '../api/backups.js';
 import { useCurrentUser, useLogout, useUpdateMe } from '../api/session.js';
 import { dismissRefusal, useLastRefusal, usePendingTickCount } from '../api/ticks.js';
+import { OfflineStatus } from './OfflineStatus.js';
 import { useVersion } from '../api/version.js';
 import {
   errorMessage,
@@ -48,6 +49,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav className="border-rule order-last flex w-full min-w-0 items-stretch overflow-x-auto border-t lg:order-none lg:w-auto lg:border-t-0">
             <NavLink to="/" label="nav.today" active={pathname === '/'} />
             <NavLink to="/recipes" label="nav.recipes" active={pathname.startsWith('/recipes')} />
+            <NavLink to="/dishes" label="nav.dishes" active={pathname.startsWith('/dishes')} />
             <NavLink to="/menus" label="nav.menus" active={pathname.startsWith('/menus')} />
             {canManage ? (
               <NavLink
@@ -93,6 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <div className="app-main">
+        <OfflineStatus />
         <TickStatus />
         {user.role === 'admin' && !pathname.startsWith('/settings') ? <BackupWarning /> : null}
         {children}

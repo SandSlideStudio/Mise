@@ -110,10 +110,10 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
     <AppShell>
       <main className="mx-auto max-w-[880px] px-0 py-4 sm:px-6 sm:py-8">
         <Link
-          to="/recipes"
+          to={recipe.type === 'dish' ? '/dishes' : '/recipes'}
           className="no-print eyebrow hover:text-ink mb-3 ml-4 inline-block sm:mb-4 sm:ml-0"
         >
-          {t('recipe.back')}
+          {recipe.type === 'dish' ? `← ${t('nav.dishes')}` : t('recipe.back')}
         </Link>
 
         <Plate className="border-x-0 print:hidden sm:border-x">
@@ -260,7 +260,8 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
                   onClick={() =>
                     confirming
                       ? remove.mutate(recipe.id, {
-                          onSuccess: () => void navigate({ to: '/recipes' }),
+                          onSuccess: () =>
+                            void navigate({ to: recipe.type === 'dish' ? '/dishes' : '/recipes' }),
                         })
                       : setConfirming(true)
                   }

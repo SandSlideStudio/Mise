@@ -60,6 +60,7 @@ export const es: Record<MessageKey, string> = {
 
   'nav.today': 'Hoy',
   'nav.recipes': 'Recetas',
+  'nav.dishes': 'Platos',
   'nav.ingredients': 'Ingredientes',
   'nav.settings': 'Ajustes',
   'nav.updateAvailable': 'Hay una versión más nueva de Mise',
@@ -314,11 +315,10 @@ export const es: Record<MessageKey, string> = {
   'task.openRecipe': 'Abrir la receta de {task}',
 
   'recipes.subtitle':
-    'Usa Sin para ver qué puede comer una mesa con alergias, subrecetas incluidas.',
+    'Mise en place y componentes. Usa Sin para ver lo que puede tomar una mesa con alergias, subrecetas incluidas. Los platos tienen su propia pestaña.',
   'recipes.search': 'Buscar en el recetario',
   'recipes.sort': 'Tipo',
   'recipes.anySort': 'Cualquier tipo',
-  'recipes.dishes': 'Platos',
   'recipes.prep': 'Elaboraciones',
   'recipes.components': 'Componentes',
   'recipes.freeFrom': 'Sin…',
@@ -469,7 +469,7 @@ export const es: Record<MessageKey, string> = {
     'Solo los chefs y los administradores pueden cambiar cómo está montada la cocina.',
   'settings.tabStaff': 'Equipo',
   'settings.tabStations': 'Partidas',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Dispositivos',
   'settings.tabKitchen': 'Cocina',
 
   'staff.loadError': 'No se pudo cargar la lista del equipo.',
@@ -841,6 +841,25 @@ export const es: Record<MessageKey, string> = {
   'dishCards.miseLine': 'Cada ficha termina con una pequeña línea que dice que se hizo con Mise.',
   // Menus
   'nav.menus': 'Menús',
+  'dishes.subtitle':
+    'Cada plato como su ficha: lo que lee la sala, con los alérgenos calculados a partir de cada subreceta.',
+  'dishes.new': 'Nuevo plato',
+  'dishes.search': 'Buscar un plato',
+  'dishes.anyCourse': 'Cualquier pase',
+  'dishes.onMenu': 'Solo en un menú activo',
+  'dishes.noMatch': 'Ningún plato coincide.',
+  'dishes.empty':
+    'Aún no hay platos. Un plato es lo que sale al pase: añade uno y aparecerá aquí como su ficha.',
+  'dishes.count_one': '{count} plato',
+  'dishes.count_other': '{count} platos',
+  'dishes.countFreeFrom': '{shown} de {total} platos sin {allergen}',
+  'dishes.countFiltered': '{shown} de {total} platos',
+  'dishes.notOnMenu': 'En ningún menú',
+  'dishes.broken': 'No se pueden calcular los alérgenos: falta una subreceta o se usa a sí misma.',
+  'dishes.openSpec': 'Receta',
+  'dishes.print': 'Imprimir o PDF',
+  'dishes.kept':
+    'Esta cocina reserva las fichas de plato a chefs y administradores. La receta sigue abierta para ti.',
   'menus.subtitle':
     'Los platos que la sala vende juntos. Imprime el resumen de alérgenos de un menú, o todas sus fichas de plato a la vez.',
   'menus.name': 'Nombre del menú',
@@ -879,4 +898,196 @@ export const es: Record<MessageKey, string> = {
   'menus.backToMenu': '← El menú',
   'menus.overviewTitle': 'Resumen de alérgenos',
   'menus.dish': 'Plato',
+  'access.eyebrow': 'Fuera de la cocina',
+  'access.title': 'Pide acceso',
+  'access.body':
+    'Fuera de la cocina, Mise solo se abre en dispositivos que la cocina ha aprobado. Ponle un nombre a este dispositivo y pide acceso. Un chef o el administrador lo aprueba en Ajustes → Dispositivos.',
+  'access.nameLabel': 'Nombre de este dispositivo',
+  'access.namePlaceholder': 'p. ej. Móvil de Sam',
+  'access.ask': 'Pedir acceso',
+  'access.asking': 'Pidiendo…',
+  'access.waitingTitle': 'Esperando aprobación',
+  'access.waitingBody':
+    '“{name}” ha pedido acceso. Pide a un chef o al administrador que lo apruebe en Ajustes → Dispositivos, y léele este código para que sepa que eres tú:',
+  'access.codeLabel': 'Código',
+  'access.checking': 'Esta página abre Mise sola en cuanto se apruebe.',
+  'access.whyTitle': '¿Por qué pedir?',
+  'access.whyBody':
+    'Las recetas, el equipo y los alérgenos son de la cocina. Pedir primero significa que nadie en internet puede ni siquiera llegar a la página de acceso. La aprobación dura hasta que se retire, o hasta que este dispositivo pase 90 días sin usarse.',
+  'outside.title': 'Fuera de la cocina',
+  'outside.body':
+    'Móviles y portátiles fuera de la red de la cocina o de la VPN. Solo ven una página de solicitud hasta que alguien los aprueba aquí. La aprobación dura hasta que la retires, o hasta que el dispositivo pase 90 días sin usarse.',
+  'outside.waiting': 'Esperando aprobación',
+  'outside.approved': 'Aprobados',
+  'outside.empty':
+    'No hay dispositivos de fuera. Quien abra Mise desde fuera de la cocina puede pedir acceso, y su solicitud aparece aquí.',
+  'outside.code': 'Código',
+  'outside.checkCode': 'Aprueba solo si quien lo pide ve este mismo código en su pantalla.',
+  'outside.passwordLabel': 'Tu contraseña',
+  'outside.passwordWhy': 'Estás fuera de la cocina, así que aprobar vuelve a pedir tu contraseña.',
+  'outside.approve': 'Aprobar',
+  'outside.deny': 'Rechazar',
+  'outside.approvedBy': 'aprobado por {name} el {date}',
+  'outside.approvedByFrom': 'aprobado por {name} desde {device} el {date}',
+  'outside.approvedOn': 'aprobado el {date}',
+  'outside.thisDevice': 'Este dispositivo',
+  'outside.revokeSelf': 'Este dispositivo tendrá que volver a pedir acceso',
+  'outside.reallyRevokeSelf': '¿Dejar fuera este dispositivo?',
+  'error.accessRequired': 'Este dispositivo no está aprobado para entrar desde fuera de la cocina.',
+  'error.wrongPassword': 'Esa contraseña no es correcta.',
+  'error.passwordNeeded':
+    'Aprobar desde fuera necesita una contraseña, y esta cuenta no tiene. Apruébalo desde la cocina.',
+  'error.tooManyRequests': 'Hay demasiados dispositivos esperando aprobación. Inténtalo más tarde.',
+  'settings.tabConnection': 'Conexión',
+  'connection.domainTitle': 'Dirección desde fuera',
+  'connection.domainBody':
+    'Si Mise es accesible por internet, escribe la dirección que lleva a él, como mise.tucocina.es. Desde fuera de la cocina, Mise solo responde en esa dirección: la IP sola, o el nombre de otra web en el mismo servidor, no encuentra nada. En la red de la cocina y la VPN, todas las direcciones siguen funcionando.',
+  'connection.domainLabel': 'Dominio',
+  'connection.domainSet': 'Desde fuera, Mise solo responde en {domain}.',
+  'connection.domainUnset':
+    'Sin definir: desde fuera, cualquier dirección que llegue a este servidor lleva a Mise.',
+  'connection.domainClear': 'Borrar',
+  'connection.domainUseCurrent': 'Usar {domain}, la dirección en la que estás',
+  'connection.domainShared':
+    '¿Otras webs en la misma IP pública? Lo que ya las sirve (Apache, LiteSpeed o Nginx, a menudo configurado con un panel como cPanel o Plesk) tiene que pasar este dominio a Mise, conservando el nombre de dominio en la petición. Si Mise funciona en otra conexión distinta de esas webs, no hace falta nada más.',
+  'error.domainLocksYouOut':
+    'Estás conectado por otra dirección, así que te quedarías fuera. Configúralo desde la cocina, o abre primero Mise por la nueva dirección.',
+  'proxy.title': 'Detrás de otro servidor web',
+  'proxy.body':
+    '¿Otro servidor web de tu red (Apache, por ejemplo, con tus webs) ya responde por tus dominios? Deja que pase tu dominio de Mise, con su propio certificado. Mise necesita saber qué máquina es, para distinguir quién está en casa y quién fuera.',
+  'proxy.trusted': 'Mise cree a {address} sobre quién es cada visitante.',
+  'proxy.none':
+    'Ningún servidor web de confianza: todo lo que llega a través de otra máquina cuenta como de fuera.',
+  'proxy.stop': 'Dejar de confiar',
+  'proxy.seen': 'Las peticiones para {host} llegan a través de {address}. ¿Es tu servidor web?',
+  'proxy.trust': 'Confiar en {address}',
+  'proxy.addressLabel': 'O escribe la dirección del servidor web',
+  'proxy.trustTyped': 'Confiar',
+  'proxy.apacheTitle': 'Configurar Apache',
+  'proxy.miseAddress': 'Mise en tu red',
+  'proxy.step1': 'En la máquina de Apache, comprueba que llega a Mise. Debería mostrar "ok":',
+  'proxy.step1Bridge':
+    '¿Apache en una VM en la misma TrueNAS que Mise y no vuelve nada? Las VM de TrueNAS a menudo no llegan a su propio host. Crea un puente (br0) en Network de TrueNAS, pasa la dirección del host a él y conecta la tarjeta de red de la VM a br0.',
+  'proxy.step2': 'Guarda esto como /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Actívalo y consigue su certificado, igual que con tus otras webs:',
+  'proxy.step4':
+    'Abre https://{domain} una vez y vuelve aquí: Mise muestra la dirección por la que llegó, y confías en ella.',
+  'proxy.router':
+    'Tu router no cambia: los puertos 80 y 443 ya van a Apache. Apunta el dominio a la IP de tu casa, como tus otras webs.',
+  'proxy.copy': 'Copiar',
+  'proxy.copied': 'Copiado',
+  'error.proxyNotLocal':
+    'Usa la dirección de un servidor web de la red de la cocina, como 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'El HTTP normal sigue funcionando siempre. HTTPS permite que las tablets sigan trabajando sin conexión e instalen Mise como app, y es imprescindible para todo lo accesible desde internet.',
+  'https.on': 'Activado',
+  'https.off': 'Desactivado',
+  'https.kitchenTitle': 'En la red de la cocina',
+  'https.kitchenBody':
+    'Mise crea un certificado propio para las direcciones que usan tus tablets. Sin dominio ni internet. Cada tablet confía en él una vez, desde la página de confianza.',
+  'https.renews': 'Se renueva solo. El actual vale hasta el {date}.',
+  'https.trustEachTablet': 'En cada tablet, abre esta página una vez y sigue los pasos:',
+  'https.namesLabel': 'Direcciones que usan las tablets',
+  'https.namesHint':
+    'La dirección en la barra de las tablets, sin http:// ni puerto. ¿Varias? Sepáralas con comas.',
+  'https.making': 'Creando…',
+  'https.turnOn': 'Activar',
+  'https.turnOff': 'Desactivar',
+  'https.updateNames': 'Actualizar direcciones',
+  'https.portNote':
+    'HTTPS responde en el puerto {port}. En TrueNAS, la app también debe publicar ese puerto.',
+  'https.domainTitle': 'Para tu dominio',
+  'https.domainTitleFor': 'Para {domain}',
+  'https.domainBody':
+    'Un certificado gratuito de Let’s Encrypt, en el que confía cualquier navegador sin pasos en el dispositivo. Mise lo obtiene y lo renueva solo.',
+  'https.domainNeedsAddress': 'Primero configura arriba la dirección desde fuera.',
+  'https.domainBehindProxy':
+    'Mise está detrás de tu propio servidor web, que gestiona HTTPS para este dominio. No lo necesitas.',
+  'https.domainStep1': '{domain} apunta a tu dirección IP pública.',
+  'https.domainStep2':
+    'Tu router reenvía el puerto 80 al puerto {http} de Mise, y el 443 al puerto {https}. En un servidor en la nube, la instalación lo hace.',
+  'https.domainStep3': 'Luego pide el certificado:',
+  'https.getCertificate': 'Obtener certificado',
+  'https.asking': 'Preguntando a Let’s Encrypt…',
+  'https.askingNote': 'Suele tardar unos segundos, dos minutos como mucho.',
+  'https.failedHint':
+    'Lo más habitual es que el puerto 80 aún no llegue a Mise, o que el dominio aún no apunte aquí. Let’s Encrypt solo permite unos pocos intentos fallidos por hora.',
+  'https.renewFailed': 'La última renovación falló; Mise lo volverá a intentar: {reason}',
+  'trust.eyebrow': 'Este dispositivo',
+  'trust.title': 'Confía en el certificado de la cocina',
+  'trust.body':
+    'Una vez por dispositivo. Después Mise se abre aquí por HTTPS, sigue funcionando si se cae la red y se puede instalar como app.',
+  'trust.notOn': 'HTTPS aún no está activado. Un administrador lo activa en Ajustes → Conexión.',
+  'trust.trusted': 'Este dispositivo confía en él',
+  'trust.trustedBody': 'Estás en Mise por HTTPS. A partir de ahora usa esta dirección.',
+  'trust.openMise': 'Abrir Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Otro',
+  'trust.download': 'Descarga el certificado de la cocina.',
+  'trust.downloadIos':
+    'En Safari, descarga el certificado y permítelo cuando pregunte por un perfil de configuración.',
+  'trust.downloadButton': 'Descargar certificado',
+  'trust.ios1':
+    'Abre Ajustes, toca “Perfil descargado” arriba, luego Instalar, e introduce tu código.',
+  'trust.ios2': 'Ve a Ajustes → General → Información → Ajustes de confianza de certificados.',
+  'trust.ios3': 'Activa la confianza total para “Mise”.',
+  'trust.android1':
+    'Abre Ajustes y busca “certificado de CA” (a menudo en Seguridad → Cifrado y credenciales → Instalar un certificado).',
+  'trust.android2':
+    'Elige “Certificado de CA”, toca “Instalar de todos modos” y selecciona mise-kitchen.crt en tus descargas.',
+  'trust.windows1':
+    'Abre el archivo descargado, elige “Instalar certificado” y luego “Usuario actual”.',
+  'trust.windows2':
+    'Elige “Colocar todos los certificados en el siguiente almacén”, selecciona “Entidades de certificación raíz de confianza”, termina y reinicia el navegador.',
+  'trust.mac1':
+    'Abre el archivo descargado. Acceso a Llaveros lo añade a tu llavero de inicio de sesión.',
+  'trust.mac2':
+    'Haz doble clic en “Mise”, abre Confiar y pon “Al usar este certificado” en “Confiar siempre”.',
+  'trust.other1':
+    'Añade el archivo a las autoridades de certificación de confianza del sistema o del navegador. Firefox tiene su propia lista: Ajustes → Privacidad y seguridad → Certificados → Autoridades → Importar.',
+  'trust.check':
+    'Comprueba que funcionó: esto abre esta página por HTTPS. Si sale un aviso, faltó un paso.',
+  'trust.checkButton': 'Comprobar',
+  'trust.fingerprint': 'Huella, para comparar',
+  'error.badName':
+    'No es una dirección ni un nombre de host. Usa algo como 192.168.1.50 o mise.local.',
+  'error.noDomain': 'Primero configura la dirección desde fuera.',
+  'offline.title': 'Sin conexión.',
+  'offline.body':
+    'Mise no responde desde las {time}. Ves lo que tenía este dispositivo, y los cambios se guardan aquí hasta que Mise vuelva a responder.',
+  'offline.waiting_one': '1 cambio esperando.',
+  'offline.waiting_other': '{count} cambios esperando.',
+  'offline.sending_one': 'Enviando 1 cambio hecho sin conexión…',
+  'offline.sending_other': 'Enviando {count} cambios hechos sin conexión…',
+  'offline.dropped': 'No se pudo guardar {what}: {reason}',
+  'offline.lineWaiting': 'Esperando envío',
+  'offline.conflictTitle': 'Cambiado en otro dispositivo',
+  'offline.conflictBody':
+    'Mientras estabas sin conexión, otra persona cambió {what}. ¿Qué versión se queda?',
+  'offline.yours': 'La tuya',
+  'offline.theirs': 'Ahora en Mise',
+  'offline.keepMine': 'Quedarme con la mía',
+  'offline.keepTheirs': 'Quedarme con la de Mise',
+  'offline.items_one': '1 elemento',
+  'offline.items_other': '{count} elementos',
+  'offline.field.note': 'Nota',
+  'offline.field.notes': 'Notas',
+  'offline.field.method': 'Elaboración',
+  'offline.field.description': 'Descripción',
+  'offline.field.tags': 'Etiquetas',
+  'offline.field.components': 'Componentes',
+  'offline.field.dishes': 'Platos',
+  'offline.label.note': 'la nota de relevo',
+  'offline.label.addLine': 'la línea de mise en place “{name}”',
+  'offline.label.editLine': 'un cambio en una línea de mise en place',
+  'offline.label.removeLine': 'la eliminación de una línea',
+  'offline.label.recipe': 'la receta “{name}”',
+  'offline.label.menu': 'el menú “{name}”',
+  'offline.label.ingredient': 'el ingrediente “{name}”',
+  'error.offline':
+    'Ahora no se puede conectar con Mise, y esto necesita la conexión. Vuelve a intentarlo cuando vuelva.',
 };

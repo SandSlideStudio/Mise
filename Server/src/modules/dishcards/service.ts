@@ -4,6 +4,7 @@ import {
   type DishCard,
   type DishCardFacts,
   type DishCardPart,
+  type DishSummary,
   type UpdateDishCardSettings,
 } from '@mise/contracts';
 import { dishCardMatrix, type DishCardRow as DomainRow } from '@mise/domain';
@@ -201,7 +202,47 @@ export function createDishCardService(db: Database) {
     return { veganUnknown: veganUnknown.sort(byName), missingDetails: missingDetails.sort(byName) };
   }
 
-  return { settings, update, setLogo, card };
+  /**
+   * Every dish, with what the front of its card shows and its allergens as a
+   * whole. One pass over the recipe book, so the Dishes page is one request.
+   */
+  async function summaries(): Promise<DishSummary[]> {
+    const [dishes, book, photos, onMenus] = await Promise.all([
+      db
+        .select({
+          id: recipes.id,
+          name: recipes.name,
+          status: recipes.status,
+          course: recipes.course,
+          servingTemperature: recipes.servingTemperature,
+          flavourProfile: recipes.flavourProfile,
+        })
+        .from(recipes)
+        .where(eq(recipes.type, 'dish'))
+        .orderBy(asc(recipes.name)),
+      loadRecipeBook(db),
+      db.select().from(recipePhotos),
+      db
+        .select({ recipeId: menuDishes.recipeId, name: menus.name })
+        .from(menuDishes)
+        .innerJoin(menus, eq(menus.id, menuDishes.menuId))
+        .where(eq(menus.status, 'active'))
+        .orderBy(asc(menus.name)),
+    ]);
+    return dishes.map((dish) => {
+      const mine = photos.filter((p) => p.recipeId === dish.id);
+      const photo = mine.find((p) => p.isPrimary) ?? mine[0] ?? null;
+      const matrix = dishCardMatrix(dish.id, book);
+      return {
+        ...dish,
+        menus: onMenus.filter((m) => m.recipeId === dish.id).map((m) => m.name),
+        photoUrl: photo ? `/api/uploads/${photo.path}` : null,
+        facts: matrix.ok ? facts(matrix.value.dish) : null,
+      };
+    });
+  }
+
+  return { settings, update, setLogo, card, summaries };
 }
 
 export type DishCardService = ReturnType<typeof createDishCardService>;

@@ -59,6 +59,7 @@ export const nl: Record<MessageKey, string> = {
 
   'nav.today': 'Vandaag',
   'nav.recipes': 'Recepten',
+  'nav.dishes': 'Gerechten',
   'nav.ingredients': 'Ingrediënten',
   'nav.settings': 'Instellingen',
   'nav.updateAvailable': 'Er is een nieuwere Mise',
@@ -313,11 +314,10 @@ export const nl: Record<MessageKey, string> = {
   'task.openRecipe': 'Open het recept voor {task}',
 
   'recipes.subtitle':
-    'Gebruik Vrij van om te zien wat een tafel met een allergie kan eten, subrecepten inbegrepen.',
+    'Mise-en-place en componenten. Met Vrij van zie je wat een allergietafel kan krijgen, subrecepten meegeteld. Gerechten hebben een eigen tabblad.',
   'recipes.search': 'Zoek in het boek',
   'recipes.sort': 'Soort',
   'recipes.anySort': 'Elke soort',
-  'recipes.dishes': 'Gerechten',
   'recipes.prep': 'Prep',
   'recipes.components': 'Onderdelen',
   'recipes.freeFrom': 'Vrij van…',
@@ -469,7 +469,7 @@ export const nl: Record<MessageKey, string> = {
   'settings.cookOnly': 'Alleen chefs en beheerders kunnen de inrichting van de keuken wijzigen.',
   'settings.tabStaff': 'Personeel',
   'settings.tabStations': 'Posten',
-  'settings.tabDevices': 'Tablets',
+  'settings.tabDevices': 'Apparaten',
   'settings.tabKitchen': 'Keuken',
 
   'staff.loadError': 'De personeelslijst kon niet geladen worden.',
@@ -839,6 +839,26 @@ export const nl: Record<MessageKey, string> = {
   'dishCards.miseLine': 'Elke kaart eindigt met een klein regeltje dat hij met Mise gemaakt is.',
   // Menus
   'nav.menus': 'Menu’s',
+  'dishes.subtitle':
+    'Elk gerecht als zijn kaart: wat de bediening leest, met de allergenen uitgerekend uit elk subrecept.',
+  'dishes.new': 'Nieuw gerecht',
+  'dishes.search': 'Zoek een gerecht',
+  'dishes.anyCourse': 'Elke gang',
+  'dishes.onMenu': 'Alleen op een actief menu',
+  'dishes.noMatch': 'Geen gerecht gevonden.',
+  'dishes.empty':
+    'Nog geen gerechten. Een gerecht is wat naar de pass gaat: voeg er een toe en het staat hier als zijn kaart.',
+  'dishes.count_one': '{count} gerecht',
+  'dishes.count_other': '{count} gerechten',
+  'dishes.countFreeFrom': '{shown} van {total} gerechten zijn vrij van {allergen}',
+  'dishes.countFiltered': '{shown} van {total} gerechten',
+  'dishes.notOnMenu': 'Niet op een menu',
+  'dishes.broken':
+    'De allergenen zijn niet uit te rekenen: een subrecept ontbreekt of gebruikt zichzelf.',
+  'dishes.openSpec': 'Recept',
+  'dishes.print': 'Printen of pdf',
+  'dishes.kept':
+    'Deze keuken houdt gerechtenkaarten voor chefs en beheerders. Het recept kun je wel openen.',
   'menus.subtitle':
     'De gerechten die de bediening samen verkoopt. Druk het allergenenoverzicht van een menu af, of alle gerechtenkaarten tegelijk.',
   'menus.name': 'Naam van het menu',
@@ -878,4 +898,199 @@ export const nl: Record<MessageKey, string> = {
   'menus.backToMenu': '← Het menu',
   'menus.overviewTitle': 'Allergenenoverzicht',
   'menus.dish': 'Gerecht',
+  'access.eyebrow': 'Buiten de keuken',
+  'access.title': 'Vraag toegang',
+  'access.body':
+    'Buiten de keuken opent Mise alleen op apparaten die de keuken heeft goedgekeurd. Geef dit apparaat een naam en vraag toegang. Een chef of de beheerder keurt het goed bij Instellingen → Apparaten.',
+  'access.nameLabel': 'Naam voor dit apparaat',
+  'access.namePlaceholder': 'bijv. Telefoon van Sam',
+  'access.ask': 'Vraag toegang',
+  'access.asking': 'Vragen…',
+  'access.waitingTitle': 'Wacht op goedkeuring',
+  'access.waitingBody':
+    '“{name}” heeft toegang gevraagd. Vraag een chef of de beheerder het goed te keuren bij Instellingen → Apparaten, en lees deze code voor zodat ze weten dat jij het bent:',
+  'access.codeLabel': 'Code',
+  'access.checking': 'Deze pagina opent Mise vanzelf zodra het is goedgekeurd.',
+  'access.whyTitle': 'Waarom vragen?',
+  'access.whyBody':
+    'Recepten, personeel en allergenen zijn van de keuken. Door eerst te vragen kan niemand op internet zelfs maar bij het inlogscherm komen. Goedkeuring blijft tot ze wordt ingetrokken, of tot dit apparaat 90 dagen niet is gebruikt.',
+  'outside.title': 'Buiten de keuken',
+  'outside.body':
+    'Telefoons en laptops buiten het keukennetwerk of de VPN. Ze zien alleen een aanvraagpagina tot iemand ze hier goedkeurt. Goedkeuring blijft tot je ze intrekt, of tot het apparaat 90 dagen niet is gebruikt.',
+  'outside.waiting': 'Wacht op goedkeuring',
+  'outside.approved': 'Goedgekeurd',
+  'outside.empty':
+    'Geen apparaten van buiten. Wie Mise van buiten de keuken opent, kan toegang vragen; die aanvraag verschijnt hier.',
+  'outside.code': 'Code',
+  'outside.checkCode': 'Keur alleen goed als degene die vraagt dezelfde code op het scherm ziet.',
+  'outside.passwordLabel': 'Je wachtwoord',
+  'outside.passwordWhy':
+    'Je bent buiten de keuken, dus goedkeuren vraagt opnieuw om je wachtwoord.',
+  'outside.approve': 'Goedkeuren',
+  'outside.deny': 'Weigeren',
+  'outside.approvedBy': 'goedgekeurd door {name} op {date}',
+  'outside.approvedByFrom': 'goedgekeurd door {name} vanaf {device} op {date}',
+  'outside.approvedOn': 'goedgekeurd op {date}',
+  'outside.thisDevice': 'Dit apparaat',
+  'outside.revokeSelf': 'Dit apparaat moet daarna opnieuw toegang vragen',
+  'outside.reallyRevokeSelf': 'Dit apparaat buitensluiten?',
+  'error.accessRequired': 'Dit apparaat is niet goedgekeurd voor toegang van buiten de keuken.',
+  'error.wrongPassword': 'Dat wachtwoord klopt niet.',
+  'error.passwordNeeded':
+    'Goedkeuren van buitenaf vraagt een wachtwoord, en dit account heeft er geen. Keur het goed vanuit de keuken.',
+  'error.tooManyRequests':
+    'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
+  'settings.tabConnection': 'Verbinding',
+  'connection.domainTitle': 'Adres van buitenaf',
+  'connection.domainBody':
+    'Als Mise via internet bereikbaar is, vul dan het adres in dat ernaartoe leidt, zoals mise.jouwkeuken.nl. Van buiten de keuken antwoordt Mise dan alleen op dat adres: het kale IP-adres, of de naam van een andere website op dezelfde server, vindt niets. Op het keukennetwerk en de VPN blijft elk adres werken.',
+  'connection.domainLabel': 'Domein',
+  'connection.domainSet': 'Van buitenaf antwoordt Mise alleen op {domain}.',
+  'connection.domainUnset':
+    'Niet ingesteld: van buitenaf leidt elk adres dat deze server bereikt naar Mise.',
+  'connection.domainClear': 'Wissen',
+  'connection.domainUseCurrent': 'Gebruik {domain}, het adres waarop je nu zit',
+  'connection.domainShared':
+    'Andere websites op hetzelfde publieke IP-adres? Wat die nu al serveert (Apache, LiteSpeed of Nginx, vaak ingesteld via een paneel als cPanel of Plesk) moet dit domein doorsturen naar Mise, met de domeinnaam behouden. Draait Mise op een andere verbinding dan die sites, dan is er niets extra nodig.',
+  'error.domainLocksYouOut':
+    'Je bent verbonden via een ander adres, dus hiermee sluit je jezelf buiten. Stel het in vanuit de keuken, of open Mise eerst via het nieuwe adres.',
+  'proxy.title': 'Achter een andere webserver',
+  'proxy.body':
+    'Beantwoordt een andere webserver op je netwerk (bijvoorbeeld Apache, met je websites) al je domeinen? Laat die je Mise-domein doorsturen, met een eigen certificaat. Mise moet dan weten welke machine dat is, zodat het kan zien wie thuis is en wie buiten.',
+  'proxy.trusted': 'Mise gelooft {address} over wie elke bezoeker is.',
+  'proxy.none':
+    'Geen webserver vertrouwd: alles wat via een andere machine binnenkomt telt als buiten.',
+  'proxy.stop': 'Niet meer vertrouwen',
+  'proxy.seen': 'Verzoeken voor {host} komen binnen via {address}. Is dat je webserver?',
+  'proxy.trust': 'Vertrouw {address}',
+  'proxy.addressLabel': 'Of typ het adres van de webserver',
+  'proxy.trustTyped': 'Vertrouwen',
+  'proxy.apacheTitle': 'Apache instellen',
+  'proxy.miseAddress': 'Mise op je netwerk',
+  'proxy.step1':
+    'Controleer op de Apache-machine of die Mise kan bereiken. Dit hoort "ok" te tonen:',
+  'proxy.step1Bridge':
+    'Draait Apache in een VM op dezelfde TrueNAS als Mise en komt er niets terug? TrueNAS-VM’s kunnen hun eigen host vaak niet bereiken. Maak in TrueNAS onder Network een bridge (br0), zet het adres van de host daarop en koppel de netwerkkaart van de VM aan br0.',
+  'proxy.step2': 'Sla dit op als /etc/apache2/sites-available/mise.conf:',
+  'proxy.step3': 'Zet het aan en haal het certificaat op, net als bij je andere sites:',
+  'proxy.step4':
+    'Open https://{domain} één keer en kom dan hier terug: Mise toont het adres waarlangs het binnenkwam, en dat vertrouw je.',
+  'proxy.router':
+    'Aan je router verandert niets: poort 80 en 443 gaan al naar Apache. Laat het domein naar je thuis-IP wijzen, net als je andere sites.',
+  'proxy.copy': 'Kopiëren',
+  'proxy.copied': 'Gekopieerd',
+  'error.proxyNotLocal':
+    'Gebruik het adres van een webserver op het keukennetwerk, zoals 192.168.1.60.',
+  'https.title': 'HTTPS',
+  'https.body':
+    'Gewoon HTTP blijft altijd werken. Met HTTPS kunnen tablets offline doorwerken en Mise als app installeren, en het is een must voor alles wat via internet bereikbaar is.',
+  'https.on': 'Aan',
+  'https.off': 'Uit',
+  'https.kitchenTitle': 'Op het keukennetwerk',
+  'https.kitchenBody':
+    'Mise maakt een eigen certificaat voor de adressen die je tablets gebruiken. Geen domein of internet nodig. Elke tablet vertrouwt het één keer, via de vertrouwenspagina.',
+  'https.renews': 'Vernieuwt zichzelf. Het huidige geldt tot {date}.',
+  'https.trustEachTablet': 'Open op elke tablet één keer deze pagina en volg de stappen:',
+  'https.namesLabel': 'Adressen die de tablets gebruiken',
+  'https.namesHint':
+    'Het adres in de adresbalk van de tablets, zonder http:// of poort. Meerdere? Scheid ze met komma’s.',
+  'https.making': 'Maken…',
+  'https.turnOn': 'Aanzetten',
+  'https.turnOff': 'Uitzetten',
+  'https.updateNames': 'Adressen bijwerken',
+  'https.portNote':
+    'HTTPS antwoordt op poort {port}. Op TrueNAS moet de app die poort ook publiceren.',
+  'https.domainTitle': 'Voor je domein',
+  'https.domainTitleFor': 'Voor {domain}',
+  'https.domainBody':
+    'Een gratis certificaat van Let’s Encrypt, dat elke browser vertrouwt zonder stappen op het apparaat. Mise haalt het op en vernieuwt het zelf.',
+  'https.domainNeedsAddress': 'Stel eerst hierboven het adres van buitenaf in.',
+  'https.domainBehindProxy':
+    'Mise staat achter je eigen webserver, die HTTPS voor dit domein regelt. Dit heb je niet nodig.',
+  'https.domainStep1': '{domain} wijst naar je publieke IP-adres.',
+  'https.domainStep2':
+    'Je router stuurt poort 80 door naar poort {http} van Mise, en poort 443 naar poort {https}. Op een cloudserver regelt de installatie dit.',
+  'https.domainStep3': 'Vraag dan het certificaat aan:',
+  'https.getCertificate': 'Certificaat ophalen',
+  'https.asking': 'Let’s Encrypt vragen…',
+  'https.askingNote': 'Dit duurt meestal een paar seconden, hooguit twee minuten.',
+  'https.failedHint':
+    'Meestal komt poort 80 nog niet bij Mise aan, of wijst het domein nog niet hierheen. Let’s Encrypt staat maar een paar mislukte pogingen per uur toe.',
+  'https.renewFailed': 'De laatste vernieuwing mislukte; Mise probeert het opnieuw: {reason}',
+  'trust.eyebrow': 'Dit apparaat',
+  'trust.title': 'Vertrouw het keukencertificaat',
+  'trust.body':
+    'Eén keer per apparaat. Daarna opent Mise hier via HTTPS, blijft het werken als het netwerk wegvalt en kun je het als app installeren.',
+  'trust.notOn':
+    'HTTPS staat nog niet aan. Een beheerder zet het aan bij Instellingen → Verbinding.',
+  'trust.trusted': 'Dit apparaat vertrouwt het',
+  'trust.trustedBody': 'Je zit via HTTPS op Mise. Gebruik voortaan dit adres.',
+  'trust.openMise': 'Open Mise',
+  'trust.system.ios': 'iPad / iPhone',
+  'trust.system.android': 'Android',
+  'trust.system.windows': 'Windows',
+  'trust.system.mac': 'Mac',
+  'trust.system.other': 'Anders',
+  'trust.download': 'Download het keukencertificaat.',
+  'trust.downloadIos':
+    'Download in Safari het keukencertificaat en sta het toe als er naar een configuratieprofiel wordt gevraagd.',
+  'trust.downloadButton': 'Certificaat downloaden',
+  'trust.ios1':
+    'Open Instellingen, tik bovenaan op “Profiel gedownload”, dan op Installeer, en voer je toegangscode in.',
+  'trust.ios2': 'Ga naar Instellingen → Algemeen → Info → Certificaatvertrouwensinstellingen.',
+  'trust.ios3': 'Zet volledig vertrouwen aan voor “Mise”.',
+  'trust.android1':
+    'Open Instellingen en zoek op “CA-certificaat” (vaak onder Beveiliging → Versleuteling en inloggegevens → Certificaat installeren).',
+  'trust.android2':
+    'Kies “CA-certificaat”, tik op “Toch installeren” en kies mise-kitchen.crt uit je downloads.',
+  'trust.windows1':
+    'Open het gedownloade bestand, kies “Certificaat installeren” en dan “Huidige gebruiker”.',
+  'trust.windows2':
+    'Kies “Alle certificaten in het onderstaande archief opslaan”, kies “Vertrouwde basiscertificeringsinstanties”, rond af en herstart de browser.',
+  'trust.mac1':
+    'Open het gedownloade bestand. Sleutelhangertoegang voegt het toe aan je inlogsleutelhanger.',
+  'trust.mac2':
+    'Dubbelklik op “Mise”, open Vertrouw, en zet “Bij gebruik van dit certificaat” op “Altijd vertrouwen”.',
+  'trust.other1':
+    'Voeg het gedownloade bestand toe aan de vertrouwde certificeringsinstanties van het systeem of de browser. Firefox heeft een eigen lijst: Instellingen → Privacy & Beveiliging → Certificaten → Autoriteiten → Importeren.',
+  'trust.check':
+    'Controleer of het gelukt is: dit opent deze pagina via HTTPS. Krijg je een waarschuwing, dan is er een stap overgeslagen.',
+  'trust.checkButton': 'Controleren',
+  'trust.fingerprint': 'Vingerafdruk, om te vergelijken',
+  'error.badName': 'Dat is geen adres of hostnaam. Gebruik iets als 192.168.1.50 of mise.local.',
+  'error.noDomain': 'Stel eerst het adres van buitenaf in.',
+  'offline.title': 'Offline.',
+  'offline.body':
+    'Mise is sinds {time} niet bereikbaar. Je ziet wat dit apparaat had, en wijzigingen blijven hier bewaard tot Mise weer antwoordt.',
+  'offline.waiting_one': '1 wijziging wacht.',
+  'offline.waiting_other': '{count} wijzigingen wachten.',
+  'offline.sending_one': '1 wijziging van offline wordt verstuurd…',
+  'offline.sending_other': '{count} wijzigingen van offline worden verstuurd…',
+  'offline.dropped': '{what} kon niet worden opgeslagen: {reason}',
+  'offline.lineWaiting': 'Wacht op versturen',
+  'offline.conflictTitle': 'Gewijzigd op een ander apparaat',
+  'offline.conflictBody':
+    'Terwijl je offline was, heeft iemand anders {what} gewijzigd. Welke versie moet blijven?',
+  'offline.yours': 'Die van jou',
+  'offline.theirs': 'Nu in Mise',
+  'offline.keepMine': 'Die van mij houden',
+  'offline.keepTheirs': 'Houden wat in Mise staat',
+  'offline.items_one': '1 onderdeel',
+  'offline.items_other': '{count} onderdelen',
+  'offline.field.note': 'Notitie',
+  'offline.field.notes': 'Notities',
+  'offline.field.method': 'Bereiding',
+  'offline.field.description': 'Omschrijving',
+  'offline.field.tags': 'Labels',
+  'offline.field.components': 'Onderdelen',
+  'offline.field.dishes': 'Gerechten',
+  'offline.label.note': 'de overdrachtsnotitie',
+  'offline.label.addLine': 'de prepregel “{name}”',
+  'offline.label.editLine': 'een wijziging aan een prepregel',
+  'offline.label.removeLine': 'het verwijderen van een prepregel',
+  'offline.label.recipe': 'het recept “{name}”',
+  'offline.label.menu': 'het menu “{name}”',
+  'offline.label.ingredient': 'het ingrediënt “{name}”',
+  'error.offline':
+    'Mise is nu niet bereikbaar, en hiervoor is de verbinding nodig. Probeer het opnieuw zodra die terug is.',
 };

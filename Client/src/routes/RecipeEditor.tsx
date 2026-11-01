@@ -25,6 +25,7 @@ import {
   type Allergen,
   type UnitCode,
 } from '@mise/domain';
+import { isQueued, type Queued } from '../api/client.js';
 import { useStations } from '../api/kitchen.js';
 import { useCreateRecipe, useRecipe, useRecipeAllergens, useUpdateRecipe } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
@@ -116,6 +117,12 @@ export function RecipeEditor() {
   return <EditorForm key={recipeId ?? 'new'} recipe={existing.data} />;
 }
 
+/** A new recipe opened from the Dishes page starts out as a dish. */
+function typeFromAddress(): RecipeType {
+  const asked = new URLSearchParams(window.location.search).get('type');
+  return asked === 'dish' || asked === 'component' ? asked : 'prep';
+}
+
 function EditorForm({ recipe }: { recipe?: Recipe }) {
   const translator = useT();
   const { t, plural, locale } = translator;
@@ -125,7 +132,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const update = useUpdateRecipe(recipe?.id ?? '');
 
   const [name, setName] = useState(recipe?.name ?? '');
-  const [type, setType] = useState<RecipeType>(recipe?.type ?? 'prep');
+  const [type, setType] = useState<RecipeType>(() => recipe?.type ?? typeFromAddress());
   const [status, setStatus] = useState<RecipeStatus>(recipe?.status ?? 'draft');
   const [stationId, setStationId] = useState(recipe?.stationId ?? '');
   const [yieldAmount, setYieldAmount] = useState(String(recipe?.yield.value ?? ''));
@@ -288,8 +295,14 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       components,
     };
 
-    const onSuccess = (saved: Recipe) =>
-      void navigate({ to: '/recipes/$recipeId', params: { recipeId: saved.id } });
+    // A dish lives on the Dishes page, as its card; everything else in the book.
+    const onSuccess = (result: Recipe | Queued) => {
+      // Saved on this device while Mise is unreachable: back to what was edited.
+      const saved = isQueued(result) ? { id: recipe!.id, type } : result;
+      return saved.type === 'dish'
+        ? void navigate({ to: '/dishes/$dishId', params: { dishId: saved.id } })
+        : void navigate({ to: '/recipes/$recipeId', params: { recipeId: saved.id } });
+    };
 
     if (recipe) update.mutate(payload, { onSuccess });
     else create.mutate(payload, { onSuccess });
@@ -347,7 +360,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
               onClick={() =>
                 recipe
                   ? void navigate({ to: '/recipes/$recipeId', params: { recipeId: recipe.id } })
-                  : void navigate({ to: '/recipes' })
+                  : void navigate({ to: type === 'dish' ? '/dishes' : '/recipes' })
               }
             >
               {t('common.cancel')}

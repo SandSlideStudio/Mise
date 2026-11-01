@@ -27,13 +27,16 @@ export function Recipes() {
   const [excludeAllergen, setExcludeAllergen] = useState('');
   const [stationId, setStationId] = useState('');
 
-  const recipes = useRecipes({
+  // Dishes have their own page, as cards; the book is preps and components.
+  const found = useRecipes({
     search: search || undefined,
     type: type || undefined,
     stationId: stationId || undefined,
     excludeAllergen: excludeAllergen || undefined,
   });
-  const everything = useRecipes();
+  const recipes = { ...found, data: found.data?.filter((recipe) => recipe.type !== 'dish') };
+  const all = useRecipes();
+  const everything = { data: all.data?.filter((recipe) => recipe.type !== 'dish') };
 
   if (!user) return null;
   const canManage = user.role !== 'cook';
@@ -66,7 +69,6 @@ export function Recipes() {
                 onChange={(e) => setType(e.target.value)}
               >
                 <option value="">{t('recipes.anySort')}</option>
-                <option value="dish">{t('recipes.dishes')}</option>
                 <option value="prep">{t('recipes.prep')}</option>
                 <option value="component">{t('recipes.components')}</option>
               </select>

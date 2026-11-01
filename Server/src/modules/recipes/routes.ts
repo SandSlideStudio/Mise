@@ -26,6 +26,7 @@ import {
   type Quantity,
 } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
+import { ensureUnchanged } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { recipePhotos } from '../../db/schema.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
@@ -269,6 +270,11 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      const before = await svc.getRecipe(request.params.id);
+      if (!before) throw ApiError.notFound('That recipe');
+      await ensureUnchanged(request, before.updatedAt, async () =>
+        serialise(before, await loadComponentNames(app.db, before.id)),
+      );
       const result = await svc.updateRecipe(request.params.id, request.body);
       if (result.outcome === 'not_found') throw ApiError.notFound('That recipe');
       if (result.outcome === 'cycle') throw cycleError(result.through);

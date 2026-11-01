@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import type { PrepTask, PrepTaskStatus, RecipeSummary } from '@mise/contracts';
 import { ALL_UNITS, formatQuantity, isUnitCode, type UnitCode } from '@mise/domain';
+import { isQueued } from '../api/client.js';
 import { useStations } from '../api/kitchen.js';
 import {
   GONE_AFTER_MS,
+  isWaiting,
   useAddRunningTask,
   useDeletePrepTask,
   useHandoverNote,
@@ -137,11 +139,13 @@ function RunningPrep() {
 
   // Say when a ticked line will go, so nobody is surprised when it does.
   const noteFor = (task: PrepTask) =>
-    task.status === 'done' && task.completedAt
-      ? t('running.goneAt', {
-          time: clockTime(locale, new Date(Date.parse(task.completedAt) + GONE_AFTER_MS)),
-        })
-      : null;
+    isWaiting(task.id)
+      ? t('offline.lineWaiting')
+      : task.status === 'done' && task.completedAt
+        ? t('running.goneAt', {
+            time: clockTime(locale, new Date(Date.parse(task.completedAt) + GONE_AFTER_MS)),
+          })
+        : null;
 
   return (
     <Board
@@ -360,7 +364,8 @@ function AddRunningLine() {
         onSuccess: (result) => {
           // Clear only once it has landed, and keep the station: the next few
           // lines are usually for the same section.
-          setMergedInto(result.merged ? result.task.description : null);
+          // Saved on the tablet while Mise is unreachable: it shows on the list as waiting.
+          setMergedInto(!isQueued(result) && result.merged ? result.task.description : null);
           setDescription('');
           setAmount('');
           setLinked(null);
@@ -373,7 +378,7 @@ function AddRunningLine() {
     <form
       onSubmit={onSubmit}
       data-tour="add-line"
-      className="no-print bg-surface-raised border-line grid grid-cols-[minmax(0,1fr)_96px_84px] gap-2.5 border-b-2 px-4 py-3 sm:px-7 md:grid-cols-[minmax(0,1fr)_110px_90px_200px_auto]"
+      className="no-print bg-surface-raised border-line grid grid-cols-[minmax(0,1fr)_96px_84px] gap-2.5 border-b-2 px-4 py-3 sm:px-7 md:grid-cols-[minmax(0,1fr)_132px_90px_200px_auto]"
     >
       <input
         aria-label={t('addTask.what')}

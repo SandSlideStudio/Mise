@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
 import { users } from '../../db/schema.js';
 import { hashSecret } from '../../lib/crypto.js';
-import { ADMIN, cookieFrom, setUpKitchen, useTestContext } from '../../test/harness.js';
+import {
+  ADMIN,
+  approvedOutside,
+  cookieFrom,
+  setUpKitchen,
+  useTestContext,
+} from '../../test/harness.js';
 
 const ctx = useTestContext();
 
@@ -432,12 +438,19 @@ describe('someone else guessing at your account', () => {
   const ATTACKER = '203.0.113.9';
   const KITCHEN_LAPTOP = '192.168.1.20';
 
+  // Every guess comes from an approved phone: the door is not what's tested here.
+  let phone = '';
+  beforeEach(async () => {
+    phone = await approvedOutside(ctx.app);
+  });
+
   function login(password: string, remoteAddress: string) {
     return ctx.app.inject({
       method: 'POST',
       url: '/api/auth/login',
       payload: { email: ADMIN.email, password },
       remoteAddress,
+      headers: { cookie: phone },
     });
   }
 

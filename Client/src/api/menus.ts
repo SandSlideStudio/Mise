@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateMenu, Menu, MenuOverview, MenuSummary, UpdateMenu } from '@mise/contracts';
-import { api, RequestFailed } from './client.js';
+import { api, isQueued, RequestFailed, sendOrQueue } from './client.js';
 
 /** Menus, and what they print. */
 
@@ -40,9 +40,36 @@ export function useCreateMenu() {
 
 export function useUpdateMenu(id: string) {
   const saved = useMenuSaved();
+  const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: UpdateMenu) => api.patch<Menu>(`/menus/${id}`, input),
-    onSuccess: saved,
+    networkMode: 'always',
+    mutationFn: (input: UpdateMenu) => {
+      const before = queryClient.getQueryData<Menu>(['menu', id]);
+      return sendOrQueue<Menu>('PATCH', `/menus/${id}`, input, {
+        label: { key: 'offline.label.menu', vars: { name: input.name ?? before?.name ?? '' } },
+        base: before?.updatedAt,
+      });
+    },
+    onSuccess: (menu, input) => {
+      if (!isQueued(menu)) return saved(menu);
+      // Shown on this device as saved. Dishes it already shows can be moved
+      // or taken off; one newly added needs the server to fill it in.
+      queryClient.setQueryData<Menu>(['menu', id], (old) => {
+        if (!old) return old;
+        const { dishes, ...rest } = input;
+        const byId = new Map(old.dishes.map((dish) => [dish.recipeId, dish]));
+        return {
+          ...old,
+          ...rest,
+          dishes: dishes
+            ? dishes.flatMap((recipeId) => {
+                const dish = byId.get(recipeId);
+                return dish ? [dish] : [];
+              })
+            : old.dishes,
+        } as Menu;
+      });
+    },
   });
 }
 

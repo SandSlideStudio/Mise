@@ -1,0 +1,20 @@
+CREATE TABLE "connection_settings" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"outside_domain" text,
+	"trusted_proxy" text,
+	"kitchen_https" boolean DEFAULT false NOT NULL,
+	"kitchen_ca_cert" text,
+	"kitchen_ca_key" text,
+	"kitchen_cert" text,
+	"kitchen_key" text,
+	"kitchen_names" jsonb,
+	"kitchen_expires_at" timestamp with time zone,
+	"domain_https" boolean DEFAULT false NOT NULL,
+	"domain_cert" text,
+	"domain_key" text,
+	"domain_cert_for" text,
+	"domain_expires_at" timestamp with time zone,
+	"domain_error" text,
+	"acme_account_key" text,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL
+);
