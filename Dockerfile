@@ -49,7 +49,8 @@ RUN mkdir -p /data/uploads /data/backups && chown -R node:node /data \
   && chmod 1777 /data/uploads /data/backups
 USER node
 
-EXPOSE 3000
+# Plain HTTP, and HTTPS once a certificate is on in Settings → Connection.
+EXPOSE 3000 3443
 # wget rather than a second Node process, which costs a second of processor
 # time on a Raspberry Pi. Quick while starting, then every five minutes: each
 # check is also a write to disk.

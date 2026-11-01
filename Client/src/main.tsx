@@ -277,6 +277,9 @@ createRoot(rootElement).render(
           shouldDehydrateMutation: () => false,
         },
       }}
+      // What was kept shows at once, but it may be hours old: ask again for
+      // all of it now, rather than trusting it as fresh.
+      onSuccess={() => void queryClient.invalidateQueries()}
     >
       <I18nProvider>
         <RouterProvider router={router} />

@@ -24,3 +24,42 @@ jobs:
       - run: npm test
       # The image has to build too, or a release tag would fail later.
       - run: docker build --tag mise-kitchen:check .
+
+  # The built app in a real browser, against a real Postgres: setup, the prep
+  # list, dishes, tablets, outside access, offline and HTTPS.
+  browser:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: mise
+          POSTGRES_PASSWORD: pw
+          POSTGRES_DB: mise_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U mise -d mise_e2e"
+          --health-interval 2s
+          --health-timeout 5s
+          --health-retries 30
+    env:
+      E2E_DATABASE_URL: postgres://mise:pw@localhost:5432/mise_e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

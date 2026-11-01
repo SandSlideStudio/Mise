@@ -73,6 +73,13 @@ else
 fi
 
 say "Downloading the newest Mise"
+# Kitchens that set up Caddy before 2.2 started it with --profile https by
+# hand. Make that permanent, so every update brings Caddy along too.
+if grep -q '^MISE_DOMAIN=..*' .env && ! grep -q '^COMPOSE_PROFILES=' .env; then
+  printf '\n# Added by the installer: start Caddy with Mise, for HTTPS.\nCOMPOSE_PROFILES=https\n' >> .env
+  say "Caddy is now started with Mise on every update (COMPOSE_PROFILES=https in .env)."
+fi
+
 if ! docker compose pull --quiet </dev/null; then
   say "Could not download it. Starting the version already on this machine, if there is one."
 fi

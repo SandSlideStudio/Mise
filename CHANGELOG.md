@@ -5,6 +5,59 @@ a change in the first number means you should read these notes before updating.
 
 ## 2.2.0
 
+Reach Mise safely from anywhere, set HTTPS up from inside the app, and keep working when the
+network drops.
+
+**Before updating**
+
+- The install now publishes port **3443** too, for HTTPS. If something else on the machine uses
+  it, set `HTTPS_PORT` in `.env` to a free port. On TrueNAS, add `- '3443:3443'` under the app's
+  `ports` when you want HTTPS.
+- From outside the kitchen network, Mise now answers only devices you approve (see below). Phones
+  that reach Mise over the internet today ask for access once after the update. On a server with
+  no kitchen network, approve the first one from the server itself: open Mise on your phone, ask
+  for access, and run `docker compose exec app node Server/dist/index.js approve-device <code>`
+  with the code your phone shows, inside the `mise-kitchen` folder.
+- Kitchens that start Caddy with `--profile https` get `COMPOSE_PROFILES=https` added to `.env` by
+  the installer, so Caddy comes along on every update.
+
+**From outside the kitchen**
+
+- From outside the kitchen network or VPN, Mise shows only a page to ask for access, not even the
+  sign-in, until a chef or administrator approves that device under **Settings → Devices**. The
+  device asking shows a short code, and the request shows the same code, so the right device gets
+  in.
+- Approving works from the kitchen, or from a device already approved, with your password again.
+  An approval lasts until it's revoked or the device goes 90 days unused.
+- A server with no kitchen network approves the device that sets it up or restores a backup.
+- **Settings → Connection** names the one domain that leads to Mise from outside. The bare IP, or
+  another site's name on the same server, then finds nothing.
+- The **Tablets** tab in Settings is now **Devices**.
+
+**HTTPS from Settings → Connection**
+
+- **On the kitchen network:** Mise makes a certificate of its own for the addresses your tablets
+  use. A new **/trust** page walks each tablet through trusting it once, with steps for iPad and
+  iPhone, Android, Windows and Mac, and checks it worked. No domain or internet needed.
+- **For your domain:** Mise gets a free Let's Encrypt certificate and renews it by itself.
+- **Behind your own web server:** name the web server that passes your domain on (Apache with your
+  websites, say), and Mise shows the lines to paste into it. It tells visitors at home from visitors
+  outside through it, and keeps sign-in cookies to HTTPS when the visitor came over it.
+- Certificates renew a month ahead; a failed renewal keeps the old one and says why.
+
+**When the network drops**
+
+- A tablet shows everything it had loaded, and loads the prep list, recipes, dish cards and menus
+  in the background, so pages nobody opened yet work offline too. A bar says Mise can't be reached.
+- Prep lines, ticks, the handover note and edits to recipes, menus and ingredients are kept on the
+  tablet and sent in order once Mise answers. Each is made exactly once, however often the
+  connection drops while sending.
+- If someone changed the same recipe, menu or note meanwhile, both versions are shown side by side
+  and you choose which stays.
+- Over HTTPS, the app itself is kept on the tablet, so it opens with the server switched off, and
+  Mise can be installed on the home screen.
+- Things that need the connection say so, instead of "something went wrong".
+
 **Dishes**
 
 - Dishes have their own **Dishes** tab, between Recipes and Menus, and are no longer listed under
@@ -23,6 +76,14 @@ a change in the first number means you should read these notes before updating.
 - A menu whose dish cards were never downloaded no longer says its dishes changed since printing.
 - The amount field when adding to the prep list is wide enough for its placeholder.
 - The upgrade test now covers 2.1.1 as well.
+- After a reload, what the tablet kept is refreshed at once instead of being trusted as current.
+
+**Tests**
+
+- Tests for the dish card, its PDF and the card on screen in the web app.
+- Browser tests, run on every pull request against a real database: setup, the prep list, dishes,
+  PIN sign-in on a tablet, outside access, offline use with a conflict, and kitchen HTTPS.
+- The README has a guide for Oracle Cloud's free tier.
 
 **Roadmap**
 

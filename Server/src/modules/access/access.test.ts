@@ -487,3 +487,21 @@ describe('device names', () => {
     expect(describeAgent(undefined)).toBe('Browser');
   });
 });
+
+describe('approving from the server itself', () => {
+  it('approves a waiting device by the code on its screen, however it is typed', async () => {
+    await setUpKitchen(ctx.app);
+    const phone = await ask('Rosa’s phone');
+    const typed = phone.code.toLowerCase().replace('-', ' ');
+    expect(await ctx.app.access.approveByCode(typed)).toBe('Rosa’s phone');
+    const me = await from(OUTSIDE, { method: 'GET', url: '/api/auth/me', cookie: phone.cookie });
+    expect(me.statusCode).toBe(401);
+  });
+
+  it('approves nothing for a wrong code', async () => {
+    await setUpKitchen(ctx.app);
+    await ask();
+    expect(await ctx.app.access.approveByCode('AAA-AAA')).toBeNull();
+    expect(await ctx.app.access.approveByCode('nonsense')).toBeNull();
+  });
+});

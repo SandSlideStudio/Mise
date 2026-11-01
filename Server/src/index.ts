@@ -6,6 +6,7 @@ import { createDatabase } from './db/client.js';
 import { pendingMigrations, runMigrations } from './db/migrate.js';
 import { VERSION } from './lib/version.js';
 import { backupBeforeMigrating } from './modules/backups/premigration.js';
+import { createAccessService } from './modules/access/service.js';
 
 /**
  * Mise may run as any user, such as the one TrueNAS gives its apps. Say so
@@ -59,7 +60,30 @@ async function backUpIfUpdating(config: Config): Promise<void> {
   }
 }
 
+/**
+ * `node Server/dist/index.js approve-device ABC-123`: approve a device asking
+ * for outside access, by the code on its screen, from the server itself. For
+ * a server with no kitchen network where no device is approved yet. Whoever
+ * can run this can reach the database anyway, so it asks nothing more.
+ */
+async function approveDevice(code: string | undefined): Promise<void> {
+  const config = loadConfig();
+  const { db, sql } = createDatabase(config.DATABASE_URL, { max: 1 });
+  try {
+    const name = code ? await createAccessService(db).approveByCode(code) : null;
+    if (!name) {
+      throw new Error(
+        'No device is waiting with that code. Open Mise on the device, ask for access, and use the code it shows.',
+      );
+    }
+    console.log(`Approved "${name}". It can sign in now.`);
+  } finally {
+    await sql.end();
+  }
+}
+
 async function main(): Promise<void> {
+  if (process.argv[2] === 'approve-device') return approveDevice(process.argv[3]);
   const config = loadConfig();
 
   await checkDataFolders(config);

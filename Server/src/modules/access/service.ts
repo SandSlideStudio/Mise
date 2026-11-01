@@ -226,6 +226,36 @@ export function createAccessService(db: Database) {
       return rows.length > 0;
     },
 
+    /**
+     * Approve a waiting request by the code it shows, from the server's own
+     * command line: for a server with no kitchen network and no device
+     * approved yet. Returns the device's name, or null for no such request.
+     */
+    async approveByCode(code: string): Promise<string | null> {
+      await sweep();
+      const plain = code
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, '');
+      if (plain.length !== 6) return null;
+      const rows = await db
+        .update(remoteDevices)
+        .set({
+          status: 'approved',
+          approvedAt: new Date(),
+          approvedFrom: 'the server',
+          lastSeenAt: new Date(),
+        })
+        .where(
+          and(
+            eq(remoteDevices.status, 'pending'),
+            eq(remoteDevices.code, `${plain.slice(0, 3)}-${plain.slice(3)}`),
+          ),
+        )
+        .returning({ name: remoteDevices.name });
+      return rows[0]?.name ?? null;
+    },
+
     /** Turn down a request, or take back an approval. */
     async remove(id: string): Promise<void> {
       await db.delete(remoteDevices).where(eq(remoteDevices.id, id));
