@@ -25,6 +25,7 @@ import {
   type Allergen,
   type UnitCode,
 } from '@mise/domain';
+import { isQueued, type Queued } from '../api/client.js';
 import { useStations } from '../api/kitchen.js';
 import { useCreateRecipe, useRecipe, useRecipeAllergens, useUpdateRecipe } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
@@ -295,10 +296,13 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
     };
 
     // A dish lives on the Dishes page, as its card; everything else in the book.
-    const onSuccess = (saved: Recipe) =>
-      saved.type === 'dish'
+    const onSuccess = (result: Recipe | Queued) => {
+      // Saved on this device while Mise is unreachable: back to what was edited.
+      const saved = isQueued(result) ? { id: recipe!.id, type } : result;
+      return saved.type === 'dish'
         ? void navigate({ to: '/dishes/$dishId', params: { dishId: saved.id } })
         : void navigate({ to: '/recipes/$recipeId', params: { recipeId: saved.id } });
+    };
 
     if (recipe) update.mutate(payload, { onSuccess });
     else create.mutate(payload, { onSuccess });

@@ -1036,6 +1036,40 @@ export const en = {
   'error.badName':
     'That is not an address or host name. Use something like 192.168.1.50 or mise.local.',
   'error.noDomain': 'Set the address from outside first.',
+  'offline.title': 'Offline.',
+  'offline.body':
+    'Mise can’t be reached since {time}. This shows what this device had, and changes are kept here until Mise answers again.',
+  'offline.waiting_one': '1 change is waiting.',
+  'offline.waiting_other': '{count} changes are waiting.',
+  'offline.sending_one': 'Sending 1 change made while offline…',
+  'offline.sending_other': 'Sending {count} changes made while offline…',
+  'offline.dropped': '{what} couldn’t be saved: {reason}',
+  'offline.lineWaiting': 'Waiting to be sent',
+  'offline.conflictTitle': 'Changed on another device',
+  'offline.conflictBody':
+    'While you were offline, someone else changed {what}. Which version should stay?',
+  'offline.yours': 'Yours',
+  'offline.theirs': 'Now in Mise',
+  'offline.keepMine': 'Keep mine',
+  'offline.keepTheirs': 'Keep what’s in Mise',
+  'offline.items_one': '1 item',
+  'offline.items_other': '{count} items',
+  'offline.field.note': 'Note',
+  'offline.field.notes': 'Notes',
+  'offline.field.method': 'Method',
+  'offline.field.description': 'Description',
+  'offline.field.tags': 'Tags',
+  'offline.field.components': 'Components',
+  'offline.field.dishes': 'Dishes',
+  'offline.label.note': 'the handover note',
+  'offline.label.addLine': 'the prep line “{name}”',
+  'offline.label.editLine': 'a change to a prep line',
+  'offline.label.removeLine': 'removing a prep line',
+  'offline.label.recipe': 'the recipe “{name}”',
+  'offline.label.menu': 'the menu “{name}”',
+  'offline.label.ingredient': 'the ingredient “{name}”',
+  'error.offline':
+    'Mise can’t be reached right now, and this needs the connection. Try again once it’s back.',
 } as const;
 
 export type MessageKey = keyof typeof en;

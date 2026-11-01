@@ -4,6 +4,7 @@ import { LANGUAGES, type Language } from '@mise/contracts';
 import { useBackupStatus } from '../api/backups.js';
 import { useCurrentUser, useLogout, useUpdateMe } from '../api/session.js';
 import { dismissRefusal, useLastRefusal, usePendingTickCount } from '../api/ticks.js';
+import { OfflineStatus } from './OfflineStatus.js';
 import { useVersion } from '../api/version.js';
 import {
   errorMessage,
@@ -94,6 +95,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <div className="app-main">
+        <OfflineStatus />
         <TickStatus />
         {user.role === 'admin' && !pathname.startsWith('/settings') ? <BackupWarning /> : null}
         {children}

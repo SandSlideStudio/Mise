@@ -1,7 +1,10 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
-import { MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { RequestFailed } from './api/client.js';
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { RequestFailed, setOutboxUser } from './api/client.js';
+import { useOutboxSender } from './api/outbox.js';
+import { KEPT_FOR_MS, keepOnDevice, persister, useLoadAhead } from './api/offline.js';
 import {
   createRootRoute,
   createRoute,
@@ -34,6 +37,7 @@ import { Trust } from './routes/Trust.js';
 import { Settings } from './routes/Settings.js';
 import { Setup } from './routes/Setup.js';
 import { applyTheme } from './lib/theme.js';
+import { VERSION } from './version.js';
 import { TourHost } from './components/Tour.js';
 // Self-hosted, so a kitchen server with no internet still draws its own type.
 import '@fontsource/barlow/400.css';
@@ -44,6 +48,14 @@ import '@fontsource/barlow-condensed/600.css';
 import './styles.css';
 
 applyTheme();
+
+// Over HTTPS (or on this machine itself), keep the app on the device so it
+// opens with no server. Browsers allow service workers nowhere else.
+if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureContext) {
+  window.addEventListener('load', () => {
+    void navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}
 
 /**
  * A 401 from anything means the session ended: show the sign-in screen. A
@@ -109,6 +121,10 @@ function Shell() {
   }, [unreachable, setupStatus, currentUser]);
 
   useLiveUpdates(currentUser.data != null);
+  // Changes kept on the device while Mise couldn't be reached go out from here.
+  setOutboxUser(currentUser.data?.id ?? null);
+  useOutboxSender();
+  useLoadAhead(currentUser.data != null);
   // Saved ticks keep being sent whichever screen is open.
   useTickSender();
 
@@ -247,10 +263,24 @@ if (!rootElement) throw new Error('Missing #root element');
 
 createRoot(rootElement).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
+    <PersistQueryClientProvider
+      client={queryClient}
+      persistOptions={{
+        persister,
+        maxAge: KEPT_FOR_MS,
+        // A new version may shape things differently: start its cache afresh.
+        buster: VERSION,
+        dehydrateOptions: {
+          shouldDehydrateQuery: (query) =>
+            keepOnDevice(query.queryKey, query.state.status === 'success'),
+          // Changes waiting have their own, safer place (lib/outbox.ts).
+          shouldDehydrateMutation: () => false,
+        },
+      }}
+    >
       <I18nProvider>
         <RouterProvider router={router} />
       </I18nProvider>
-    </QueryClientProvider>
+    </PersistQueryClientProvider>
   </StrictMode>,
 );

@@ -262,6 +262,13 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
 };
 
 export function errorMessage(translator: Translator, error: unknown): string {
+  // No answer at all: Mise, or the network, is down.
+  if (error instanceof TypeError || (error instanceof Error && error.message === 'offline')) {
+    return translator.t('error.offline');
+  }
+  if (error instanceof RequestFailed && [502, 503, 504].includes(error.status)) {
+    return translator.t('error.offline');
+  }
   if (!(error instanceof RequestFailed)) return translator.t('error.generic');
 
   if (error.code === 'account_locked') {
