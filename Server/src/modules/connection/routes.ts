@@ -25,6 +25,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
 
   function describe(request: FastifyRequest) {
     const seen = app.connection.seenProxy();
+    const relayed = app.connection.containerGateway();
     const https = app.connection.https();
     return {
       https: {
@@ -36,6 +37,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       outsideDomain: app.connection.outsideDomain(),
       trustedProxy: app.connection.trustedProxy(),
       seenProxy: seen ? { ...seen, at: seen.at.toISOString() } : null,
+      containerGateway: relayed ? { ...relayed, at: relayed.at.toISOString() } : null,
       currentHost: plainHost(request.hostname),
       inside: request.inside,
     };

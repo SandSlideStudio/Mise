@@ -938,6 +938,11 @@ export const es: Record<MessageKey, string> = {
     'Aprobar desde fuera necesita una contraseña, y esta cuenta no tiene. Apruébalo desde la cocina.',
   'error.tooManyRequests': 'Hay demasiados dispositivos esperando aprobación. Inténtalo más tarde.',
   'settings.tabConnection': 'Conexión',
+  'connection.relayedTitle': 'Mise no puede saber quién está dentro de la cocina',
+  'connection.relayedBody':
+    'Algunos visitantes llegan a Mise a través del propio relé de Docker ({address}), que oculta dónde están realmente. Mise los cuenta como dentro de la cocina, así que se saltan la aprobación que necesitan los dispositivos de fuera.',
+  'connection.relayedFix':
+    'Pasa con Docker sin root, Podman, Docker Desktop, o por IPv6 cuando la red de Docker no lo tiene. Ejecuta Mise con la red del host (network_mode: host), o activa IPv6 en la red de Docker, para que Mise vea la dirección de cada visitante. Consulta «From outside the kitchen» en el README.',
   'connection.domainTitle': 'Dirección desde fuera',
   'connection.domainBody':
     'Si Mise es accesible por internet, escribe la dirección que lleva a él, como mise.tucocina.es. Desde fuera de la cocina, Mise solo responde en esa dirección: la IP sola, o el nombre de otra web en el mismo servidor, no encuentra nada. En la red de la cocina y la VPN, todas las direcciones siguen funcionando.',

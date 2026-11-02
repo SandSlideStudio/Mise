@@ -65,6 +65,12 @@ An approval lasts until it is revoked, or until the device goes 90 days unused. 
 answers are dropped after a day. On a server with no kitchen network, such as one in the cloud,
 the device that sets Mise up (or restores a backup onto it) is approved automatically.
 
+"Inside" means a visitor's own address is a private one. Docker usually passes that address on,
+but rootless Docker, Podman and Docker Desktop relay every connection themselves, as does Docker
+for IPv6 when its network has none. Then everyone, wherever they are, arrives from Docker's own
+address and counts as inside. Mise notices and says so in **Settings → Connection**. To fix it,
+run Mise with `network_mode: host`, or turn on IPv6 for Docker's network.
+
 **Settings → Connection** can also name the one domain that leads to Mise from outside, such as
 `mise.yourkitchen.com`. Then the bare IP address, or another website's name on the same server,
 finds nothing at all.

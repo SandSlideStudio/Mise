@@ -940,6 +940,11 @@ export const nl: Record<MessageKey, string> = {
   'error.tooManyRequests':
     'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
   'settings.tabConnection': 'Verbinding',
+  'connection.relayedTitle': 'Mise kan niet zien wie er in de keuken is',
+  'connection.relayedBody':
+    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte ({address}), die verbergt waar ze echt zijn. Mise rekent ze tot de keuken, dus slaan ze de goedkeuring over die apparaten van buiten nodig hebben.',
+  'connection.relayedFix':
+    'Dit gebeurt met rootless Docker, Podman, Docker Desktop, of via IPv6 als het netwerk van Docker dat niet heeft. Draai Mise met hostnetwerk (network_mode: host), of zet IPv6 aan voor het netwerk van Docker, zodat Mise het eigen adres van elke bezoeker ziet. Zie “From outside the kitchen” in de README.',
   'connection.domainTitle': 'Adres van buitenaf',
   'connection.domainBody':
     'Als Mise via internet bereikbaar is, vul dan het adres in dat ernaartoe leidt, zoals mise.jouwkeuken.nl. Van buiten de keuken antwoordt Mise dan alleen op dat adres: het kale IP-adres, of de naam van een andere website op dezelfde server, vindt niets. Op het keukennetwerk en de VPN blijft elk adres werken.',

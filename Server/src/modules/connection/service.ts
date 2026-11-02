@@ -57,6 +57,8 @@ export function createConnectionService(options: {
   const { db, state, listener } = options;
   const issue = options.issue ?? issueDomainCertificate;
   let seen: SeenProxy | null = null;
+  /** The last visitor relayed by the container's own gateway, who looks inside. */
+  let relayed: { address: string; at: Date } | null = null;
   let row: Row | null = null;
   /** Let's Encrypt's tokens while a certificate is being fetched. */
   const answers: ChallengeAnswers = new Map();
@@ -171,6 +173,11 @@ export function createConnectionService(options: {
       seen = { address: plainAddress(address), host: plainHost(host), at: new Date() };
     },
     seenProxy: () => seen,
+
+    sawContainerGateway(address: string): void {
+      relayed = { address: plainAddress(address), at: new Date() };
+    },
+    containerGateway: () => relayed,
 
     /** How HTTPS stands, for Settings → Connection. */
     https() {

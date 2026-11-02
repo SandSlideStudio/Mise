@@ -1,7 +1,8 @@
 import fp from 'fastify-plugin';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { ApiError } from '../lib/errors.js';
-import { forwarded, insideKitchen, isPrivateAddress } from '../lib/network.js';
+import { forwarded, insideKitchen, isPrivateAddress, plainAddress } from '../lib/network.js';
+import { containerGateways } from '../lib/containerGateway.js';
 import {
   createConnectionService,
   plainHost,
@@ -88,6 +89,7 @@ const accessPlugin: FastifyPluginAsync<AccessOptions> = async (app, options) => 
       maxAge: COOKIE_DAYS * 86_400,
     });
   });
+  const gateways = containerGateways();
   app.decorateRequest('inside', false);
   app.decorateRequest('remoteDevice', null);
 
@@ -99,6 +101,10 @@ const accessPlugin: FastifyPluginAsync<AccessOptions> = async (app, options) => 
     const peer = request.socket.remoteAddress ?? '';
     if (forwarded(request) && isPrivateAddress(peer))
       app.connection.sawProxy(peer, request.hostname);
+    // Counted as inside, but only because the container relayed it: who it
+    // really is can't be told. Settings → Connection says so.
+    if (request.inside && gateways.has(plainAddress(peer)))
+      app.connection.sawContainerGateway(peer);
 
     // From outside, only the kitchen's own address leads here once one is set,
     // like a website on a shared server. Anything else (the bare IP, another

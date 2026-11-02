@@ -948,6 +948,11 @@ export const fr: Record<MessageKey, string> = {
     'Approuver depuis l’extérieur demande un mot de passe, et ce compte n’en a pas. Approuvez depuis la cuisine.',
   'error.tooManyRequests': 'Trop d’appareils attendent une approbation. Réessayez plus tard.',
   'settings.tabConnection': 'Connexion',
+  'connection.relayedTitle': 'Mise ne peut pas savoir qui est dans la cuisine',
+  'connection.relayedBody':
+    'Certains visiteurs atteignent Mise par le relais de Docker ({address}), qui cache d’où ils viennent vraiment. Mise les compte comme étant dans la cuisine : ils échappent à l’approbation exigée des appareils extérieurs.',
+  'connection.relayedFix':
+    'Cela arrive avec Docker sans root, Podman, Docker Desktop, ou en IPv6 quand le réseau de Docker n’en a pas. Lancez Mise avec le réseau de l’hôte (network_mode: host), ou activez l’IPv6 pour le réseau de Docker, afin que Mise voie l’adresse de chaque visiteur. Voir « From outside the kitchen » dans le README.',
   'connection.domainTitle': 'Adresse depuis l’extérieur',
   'connection.domainBody':
     'Si Mise est accessible par internet, saisissez l’adresse qui y mène, comme mise.votrecuisine.fr. Depuis l’extérieur, Mise ne répond alors que sur cette adresse : l’IP seule, ou le nom d’un autre site sur le même serveur, ne trouve rien. Sur le réseau de la cuisine et le VPN, toutes les adresses continuent de fonctionner.',

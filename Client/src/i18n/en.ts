@@ -921,6 +921,11 @@ export const en = {
     'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
   'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
   'settings.tabConnection': 'Connection',
+  'connection.relayedTitle': 'Mise can’t tell who is inside the kitchen',
+  'connection.relayedBody':
+    'Some visitors reach Mise through Docker’s own relay ({address}), which hides where they really are. Mise counts them as inside the kitchen, so they skip the approval that outside devices need.',
+  'connection.relayedFix':
+    'This happens with rootless Docker, Podman, Docker Desktop, or over IPv6 when Docker’s network has none. Run Mise with host networking (network_mode: host), or turn on IPv6 for Docker’s network, so Mise sees each visitor’s own address. See “From outside the kitchen” in the README.',
   'connection.domainTitle': 'Address from outside',
   'connection.domainBody':
     'If Mise can be reached over the internet, enter the address that leads to it, such as mise.yourkitchen.com. From outside the kitchen, Mise then answers only on that address: the bare IP, or another website’s name on the same server, finds nothing. On the kitchen network and VPN, every address keeps working.',

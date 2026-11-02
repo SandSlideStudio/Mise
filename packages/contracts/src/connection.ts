@@ -30,6 +30,11 @@ export const connectionSchema = z.object({
   trustedProxy: z.string().nullable(),
   /** The last web server on the kitchen network seen passing requests on. */
   seenProxy: z.object({ address: z.string(), host: z.string(), at: z.string() }).nullable(),
+  /**
+   * The last visitor relayed by the container's own gateway. Mise can't tell
+   * where such visitors really are, and counts them as inside.
+   */
+  containerGateway: z.object({ address: z.string(), at: z.string() }).nullable(),
   https: z.object({
     /** The port HTTPS answers on inside Mise. The install may publish it as another. */
     port: z.number(),

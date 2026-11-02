@@ -951,6 +951,11 @@ export const de: Record<MessageKey, string> = {
     'Freigeben von außen braucht ein Passwort, und dieses Konto hat keins. Gib es aus der Küche frei.',
   'error.tooManyRequests': 'Zu viele Geräte warten auf Freigabe. Versuch es später noch einmal.',
   'settings.tabConnection': 'Verbindung',
+  'connection.relayedTitle': 'Mise kann nicht erkennen, wer in der Küche ist',
+  'connection.relayedBody':
+    'Manche Besucher erreichen Mise über Dockers eigene Weiterleitung ({address}), die verbirgt, wo sie wirklich sind. Mise zählt sie zur Küche, also überspringen sie die Freigabe, die Geräte von außen brauchen.',
+  'connection.relayedFix':
+    'Das passiert mit rootless Docker, Podman, Docker Desktop oder über IPv6, wenn Dockers Netzwerk keins hat. Starte Mise mit Host-Netzwerk (network_mode: host) oder schalte IPv6 für Dockers Netzwerk ein, damit Mise die eigene Adresse jedes Besuchers sieht. Siehe „From outside the kitchen“ in der README.',
   'connection.domainTitle': 'Adresse von außen',
   'connection.domainBody':
     'Wenn Mise über das Internet erreichbar ist, trag die Adresse ein, die dorthin führt, etwa mise.deinekueche.de. Von außerhalb der Küche antwortet Mise dann nur unter dieser Adresse: die bloße IP oder der Name einer anderen Website auf demselben Server findet nichts. Im Küchennetz und im VPN funktioniert weiterhin jede Adresse.',

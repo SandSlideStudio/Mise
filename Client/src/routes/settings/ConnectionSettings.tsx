@@ -52,6 +52,18 @@ export function ConnectionSettings() {
         <LoadError className="mb-5" onRetry={() => void connection.refetch()} />
       ) : null}
 
+      {connection.data?.containerGateway ? (
+        <div role="alert" className="border-danger mb-6 max-w-[80ch] border-2 px-4 py-3">
+          <p className="font-display text-danger text-lg font-semibold">
+            {t('connection.relayedTitle')}
+          </p>
+          <p className="mt-1 text-sm">
+            {t('connection.relayedBody', { address: connection.data.containerGateway.address })}
+          </p>
+          <p className="text-ink-soft mt-2 text-sm">{t('connection.relayedFix')}</p>
+        </div>
+      ) : null}
+
       {connection.data ? (
         <>
           <p
