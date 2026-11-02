@@ -1116,4 +1116,8 @@ export const es: Record<MessageKey, string> = {
   'access.waitingCount_one': '1 dispositivo pide acceso desde fuera de la cocina.',
   'access.waitingCount_other': '{count} dispositivos piden acceso desde fuera de la cocina.',
   'access.checkCode': 'Comprobar el código y aprobar',
+  'error.incompatibleUnits':
+    '{child} rinde en {makes}, así que aquí no se puede medir en {unit}. Usa el mismo tipo de unidad, o cambia lo que rinde {child}.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} usa {child} en {unit}, y eso no se puede calcular a partir de {makes}. Cambia primero esa línea, o mantén el rendimiento en el mismo tipo de unidad.',
 };

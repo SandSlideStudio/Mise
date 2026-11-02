@@ -1096,6 +1096,10 @@ export const en = {
   'access.waitingCount_one': '1 device is asking for access from outside the kitchen.',
   'access.waitingCount_other': '{count} devices are asking for access from outside the kitchen.',
   'access.checkCode': 'Check the code and approve',
+  'error.incompatibleUnits':
+    '{child} makes {makes}, so it can’t be measured in {unit} here. Use the same kind of unit, or change what {child} makes.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} uses {child} in {unit}, which can’t be worked out from {makes}. Change that line first, or keep the yield in the same kind of unit.',
 } as const;
 
 export type MessageKey = keyof typeof en;

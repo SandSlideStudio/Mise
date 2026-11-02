@@ -4,6 +4,7 @@ import {
   findCycle,
   rollUpAllergens,
   toBase,
+  factorForYield,
   wouldCreateCycle,
   type Allergen,
   type AllergenProfile,
@@ -28,12 +29,29 @@ type StoredRecipe = typeof recipes.$inferSelect;
  * Explicit outcomes rather than inferred unions, so callers narrow on a
  * discriminant instead of on whether a property happens to be present.
  */
+/**
+ * A sub-recipe measured in a kind of unit its yield can't be turned into:
+ * millilitres of a sauce that makes kilos. With no density to go by, Mise
+ * can't tell how much of the sauce that is, so the edit is refused.
+ * `usedIn` is set when the yield being changed is what breaks it, for a
+ * recipe that already uses this one.
+ */
+export interface UnitProblem {
+  child: string;
+  unit: string;
+  makes: string;
+  usedIn: string | null;
+}
+
 export type CreateRecipeResult =
-  { outcome: 'created'; recipe: StoredRecipe } | { outcome: 'cycle'; through: string[] };
+  | { outcome: 'created'; recipe: StoredRecipe }
+  | { outcome: 'cycle'; through: string[] }
+  | { outcome: 'units'; problem: UnitProblem };
 
 export type UpdateRecipeResult =
   | { outcome: 'updated'; recipe: StoredRecipe }
   | { outcome: 'cycle'; through: string[] }
+  | { outcome: 'units'; problem: UnitProblem }
   | { outcome: 'not_found' };
 
 function quantityColumns(quantity: { value: number; unit: string }) {
@@ -140,6 +158,77 @@ export function createRecipesService(db: Database) {
     return null;
   }
 
+  /**
+   * Every sub-recipe line has to be in a unit its yield converts to, both for
+   * the lines being saved and, when the yield changes, for every recipe that
+   * already uses this one.
+   */
+  async function findUnitProblem(
+    exec: Executor,
+    recipeId: string,
+    components: CreateRecipeComponent[] | undefined,
+    newYield: { value: number; unit: string } | undefined,
+  ): Promise<UnitProblem | null> {
+    const book = await loadRecipeBook(exec);
+    // Said in the units the chef typed, not the base units the maths uses.
+    const childIds = (components ?? []).flatMap((c) =>
+      c.ref.kind === 'recipe' ? [c.ref.recipeId] : [],
+    );
+    const enteredYield = new Map(
+      childIds.length === 0
+        ? []
+        : (
+            await exec
+              .select({ id: recipes.id, unit: recipes.yieldUnit })
+              .from(recipes)
+              .where(inArray(recipes.id, childIds))
+          ).map((row) => [row.id, row.unit]),
+    );
+    for (const component of components ?? []) {
+      if (component.ref.kind !== 'recipe') continue;
+      const child = book.recipe(component.ref.recipeId);
+      if (!child) continue;
+      const quantity = {
+        value: component.quantity.value,
+        unit: component.quantity.unit as UnitCode,
+      };
+      const fits = factorForYield(child, quantity);
+      if (!fits.ok && fits.error.kind === 'incompatible_units') {
+        return {
+          child: child.name,
+          unit: quantity.unit,
+          makes: enteredYield.get(child.id) ?? child.yield.unit,
+          usedIn: null,
+        };
+      }
+    }
+
+    const self = book.recipe(recipeId);
+    if (!newYield || !self) return null;
+    const changed = { ...self, yield: { value: newYield.value, unit: newYield.unit as UnitCode } };
+    const uses = await exec
+      .select({
+        parent: recipes.name,
+        value: recipeComponents.quantityEntered,
+        unit: recipeComponents.unitEntered,
+      })
+      .from(recipeComponents)
+      .innerJoin(recipes, eq(recipes.id, recipeComponents.recipeId))
+      .where(eq(recipeComponents.childRecipeId, recipeId));
+    for (const use of uses) {
+      const fits = factorForYield(changed, { value: use.value, unit: use.unit as UnitCode });
+      if (!fits.ok && fits.error.kind === 'incompatible_units') {
+        return { child: self.name, unit: use.unit, makes: newYield.unit, usedIn: use.parent };
+      }
+    }
+    return null;
+  }
+
+  /** One edit to the recipe graph at a time, so two can't make a loop together. */
+  async function lockGraph(tx: Executor): Promise<void> {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-recipe-graph'))`);
+  }
+
   async function replaceComponents(
     exec: Executor,
     recipeId: string,
@@ -166,6 +255,7 @@ export function createRecipesService(db: Database) {
     createdBy: string | null,
   ): Promise<CreateRecipeResult> {
     return db.transaction(async (tx) => {
+      await lockGraph(tx);
       const [row] = await tx
         .insert(recipes)
         .values({
@@ -200,6 +290,11 @@ export function createRecipesService(db: Database) {
         await tx.delete(recipes).where(eq(recipes.id, row.id));
         return { outcome: 'cycle', through: cycle };
       }
+      const units = await findUnitProblem(tx, row.id, input.components, undefined);
+      if (units) {
+        await tx.delete(recipes).where(eq(recipes.id, row.id));
+        return { outcome: 'units', problem: units };
+      }
 
       await replaceComponents(tx, row.id, input.components);
       return { outcome: 'created', recipe: row };
@@ -210,12 +305,17 @@ export function createRecipesService(db: Database) {
     const existing = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1);
     if (existing.length === 0) return { outcome: 'not_found' };
 
-    if (input.components) {
-      const cycle = await findCycleIn(db, id, input.components);
-      if (cycle) return { outcome: 'cycle', through: cycle };
-    }
-
     return db.transaction(async (tx) => {
+      // Checked inside the save, one save at a time: two edits at once can't
+      // slip a loop or a broken unit past each other.
+      await lockGraph(tx);
+      if (input.components) {
+        const cycle = await findCycleIn(tx, id, input.components);
+        if (cycle) return { outcome: 'cycle' as const, through: cycle };
+      }
+      const units = await findUnitProblem(tx, id, input.components, input.yield);
+      if (units) return { outcome: 'units' as const, problem: units };
+
       const [row] = await tx
         .update(recipes)
         .set({

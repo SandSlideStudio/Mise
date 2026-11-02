@@ -95,7 +95,13 @@ export function expandRecipe(
 
       // How many batches of the child does that quantity represent?
       const childFactor = factorForYield(child, scaled);
-      if (!childFactor.ok) return childFactor;
+      if (!childFactor.ok) {
+        // Measured in a kind of unit its yield can't be turned into (saved
+        // before Mise refused that): show the line itself, which is right,
+        // and leave its contents to its own recipe rather than fail the lot.
+        if (childFactor.error.kind === 'incompatible_units') continue;
+        return childFactor;
+      }
 
       const nested = visit(child.id, childFactor.value, depth + 1, nextPath);
       if (!nested.ok) return nested;

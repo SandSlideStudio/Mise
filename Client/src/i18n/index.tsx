@@ -278,6 +278,17 @@ export function errorMessage(translator: Translator, error: unknown): string {
       : translator.t('error.accountLocked');
   }
 
+  if (error.code === 'incompatible_units') {
+    const details = error.details as
+      { child?: string; unit?: string; makes?: string; usedIn?: string | null } | undefined;
+    if (details?.child && details.unit && details.makes) {
+      const vars = { child: details.child, unit: details.unit, makes: details.makes };
+      return details.usedIn
+        ? translator.t('error.incompatibleUnitsUsedIn', { ...vars, usedIn: details.usedIn })
+        : translator.t('error.incompatibleUnits', vars);
+    }
+  }
+
   const key = TRANSLATED_ERRORS[error.code];
   return key ? translator.t(key) : error.message;
 }

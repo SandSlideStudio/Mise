@@ -1130,4 +1130,8 @@ export const fr: Record<MessageKey, string> = {
   'access.waitingCount_other':
     '{count} appareils demandent l’accès depuis l’extérieur de la cuisine.',
   'access.checkCode': 'Vérifier le code et approuver',
+  'error.incompatibleUnits':
+    '{child} donne des {makes}, on ne peut donc pas le mesurer en {unit} ici. Utilisez le même type d’unité, ou changez ce que donne {child}.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} utilise {child} en {unit}, ce qui ne se déduit pas de {makes}. Modifiez d’abord cette ligne, ou gardez le rendement dans le même type d’unité.',
 };

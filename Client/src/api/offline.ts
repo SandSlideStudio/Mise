@@ -93,7 +93,7 @@ async function loadAhead(queryClient: QueryClient): Promise<void> {
     () => load(queryClient, ['recipes', {}], '/recipes'),
     () => load(queryClient, ['dishes'], '/dishes'),
     () => load(queryClient, ['menus'], '/menus'),
-    () => load(queryClient, ['dish-card-settings'], '/dish-card-settings'),
+    () => load(queryClient, ['dish-card-settings'], '/dish-cards/settings'),
   ]);
 
   const recipes = queryClient.getQueryData<RecipeSummary[]>(['recipes', {}]) ?? [];

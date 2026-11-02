@@ -1129,4 +1129,8 @@ export const de: Record<MessageKey, string> = {
   'access.waitingCount_one': '1 Gerät fragt Zugang von außerhalb der Küche an.',
   'access.waitingCount_other': '{count} Geräte fragen Zugang von außerhalb der Küche an.',
   'access.checkCode': 'Code prüfen und freigeben',
+  'error.incompatibleUnits':
+    '{child} ergibt {makes}, kann hier also nicht in {unit} abgemessen werden. Nimm dieselbe Art von Einheit oder ändere, was {child} ergibt.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} verwendet {child} in {unit}, was sich nicht aus {makes} berechnen lässt. Ändere zuerst diese Zeile oder behalte die Ausbeute in derselben Art von Einheit.',
 };
