@@ -1081,6 +1081,10 @@ export const de: Record<MessageKey, string> = {
   'offline.sending_one': '1 offline gemachte Änderung wird gesendet…',
   'offline.sending_other': '{count} offline gemachte Änderungen werden gesendet…',
   'offline.dropped': '{what} konnte nicht gespeichert werden: {reason}',
+  'offline.setAside':
+    '{what} konnte nicht gespeichert werden: Mise hatte damit ein Problem. Andere Änderungen gehen weiter.',
+  'offline.tryAgain': 'Erneut versuchen',
+  'offline.letGo': 'Verwerfen',
   'offline.lineWaiting': 'Wartet auf Senden',
   'offline.allergensOnceSent':
     'Allergene werden aktualisiert, sobald deine Änderungen gesendet sind.',

@@ -1068,6 +1068,10 @@ export const es: Record<MessageKey, string> = {
   'offline.sending_one': 'Enviando 1 cambio hecho sin conexión…',
   'offline.sending_other': 'Enviando {count} cambios hechos sin conexión…',
   'offline.dropped': 'No se pudo guardar {what}: {reason}',
+  'offline.setAside':
+    '{what} no se pudo guardar: Mise tuvo un problema con ello. Los demás cambios siguen.',
+  'offline.tryAgain': 'Reintentar',
+  'offline.letGo': 'Descartar',
   'offline.lineWaiting': 'Esperando envío',
   'offline.allergensOnceSent': 'Los alérgenos se actualizarán cuando se envíen tus cambios.',
   'offline.cardOnceSent': 'Esta ficha se actualizará cuando se envíen tus cambios.',

@@ -1,8 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { dismissDropped, keepMine, keepTheirs, useDroppedChanges } from '../api/outbox.js';
+import {
+  discardSetAside,
+  dismissDropped,
+  keepMine,
+  keepTheirs,
+  retrySetAside,
+  useDroppedChanges,
+} from '../api/outbox.js';
 import { useCurrentUser } from '../api/session.js';
 import { useConnectivity } from '../lib/connectivity.js';
-import { useOutbox, type OutboxEntry } from '../lib/outbox.js';
+import { goingOut, useOutbox, type OutboxEntry } from '../lib/outbox.js';
 import { clockTime, errorMessage, useT, type MessageKey, type Translator } from '../i18n/index.js';
 import { fieldName, namingFrom, showValue } from './conflictValues.js';
 
@@ -19,7 +26,9 @@ export function OfflineStatus() {
   const waiting = useOutbox(user?.id);
   const dropped = useDroppedChanges();
   const conflict = waiting.find((entry) => entry.conflict);
-  const pending = waiting.filter((entry) => !entry.conflict).length;
+  const setAside = waiting.filter((entry) => entry.setAside && !entry.conflict);
+  const pending = goingOut(waiting).filter((entry) => !entry.conflict).length;
+  const queryClient = useQueryClient();
 
   if (reachable && waiting.length === 0 && dropped.length === 0) return null;
 
@@ -48,10 +57,13 @@ export function OfflineStatus() {
           <ul className="text-danger flex flex-col gap-1 text-lg">
             {dropped.map(({ entry, error }) => (
               <li key={entry.id}>
-                {t('offline.dropped', {
-                  what: labelOf(translator, entry),
-                  reason: errorMessage(translator, error),
-                })}
+                {sentence(
+                  t('offline.dropped', {
+                    what: labelOf(translator, entry),
+                    reason: errorMessage(translator, error),
+                  }),
+                  locale,
+                )}
               </li>
             ))}
           </ul>
@@ -61,9 +73,38 @@ export function OfflineStatus() {
         </div>
       ) : null}
 
+      {setAside.length > 0 ? (
+        <div role="alert" className="border-danger flex flex-col gap-2 border-2 px-4 py-3 sm:px-5">
+          {setAside.map((entry) => (
+            <div key={entry.id} className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-danger text-lg">
+                {sentence(t('offline.setAside', { what: labelOf(translator, entry) }), locale)}
+              </p>
+              <div className="flex gap-2">
+                <button type="button" className="btn-small" onClick={() => retrySetAside(entry)}>
+                  {t('offline.tryAgain')}
+                </button>
+                <button
+                  type="button"
+                  className="btn-small"
+                  onClick={() => discardSetAside(entry, queryClient)}
+                >
+                  {t('offline.letGo')}
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
       {conflict ? <ConflictDialog entry={conflict} /> : null}
     </div>
   );
+}
+
+/** "the recipe …" opens a sentence here: "The recipe …". */
+function sentence(text: string, locale: string): string {
+  return text.charAt(0).toLocaleUpperCase(locale) + text.slice(1);
 }
 
 function labelOf(translator: Translator, entry: OutboxEntry): string {

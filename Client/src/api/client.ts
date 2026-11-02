@@ -1,6 +1,12 @@
 import type { ApiError } from '@mise/contracts';
 import { markReachable, markUnreachable } from '../lib/connectivity.js';
-import { add as addToOutbox, entriesFor, newWriteId, type OutboxEntry } from '../lib/outbox.js';
+import {
+  add as addToOutbox,
+  entriesFor,
+  goingOut,
+  newWriteId,
+  type OutboxEntry,
+} from '../lib/outbox.js';
 
 /**
  * The one place that knows how to talk to a Mise server.
@@ -19,11 +25,12 @@ export class RequestFailed extends Error {
   readonly details: unknown;
 
   constructor(status: number, body: ApiError | null, fallback: string) {
-    super(body?.error.message ?? fallback);
+    // Not always Mise answering: a proxy's error page can be any JSON at all.
+    super(body?.error?.message ?? fallback);
     this.name = 'RequestFailed';
     this.status = status;
-    this.code = body?.error.code ?? 'unknown';
-    this.details = body?.error.details;
+    this.code = body?.error?.code ?? 'unknown';
+    this.details = body?.error?.details;
   }
 
   /** True when the answer is "sign in first", which the shell handles globally. */
@@ -139,7 +146,12 @@ export async function sendOrQueue<T>(
     return QUEUED;
   };
 
-  if (userId && entriesFor(userId).length > 0) return queue();
+  // Behind anything waiting; a change set aside only holds up changes to the same thing.
+  if (userId) {
+    const entries = entriesFor(userId);
+    const behind = goingOut(entries).length > 0 || entries.some((entry) => entry.path === path);
+    if (behind) return queue();
+  }
   try {
     return await request<T>(path, { method, body, headers: { 'x-mise-write': id } });
   } catch (error) {

@@ -1071,6 +1071,10 @@ export const nl: Record<MessageKey, string> = {
   'offline.sending_one': '1 wijziging van offline wordt verstuurd…',
   'offline.sending_other': '{count} wijzigingen van offline worden verstuurd…',
   'offline.dropped': '{what} kon niet worden opgeslagen: {reason}',
+  'offline.setAside':
+    '{what} kon niet worden opgeslagen: Mise liep er tegen een probleem aan. Andere wijzigingen gaan door.',
+  'offline.tryAgain': 'Opnieuw proberen',
+  'offline.letGo': 'Laten gaan',
   'offline.lineWaiting': 'Wacht op versturen',
   'offline.allergensOnceSent': 'Allergenen worden bijgewerkt zodra je wijzigingen verstuurd zijn.',
   'offline.cardOnceSent': 'Deze kaart wordt bijgewerkt zodra je wijzigingen verstuurd zijn.',

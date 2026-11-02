@@ -1048,6 +1048,10 @@ export const en = {
   'offline.sending_one': 'Sending 1 change made while offline…',
   'offline.sending_other': 'Sending {count} changes made while offline…',
   'offline.dropped': '{what} couldn’t be saved: {reason}',
+  'offline.setAside':
+    '{what} couldn’t be saved: Mise ran into a problem with it. Other changes go on.',
+  'offline.tryAgain': 'Try again',
+  'offline.letGo': 'Let it go',
   'offline.lineWaiting': 'Waiting to be sent',
   'offline.allergensOnceSent': 'Allergens update once your changes are sent.',
   'offline.cardOnceSent': 'This card updates once your changes are sent.',
