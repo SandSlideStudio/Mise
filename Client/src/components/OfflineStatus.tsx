@@ -4,6 +4,7 @@ import { useCurrentUser } from '../api/session.js';
 import { useConnectivity } from '../lib/connectivity.js';
 import { useOutbox, type OutboxEntry } from '../lib/outbox.js';
 import { clockTime, errorMessage, useT, type MessageKey, type Translator } from '../i18n/index.js';
+import { fieldName, namingFrom, showValue } from './conflictValues.js';
 
 /**
  * Says plainly when Mise can't be reached, what is being shown meanwhile, and
@@ -69,55 +70,6 @@ function labelOf(translator: Translator, entry: OutboxEntry): string {
   return translator.t(entry.label.key as MessageKey, entry.label.vars ?? {});
 }
 
-/** Field names people know, for the side-by-side view. Anything else is spelled out. */
-const FIELD_NAMES: Record<string, MessageKey> = {
-  name: 'common.name',
-  text: 'offline.field.note',
-  notes: 'offline.field.notes',
-  method: 'offline.field.method',
-  description: 'offline.field.description',
-  tags: 'offline.field.tags',
-  components: 'offline.field.components',
-  dishes: 'offline.field.dishes',
-};
-
-function fieldName(translator: Translator, key: string): string {
-  const known = FIELD_NAMES[key];
-  if (known) return translator.t(known);
-  const words = key.replace(/([a-z])([A-Z])/g, '$1 $2').toLowerCase();
-  return words.charAt(0).toUpperCase() + words.slice(1);
-}
-
-/** A value as one readable line: lists by their names, things by their name. */
-function show(translator: Translator, value: unknown): string {
-  if (value === null || value === undefined || value === '') return '—';
-  if (typeof value === 'string') return value;
-  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-  if (Array.isArray(value)) {
-    if (value.length === 0) return '—';
-    const names = value.map((item) =>
-      item && typeof item === 'object'
-        ? String(
-            (item as Record<string, unknown>).name ??
-              (item as Record<string, unknown>).componentName ??
-              (item as Record<string, unknown>).description ??
-              '…',
-          )
-        : String(item),
-    );
-    return names.every((name) => name === '…')
-      ? translator.plural('offline.items', value.length)
-      : names.join(', ');
-  }
-  if (typeof value === 'object') {
-    const record = value as Record<string, unknown>;
-    if ('value' in record && 'unit' in record)
-      return `${String(record.value)} ${String(record.unit)}`;
-    if ('name' in record) return String(record.name);
-  }
-  return JSON.stringify(value).slice(0, 120);
-}
-
 /**
  * Both versions, field by field, for what this person changed. Only the
  * fields that now differ are shown: the rest agree, whichever is kept.
@@ -128,8 +80,11 @@ function ConflictDialog({ entry }: { entry: OutboxEntry }) {
   const queryClient = useQueryClient();
   const mine = (entry.body ?? {}) as Record<string, unknown>;
   const current = (entry.conflict?.current ?? {}) as Record<string, unknown>;
+  const kind = entry.path.split('/')[1] ?? '';
+  const naming = namingFrom(queryClient);
+  const show = (key: string, value: unknown) => showValue(translator, kind, key, value, naming);
   const fields = Object.keys(mine).filter(
-    (key) => show(translator, mine[key]) !== show(translator, current[key]),
+    (key) => show(key, mine[key]) !== show(key, current[key]),
   );
 
   return (
@@ -155,8 +110,8 @@ function ConflictDialog({ entry }: { entry: OutboxEntry }) {
               <p className="text-ink-faint col-span-2 mb-1 text-xs tracking-[0.12em] uppercase">
                 {fieldName(translator, key)}
               </p>
-              <p className="whitespace-pre-wrap break-words">{show(translator, mine[key])}</p>
-              <p className="whitespace-pre-wrap break-words">{show(translator, current[key])}</p>
+              <p className="whitespace-pre-wrap break-words">{show(key, mine[key])}</p>
+              <p className="whitespace-pre-wrap break-words">{show(key, current[key])}</p>
             </div>
           ))}
         </div>
