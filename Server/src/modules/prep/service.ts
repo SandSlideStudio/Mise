@@ -101,11 +101,6 @@ export function createPrepService(db: Database) {
     return (row?.value ?? -1) + 1;
   }
 
-  async function createTask(input: CreatePrepTask, exec: Executor = db) {
-    const id = await insertTask(input, exec);
-    return id ? getTaskForApi(id) : null;
-  }
-
   async function insertTask(input: CreatePrepTask, exec: Executor): Promise<string | null> {
     const [row] = await exec
       .insert(prepTasks)
