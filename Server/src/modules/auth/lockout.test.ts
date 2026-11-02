@@ -55,3 +55,42 @@ describe('the lockout', () => {
     expect(lockout.size()).toBeLessThanOrEqual(10_000);
   });
 });
+
+describe('PINs, across every tablet', () => {
+  it('locks after five wrong PINs, for twice as long each time, up to a day', () => {
+    let clock = 0;
+    const lockout = createLockout(() => clock);
+    const lockFor = () => {
+      for (let i = 0; i < MAX_FAILED_ATTEMPTS; i += 1) lockout.pinFailed('cook');
+      return lockout.pinLocked('cook')!.getTime() - clock;
+    };
+    const minutes = (ms: number) => ms / 60_000;
+    const locks: number[] = [];
+    for (let round = 0; round < 9; round += 1) {
+      const ms = lockFor();
+      locks.push(minutes(ms));
+      clock += ms; // wait it out
+      expect(lockout.pinLocked('cook')).toBeNull();
+    }
+    expect(locks).toEqual([15, 30, 60, 120, 240, 480, 960, 1440, 1440]);
+  });
+
+  it('counts wrong PINs from different tablets together', () => {
+    const lockout = createLockout(() => 0);
+    for (let i = 0; i < MAX_FAILED_ATTEMPTS - 1; i += 1) lockout.pinFailed('cook');
+    expect(lockout.pinLocked('cook')).toBeNull();
+    lockout.pinFailed('cook');
+    expect(lockout.pinLocked('cook')).not.toBeNull();
+  });
+
+  it('starts again after the right PIN, or a new one from an administrator', () => {
+    const lockout = createLockout(() => 0);
+    for (let i = 0; i < 4; i += 1) lockout.pinFailed('cook');
+    lockout.pinSucceeded('cook');
+    for (let i = 0; i < 4; i += 1) lockout.pinFailed('cook');
+    expect(lockout.pinLocked('cook')).toBeNull();
+    lockout.pinFailed('cook');
+    lockout.forget('cook');
+    expect(lockout.pinLocked('cook')).toBeNull();
+  });
+});

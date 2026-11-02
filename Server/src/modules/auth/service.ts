@@ -166,6 +166,9 @@ export function createAuthService(db: Database) {
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
     if (!user.active) return { ok: false, error: { kind: 'inactive' } };
+    // Locked across every tablet once enough wrong PINs have been tried anywhere.
+    const pinLock = lockout.pinLocked(user.id);
+    if (pinLock) return { ok: false, error: { kind: 'locked', until: pinLock } };
     // The tablet is the address: a PIN only works on an enrolled one anyway.
     const reserved = await reserveAttempt(user, deviceId);
     if ('lockedUntil' in reserved) {
@@ -174,10 +177,13 @@ export function createAuthService(db: Database) {
 
     if (!(await verifySecret(user.pinHash, pin))) {
       await failedAttempt(user.id, deviceId, reserved.attempt);
+      // Counted across tablets; a lock it earns applies from the next try.
+      lockout.pinFailed(user.id);
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
 
     lockout.succeeded(user.id, deviceId);
+    lockout.pinSucceeded(user.id);
     const session = await issueSession(user.id, {
       deviceId,
       expiresAt: new Date(Date.now() + PIN_SESSION_HOURS * 3_600_000),

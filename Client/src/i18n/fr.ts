@@ -1136,4 +1136,15 @@ export const fr: Record<MessageKey, string> = {
     '{usedIn} utilise {child} en {unit}, ce qui ne se déduit pas de {makes}. Modifiez d’abord cette ligne, ou gardez le rendement dans le même type d’unité.',
   'recipe.shownAsWritten':
     'Cette recette ne peut pas être calculée pour la quantité demandée ; elle s’affiche telle qu’écrite.',
+  'passwordOnly.signIn': 'Se connecter avec le mot de passe',
+  'passwordOnly.staff':
+    'Vous êtes connecté avec votre code PIN. Pour ajouter du personnel ou changer rôles, mots de passe et codes PIN, connectez-vous avec votre mot de passe.',
+  'passwordOnly.devices':
+    'Vous êtes connecté avec votre code PIN. Pour enregistrer des tablettes ou autoriser des appareils extérieurs, connectez-vous avec votre mot de passe.',
+  'passwordOnly.connection':
+    'Vous êtes connecté avec votre code PIN. Pour changer la façon dont on accède à Mise, connectez-vous avec votre mot de passe.',
+  'passwordOnly.backups':
+    'Vous êtes connecté avec votre code PIN. Pour gérer les sauvegardes ou voir la clé de récupération, connectez-vous avec votre mot de passe.',
+  'error.passwordRequired':
+    'Connectez-vous avec votre mot de passe pour cela. Un code PIN suffit pour tout le reste.',
 };

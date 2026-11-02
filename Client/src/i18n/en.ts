@@ -1102,6 +1102,16 @@ export const en = {
     '{usedIn} uses {child} in {unit}, which can’t be worked out from {makes}. Change that line first, or keep the yield in the same kind of unit.',
   'recipe.shownAsWritten':
     'This recipe can’t be made to the amount asked for, so it shows as written.',
+  'passwordOnly.signIn': 'Sign in with password',
+  'passwordOnly.staff':
+    'You’re signed in with your PIN. To add staff or change roles, passwords and PINs, sign in with your password.',
+  'passwordOnly.devices':
+    'You’re signed in with your PIN. To enrol tablets or let devices in from outside, sign in with your password.',
+  'passwordOnly.connection':
+    'You’re signed in with your PIN. To change how Mise is reached, sign in with your password.',
+  'passwordOnly.backups':
+    'You’re signed in with your PIN. To manage backups or see the recovery key, sign in with your password.',
+  'error.passwordRequired': 'Sign in with your password to do this. A PIN can do everything else.',
 } as const;
 
 export type MessageKey = keyof typeof en;

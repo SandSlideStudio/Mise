@@ -226,7 +226,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
   r.post(
     '/devices',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: enrollDeviceRequestSchema,
         response: { 200: enrollDeviceResponseSchema, 403: errorSchema },
@@ -266,7 +266,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/devices/:id',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: { params: z.object({ id: idSchema }), response: { 204: z.null(), 403: errorSchema } },
     },
     async (request, reply) => {

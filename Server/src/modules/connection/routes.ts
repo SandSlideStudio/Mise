@@ -53,7 +53,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.put(
     '/connection',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: updateConnectionSchema,
         response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
@@ -94,7 +94,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.put(
     '/connection/kitchen-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: kitchenHttpsSchema,
         response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
@@ -114,7 +114,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/connection/kitchen-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: { response: { 200: connectionSchema, 403: errorSchema } },
     },
     async (request) => {
@@ -126,7 +126,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.post(
     '/connection/domain-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       // Let's Encrypt allows only a few failed tries an hour.
       config: { rateLimit: { max: 5, timeWindow: '1 hour' } },
       schema: {
@@ -152,7 +152,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/connection/domain-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: { response: { 200: connectionSchema, 403: errorSchema } },
     },
     async (request) => {

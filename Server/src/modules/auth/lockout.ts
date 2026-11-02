@@ -20,6 +20,8 @@ export const MAX_FAILED_ATTEMPTS = 5;
 export const ACCOUNT_BRAKE = 30;
 export const LOCKOUT_MINUTES = 15;
 const WINDOW_MS = LOCKOUT_MINUTES * 60_000;
+/** The longest a PIN lock lasts, however often it has been earned. */
+export const PIN_LOCK_CAP_MS = 24 * 60 * 60_000;
 /** Far more addresses than a kitchen has; past it the oldest are dropped. */
 const MAX_ENTRIES = 10_000;
 
@@ -33,6 +35,15 @@ export function createLockout(now: () => number = Date.now) {
   const pairs = new Map<string, PairState>();
   /** Failure times per account, for the account-wide brake. */
   const failures = new Map<string, number[]>();
+
+  /**
+   * PINs, per person across every tablet. A four-digit PIN has 10,000
+   * possibilities, so the brake can't reset itself: each set of five wrong
+   * PINs locks the person's PIN for twice as long as the last (15 minutes,
+   * 30, an hour, up to a day), until they get it right or an administrator
+   * sets a new one.
+   */
+  const pins = new Map<string, { failures: number; strikes: number; lockedUntil: number | null }>();
 
   const key = (userId: string, address: string) => `${userId}\u0000${address}`;
 
@@ -100,6 +111,31 @@ export function createLockout(now: () => number = Date.now) {
       const prefix = `${userId}\u0000`;
       for (const k of pairs.keys()) if (k.startsWith(prefix)) pairs.delete(k);
       failures.delete(userId);
+      pins.delete(userId);
+    },
+
+    /** Whether this person's PIN is locked, across all tablets, and until when. */
+    pinLocked(userId: string): Date | null {
+      const state = pins.get(userId);
+      return state?.lockedUntil && state.lockedUntil > now() ? new Date(state.lockedUntil) : null;
+    },
+
+    /** A wrong PIN on any tablet. Returns when the PIN is now locked until, if it is. */
+    pinFailed(userId: string): Date | null {
+      const state = pins.get(userId) ?? { failures: 0, strikes: 0, lockedUntil: null };
+      state.failures += 1;
+      if (state.failures >= MAX_FAILED_ATTEMPTS) {
+        state.failures = 0;
+        state.strikes += 1;
+        state.lockedUntil = now() + Math.min(WINDOW_MS * 2 ** (state.strikes - 1), PIN_LOCK_CAP_MS);
+      }
+      pins.set(userId, state);
+      return state.lockedUntil && state.lockedUntil > now() ? new Date(state.lockedUntil) : null;
+    },
+
+    /** The right PIN: the count starts again. */
+    pinSucceeded(userId: string): void {
+      pins.delete(userId);
     },
 
     /** For tests: how many pairs are being tracked. */

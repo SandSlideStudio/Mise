@@ -294,8 +294,11 @@ createRoot(rootElement).render(
         // A new version may shape things differently: start its cache afresh.
         buster: VERSION,
         dehydrateOptions: {
+          // "Nobody signed in" is never kept: restored after signing in again,
+          // it would send the person back to the sign-in page.
           shouldDehydrateQuery: (query) =>
-            keepOnDevice(query.queryKey, query.state.status === 'success'),
+            keepOnDevice(query.queryKey, query.state.status === 'success') &&
+            !(query.queryKey[0] === 'me' && query.state.data == null),
           // Changes waiting have their own, safer place (lib/outbox.ts).
           shouldDehydrateMutation: () => false,
         },

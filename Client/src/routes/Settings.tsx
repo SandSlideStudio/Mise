@@ -12,6 +12,7 @@ import { BackupSettings } from './settings/BackupSettings.js';
 import { ConnectionSettings } from './settings/ConnectionSettings.js';
 import { ProxySettings } from './settings/ProxySettings.js';
 import { HttpsSettings } from './settings/HttpsSettings.js';
+import { PasswordOnly } from '../components/PasswordOnly.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
 
 type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups';
@@ -74,24 +75,32 @@ export function Settings() {
           ))}
         </div>
 
-        {tab === 'staff' ? <StaffSettings /> : null}
+        {tab === 'staff' ? (
+          <PasswordOnly note="passwordOnly.staff">
+            <StaffSettings />
+          </PasswordOnly>
+        ) : null}
         {tab === 'stations' ? <StationSettings /> : null}
         {tab === 'devices' ? (
-          <>
+          <PasswordOnly note="passwordOnly.devices">
             <DeviceSettings />
             <OutsideDeviceSettings />
-          </>
+          </PasswordOnly>
         ) : null}
         {tab === 'kitchen' ? <KitchenSettings /> : null}
         {tab === 'dishCards' ? <DishCardSettings /> : null}
         {tab === 'connection' && user.role === 'admin' ? (
-          <>
+          <PasswordOnly note="passwordOnly.connection">
             <ConnectionSettings />
             <HttpsSettings />
             <ProxySettings />
-          </>
+          </PasswordOnly>
         ) : null}
-        {tab === 'backups' && user.role === 'admin' ? <BackupSettings /> : null}
+        {tab === 'backups' && user.role === 'admin' ? (
+          <PasswordOnly note="passwordOnly.backups">
+            <BackupSettings />
+          </PasswordOnly>
+        ) : null}
 
         <AboutLine className="border-line mt-12 border-t pt-4" />
       </main>

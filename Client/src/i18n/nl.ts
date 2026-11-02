@@ -1125,4 +1125,15 @@ export const nl: Record<MessageKey, string> = {
     '{usedIn} gebruikt {child} in {unit}, en dat is niet uit {makes} af te leiden. Pas eerst die regel aan, of houd de opbrengst in dezelfde soort eenheid.',
   'recipe.shownAsWritten':
     'Dit recept kan niet naar de gevraagde hoeveelheid worden omgerekend, dus je ziet het zoals het geschreven is.',
+  'passwordOnly.signIn': 'Inloggen met wachtwoord',
+  'passwordOnly.staff':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om personeel toe te voegen of rollen, wachtwoorden en pincodes te wijzigen.',
+  'passwordOnly.devices':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om tablets te koppelen of apparaten van buitenaf toe te laten.',
+  'passwordOnly.connection':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om te wijzigen hoe Mise bereikbaar is.',
+  'passwordOnly.backups':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
+  'error.passwordRequired':
+    'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
 };

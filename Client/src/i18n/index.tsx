@@ -243,6 +243,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   domain_locks_you_out: 'error.domainLocksYouOut',
   proxy_not_local: 'error.proxyNotLocal',
   bad_name: 'error.badName',
+  password_required: 'error.passwordRequired',
   no_domain: 'error.noDomain',
   internal_error: 'error.generic',
   backup_bad_key: 'backups.reason.bad_key',

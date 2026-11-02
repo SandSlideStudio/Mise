@@ -19,6 +19,11 @@ export interface CurrentUser {
   deviceId: string | null;
   /** Whether they have been offered the tour of the app yet. */
   tourSeen: boolean;
+  /**
+   * Signed in with a PIN on a tablet. A PIN is too short to guard anything
+   * that touches security, so those actions ask for the password instead.
+   */
+  viaPin: boolean;
 }
 
 declare module 'fastify' {
@@ -32,6 +37,8 @@ declare module 'fastify' {
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     /** Rejects the request unless it comes from an enrolled kitchen device. */
     requireDevice: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /** Rejects a PIN sign-in: the action touches security, so it needs the password. */
+    requirePassword: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     setSessionCookie: (reply: FastifyReply, token: string, expiresAt: Date) => void;
     /** Cookies only over HTTPS: always with COOKIE_SECURE, or whenever this request came over it. */
     secureCookies: (request: FastifyRequest) => boolean;
@@ -68,6 +75,7 @@ const authPlugin: FastifyPluginAsync = async (app) => {
           language: session.language,
           deviceId: session.deviceId,
           tourSeen: session.tourSeenAt !== null,
+          viaPin: session.deviceId !== null,
         };
       }
     }
@@ -90,6 +98,17 @@ const authPlugin: FastifyPluginAsync = async (app) => {
         throw new ApiError(403, 'forbidden', 'Your role does not allow that.');
       }
     };
+  });
+
+  app.decorate('requirePassword', async (request: FastifyRequest) => {
+    if (!request.user) throw new ApiError(401, 'not_authenticated', 'Sign in to continue.');
+    if (request.user.viaPin) {
+      throw new ApiError(
+        403,
+        'password_required',
+        'Sign in with your password to do this. A PIN can do everything else.',
+      );
+    }
   });
 
   app.decorate('requireDevice', async (request: FastifyRequest) => {

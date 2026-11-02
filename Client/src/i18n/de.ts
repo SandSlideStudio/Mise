@@ -1135,4 +1135,15 @@ export const de: Record<MessageKey, string> = {
     '{usedIn} verwendet {child} in {unit}, was sich nicht aus {makes} berechnen lässt. Ändere zuerst diese Zeile oder behalte die Ausbeute in derselben Art von Einheit.',
   'recipe.shownAsWritten':
     'Dieses Rezept lässt sich nicht auf die gewünschte Menge umrechnen, deshalb steht es so da, wie es geschrieben ist.',
+  'passwordOnly.signIn': 'Mit Passwort anmelden',
+  'passwordOnly.staff':
+    'Du bist mit deiner PIN angemeldet. Um Personal hinzuzufügen oder Rollen, Passwörter und PINs zu ändern, melde dich mit deinem Passwort an.',
+  'passwordOnly.devices':
+    'Du bist mit deiner PIN angemeldet. Um Tablets zu registrieren oder Geräte von außen zuzulassen, melde dich mit deinem Passwort an.',
+  'passwordOnly.connection':
+    'Du bist mit deiner PIN angemeldet. Um zu ändern, wie Mise erreichbar ist, melde dich mit deinem Passwort an.',
+  'passwordOnly.backups':
+    'Du bist mit deiner PIN angemeldet. Um Backups zu verwalten oder den Wiederherstellungsschlüssel zu sehen, melde dich mit deinem Passwort an.',
+  'error.passwordRequired':
+    'Melde dich dafür mit deinem Passwort an. Mit einer PIN geht alles andere.',
 };

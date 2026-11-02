@@ -161,7 +161,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
   r.post(
     '/users',
     {
-      onRequest: [app.requireRole('admin', 'head_chef')],
+      onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
       schema: {
         body: createUserSchema,
         response: { 200: userSchema, 400: errorSchema, 403: errorSchema, 409: errorSchema },
@@ -177,7 +177,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
   r.patch(
     '/users/:id',
     {
-      onRequest: [app.requireRole('admin', 'head_chef')],
+      onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
       schema: {
         params: z.object({ id: idSchema }),
         body: updateUserSchema,
@@ -205,7 +205,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/users/:id',
     {
-      onRequest: [app.requireRole('admin', 'head_chef')],
+      onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
       schema: {
         params: z.object({ id: idSchema }),
         response: { 204: z.null(), 403: errorSchema, 404: errorSchema, 409: errorSchema },

@@ -1122,4 +1122,15 @@ export const es: Record<MessageKey, string> = {
     '{usedIn} usa {child} en {unit}, y eso no se puede calcular a partir de {makes}. Cambia primero esa línea, o mantén el rendimiento en el mismo tipo de unidad.',
   'recipe.shownAsWritten':
     'Esta receta no se puede calcular para la cantidad pedida, así que se muestra tal como está escrita.',
+  'passwordOnly.signIn': 'Iniciar sesión con contraseña',
+  'passwordOnly.staff':
+    'Has iniciado sesión con tu PIN. Para añadir personal o cambiar roles, contraseñas y PIN, inicia sesión con tu contraseña.',
+  'passwordOnly.devices':
+    'Has iniciado sesión con tu PIN. Para registrar tablets o dejar entrar dispositivos de fuera, inicia sesión con tu contraseña.',
+  'passwordOnly.connection':
+    'Has iniciado sesión con tu PIN. Para cambiar cómo se accede a Mise, inicia sesión con tu contraseña.',
+  'passwordOnly.backups':
+    'Has iniciado sesión con tu PIN. Para gestionar las copias o ver la clave de recuperación, inicia sesión con tu contraseña.',
+  'error.passwordRequired':
+    'Inicia sesión con tu contraseña para hacer esto. Con un PIN puedes hacer todo lo demás.',
 };

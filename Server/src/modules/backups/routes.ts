@@ -32,7 +32,8 @@ export function failed(error: unknown): never {
 
 const backupRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
-  const admin = { onRequest: [app.requireRole('admin')] };
+  // Backups hold the whole kitchen and the key to it: never on a PIN alone.
+  const admin = { onRequest: [app.requireRole('admin'), app.requirePassword] };
 
   r.get(
     '/backups',
