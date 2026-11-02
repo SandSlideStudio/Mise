@@ -1107,4 +1107,16 @@ export const nl: Record<MessageKey, string> = {
   'recipeCard.onThePlate': 'Op het bord',
   'recipeCard.plating': 'Opmaak',
   'recipeCard.ownRecipe': 'eigen recept',
+  'updated.title': 'Mise is bijgewerkt',
+  'updated.body':
+    'Mise is bijgewerkt. Herlaad om de nieuwe versie te gebruiken; niets wat nog verstuurd moet worden gaat verloren.',
+  'updated.bodyVersion':
+    'Mise is bijgewerkt naar {version}. Herlaad om die te gebruiken; niets wat nog verstuurd moet worden gaat verloren.',
+  'updated.reload': 'Herladen',
+  'error.pageTitle': 'Deze pagina opende niet',
+  'error.pageBody': 'Er ging iets mis bij het openen. Herladen lost het meestal op.',
+  'access.waitingOne': '“{name}” vraagt toegang van buiten de keuken.',
+  'access.waitingCount_one': '1 apparaat vraagt toegang van buiten de keuken.',
+  'access.waitingCount_other': '{count} apparaten vragen toegang van buiten de keuken.',
+  'access.checkCode': 'Controleer de code en keur goed',
 };

@@ -1084,6 +1084,18 @@ export const en = {
   'recipeCard.onThePlate': 'On the plate',
   'recipeCard.plating': 'Plating',
   'recipeCard.ownRecipe': 'its own recipe',
+  'updated.title': 'Mise was updated',
+  'updated.body':
+    'Mise was updated. Reload to use the new version; nothing waiting to be sent is lost.',
+  'updated.bodyVersion':
+    'Mise was updated to {version}. Reload to use it; nothing waiting to be sent is lost.',
+  'updated.reload': 'Reload',
+  'error.pageTitle': 'This page didn’t open',
+  'error.pageBody': 'Something went wrong while opening it. Reloading usually fixes it.',
+  'access.waitingOne': '“{name}” is asking for access from outside the kitchen.',
+  'access.waitingCount_one': '1 device is asking for access from outside the kitchen.',
+  'access.waitingCount_other': '{count} devices are asking for access from outside the kitchen.',
+  'access.checkCode': 'Check the code and approve',
 } as const;
 
 export type MessageKey = keyof typeof en;

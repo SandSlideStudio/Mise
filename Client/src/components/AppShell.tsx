@@ -5,6 +5,8 @@ import { useBackupStatus } from '../api/backups.js';
 import { useCurrentUser, useLogout, useUpdateMe } from '../api/session.js';
 import { dismissRefusal, useLastRefusal, usePendingTickCount } from '../api/ticks.js';
 import { OfflineStatus } from './OfflineStatus.js';
+import { UpdatedBanner } from './UpdatedNotice.js';
+import { useWaitingAccess } from '../api/access.js';
 import { useVersion } from '../api/version.js';
 import {
   errorMessage,
@@ -63,7 +65,12 @@ export function AppShell({ children }: { children: ReactNode }) {
                 to="/settings"
                 label="nav.settings"
                 active={pathname.startsWith('/settings')}
-                badge={user.role === 'admin' ? <UpdateDot /> : null}
+                badge={
+                  <>
+                    <AccessDot />
+                    {user.role === 'admin' ? <UpdateDot /> : null}
+                  </>
+                }
               />
             ) : null}
           </nav>
@@ -95,6 +102,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <div className="app-main">
+        <UpdatedBanner />
         <OfflineStatus />
         <TickStatus />
         {user.role === 'admin' && !pathname.startsWith('/settings') ? <BackupWarning /> : null}
@@ -242,6 +250,23 @@ function NavLink({
 }
 
 /** A quiet dot on Settings for an administrator while a newer Mise is out. */
+/** Someone outside the kitchen is waiting to be let in. Only shown to those who can. */
+function AccessDot() {
+  const { plural } = useT();
+  const { data: user } = useCurrentUser();
+  const waiting = useWaitingAccess(user != null && user.role !== 'cook');
+  if (waiting.length === 0) return null;
+  const label = plural('access.waitingCount', waiting.length);
+  return (
+    <span
+      role="img"
+      aria-label={label}
+      title={label}
+      className="bg-danger ml-2 inline-block h-2.5 w-2.5 rounded-full"
+    />
+  );
+}
+
 function UpdateDot() {
   const { t } = useT();
   const version = useVersion();

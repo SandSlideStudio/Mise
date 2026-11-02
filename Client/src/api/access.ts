@@ -28,11 +28,27 @@ export function useRequestAccess() {
   });
 }
 
-export function useRemoteDevices() {
+export function useRemoteDevices(enabled = true) {
   return useQuery({
     queryKey: ['remote-devices'],
     queryFn: () => api.get<RemoteDevices>('/access/devices'),
+    enabled,
   });
+}
+
+/**
+ * Devices outside the kitchen waiting for a chef to let them in. Only chefs
+ * and administrators can see or answer them; a new request arrives over live
+ * updates, and is asked again now and then in case one was missed.
+ */
+export function useWaitingAccess(canApprove: boolean) {
+  const query = useQuery({
+    queryKey: ['remote-devices'],
+    queryFn: () => api.get<RemoteDevices>('/access/devices'),
+    enabled: canApprove,
+    refetchInterval: canApprove ? 60_000 : false,
+  });
+  return (query.data?.devices ?? []).filter((device) => device.status === 'pending');
 }
 
 export function useApproveRemoteDevice() {

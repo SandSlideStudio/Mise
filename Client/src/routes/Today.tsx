@@ -17,6 +17,7 @@ import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { PrepListPrint } from '../components/PrepListPrint.js';
+import { useWaitingAccess } from '../api/access.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
 import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
@@ -86,6 +87,7 @@ export function Today() {
           </div>
         </div>
 
+        <AccessWaitingNotice />
         <RunningPrep />
       </main>
       <PrepListPrint kitchenName={user.kitchenName} />
@@ -115,6 +117,34 @@ function useToday(): string {
     };
   }, []);
   return today;
+}
+
+/**
+ * A device outside the kitchen asking to be let in, said where a chef looks
+ * first. The code it shows has to be checked with whoever is asking before
+ * approving, so this sends them to Settings → Devices rather than approving
+ * from here.
+ */
+function AccessWaitingNotice() {
+  const { t, plural } = useT();
+  const { data: user } = useCurrentUser();
+  const waiting = useWaitingAccess(user != null && user.role !== 'cook');
+  if (waiting.length === 0) return null;
+  return (
+    <div
+      role="status"
+      className="no-print border-danger mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-2 px-4 py-3 sm:mx-7 sm:px-5"
+    >
+      <p className="text-lg">
+        {waiting.length === 1
+          ? t('access.waitingOne', { name: waiting[0]!.name })
+          : plural('access.waitingCount', waiting.length)}
+      </p>
+      <a className="btn-small" href="/settings?tab=devices">
+        {t('access.checkCode')}
+      </a>
+    </div>
+  );
 }
 
 /**

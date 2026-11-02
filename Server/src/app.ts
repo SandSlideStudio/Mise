@@ -268,6 +268,12 @@ async function registerClient(app: FastifyInstance, config: Config): Promise<voi
         error: { code: 'not_found', message: `No route for ${request.method} ${request.url}` },
       });
     }
+    // A file of the app that isn't here (an older version's, asked for by a
+    // tablet left open across an update) is missing, not a page: answering
+    // with index.html would hand the browser HTML where it expects code.
+    if (request.url.startsWith('/assets/')) {
+      return reply.status(404).type('text/plain; charset=utf-8').send('Not found');
+    }
     return reply.sendFile('index.html');
   });
 }

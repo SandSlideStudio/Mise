@@ -1117,4 +1117,16 @@ export const de: Record<MessageKey, string> = {
   'recipeCard.onThePlate': 'Auf dem Teller',
   'recipeCard.plating': 'Anrichten',
   'recipeCard.ownRecipe': 'eigenes Rezept',
+  'updated.title': 'Mise wurde aktualisiert',
+  'updated.body':
+    'Mise wurde aktualisiert. Lade neu, um die neue Version zu nutzen; nichts, was noch gesendet werden muss, geht verloren.',
+  'updated.bodyVersion':
+    'Mise wurde auf {version} aktualisiert. Lade neu, um sie zu nutzen; nichts, was noch gesendet werden muss, geht verloren.',
+  'updated.reload': 'Neu laden',
+  'error.pageTitle': 'Diese Seite hat sich nicht geöffnet',
+  'error.pageBody': 'Beim Öffnen ist etwas schiefgegangen. Neu laden behebt es meistens.',
+  'access.waitingOne': '„{name}“ fragt Zugang von außerhalb der Küche an.',
+  'access.waitingCount_one': '1 Gerät fragt Zugang von außerhalb der Küche an.',
+  'access.waitingCount_other': '{count} Geräte fragen Zugang von außerhalb der Küche an.',
+  'access.checkCode': 'Code prüfen und freigeben',
 };

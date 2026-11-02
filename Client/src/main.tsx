@@ -38,6 +38,8 @@ import { Settings } from './routes/Settings.js';
 import { Setup } from './routes/Setup.js';
 import { applyTheme } from './lib/theme.js';
 import { VERSION } from './version.js';
+import { useVersionWatch } from './lib/freshness.js';
+import { RouteError } from './components/UpdatedNotice.js';
 import { TourHost } from './components/Tour.js';
 // Self-hosted, so a kitchen server with no internet still draws its own type.
 import '@fontsource/barlow/400.css';
@@ -125,6 +127,7 @@ function Shell() {
   setOutboxUser(currentUser.data?.id ?? null);
   useOutboxSender();
   useLoadAhead(currentUser.data != null);
+  useVersionWatch();
   // Saved ticks keep being sent whichever screen is open.
   useTickSender();
 
@@ -269,7 +272,8 @@ const routeTree = rootRoute.addChildren([
 // No view transitions: where the browser can't run one (a dimmed or covered
 // tablet), it aborts it and the page change never finishes. Pages animate in
 // with plain CSS instead; see .app-main in styles.css.
-const router = createRouter({ routeTree });
+// A page that can't open says why; after an update, that's a reload away.
+const router = createRouter({ routeTree, defaultErrorComponent: RouteError });
 
 declare module '@tanstack/react-router' {
   interface Register {

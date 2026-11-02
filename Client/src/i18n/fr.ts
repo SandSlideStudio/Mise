@@ -1116,4 +1116,18 @@ export const fr: Record<MessageKey, string> = {
   'recipeCard.onThePlate': 'Dans l’assiette',
   'recipeCard.plating': 'Dressage',
   'recipeCard.ownRecipe': 'sa propre recette',
+  'updated.title': 'Mise a été mis à jour',
+  'updated.body':
+    'Mise a été mis à jour. Rechargez pour utiliser la nouvelle version ; rien de ce qui attend d’être envoyé n’est perdu.',
+  'updated.bodyVersion':
+    'Mise est passé à la version {version}. Rechargez pour l’utiliser ; rien de ce qui attend d’être envoyé n’est perdu.',
+  'updated.reload': 'Recharger',
+  'error.pageTitle': 'Cette page ne s’est pas ouverte',
+  'error.pageBody':
+    'Une erreur s’est produite à l’ouverture. Recharger règle généralement le problème.',
+  'access.waitingOne': '« {name} » demande l’accès depuis l’extérieur de la cuisine.',
+  'access.waitingCount_one': '1 appareil demande l’accès depuis l’extérieur de la cuisine.',
+  'access.waitingCount_other':
+    '{count} appareils demandent l’accès depuis l’extérieur de la cuisine.',
+  'access.checkCode': 'Vérifier le code et approuver',
 };

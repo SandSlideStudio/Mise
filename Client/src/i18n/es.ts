@@ -1104,4 +1104,16 @@ export const es: Record<MessageKey, string> = {
   'recipeCard.onThePlate': 'En el plato',
   'recipeCard.plating': 'Emplatado',
   'recipeCard.ownRecipe': 'su propia receta',
+  'updated.title': 'Mise se ha actualizado',
+  'updated.body':
+    'Mise se ha actualizado. Recarga para usar la nueva versión; no se pierde nada pendiente de enviar.',
+  'updated.bodyVersion':
+    'Mise se ha actualizado a {version}. Recarga para usarla; no se pierde nada pendiente de enviar.',
+  'updated.reload': 'Recargar',
+  'error.pageTitle': 'Esta página no se abrió',
+  'error.pageBody': 'Algo salió mal al abrirla. Recargar suele solucionarlo.',
+  'access.waitingOne': '“{name}” pide acceso desde fuera de la cocina.',
+  'access.waitingCount_one': '1 dispositivo pide acceso desde fuera de la cocina.',
+  'access.waitingCount_other': '{count} dispositivos piden acceso desde fuera de la cocina.',
+  'access.checkCode': 'Comprobar el código y aprobar',
 };
