@@ -28,6 +28,8 @@ import {
 } from '@mise/domain';
 import { isQueued, type Queued } from '../api/client.js';
 import { useStations } from '../api/kitchen.js';
+import { useAwaiting } from '../lib/awaiting.js';
+import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCreateRecipe, useRecipe, useRecipeAllergens, useUpdateRecipe } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
 import { LoadError } from '../components/LoadError.js';
@@ -107,7 +109,7 @@ export function RecipeEditor() {
     );
   }
 
-  if (recipeId && existing.isError) {
+  if (recipeId && existing.isError && existing.data === undefined) {
     return (
       <AppShell>
         <main className="mx-auto max-w-[1340px] px-5 py-10">
@@ -896,6 +898,7 @@ function FrontOfHouse(props: {
 function AllergenRollup({ recipeId }: { recipeId?: string }) {
   const { t } = useT();
   const profile = useRecipeAllergens(recipeId);
+  const awaiting = useAwaiting();
   const contains = ((profile.data?.contains ?? []) as Allergen[]).map((a) => allergenName(t, a));
 
   return (
@@ -917,6 +920,7 @@ function AllergenRollup({ recipeId }: { recipeId?: string }) {
           </span>
         )}
       </div>
+      {recipeId && awaiting.recipe(recipeId) ? <AwaitingNote what="allergens" /> : null}
     </div>
   );
 }

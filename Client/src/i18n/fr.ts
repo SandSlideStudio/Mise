@@ -1076,6 +1076,10 @@ export const fr: Record<MessageKey, string> = {
   'offline.sending_other': 'Envoi de {count} modifications faites hors ligne…',
   'offline.dropped': '{what} n’a pas pu être enregistré : {reason}',
   'offline.lineWaiting': 'En attente d’envoi',
+  'offline.allergensOnceSent': 'Les allergènes seront mis à jour dès l’envoi de vos modifications.',
+  'offline.cardOnceSent': 'Cette fiche sera mise à jour dès l’envoi de vos modifications.',
+  'offline.menuOnceSent':
+    'Les allergènes et les fiches plat seront mis à jour dès l’envoi de vos modifications.',
   'offline.conflictTitle': 'Modifié sur un autre appareil',
   'offline.conflictBody':
     'Pendant que vous étiez hors ligne, quelqu’un a modifié {what}. Quelle version garder ?',

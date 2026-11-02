@@ -26,7 +26,8 @@ export function StationSettings() {
   const [name, setName] = useState('');
 
   if (stations.isPending) return <p className="text-ink-soft">{t('stations.loading')}</p>;
-  if (stations.isError) return <p className="text-danger">{t('stations.loadError')}</p>;
+  if (stations.isError && stations.data === undefined)
+    return <p className="text-danger">{t('stations.loadError')}</p>;
 
   const list = stations.data;
 

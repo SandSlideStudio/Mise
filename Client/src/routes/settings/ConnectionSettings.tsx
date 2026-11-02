@@ -48,7 +48,7 @@ export function ConnectionSettings() {
       <p className="text-ink-soft mb-5 max-w-[70ch] text-sm">{t('connection.domainBody')}</p>
 
       {connection.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-      {connection.isError ? (
+      {connection.isError && connection.data === undefined ? (
         <LoadError className="mb-5" onRetry={() => void connection.refetch()} />
       ) : null}
 

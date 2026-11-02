@@ -1064,6 +1064,10 @@ export const es: Record<MessageKey, string> = {
   'offline.sending_other': 'Enviando {count} cambios hechos sin conexión…',
   'offline.dropped': 'No se pudo guardar {what}: {reason}',
   'offline.lineWaiting': 'Esperando envío',
+  'offline.allergensOnceSent': 'Los alérgenos se actualizarán cuando se envíen tus cambios.',
+  'offline.cardOnceSent': 'Esta ficha se actualizará cuando se envíen tus cambios.',
+  'offline.menuOnceSent':
+    'Los alérgenos y las fichas de plato se actualizarán cuando se envíen tus cambios.',
   'offline.conflictTitle': 'Cambiado en otro dispositivo',
   'offline.conflictBody':
     'Mientras estabas sin conexión, otra persona cambió {what}. ¿Qué versión se queda?',

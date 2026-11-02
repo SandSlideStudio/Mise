@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { CreateMenu, Menu, MenuOverview, MenuSummary, UpdateMenu } from '@mise/contracts';
 import { api, isQueued, RequestFailed, sendOrQueue } from './client.js';
+import { inCourseOrder, menuDishAsSent } from './offlineEdits.js';
 
 /** Menus, and what they print. */
 
@@ -52,8 +53,8 @@ export function useUpdateMenu(id: string) {
     },
     onSuccess: (menu, input) => {
       if (!isQueued(menu)) return saved(menu);
-      // Shown on this device as saved. Dishes it already shows can be moved
-      // or taken off; one newly added needs the server to fill it in.
+      // Shown on this device as saved: dishes moved, taken off, or added from
+      // what the device knows of them. Their allergens wait for the server.
       queryClient.setQueryData<Menu>(['menu', id], (old) => {
         if (!old) return old;
         const { dishes, ...rest } = input;
@@ -62,10 +63,12 @@ export function useUpdateMenu(id: string) {
           ...old,
           ...rest,
           dishes: dishes
-            ? dishes.flatMap((recipeId) => {
-                const dish = byId.get(recipeId);
-                return dish ? [dish] : [];
-              })
+            ? inCourseOrder(
+                dishes.flatMap((recipeId) => {
+                  const dish = byId.get(recipeId) ?? menuDishAsSent(queryClient, recipeId);
+                  return dish ? [dish] : [];
+                }),
+              )
             : old.dishes,
         } as Menu;
       });

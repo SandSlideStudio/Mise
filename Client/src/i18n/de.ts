@@ -1077,6 +1077,11 @@ export const de: Record<MessageKey, string> = {
   'offline.sending_other': '{count} offline gemachte Änderungen werden gesendet…',
   'offline.dropped': '{what} konnte nicht gespeichert werden: {reason}',
   'offline.lineWaiting': 'Wartet auf Senden',
+  'offline.allergensOnceSent':
+    'Allergene werden aktualisiert, sobald deine Änderungen gesendet sind.',
+  'offline.cardOnceSent': 'Diese Karte wird aktualisiert, sobald deine Änderungen gesendet sind.',
+  'offline.menuOnceSent':
+    'Allergene und Gerichtkarten werden aktualisiert, sobald deine Änderungen gesendet sind.',
   'offline.conflictTitle': 'Auf einem anderen Gerät geändert',
   'offline.conflictBody':
     'Während du offline warst, hat jemand anderes {what} geändert. Welche Version soll bleiben?',

@@ -34,7 +34,7 @@ export function DeviceSettings() {
       <p className="text-ink-soft mb-5 text-sm">{t('devices.body')}</p>
 
       {devices.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-      {devices.isError ? (
+      {devices.isError && devices.data === undefined ? (
         <LoadError className="mb-5" onRetry={() => void devices.refetch()} />
       ) : null}
 

@@ -45,8 +45,13 @@ export const persister = createAsyncStoragePersister({
   throttleTime: 2_000,
 });
 
-export function keepOnDevice(queryKey: QueryKey, succeeded: boolean): boolean {
-  return succeeded && !NOT_KEPT.has(String(queryKey[0]));
+/**
+ * Whether a query is saved on the device. Anything with an answer is, even
+ * when asking again just failed: that failure is Mise being out of reach, and
+ * the last answer is exactly what to open with next time.
+ */
+export function keepOnDevice(queryKey: QueryKey, hasAnswer: boolean): boolean {
+  return hasAnswer && !NOT_KEPT.has(String(queryKey[0]));
 }
 
 /** Forget everything kept, as signing out on a shared tablet does. */

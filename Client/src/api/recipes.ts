@@ -11,6 +11,7 @@ import type {
   UpdateIngredient,
   UpdateRecipe,
 } from '@mise/contracts';
+import { componentsAsSent, knownNames, linesAsSent } from './offlineEdits.js';
 import { api, BASE_URL, isQueued, noAnswer, RequestFailed, sendOrQueue } from './client.js';
 import { factorForPortions, factorForYield, isUnitCode, ok, type UnitCode } from '@mise/domain';
 
@@ -92,10 +93,19 @@ export function useRecipes(filters: RecipeFilters = {}) {
 }
 
 export function useRecipe(id: string | undefined) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: ['recipe', id],
     enabled: Boolean(id),
     queryFn: () => api.get<Recipe>(`/recipes/${id}`),
+    // Every recipe is loaded ahead as written, which includes the recipe
+    // itself: start from that, so it opens for editing offline too.
+    initialData: () =>
+      id
+        ? queryClient.getQueryData<ExpandedRecipe>(['recipe-expanded', id, {}])?.recipe
+        : undefined,
+    initialDataUpdatedAt: () =>
+      id ? queryClient.getQueryState(['recipe-expanded', id, {}])?.dataUpdatedAt : undefined,
   });
 }
 
@@ -124,7 +134,7 @@ export function useCreateRecipe() {
   });
 }
 
-/** What an edit says that a recipe shows as is. Components need the server to name them. */
+/** What an edit says that a recipe shows as is. Components are named from what the device knows. */
 const SHOWN_AS_IS = [
   'name',
   'type',
@@ -167,12 +177,29 @@ export function useUpdateRecipe(id: string) {
           }
           return shown as T;
         };
-        queryClient.setQueryData<Recipe>(['recipe', id], (old) => old && withEdit(old));
+        // What goes in, named from what this device knows; the amounts in a
+        // sub-recipe follow its new amount.
+        const before =
+          queryClient.getQueryData<Recipe>(['recipe', id])?.components ??
+          queryClient.getQueryData<ExpandedRecipe>(['recipe-expanded', id, {}])?.recipe
+            .components ??
+          [];
+        const components = input.components
+          ? componentsAsSent(input.components, before, knownNames(queryClient, before))
+          : null;
+        queryClient.setQueryData<Recipe>(
+          ['recipe', id],
+          (old) => old && { ...withEdit(old), ...(components ? { components } : {}) },
+        );
         for (const [key, expanded] of queryClient.getQueriesData<ExpandedRecipe>({
           queryKey: ['recipe-expanded', id],
         })) {
           if (expanded) {
-            queryClient.setQueryData(key, { ...expanded, recipe: withEdit(expanded.recipe) });
+            queryClient.setQueryData(key, {
+              ...expanded,
+              recipe: { ...withEdit(expanded.recipe), ...(components ? { components } : {}) },
+              lines: components ? linesAsSent(expanded, components) : expanded.lines,
+            });
           }
         }
         for (const [key, list] of queryClient.getQueriesData<RecipeSummary[]>({

@@ -1044,6 +1044,9 @@ export const en = {
   'offline.sending_other': 'Sending {count} changes made while offline…',
   'offline.dropped': '{what} couldn’t be saved: {reason}',
   'offline.lineWaiting': 'Waiting to be sent',
+  'offline.allergensOnceSent': 'Allergens update once your changes are sent.',
+  'offline.cardOnceSent': 'This card updates once your changes are sent.',
+  'offline.menuOnceSent': 'Allergens and dish cards update once your changes are sent.',
   'offline.conflictTitle': 'Changed on another device',
   'offline.conflictBody':
     'While you were offline, someone else changed {what}. Which version should stay?',

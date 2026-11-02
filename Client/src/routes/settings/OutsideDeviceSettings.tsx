@@ -29,7 +29,9 @@ export function OutsideDeviceSettings() {
       <p className="text-ink-soft mb-5 max-w-[70ch] text-sm">{t('outside.body')}</p>
 
       {remote.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-      {remote.isError ? <LoadError className="mb-5" onRetry={() => void remote.refetch()} /> : null}
+      {remote.isError && remote.data === undefined ? (
+        <LoadError className="mb-5" onRetry={() => void remote.refetch()} />
+      ) : null}
 
       {waiting.length > 0 ? (
         <>

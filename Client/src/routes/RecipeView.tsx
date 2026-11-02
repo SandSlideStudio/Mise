@@ -6,6 +6,7 @@ import { RequestFailed } from '../api/client.js';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
 import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
 import { useDishCardSettings } from '../api/dishcards.js';
+import { useAwaiting } from '../lib/awaiting.js';
 import { useStations } from '../api/kitchen.js';
 import { useCurrentUser } from '../api/session.js';
 import {
@@ -65,6 +66,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const remove = useDeleteRecipe();
   const [confirming, setConfirming] = useState(false);
   const cardSettings = useDishCardSettings();
+  const awaiting = useAwaiting();
 
   // An amount this recipe can't be scaled to, such as kilos of something
   // counted in pieces, opens the spec as written instead of an error.
@@ -195,6 +197,11 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
                   : ''}
                 {t('recipe.workedOut')}
               </span>
+              {awaiting.recipe(recipeId) ? (
+                <span role="status" className="text-accent text-[15px] font-semibold">
+                  {t('offline.allergensOnceSent')}
+                </span>
+              ) : null}
             </div>
           </div>
 

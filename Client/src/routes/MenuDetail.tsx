@@ -8,6 +8,8 @@ import {
   type MenuStatus,
 } from '@mise/contracts';
 import { useDishCardSettings } from '../api/dishcards.js';
+import { useAwaiting } from '../lib/awaiting.js';
+import { AwaitingNote } from '../components/AwaitingNote.js';
 import {
   useDeleteMenu,
   useDuplicateMenu,
@@ -40,7 +42,9 @@ export function MenuDetail() {
           {t('menus.back')}
         </Link>
         {menu.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-        {menu.isError ? <LoadError onRetry={() => void menu.refetch()} /> : null}
+        {menu.isError && menu.data === undefined ? (
+          <LoadError onRetry={() => void menu.refetch()} />
+        ) : null}
         {menu.data ? <MenuView key={menu.data.id} menu={menu.data} /> : null}
       </main>
     </AppShell>
@@ -55,6 +59,7 @@ function MenuView({ menu }: { menu: Menu }) {
   const update = useUpdateMenu(menu.id);
   const dishes = useRecipes({ type: 'dish' });
   const cardSettings = useDishCardSettings();
+  const awaiting = useAwaiting();
   const [adding, setAdding] = useState('');
 
   const ids = menu.dishes.map((dish) => dish.recipeId);
@@ -93,6 +98,9 @@ function MenuView({ menu }: { menu: Menu }) {
           </span>
         </div>
 
+        {awaiting.menu(menu.id, ids) ? (
+          <AwaitingNote what="menu" className="border-line border-b px-4 py-2 sm:px-6" />
+        ) : null}
         {menu.dishes.length === 0 ? (
           <p className="text-ink-soft px-6 py-8 text-center">{t('menus.noDishes')}</p>
         ) : (

@@ -1067,6 +1067,10 @@ export const nl: Record<MessageKey, string> = {
   'offline.sending_other': '{count} wijzigingen van offline worden verstuurd…',
   'offline.dropped': '{what} kon niet worden opgeslagen: {reason}',
   'offline.lineWaiting': 'Wacht op versturen',
+  'offline.allergensOnceSent': 'Allergenen worden bijgewerkt zodra je wijzigingen verstuurd zijn.',
+  'offline.cardOnceSent': 'Deze kaart wordt bijgewerkt zodra je wijzigingen verstuurd zijn.',
+  'offline.menuOnceSent':
+    'Allergenen en gerechtenkaarten worden bijgewerkt zodra je wijzigingen verstuurd zijn.',
   'offline.conflictTitle': 'Gewijzigd op een ander apparaat',
   'offline.conflictBody':
     'Terwijl je offline was, heeft iemand anders {what} gewijzigd. Welke versie moet blijven?',

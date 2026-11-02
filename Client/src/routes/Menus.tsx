@@ -73,7 +73,9 @@ export function Menus() {
         ) : null}
 
         {menus.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-        {menus.isError ? <LoadError onRetry={() => void menus.refetch()} /> : null}
+        {menus.isError && menus.data === undefined ? (
+          <LoadError onRetry={() => void menus.refetch()} />
+        ) : null}
         {menus.data?.length === 0 ? (
           <p className="text-ink-soft border-line border-2 border-dashed p-8 text-center text-lg">
             {t('menus.empty')}
