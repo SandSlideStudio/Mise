@@ -124,6 +124,16 @@ export interface BackupServiceOptions {
   onedrive: Onedrive;
 }
 
+/** Whether two NAS addresses lead to the same server: scheme, host and port. */
+export function sameServer(a: string | null, b: string | null): boolean {
+  if (!a || !b) return a === b;
+  try {
+    return new URL(a).origin === new URL(b).origin;
+  } catch {
+    return false;
+  }
+}
+
 export function createBackupService({
   db,
   uploadDir,
@@ -230,8 +240,13 @@ export function createBackupService({
       (sendToWebdav && !current.sendToWebdav) ||
       (sendToOnedrive && !current.sendToOnedrive) ||
       webdavUrl !== current.webdavUrl;
+    // A password is for one server: pointed somewhere else, it is forgotten
+    // unless a new one comes with it, rather than sent to whoever is there.
+    const elsewhere =
+      input.webdavPassword === undefined && !sameServer(webdavUrl, current.webdavUrl);
     await record({
       ...rest,
+      ...(elsewhere ? { webdavPassword: null } : {}),
       sendToWebdav,
       sendToOnedrive,
       ...(moved ? { lastFingerprint: null } : {}),
@@ -486,7 +501,10 @@ export function createBackupService({
     await webdav.test({
       url: target.url,
       username: target.username,
-      password: target.password ?? current.webdavPassword,
+      // The saved password only goes back to the server it was saved for.
+      password:
+        target.password ??
+        (sameServer(target.url, current.webdavUrl) ? current.webdavPassword : null),
     });
   }
 

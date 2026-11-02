@@ -461,6 +461,41 @@ describe('sending backups to a NAS', () => {
     expect(status.lastError).toBeNull();
   });
 
+  it('sends the saved password only to the server it was saved for', async () => {
+    const { cookies } = await stockedKitchen();
+    const saved = await app.inject({
+      method: 'PATCH',
+      url: '/api/backups',
+      cookies,
+      payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'secret' },
+    });
+    expect(saved.json()).toMatchObject({ hasWebdavPassword: true });
+
+    const test = (webdavUrl: string) =>
+      app.inject({
+        method: 'POST',
+        url: '/api/backups/test',
+        cookies,
+        payload: { webdavUrl, webdavUsername: 'chef' },
+      });
+    // The same NAS, by the same address: the saved password is used.
+    expect((await test(`${address}/kitchen`)).statusCode).toBe(204);
+    // The same machine by another name counts as another server: no password goes there.
+    const elsewhere = address.replace('127.0.0.1', 'localhost');
+    const refused = await test(elsewhere);
+    expect(refused.statusCode).toBe(400);
+    expect(refused.json().error.code).toBe('backup_auth');
+
+    // Pointed at another server without a new password, the old one is forgotten.
+    const moved = await app.inject({
+      method: 'PATCH',
+      url: '/api/backups',
+      cookies,
+      payload: { webdavUrl: elsewhere },
+    });
+    expect(moved.json()).toMatchObject({ hasWebdavPassword: false });
+  });
+
   it('can be tested and chosen during setup, before the kitchen exists', async () => {
     const wrong = await app.inject({
       method: 'POST',
