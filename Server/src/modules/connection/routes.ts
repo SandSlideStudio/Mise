@@ -108,6 +108,14 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       if (wrong) {
         throw new ApiError(400, 'bad_name', `"${wrong}" is not an address or host name.`);
       }
+      const outside = app.connection.namesOutsideAuthority(names);
+      if (outside.length > 0) {
+        throw new ApiError(
+          400,
+          'name_outside_kitchen',
+          `The kitchen certificate only vouches for the kitchen network: addresses such as 192.168.1.50, and names ending in .local, .lan, .home or .internal. "${outside[0]}" isn't one of them.`,
+        );
+      }
       await app.connection.enableKitchenHttps(names, await kitchenName());
       return describe(request);
     },

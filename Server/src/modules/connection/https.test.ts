@@ -14,7 +14,7 @@ import {
   useTestContext,
 } from '../../test/harness.js';
 import type { issueDomainCertificate } from './acme.js';
-import { createAuthority, issueKitchenCertificate } from './certificates.js';
+import { authorityPermits, createAuthority, issueKitchenCertificate } from './certificates.js';
 import { CONNECTION_ID } from './service.js';
 
 const ctx = useTestContext();
@@ -234,6 +234,27 @@ describe('the kitchen certificate', () => {
       ca: again.connection.authority()!,
     });
     expect(health.status).toBe(200);
+  });
+
+  it('vouches only for the kitchen network, so a tablet trusting it trusts nothing else', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    const on = await as(server, admin, 'PUT', '/api/connection/kitchen-https', {
+      names: ['192.168.1.50', 'mise'],
+    });
+    expect(on.statusCode).toBe(200);
+    const authority = server.connection.authority()!;
+    for (const name of ['192.168.1.50', '10.0.0.7', 'mise', 'pass.mise', 'mise.local', 'fd00::1'])
+      expect(authorityPermits(authority, name), name).toBe(true);
+    for (const name of ['www.mybank.com', '8.8.8.8', 'mise.com'])
+      expect(authorityPermits(authority, name), name).toBe(false);
+
+    // Later, a name it can't vouch for is refused rather than served broken.
+    const outside = await as(server, admin, 'PUT', '/api/connection/kitchen-https', {
+      names: ['192.168.1.50', 'kitchen.example.com'],
+    });
+    expect(outside.statusCode).toBe(400);
+    expect(outside.json().error.code).toBe('name_outside_kitchen');
   });
 
   it('takes only addresses and host names', async () => {

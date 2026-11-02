@@ -3,7 +3,12 @@ import type { Database } from '../../db/client.js';
 import { connectionSettings } from '../../db/schema.js';
 import { plainAddress } from '../../lib/network.js';
 import { acmeReason, issueDomainCertificate, type ChallengeAnswers } from './acme.js';
-import { createAuthority, fingerprint, issueKitchenCertificate } from './certificates.js';
+import {
+  authorityPermits,
+  createAuthority,
+  fingerprint,
+  issueKitchenCertificate,
+} from './certificates.js';
 import type { HttpsListener } from './listener.js';
 
 /** The one row's id. */
@@ -105,7 +110,7 @@ export function createConnectionService(options: {
     const authority =
       row?.kitchenCaCert && row.kitchenCaKey
         ? { cert: row.kitchenCaCert, key: row.kitchenCaKey }
-        : await createAuthority(kitchenName);
+        : await createAuthority(kitchenName, names);
     const issued = await issueKitchenCertificate(authority, names);
     return {
       kitchenCaCert: authority.cert,
@@ -199,6 +204,12 @@ export function createConnectionService(options: {
 
     /** The authority a tablet trusts, or null before there is one. */
     authority: () => row?.kitchenCaCert ?? null,
+
+    /** Names the kitchen's authority can't vouch for, made before or not. */
+    namesOutsideAuthority(names: string[]): string[] {
+      const authority = row?.kitchenCaCert;
+      return authority ? names.filter((name) => !authorityPermits(authority, name)) : [];
+    },
 
     async enableKitchenHttps(names: string[], kitchenName: string): Promise<void> {
       await save({ kitchenHttps: true, ...(await makeKitchenCertificate(names, kitchenName)) });
