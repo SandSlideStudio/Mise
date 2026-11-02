@@ -359,7 +359,7 @@ export const fr: Record<MessageKey, string> = {
   'recipe.empty': 'Cette recette est encore vide.',
   'recipe.method': 'Méthode',
   'recipe.storage': 'Conservation',
-  'recipe.print': 'Imprimer à cette taille',
+  'recipe.print': 'Imprimer la fiche recette',
   'recipe.duplicate': 'Dupliquer',
   'recipe.copyName': '{name} (copie)',
   'recipe.usedBy': 'Utilisée dans',
@@ -380,7 +380,6 @@ export const fr: Record<MessageKey, string> = {
   'plating.add': 'Ajouter une photo de dressage',
   'plating.addAnother': 'Ajouter une autre photo',
 
-  'print.printed': 'Imprimé le {date} · {time}',
   'print.whatGoesIn': 'Ce qui entre dedans',
 
   'editor.editing': 'Modification',
@@ -1102,4 +1101,19 @@ export const fr: Record<MessageKey, string> = {
   'offline.label.ingredient': 'l’ingrédient « {name} »',
   'error.offline':
     'Mise est injoignable pour l’instant, et ceci a besoin de la connexion. Réessayez quand elle sera revenue.',
+  'prepPrint.print': 'Imprimer',
+  'prepPrint.title': 'Mise en place',
+  'prepPrint.empty': 'Rien sur la liste.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Rendement',
+  'recipeCard.prepTime': 'Préparation',
+  'recipeCard.keeps': 'Se conserve',
+  'recipeCard.days_one': '{count} jour',
+  'recipeCard.days_other': '{count} jours',
+  'recipeCard.hours_one': '{count} heure',
+  'recipeCard.hours_other': '{count} heures',
+  'recipeCard.mayContain': 'Peut contenir : {allergens}',
+  'recipeCard.onThePlate': 'Dans l’assiette',
+  'recipeCard.plating': 'Dressage',
+  'recipeCard.ownRecipe': 'sa propre recette',
 };

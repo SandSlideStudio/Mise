@@ -353,7 +353,7 @@ export const nl: Record<MessageKey, string> = {
   'recipe.empty': 'Dit recept is nog leeg.',
   'recipe.method': 'Bereiding',
   'recipe.storage': 'Bewaren',
-  'recipe.print': 'Deze hoeveelheid afdrukken',
+  'recipe.print': 'Receptkaart printen',
   'recipe.duplicate': 'Dupliceren',
   'recipe.copyName': '{name} (kopie)',
   'recipe.usedBy': 'Gebruikt in',
@@ -374,7 +374,6 @@ export const nl: Record<MessageKey, string> = {
   'plating.add': 'Foto van het bord toevoegen',
   'plating.addAnother': 'Nog een foto toevoegen',
 
-  'print.printed': 'Afgedrukt {date} · {time}',
   'print.whatGoesIn': 'Wat erin gaat',
 
   'editor.editing': 'Bewerken',
@@ -1093,4 +1092,19 @@ export const nl: Record<MessageKey, string> = {
   'offline.label.ingredient': 'het ingrediënt “{name}”',
   'error.offline':
     'Mise is nu niet bereikbaar, en hiervoor is de verbinding nodig. Probeer het opnieuw zodra die terug is.',
+  'prepPrint.print': 'Printen',
+  'prepPrint.title': 'Preplijst',
+  'prepPrint.empty': 'Niets op de lijst.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Opbrengst',
+  'recipeCard.prepTime': 'Bereidingstijd',
+  'recipeCard.keeps': 'Houdbaar',
+  'recipeCard.days_one': '{count} dag',
+  'recipeCard.days_other': '{count} dagen',
+  'recipeCard.hours_one': '{count} uur',
+  'recipeCard.hours_other': '{count} uur',
+  'recipeCard.mayContain': 'Kan bevatten: {allergens}',
+  'recipeCard.onThePlate': 'Op het bord',
+  'recipeCard.plating': 'Opmaak',
+  'recipeCard.ownRecipe': 'eigen recept',
 };

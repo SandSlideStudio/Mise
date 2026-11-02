@@ -16,6 +16,7 @@ import {
 import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
+import { PrepListPrint } from '../components/PrepListPrint.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
 import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
@@ -47,7 +48,7 @@ export function Today() {
 
   return (
     <AppShell>
-      <main className="pb-12">
+      <main className="pb-12 print:hidden">
         <div className="border-line bg-surface-raised flex items-center gap-x-4 gap-y-3 border-b-2 px-4 py-3 sm:flex-wrap sm:gap-x-6 sm:px-7 sm:py-4">
           <div className="flex min-w-0 flex-col">
             <h1 className="text-[28px] sm:text-[34px]">{t('nav.today')}</h1>
@@ -57,6 +58,13 @@ export function Today() {
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-7">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn-quiet no-print h-12 border-2 px-4 text-lg tracking-[0.1em] sm:h-16 sm:px-[22px] sm:text-[22px]"
+            >
+              {t('prepPrint.print')}
+            </button>
             <button
               type="button"
               onClick={toggleNight}
@@ -80,6 +88,7 @@ export function Today() {
 
         <RunningPrep />
       </main>
+      <PrepListPrint kitchenName={user.kitchenName} />
     </AppShell>
   );
 }

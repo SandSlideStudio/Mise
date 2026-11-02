@@ -352,7 +352,7 @@ export const en = {
   'recipe.empty': 'Nothing in this recipe yet.',
   'recipe.method': 'Method',
   'recipe.storage': 'Storage',
-  'recipe.print': 'Print this size',
+  'recipe.print': 'Print recipe card',
   'recipe.duplicate': 'Duplicate',
   'recipe.copyName': '{name} (copy)',
   'recipe.usedBy': 'Used by',
@@ -373,7 +373,6 @@ export const en = {
   'plating.add': 'Add a plating photograph',
   'plating.addAnother': 'Add another photograph',
 
-  'print.printed': 'Printed {date} · {time}',
   'print.whatGoesIn': 'What goes in',
 
   'editor.editing': 'Editing',
@@ -1070,6 +1069,21 @@ export const en = {
   'offline.label.ingredient': 'the ingredient “{name}”',
   'error.offline':
     'Mise can’t be reached right now, and this needs the connection. Try again once it’s back.',
+  'prepPrint.print': 'Print',
+  'prepPrint.title': 'Prep list',
+  'prepPrint.empty': 'Nothing on the list.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Makes',
+  'recipeCard.prepTime': 'Prep time',
+  'recipeCard.keeps': 'Keeps',
+  'recipeCard.days_one': '{count} day',
+  'recipeCard.days_other': '{count} days',
+  'recipeCard.hours_one': '{count} hour',
+  'recipeCard.hours_other': '{count} hours',
+  'recipeCard.mayContain': 'May contain: {allergens}',
+  'recipeCard.onThePlate': 'On the plate',
+  'recipeCard.plating': 'Plating',
+  'recipeCard.ownRecipe': 'its own recipe',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -92,3 +92,37 @@ test('a new dish is made under Dishes, and Recipes cannot make one', async ({ pa
   await page.goto(`/recipes/${dishId}/card`);
   await page.waitForURL((url) => url.pathname === `/dishes/${dishId}/card`);
 });
+
+test('a recipe prints as a card, as written, whatever size is on screen', async ({
+  page,
+  request,
+}) => {
+  const api = await signedInApi(request);
+  const name = unique('Vanilla custard');
+  const created = await api.post('/api/recipes', {
+    data: {
+      name,
+      type: 'prep',
+      yield: { value: 1, unit: 'l' },
+      prepMinutes: 35,
+      shelfLifeHours: 72,
+      method: [{ text: 'Bring the milk to a simmer.' }],
+    },
+  });
+  expect(created.ok(), await created.text()).toBe(true);
+  const { id } = await created.json();
+
+  await signIn(page);
+  // Scaled on screen to 3 l; the card is still the 1 l recipe.
+  await page.goto(`/recipes/${id}?amount=3000&unit=ml`);
+  await expect(page.getByRole('heading', { name }).first()).toBeVisible();
+  await page.emulateMedia({ media: 'print' });
+  const card = page.locator('article', { hasText: name });
+  await expect(card).toBeVisible();
+  expect(await card.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  await expect(card).toContainText('1 l');
+  await expect(card).toContainText('3 days');
+  await expect(card).toContainText('35 min');
+  await expect(card).toContainText('Bring the milk to a simmer.');
+  await expect(card).not.toContainText('3 l');
+});

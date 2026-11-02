@@ -354,7 +354,7 @@ export const es: Record<MessageKey, string> = {
   'recipe.empty': 'Esta receta todavía está vacía.',
   'recipe.method': 'Elaboración',
   'recipe.storage': 'Conservación',
-  'recipe.print': 'Imprimir este tamaño',
+  'recipe.print': 'Imprimir ficha de receta',
   'recipe.duplicate': 'Duplicar',
   'recipe.copyName': '{name} (copia)',
   'recipe.usedBy': 'Se usa en',
@@ -375,7 +375,6 @@ export const es: Record<MessageKey, string> = {
   'plating.add': 'Añadir una foto del emplatado',
   'plating.addAnother': 'Añadir otra foto',
 
-  'print.printed': 'Impreso {date} · {time}',
   'print.whatGoesIn': 'Qué lleva',
 
   'editor.editing': 'Editando',
@@ -1090,4 +1089,19 @@ export const es: Record<MessageKey, string> = {
   'offline.label.ingredient': 'el ingrediente “{name}”',
   'error.offline':
     'Ahora no se puede conectar con Mise, y esto necesita la conexión. Vuelve a intentarlo cuando vuelva.',
+  'prepPrint.print': 'Imprimir',
+  'prepPrint.title': 'Mise en place',
+  'prepPrint.empty': 'Nada en la lista.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Rinde',
+  'recipeCard.prepTime': 'Preparación',
+  'recipeCard.keeps': 'Se conserva',
+  'recipeCard.days_one': '{count} día',
+  'recipeCard.days_other': '{count} días',
+  'recipeCard.hours_one': '{count} hora',
+  'recipeCard.hours_other': '{count} horas',
+  'recipeCard.mayContain': 'Puede contener: {allergens}',
+  'recipeCard.onThePlate': 'En el plato',
+  'recipeCard.plating': 'Emplatado',
+  'recipeCard.ownRecipe': 'su propia receta',
 };

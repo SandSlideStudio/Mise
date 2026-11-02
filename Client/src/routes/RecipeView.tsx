@@ -1,6 +1,7 @@
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { sectionPath, useRightSection } from '../lib/section.js';
+import { RecipeCardPrint } from '../components/RecipeCardPrint.js';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
 import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
 import { useDishCardSettings } from '../api/dishcards.js';
@@ -19,7 +20,6 @@ import { AppShell } from '../components/AppShell.js';
 import { Plate } from '../components/Plate.js';
 import {
   allergenName,
-  clockTime,
   errorMessage,
   inSentence,
   recipeStatusName,
@@ -57,6 +57,8 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const stations = useStations();
   const [target, setTarget] = useState<ScaleTarget>(asked);
   const expanded = useExpandedRecipe(recipeId, target);
+  // The printed card is always the recipe as written, whatever size is on screen.
+  const written = useExpandedRecipe(recipeId, {});
   const usedBy = useRecipeUsedBy(recipeId);
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipe();
@@ -321,15 +323,13 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
           </section>
         ) : null}
 
-        <PrintSheet
-          recipe={recipe}
-          stationName={station?.name ?? null}
-          kitchenName={user.kitchenName}
-          size={size}
-          lines={lines}
-          contains={contains}
-          mayContain={mayContain}
-        />
+        {written.data ? (
+          <RecipeCardPrint
+            written={written.data}
+            stationName={station?.name ?? null}
+            kitchenName={user.kitchenName}
+          />
+        ) : null}
       </main>
     </AppShell>
   );
@@ -673,132 +673,6 @@ function Plating({
  * repeats the size, because a sheet taped up for three weeks needs to say
  * which size it is.
  */
-function PrintSheet({
-  recipe,
-  stationName,
-  kitchenName,
-  size,
-  lines,
-  contains,
-  mayContain,
-}: {
-  recipe: Recipe;
-  stationName: string | null;
-  kitchenName: string;
-  size: Size;
-  lines: ExpandedLine[];
-  contains: string[];
-  mayContain: string[];
-}) {
-  const translator = useT();
-  const { t, plural, locale } = translator;
-  const printed = new Date();
-  const keeps = [
-    recipe.shelfLifeHours ? plural('recipe.keeps', recipe.shelfLifeHours) : null,
-    recipe.storage,
-  ]
-    .filter(Boolean)
-    .join(' · ');
-
-  return (
-    <article className="hidden text-black [--indent:26px] print:block">
-      <header className="flex items-start justify-between gap-5 border-b-[3px] border-black pb-3.5">
-        <div>
-          <h1 className="text-[40pt] leading-[0.95]">{recipe.name}</h1>
-          <p className="mt-1.5 text-[12pt] tracking-[0.04em]">
-            {[recipeTypeName(t, recipe.type), stationName, size.makes, size.note]
-              .filter(Boolean)
-              .join(' · ')}
-          </p>
-        </div>
-        <div className="text-right text-[10pt] leading-normal tracking-[0.04em]">
-          <p className="font-display text-[13pt] font-semibold tracking-[0.12em] uppercase">
-            {kitchenName}
-          </p>
-          <p>
-            {t('print.printed', {
-              date: printed.toLocaleDateString(locale, { day: '2-digit', month: '2-digit' }),
-              time: clockTime(locale, printed),
-            })}
-          </p>
-          {keeps ? <p>{keeps}</p> : null}
-        </div>
-      </header>
-
-      <div className="keep-together mt-[18px] border-[3px] border-black px-4 py-3">
-        <span className="font-display text-[13pt] font-semibold tracking-[0.16em] uppercase">
-          {t('recipe.contains')}
-        </span>
-        <span className="font-display mt-0.5 block text-[24pt] leading-none font-semibold">
-          {contains.length > 0 ? contains.join(', ') : t('recipe.nothingDeclarable')}
-        </span>
-        {mayContain.length > 0 ? (
-          <span className="mt-1 block text-[11pt]">
-            {t('recipe.mayContain', {
-              allergens: mayContain.map((name) => inSentence(translator, name)).join(', '),
-            })}
-          </span>
-        ) : null}
-      </div>
-
-      <section className="mt-6">
-        <PrintHeading>{t('print.whatGoesIn')}</PrintHeading>
-        {lines.map((line, index) => (
-          <div
-            key={`${line.sourceId}-${index}`}
-            className="grid grid-cols-[18pt_72pt_1fr] items-baseline gap-3 border-b-[0.75px] border-[#b8b8b8] py-[7px]"
-          >
-            <span className="font-mono text-[8pt] text-[#666]">{line.depth}</span>
-            <span className="font-display text-right text-[17pt] leading-none font-semibold">
-              {amount(line.quantity.value, line.quantity.unit)}
-            </span>
-            <span className="relative" style={indentStyle(line.depth)}>
-              <Leaders depth={line.depth} print />
-              <span className={`text-[12.5pt] ${line.depth === 0 ? 'font-semibold' : ''}`}>
-                {line.name}
-              </span>
-              {line.note ? (
-                <span className="block text-[10.5pt] text-[#444]">{line.note}</span>
-              ) : null}
-            </span>
-          </div>
-        ))}
-      </section>
-
-      {recipe.method.length > 0 ? (
-        <section className="mt-6">
-          <PrintHeading>{t('recipe.method')}</PrintHeading>
-          <ol className="mt-2.5 flex flex-col gap-2">
-            {recipe.method.map((step, index) => (
-              <li key={index} className="grid grid-cols-[20pt_1fr] items-baseline gap-3">
-                <span className="font-display text-right text-[15pt] font-semibold">
-                  {index + 1}
-                </span>
-                <span className="text-[12.5pt] leading-[1.4]">{step.text}</span>
-              </li>
-            ))}
-          </ol>
-        </section>
-      ) : null}
-
-      <footer className="mt-8 flex justify-between gap-5 border-t-[1.5px] border-black pt-3 text-[10.5pt] tracking-[0.04em]">
-        <span>{keeps}</span>
-        <span>
-          {recipe.name} · {size.note}
-        </span>
-      </footer>
-    </article>
-  );
-}
-
-function PrintHeading({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="font-display border-b-[1.5px] border-black pb-1 text-[13pt] font-semibold tracking-[0.16em] uppercase">
-      {children}
-    </h2>
-  );
-}
-
 function amount(value: number, unit: string): string {
   return isUnitCode(unit) ? formatQuantity(humanize({ value, unit })) : `${round(value)} ${unit}`;
 }
