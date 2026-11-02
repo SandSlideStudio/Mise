@@ -1134,4 +1134,6 @@ export const fr: Record<MessageKey, string> = {
     '{child} donne des {makes}, on ne peut donc pas le mesurer en {unit} ici. Utilisez le même type d’unité, ou changez ce que donne {child}.',
   'error.incompatibleUnitsUsedIn':
     '{usedIn} utilise {child} en {unit}, ce qui ne se déduit pas de {makes}. Modifiez d’abord cette ligne, ou gardez le rendement dans le même type d’unité.',
+  'recipe.shownAsWritten':
+    'Cette recette ne peut pas être calculée pour la quantité demandée ; elle s’affiche telle qu’écrite.',
 };

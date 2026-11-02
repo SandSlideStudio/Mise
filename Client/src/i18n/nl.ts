@@ -1123,4 +1123,6 @@ export const nl: Record<MessageKey, string> = {
     '{child} levert {makes} op, dus het kan hier niet in {unit} worden afgemeten. Gebruik dezelfde soort eenheid, of pas aan wat {child} oplevert.',
   'error.incompatibleUnitsUsedIn':
     '{usedIn} gebruikt {child} in {unit}, en dat is niet uit {makes} af te leiden. Pas eerst die regel aan, of houd de opbrengst in dezelfde soort eenheid.',
+  'recipe.shownAsWritten':
+    'Dit recept kan niet naar de gevraagde hoeveelheid worden omgerekend, dus je ziet het zoals het geschreven is.',
 };

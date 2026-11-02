@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { sectionPath, useRightSection } from '../lib/section.js';
 import { RecipeCardPrint } from '../components/RecipeCardPrint.js';
+import { RequestFailed } from '../api/client.js';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
 import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
 import { useDishCardSettings } from '../api/dishcards.js';
@@ -67,9 +68,20 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
 
   // An amount this recipe can't be scaled to, such as kilos of something
   // counted in pieces, opens the spec as written instead of an error.
-  const unscalable = expanded.isError && target === asked && asked.yieldValue !== undefined;
+  // Only when Mise itself says so (a 400): a dropped connection is not a reason
+  // to show other amounts than the ones asked for.
+  const unscalable =
+    expanded.isError &&
+    target === asked &&
+    asked.yieldValue !== undefined &&
+    expanded.error instanceof RequestFailed &&
+    expanded.error.status === 400;
+  const [fellBack, setFellBack] = useState(false);
   useEffect(() => {
-    if (unscalable) setTarget({});
+    if (unscalable) {
+      setTarget({});
+      setFellBack(true);
+    }
   }, [unscalable]);
 
   // An older link to a dish under Recipes, or a prep under Dishes: moved to its own tab.
@@ -186,7 +198,19 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
             </div>
           </div>
 
-          <ScaleControl recipe={recipe} asked={asked} onChange={setTarget} />
+          {/* Starts again from "as written" when it fell back, so its choices
+              never claim a size that isn't the one shown below. */}
+          <ScaleControl
+            key={fellBack ? 'written' : 'asked'}
+            recipe={recipe}
+            asked={fellBack ? {} : asked}
+            onChange={setTarget}
+          />
+          {fellBack ? (
+            <p role="status" className="border-accent mx-4 mb-3 border-l-2 pl-3 text-sm sm:mx-8">
+              {t('recipe.shownAsWritten')}
+            </p>
+          ) : null}
 
           {lines.length === 0 ? (
             <p className="text-ink-soft bg-surface-raised p-8 text-center">{t('recipe.empty')}</p>

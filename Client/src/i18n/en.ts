@@ -1100,6 +1100,8 @@ export const en = {
     '{child} makes {makes}, so it can’t be measured in {unit} here. Use the same kind of unit, or change what {child} makes.',
   'error.incompatibleUnitsUsedIn':
     '{usedIn} uses {child} in {unit}, which can’t be worked out from {makes}. Change that line first, or keep the yield in the same kind of unit.',
+  'recipe.shownAsWritten':
+    'This recipe can’t be made to the amount asked for, so it shows as written.',
 } as const;
 
 export type MessageKey = keyof typeof en;

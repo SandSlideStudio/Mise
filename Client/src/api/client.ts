@@ -105,7 +105,7 @@ export function setOutboxUser(id: string | null): void {
 }
 
 /** Whether the answer means "no answer": try again later rather than give up. */
-function noAnswer(error: unknown): boolean {
+export function noAnswer(error: unknown): boolean {
   if (error instanceof RequestFailed) return UNREACHABLE.has(error.status);
   return !(error instanceof DOMException && error.name === 'AbortError');
 }

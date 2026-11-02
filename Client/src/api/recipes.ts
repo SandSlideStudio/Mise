@@ -11,7 +11,8 @@ import type {
   UpdateIngredient,
   UpdateRecipe,
 } from '@mise/contracts';
-import { api, BASE_URL, isQueued, RequestFailed, sendOrQueue } from './client.js';
+import { api, BASE_URL, isQueued, noAnswer, RequestFailed, sendOrQueue } from './client.js';
+import { factorForPortions, factorForYield, isUnitCode, ok, type UnitCode } from '@mise/domain';
 
 /** The ingredient catalogue and the recipe library. */
 
@@ -222,12 +223,62 @@ export interface ScaleTarget {
  * same domain code the prep explosion uses, so a scaled spec and a prep list
  * can never disagree.
  */
+/**
+ * A size worked out on this device, from the recipe as written, when Mise
+ * can't be reached. Scaling is a straight multiplication all the way down the
+ * tree (the server does the same), so the amounts are the ones it would give.
+ * Null when the size can't be worked out here either.
+ */
+export function scaleOnDevice(written: ExpandedRecipe, target: ScaleTarget): ExpandedRecipe | null {
+  const { recipe } = written;
+  const asRecipe = {
+    id: recipe.id,
+    name: recipe.name,
+    type: recipe.type,
+    yield: { value: recipe.yield.value, unit: recipe.yield.unit as UnitCode },
+    portions: recipe.portions,
+    components: [],
+  };
+  const factor =
+    target.factor !== undefined
+      ? ok(target.factor)
+      : target.portions !== undefined
+        ? factorForPortions(asRecipe, target.portions)
+        : target.yieldValue !== undefined && target.yieldUnit && isUnitCode(target.yieldUnit)
+          ? factorForYield(asRecipe, { value: target.yieldValue, unit: target.yieldUnit })
+          : null;
+  if (!factor?.ok || written.factor === 0) return null;
+  const by = factor.value / written.factor;
+  return {
+    ...written,
+    factor: factor.value,
+    lines: written.lines.map((line) => ({
+      ...line,
+      quantity: { ...line.quantity, value: line.quantity.value * by },
+    })),
+  };
+}
+
 export function useExpandedRecipe(id: string | undefined, target: ScaleTarget) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: ['recipe-expanded', id, target],
     enabled: Boolean(id),
-    queryFn: () =>
-      api.get<ExpandedRecipe>(`/recipes/${id}/expanded`, target as Record<string, number | string>),
+    queryFn: async () => {
+      try {
+        return await api.get<ExpandedRecipe>(
+          `/recipes/${id}/expanded`,
+          target as Record<string, number | string>,
+        );
+      } catch (error) {
+        // No answer: work the size out from the recipe as written, if this
+        // device has it. A real refusal ("can't be scaled to that") stands.
+        const written = queryClient.getQueryData<ExpandedRecipe>(['recipe-expanded', id, {}]);
+        const scaled = noAnswer(error) && written ? scaleOnDevice(written, target) : null;
+        if (scaled) return scaled;
+        throw error;
+      }
+    },
     // Keep the previous size on screen while the next one loads, so changing
     // the portion count doesn't flash the list away. Only for the same recipe.
     placeholderData: (previous, previousQuery) =>
