@@ -187,7 +187,12 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireUser],
       schema: {
         params: z.object({ id: idSchema }),
-        response: { 200: allergenProfileSchema, 401: errorSchema, 404: errorSchema },
+        response: {
+          200: allergenProfileSchema,
+          401: errorSchema,
+          404: errorSchema,
+          422: errorSchema,
+        },
       },
     },
     async (request) => {
@@ -215,6 +220,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
           400: errorSchema,
           401: errorSchema,
           404: errorSchema,
+          422: errorSchema,
         },
       },
     },

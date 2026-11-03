@@ -1,3 +1,4 @@
+import { ApiError } from '../../lib/errors.js';
 import { and, asc, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm';
 import type { CreateRecipe, CreateRecipeComponent, UpdateRecipe } from '@mise/contracts';
 import {
@@ -121,14 +122,15 @@ export function createRecipesService(db: Database) {
   async function allergensFor(id: string): Promise<AllergenProfile> {
     const book = await loadRecipeBook(db);
     const result = rollUpAllergens(id, book);
-    // A missing reference cannot under-declare an allergen silently: fall back
-    // to whatever the recipe itself declares rather than reporting nothing.
+    // Never fewer allergens than are really in it: when the tree can't be
+    // followed all the way down (a missing reference, a loop), that is an
+    // error, not a shorter list.
     if (!result.ok) {
-      const recipe = book.recipe(id);
-      return {
-        contains: (recipe?.declaredAllergens ?? []) as Allergen[],
-        mayContain: (recipe?.mayContain ?? []) as Allergen[],
-      };
+      throw new ApiError(
+        422,
+        'allergens_unknown',
+        'The allergens of this recipe can’t be worked out: something in it is missing or refers back to itself. Check what goes into it in the editor.',
+      );
     }
     return result.value;
   }

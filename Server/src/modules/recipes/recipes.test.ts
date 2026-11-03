@@ -782,3 +782,30 @@ describe('a sub-recipe in a kind of unit its yield cannot be turned into', () =>
     expect(expanded.json().lines.map((l: { name: string }) => l.name)).toEqual(['Beurre blanc']);
   });
 });
+
+describe('allergens that cannot be worked out', () => {
+  it('are an error, never a shorter list', async () => {
+    const base = await addRecipe(ctx.app, admin, { name: 'Base', declaredAllergens: ['milk'] });
+    const sauce = await addRecipe(ctx.app, admin, {
+      name: 'Sauce',
+      components: [
+        {
+          ref: { kind: 'recipe', recipeId: base.id },
+          quantity: { value: 100, unit: 'g' },
+          sortOrder: 0,
+        },
+      ],
+    });
+    // A loop, as two edits at once or a damaged restore could leave behind.
+    await ctx.app.db.execute(sql`
+      insert into recipe_component
+        (recipe_id, sort_order, quantity_base, quantity_entered, unit_entered, child_recipe_id)
+      values (${base.id}, 0, 100, 100, 'g', ${sauce.id})`);
+
+    for (const url of [`/api/recipes/${sauce.id}/allergens`, `/api/recipes/${sauce.id}/expanded`]) {
+      const response = await ctx.app.inject({ method: 'GET', url, cookies: as(admin) });
+      expect(response.statusCode, url).not.toBe(200);
+      if (url.endsWith('/allergens')) expect(response.json().error.code).toBe('allergens_unknown');
+    }
+  });
+});
