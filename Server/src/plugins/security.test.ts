@@ -26,6 +26,37 @@ describe('security headers', () => {
   });
 });
 
+describe('changes from another page', () => {
+  const login = (headers: Record<string, string>) =>
+    ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'nobody@example.com', password: 'not-a-password' },
+      headers: { host: '192.168.1.5:3000', ...headers },
+    });
+
+  it('are refused, even from another app on the same machine', async () => {
+    for (const origin of ['https://evil.example', 'http://192.168.1.5:8080']) {
+      const response = await login({ origin });
+      expect(response.statusCode, origin).toBe(403);
+      expect(response.json().error.code).toBe('bad_origin');
+    }
+    expect((await login({ 'sec-fetch-site': 'cross-site' })).statusCode).toBe(403);
+  });
+
+  it('go through from Mise’s own page, or from outside a browser', async () => {
+    expect((await login({ origin: 'http://192.168.1.5:3000' })).statusCode).toBe(401);
+    expect((await login({})).statusCode).toBe(401);
+    // Behind a web server that passes the domain on as X-Forwarded-Host
+    // (here an untrusted one, so the outside-access gate answers instead).
+    const proxied = await login({
+      origin: 'https://mise.example.com',
+      'x-forwarded-host': 'mise.example.com',
+    });
+    expect(proxied.json().error.code).not.toBe('bad_origin');
+  });
+});
+
 describe('health', () => {
   it('says which version is running', async () => {
     const response = await ctx.app.inject({ method: 'GET', url: '/api/health' });

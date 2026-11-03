@@ -1,5 +1,7 @@
 import fp from 'fastify-plugin';
-import type { FastifyPluginAsync } from 'fastify';
+import type { TLSSocket } from 'node:tls';
+import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
+import { ApiError } from '../lib/errors.js';
 
 /**
  * Browser-side protections on every response.
@@ -40,10 +42,56 @@ const HEADERS: Record<string, string> = {
 /** A year, once someone has said the server is only reached over HTTPS. */
 const STRICT_TRANSPORT = 'max-age=31536000';
 
+const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
+
+/** "https://mise.example.com:3443" → "mise.example.com:3443". */
+function hostOf(origin: string): string | null {
+  try {
+    return new URL(origin).host.toLowerCase();
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Whether a change comes from Mise's own page. A browser names the page a
+ * request comes from in Origin; another site (another app on the same NAS,
+ * say) can't send changes with the kitchen's cookie. No Origin at all is a
+ * request from outside a browser, which carries no cookie by itself.
+ */
+function fromOwnPage(request: FastifyRequest): boolean {
+  const origin = request.headers.origin;
+  if (origin === undefined) return request.headers['sec-fetch-site'] !== 'cross-site';
+  const from = hostOf(origin);
+  if (!from) return false;
+  const hosts = [request.headers.host, request.headers['x-forwarded-host']]
+    .flatMap((value) => (Array.isArray(value) ? value : [value]))
+    .filter((value): value is string => typeof value === 'string')
+    .map((value) => value.split(',')[0]!.trim().toLowerCase());
+  return hosts.includes(from);
+}
+
+/** Served over HTTPS on the domain Mise holds its own certificate for. */
+function onOwnDomainOverHttps(request: FastifyRequest, domain: string | null): boolean {
+  if (!domain || !(request.raw.socket as TLSSocket).encrypted) return false;
+  return request.hostname.split(':')[0]!.toLowerCase() === domain;
+}
+
 const securityPlugin: FastifyPluginAsync = async (app) => {
-  app.addHook('onSend', async (_request, reply, payload) => {
+  app.addHook('onRequest', async (request) => {
+    if (WRITES.has(request.method) && request.url.startsWith('/api/') && !fromOwnPage(request)) {
+      throw new ApiError(403, 'bad_origin', 'Changes can only come from Mise’s own page.');
+    }
+  });
+
+  app.addHook('onSend', async (request, reply, payload) => {
     for (const [name, value] of Object.entries(HEADERS)) reply.header(name, value);
-    if (app.config.COOKIE_SECURE) reply.header('strict-transport-security', STRICT_TRANSPORT);
+    // Said to be HTTPS only, or on the domain Mise has its own certificate
+    // for: the browser goes straight to HTTPS from then on.
+    const https = app.hasDecorator('connection') ? app.connection.https().domain : null;
+    const domain = https?.enabled ? https.domain : null;
+    if (app.config.COOKIE_SECURE || onOwnDomainOverHttps(request, domain))
+      reply.header('strict-transport-security', STRICT_TRANSPORT);
     return payload;
   });
 };

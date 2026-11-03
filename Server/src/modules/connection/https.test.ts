@@ -95,33 +95,37 @@ function as(
 function fetchOverHttps(
   port: number,
   path: string,
-  options: { ca?: string; servername?: string } = {},
+  options: { ca?: string; servername?: string; anyCertificate?: boolean } = {},
 ) {
-  return new Promise<{ status: number; body: string; cookies: string[] }>((resolve, reject) => {
-    https
-      .get(
-        {
-          host: '127.0.0.1',
-          port,
-          path,
-          ca: options.ca,
-          servername: options.servername,
-          headers: { host: options.servername ?? '127.0.0.1' },
-        },
-        (response) => {
-          let body = '';
-          response.on('data', (chunk) => (body += chunk));
-          response.on('end', () =>
-            resolve({
-              status: response.statusCode ?? 0,
-              body,
-              cookies: [response.headers['set-cookie'] ?? []].flat(),
-            }),
-          );
-        },
-      )
-      .on('error', reject);
-  });
+  return new Promise<{ status: number; body: string; cookies: string[]; hsts?: string }>(
+    (resolve, reject) => {
+      https
+        .get(
+          {
+            host: '127.0.0.1',
+            port,
+            path,
+            ca: options.ca,
+            servername: options.servername,
+            ...(options.anyCertificate ? { rejectUnauthorized: false } : {}),
+            headers: { host: options.servername ?? '127.0.0.1' },
+          },
+          (response) => {
+            let body = '';
+            response.on('data', (chunk) => (body += chunk));
+            response.on('end', () =>
+              resolve({
+                status: response.statusCode ?? 0,
+                body,
+                cookies: [response.headers['set-cookie'] ?? []].flat(),
+                hsts: response.headers['strict-transport-security'],
+              }),
+            );
+          },
+        )
+        .on('error', reject);
+    },
+  );
 }
 
 /** Which certificate the server shows a browser asking for this name. */
@@ -374,6 +378,16 @@ describe('a certificate for the domain', () => {
     expect((await certificateFor(port, DOMAIN)).subjectAltName).toBe(`DNS:${DOMAIN}`);
     expect((await certificateFor(port)).subjectAltName).toBe('IP Address:127.0.0.1');
     expect((await certificateFor(port, 'mise.local')).subjectAltName).toBe('IP Address:127.0.0.1');
+
+    // On its own domain over HTTPS, the browser is told to stay on HTTPS; on
+    // the kitchen network's addresses, never.
+    const onDomain = await fetchOverHttps(port, '/api/health', {
+      servername: DOMAIN,
+      anyCertificate: true,
+    });
+    expect(onDomain.hsts).toBe('max-age=31536000');
+    const inKitchen = await fetchOverHttps(port, '/api/health', { anyCertificate: true });
+    expect(inKitchen.hsts).toBeUndefined();
   });
 
   it('sends plain HTTP on the domain over to HTTPS, but not Let’s Encrypt’s check or the kitchen network address', async () => {
