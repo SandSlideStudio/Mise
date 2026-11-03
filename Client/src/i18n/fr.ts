@@ -35,6 +35,57 @@ export const fr: Record<MessageKey, string> = {
   'common.loadFailed': 'Impossible de charger. Vérifiez la connexion et réessayez.',
 
   'error.generic': "Quelque chose s'est mal passé.",
+  'error.notFound': 'Ce n’est plus là. Quelqu’un l’a peut-être supprimé.',
+  'error.validationFailed': 'Quelque chose n’est pas bien rempli. Vérifiez et réessayez.',
+  'error.alreadyExists': 'Cela existe déjà.',
+  'error.stillReferenced': 'C’est encore utilisé ailleurs, donc impossible de le supprimer.',
+  'error.invalidData': 'Cette valeur n’est pas autorisée ici.',
+  'error.writeInProgress':
+    'Cette modification est en cours d’enregistrement. Réessayez dans un instant.',
+  'error.backupFileMissing': 'Joignez le fichier de sauvegarde.',
+  'error.onedriveNotConnected': 'Connectez d’abord OneDrive.',
+  'error.nasAddressNeeded': 'Saisissez l’adresse du NAS où envoyer les sauvegardes.',
+  'error.fileTooLarge': 'Ce fichier est trop volumineux.',
+  'error.unknownTimeZone': 'Ce serveur ne connaît pas ce fuseau horaire.',
+  'error.alreadySetUp': 'Ce serveur est déjà configuré.',
+  'error.imageType': 'Utilisez une image JPEG, PNG ou WebP.',
+  'error.imageMissing': 'Aucune image n’a été jointe.',
+  'error.notADish': 'Seul un plat a une fiche plat.',
+  'error.logoTooLarge': 'Ce logo dépasse 2 Mo.',
+  'error.photoTooLarge': 'Cette image dépasse 8 Mo.',
+  'error.taskNotYours': 'Vous ne pouvez mettre que votre propre nom sur une ligne.',
+  'error.taskChefOnly':
+    'Vous pouvez commencer et terminer une ligne, mais seul un chef peut en changer le texte.',
+  'error.staffRank': 'Seul un administrateur peut gérer le personnel de votre rang ou au-dessus.',
+  'error.adminNeedsPassword':
+    'Un administrateur a besoin d’une adresse e-mail et d’un mot de passe, pas seulement d’un code PIN.',
+  'error.passwordNeedsEmail': 'La connexion par mot de passe demande une adresse e-mail.',
+  'error.noWayToSignIn':
+    'Cette personne n’aurait plus aucun moyen de se connecter. Donnez-lui un mot de passe ou un code PIN.',
+  'error.emailTaken': 'Quelqu’un a déjà cette adresse e-mail.',
+  'error.lastAdmin':
+    'C’est le dernier administrateur. Nommez d’abord quelqu’un d’autre administrateur, sinon personne ne pourra gérer cette cuisine.',
+  'error.cannotRemoveSelf': 'Vous ne pouvez pas supprimer votre propre compte.',
+  'error.onlyDishes': 'Seuls les plats vont sur un menu : {names}.',
+  'error.menuNameTaken': 'Il existe déjà un menu de ce nom.',
+  'error.menuUnavailable':
+    'Les allergènes de {names} ne peuvent pas être établis : il renvoie à une recette ou un ingrédient qui n’existe plus. Corrigez d’abord la recette.',
+  'error.recipeGone': 'Cette recette n’existe plus.',
+  'error.recipeLoop':
+    '{parent} ne peut pas contenir {child}, car {child} contient déjà {parent}. Ce serait une boucle.',
+  'error.scaleFailed': 'Cette recette n’a pas pu être calculée à cette taille.',
+  'error.scaleUnits': 'Cette taille est dans un autre type d’unité que ce que donne la recette.',
+  'error.scaleLoop':
+    'Cette recette se contient elle-même, elle ne peut donc pas être mise à l’échelle.',
+  'error.scaleNoPortions':
+    'Cette recette n’est pas écrite en portions. Mettez-la à l’échelle par fournée ou par rendement.',
+  'error.stillUsed': 'Encore utilisé par {names}. Retirez-le d’abord de celles-ci.',
+  'error.alreadyInside':
+    'Cet appareil est sur le réseau de la cuisine et n’a pas besoin d’approbation.',
+  'error.allergensUnknown':
+    'Les allergènes de cette recette ne peuvent pas être établis : il manque quelque chose ou elle renvoie à elle-même. Vérifiez ce qu’elle contient dans l’éditeur.',
+  'error.nameOutsideKitchen':
+    'Le certificat de la cuisine ne vaut que pour le réseau de la cuisine : des adresses comme 192.168.1.50, et des noms finissant par .local, .lan, .home ou .internal. « {name} » n’en fait pas partie.',
   'error.invalidCredentials': 'Ça ne correspond pas. Réessayez.',
   'error.accountInactive': "Ce compte n'est plus actif.",
   'error.deviceNotEnrolled':

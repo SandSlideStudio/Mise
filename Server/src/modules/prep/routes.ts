@@ -89,7 +89,7 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
           .from(recipes)
           .where(eq(recipes.id, request.body.recipeId))
           .limit(1);
-        if (!recipe) throw ApiError.badRequest('That recipe no longer exists.');
+        if (!recipe) throw new ApiError(400, 'recipe_gone', 'That recipe no longer exists.');
       }
       const result = await svc.addTask(request.body);
       if (!result.task) throw new ApiError(500, 'internal_error', 'Could not add that line.');
@@ -179,7 +179,7 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
         if (forbidden.length > 0) {
           throw new ApiError(
             403,
-            'forbidden',
+            'task_chef_only',
             'You can start and finish a task, but only a chef can change what it says.',
           );
         }
@@ -189,7 +189,11 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
           request.body.assignedUserId !== null &&
           request.body.assignedUserId !== user.id
         ) {
-          throw new ApiError(403, 'forbidden', 'You can only put your own name against a task.');
+          throw new ApiError(
+            403,
+            'task_not_yours',
+            'You can only put your own name against a task.',
+          );
         }
       }
 

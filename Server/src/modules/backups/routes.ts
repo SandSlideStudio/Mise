@@ -52,14 +52,22 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request) => {
       if (request.body.timeZone !== undefined && !validTimeZone(request.body.timeZone)) {
-        throw ApiError.badRequest('That time zone is not one this server knows.');
+        throw new ApiError(
+          400,
+          'unknown_time_zone',
+          'That time zone is not one this server knows.',
+        );
       }
       const result = await app.backups.update(request.body);
       if (result === 'needs_address') {
-        throw ApiError.badRequest('Enter the address of the NAS to send backups to.');
+        throw new ApiError(
+          400,
+          'nas_address_needed',
+          'Enter the address of the NAS to send backups to.',
+        );
       }
       if (result === 'needs_onedrive') {
-        throw ApiError.badRequest('Connect OneDrive first.');
+        throw new ApiError(400, 'onedrive_not_connected', 'Connect OneDrive first.');
       }
       return app.backups.status();
     },
@@ -194,16 +202,17 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
             );
           }
           await pipeline(part.file, createWriteStream(upload));
-          if (part.file.truncated) throw ApiError.badRequest('That file is too large.');
+          if (part.file.truncated)
+            throw new ApiError(400, 'file_too_large', 'That file is too large.');
           received = true;
         }
-        if (!received) throw ApiError.badRequest('Attach the backup file.');
+        if (!received) throw new ApiError(400, 'backup_file_missing', 'Attach the backup file.');
 
         const result = await app.backups
           .restore(upload, fields.recoveryKey ?? '')
           .catch((error) => {
             if (error instanceof AlreadySetUpError) {
-              throw ApiError.conflict('This server has already been set up.');
+              throw new ApiError(409, 'already_set_up', 'This server has already been set up.');
             }
             return failed(error);
           });

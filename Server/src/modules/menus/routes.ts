@@ -30,11 +30,16 @@ function failureToError(failure: MenuFailure): ApiError {
     case 'not_found':
       return ApiError.notFound('That menu');
     case 'duplicate_name':
-      return ApiError.conflict('There is already a menu with that name.');
+      return new ApiError(409, 'menu_name_taken', 'There is already a menu with that name.');
     case 'not_dishes':
-      return ApiError.badRequest(`Only dishes go on a menu: ${failure.names.join(', ')}.`, {
-        names: failure.names,
-      });
+      return new ApiError(
+        400,
+        'only_dishes',
+        `Only dishes go on a menu: ${failure.names.join(', ')}.`,
+        {
+          names: failure.names,
+        },
+      );
     case 'broken':
       return new ApiError(
         422,

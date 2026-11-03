@@ -36,6 +36,56 @@ export const de: Record<MessageKey, string> = {
     'Konnte nicht geladen werden. Prüf die Verbindung und versuch es noch einmal.',
 
   'error.generic': 'Etwas ist schiefgelaufen.',
+  'error.notFound': 'Das gibt es nicht mehr. Vielleicht hat es jemand entfernt.',
+  'error.validationFailed': 'Etwas ist nicht richtig ausgefüllt. Prüfe es und versuche es erneut.',
+  'error.alreadyExists': 'Das gibt es schon.',
+  'error.stillReferenced': 'Das wird noch woanders verwendet und kann nicht entfernt werden.',
+  'error.invalidData': 'Dieser Wert ist hier nicht erlaubt.',
+  'error.writeInProgress':
+    'Diese Änderung wird gerade gespeichert. Versuche es gleich noch einmal.',
+  'error.backupFileMissing': 'Hänge die Sicherungsdatei an.',
+  'error.onedriveNotConnected': 'Verbinde zuerst OneDrive.',
+  'error.nasAddressNeeded': 'Gib die Adresse des NAS ein, an das Sicherungen gehen.',
+  'error.fileTooLarge': 'Diese Datei ist zu groß.',
+  'error.unknownTimeZone': 'Diese Zeitzone kennt der Server nicht.',
+  'error.alreadySetUp': 'Dieser Server ist bereits eingerichtet.',
+  'error.imageType': 'Verwende ein JPEG-, PNG- oder WebP-Bild.',
+  'error.imageMissing': 'Es wurde kein Bild angehängt.',
+  'error.notADish': 'Nur ein Gericht hat eine Gerichtkarte.',
+  'error.logoTooLarge': 'Dieses Logo ist größer als 2 MB.',
+  'error.photoTooLarge': 'Dieses Bild ist größer als 8 MB.',
+  'error.taskNotYours': 'Du kannst nur deinen eigenen Namen an eine Zeile setzen.',
+  'error.taskChefOnly':
+    'Du kannst eine Zeile beginnen und abschließen, aber nur ein Chef kann ihren Text ändern.',
+  'error.staffRank': 'Nur ein Administrator kann Personal deines Rangs oder darüber verwalten.',
+  'error.adminNeedsPassword':
+    'Ein Administrator braucht E-Mail-Adresse und Passwort, nicht nur eine PIN.',
+  'error.passwordNeedsEmail': 'Die Anmeldung mit Passwort braucht eine E-Mail-Adresse.',
+  'error.noWayToSignIn':
+    'Dann könnte sich die Person nicht mehr anmelden. Gib ihr ein Passwort oder eine PIN.',
+  'error.emailTaken': 'Jemand hat diese E-Mail-Adresse schon.',
+  'error.lastAdmin':
+    'Das ist der letzte Administrator. Mache zuerst jemand anderen zum Administrator, sonst kann niemand diese Küche verwalten.',
+  'error.cannotRemoveSelf': 'Du kannst dein eigenes Konto nicht entfernen.',
+  'error.onlyDishes': 'Auf ein Menü kommen nur Gerichte: {names}.',
+  'error.menuNameTaken': 'Es gibt schon ein Menü mit diesem Namen.',
+  'error.menuUnavailable':
+    'Die Allergene von {names} lassen sich nicht ermitteln, weil es auf ein Rezept oder eine Zutat verweist, die es nicht mehr gibt. Korrigiere zuerst das Rezept.',
+  'error.recipeGone': 'Dieses Rezept gibt es nicht mehr.',
+  'error.recipeLoop':
+    '{parent} kann {child} nicht enthalten, weil {child} schon {parent} enthält. Das wäre eine Schleife.',
+  'error.scaleFailed': 'Dieses Rezept ließ sich für diese Menge nicht berechnen.',
+  'error.scaleUnits':
+    'Diese Menge ist in einer anderen Art von Einheit als das, was das Rezept ergibt.',
+  'error.scaleLoop': 'Dieses Rezept enthält sich selbst und lässt sich daher nicht umrechnen.',
+  'error.scaleNoPortions':
+    'Dieses Rezept ist nicht in Portionen geschrieben. Rechne es nach Ansatz oder Ertrag um.',
+  'error.stillUsed': 'Wird noch verwendet von {names}. Nimm es dort zuerst heraus.',
+  'error.alreadyInside': 'Dieses Gerät ist im Küchennetz und braucht keine Freigabe.',
+  'error.allergensUnknown':
+    'Die Allergene dieses Rezepts lassen sich nicht ermitteln: Etwas fehlt oder verweist auf sich selbst. Prüfe im Editor, was hineinkommt.',
+  'error.nameOutsideKitchen':
+    'Das Küchenzertifikat gilt nur für das Küchennetz: Adressen wie 192.168.1.50 und Namen auf .local, .lan, .home oder .internal. „{name}“ gehört nicht dazu.',
   'error.invalidCredentials': 'Das passt nicht. Bitte noch einmal versuchen.',
   'error.accountInactive': 'Dieses Konto ist nicht mehr aktiv.',
   'error.deviceNotEnrolled':

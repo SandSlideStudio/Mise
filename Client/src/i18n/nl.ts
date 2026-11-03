@@ -36,6 +36,53 @@ export const nl: Record<MessageKey, string> = {
     'Dit kon niet worden geladen. Controleer de verbinding en probeer het opnieuw.',
 
   'error.generic': 'Er ging iets mis.',
+  'error.notFound': 'Dat is er niet meer. Misschien heeft iemand het verwijderd.',
+  'error.validationFailed': 'Er is iets niet goed ingevuld. Kijk het na en probeer het opnieuw.',
+  'error.alreadyExists': 'Dat bestaat al.',
+  'error.stillReferenced': 'Dat wordt nog ergens anders gebruikt, dus het kan niet weg.',
+  'error.invalidData': 'Die waarde mag hier niet.',
+  'error.writeInProgress': 'Die wijziging wordt opgeslagen. Probeer het zo opnieuw.',
+  'error.backupFileMissing': 'Voeg het back-upbestand toe.',
+  'error.onedriveNotConnected': 'Koppel eerst OneDrive.',
+  'error.nasAddressNeeded': 'Vul het adres in van de NAS waar back-ups heen gaan.',
+  'error.fileTooLarge': 'Dat bestand is te groot.',
+  'error.unknownTimeZone': 'Die tijdzone kent deze server niet.',
+  'error.alreadySetUp': 'Deze server is al ingesteld.',
+  'error.imageType': 'Gebruik een JPEG-, PNG- of WebP-afbeelding.',
+  'error.imageMissing': 'Er is geen afbeelding toegevoegd.',
+  'error.notADish': 'Alleen een gerecht heeft een gerechtenkaart.',
+  'error.logoTooLarge': 'Dat logo is groter dan 2 MB.',
+  'error.photoTooLarge': 'Die afbeelding is groter dan 8 MB.',
+  'error.taskNotYours': 'Je kunt alleen je eigen naam bij een regel zetten.',
+  'error.taskChefOnly':
+    'Je kunt een regel starten en afronden, maar alleen een chef kan de tekst wijzigen.',
+  'error.staffRank': 'Alleen een beheerder kan personeel van jouw rang of hoger beheren.',
+  'error.adminNeedsPassword':
+    'Een beheerder heeft een e-mailadres en wachtwoord nodig, niet alleen een pincode.',
+  'error.passwordNeedsEmail': 'Inloggen met een wachtwoord vraagt een e-mailadres.',
+  'error.noWayToSignIn': 'Dan kunnen ze niet meer inloggen. Geef ze een wachtwoord of een pincode.',
+  'error.emailTaken': 'Iemand heeft dat e-mailadres al.',
+  'error.lastAdmin':
+    'Dit is de laatste beheerder. Maak eerst iemand anders beheerder, anders kan niemand deze keuken beheren.',
+  'error.cannotRemoveSelf': 'Je kunt je eigen account niet verwijderen.',
+  'error.onlyDishes': 'Alleen gerechten kunnen op een menu: {names}.',
+  'error.menuNameTaken': 'Er is al een menu met die naam.',
+  'error.menuUnavailable':
+    'De allergenen van {names} zijn niet te bepalen, omdat het verwijst naar een recept of ingrediënt dat niet meer bestaat. Herstel eerst het recept.',
+  'error.recipeGone': 'Dat recept bestaat niet meer.',
+  'error.recipeLoop':
+    '{parent} kan {child} niet bevatten, want {child} bevat {parent} al. Dat zou een kringloop zijn.',
+  'error.scaleFailed': 'Dat recept kon niet op die hoeveelheid worden uitgerekend.',
+  'error.scaleUnits': 'Die hoeveelheid is in een ander soort eenheid dan wat dit recept oplevert.',
+  'error.scaleLoop': 'Dit recept bevat zichzelf, dus het kan niet worden omgerekend.',
+  'error.scaleNoPortions':
+    'Dit recept is niet in porties geschreven. Reken het om per batch of per opbrengst.',
+  'error.stillUsed': 'Wordt nog gebruikt door {names}. Haal het daar eerst uit.',
+  'error.alreadyInside': 'Dit apparaat zit op het keukennetwerk en heeft geen goedkeuring nodig.',
+  'error.allergensUnknown':
+    'De allergenen van dit recept zijn niet te bepalen: er ontbreekt iets of het verwijst naar zichzelf. Kijk in de editor wat erin gaat.',
+  'error.nameOutsideKitchen':
+    'Het keukencertificaat geldt alleen voor het keukennetwerk: adressen zoals 192.168.1.50, en namen die eindigen op .local, .lan, .home of .internal. “{name}” hoort daar niet bij.',
   'error.invalidCredentials': 'Dat klopt niet. Probeer het opnieuw.',
   'error.accountInactive': 'Dat account is niet meer actief.',
   'error.deviceNotEnrolled':

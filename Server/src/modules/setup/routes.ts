@@ -150,12 +150,12 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
       const onedrive = (await app.backups.status()).onedrive;
       const sendTo = backups?.sendTo ?? [];
       if (sendTo.includes('onedrive') && !onedrive.account) {
-        throw ApiError.badRequest('Connect OneDrive first.');
+        throw new ApiError(400, 'onedrive_not_connected', 'Connect OneDrive first.');
       }
 
       const result = await app.auth.runSetup(request.body);
       if (!result.ok) {
-        throw ApiError.conflict('This server has already been set up.');
+        throw new ApiError(409, 'already_set_up', 'This server has already been set up.');
       }
       await app.backups.update({
         ...(request.body.timeZone && validTimeZone(request.body.timeZone)

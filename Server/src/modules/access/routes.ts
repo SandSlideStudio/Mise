@@ -46,7 +46,11 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       if (await app.auth.needsSetup()) throw ApiError.notFound('This page');
       if (request.inside) {
-        throw ApiError.conflict('This device is on the kitchen network and needs no approval.');
+        throw new ApiError(
+          409,
+          'already_inside',
+          'This device is on the kitchen network and needs no approval.',
+        );
       }
       const current = await app.access.status(request.cookies[ACCESS_COOKIE]);
       if (current.status !== 'none') return current;

@@ -35,6 +35,52 @@ export const es: Record<MessageKey, string> = {
   'common.loadFailed': 'No se ha podido cargar. Revisa la conexión y vuelve a intentarlo.',
 
   'error.generic': 'Algo ha fallado.',
+  'error.notFound': 'Eso ya no está. Puede que alguien lo haya quitado.',
+  'error.validationFailed': 'Algo no está bien rellenado. Revísalo y vuelve a intentarlo.',
+  'error.alreadyExists': 'Eso ya existe.',
+  'error.stillReferenced': 'Todavía se usa en otro sitio, así que no se puede quitar.',
+  'error.invalidData': 'Ese valor no se permite aquí.',
+  'error.writeInProgress': 'Ese cambio se está guardando. Vuelve a intentarlo en un momento.',
+  'error.backupFileMissing': 'Adjunta el archivo de copia de seguridad.',
+  'error.onedriveNotConnected': 'Conecta OneDrive primero.',
+  'error.nasAddressNeeded': 'Escribe la dirección del NAS al que enviar las copias.',
+  'error.fileTooLarge': 'Ese archivo es demasiado grande.',
+  'error.unknownTimeZone': 'Este servidor no conoce esa zona horaria.',
+  'error.alreadySetUp': 'Este servidor ya está configurado.',
+  'error.imageType': 'Usa una imagen JPEG, PNG o WebP.',
+  'error.imageMissing': 'No se ha adjuntado ninguna imagen.',
+  'error.notADish': 'Solo un plato tiene ficha de plato.',
+  'error.logoTooLarge': 'Ese logotipo ocupa más de 2 MB.',
+  'error.photoTooLarge': 'Esa imagen ocupa más de 8 MB.',
+  'error.taskNotYours': 'Solo puedes poner tu propio nombre en una línea.',
+  'error.taskChefOnly':
+    'Puedes empezar y terminar una línea, pero solo un chef puede cambiar lo que dice.',
+  'error.staffRank': 'Solo un administrador puede gestionar personal de tu rango o superior.',
+  'error.adminNeedsPassword': 'Un administrador necesita correo y contraseña, no solo un PIN.',
+  'error.passwordNeedsEmail': 'Entrar con contraseña necesita un correo electrónico.',
+  'error.noWayToSignIn': 'Se quedaría sin forma de entrar. Dale una contraseña o un PIN.',
+  'error.emailTaken': 'Alguien ya tiene ese correo electrónico.',
+  'error.lastAdmin':
+    'Es el único administrador que queda. Haz administrador a otra persona primero, o nadie podrá gestionar esta cocina.',
+  'error.cannotRemoveSelf': 'No puedes quitar tu propia cuenta.',
+  'error.onlyDishes': 'En un menú solo van platos: {names}.',
+  'error.menuNameTaken': 'Ya hay un menú con ese nombre.',
+  'error.menuUnavailable':
+    'No se pueden calcular los alérgenos de {names}, porque apunta a una receta o ingrediente que ya no existe. Arregla primero la receta.',
+  'error.recipeGone': 'Esa receta ya no existe.',
+  'error.recipeLoop':
+    '{parent} no puede contener {child}, porque {child} ya contiene {parent}. Sería un bucle.',
+  'error.scaleFailed': 'Esa receta no se pudo calcular a ese tamaño.',
+  'error.scaleUnits': 'Ese tamaño está en otro tipo de unidad que lo que rinde la receta.',
+  'error.scaleLoop': 'Esta receta se contiene a sí misma, así que no se puede escalar.',
+  'error.scaleNoPortions':
+    'Esta receta no está escrita en raciones. Escálala por tanda o por rendimiento.',
+  'error.stillUsed': 'Todavía lo usa {names}. Quítalo de ahí primero.',
+  'error.alreadyInside': 'Este dispositivo está en la red de la cocina y no necesita aprobación.',
+  'error.allergensUnknown':
+    'No se pueden calcular los alérgenos de esta receta: falta algo o hace referencia a sí misma. Revisa lo que lleva en el editor.',
+  'error.nameOutsideKitchen':
+    'El certificado de la cocina solo vale para la red de la cocina: direcciones como 192.168.1.50 y nombres que acaban en .local, .lan, .home o .internal. «{name}» no es uno de ellos.',
   'error.invalidCredentials': 'No coincide. Inténtalo de nuevo.',
   'error.accountInactive': 'Esa cuenta ya no está activa.',
   'error.deviceNotEnrolled':

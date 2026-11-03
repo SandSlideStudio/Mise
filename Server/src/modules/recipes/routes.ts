@@ -333,8 +333,11 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       // Say what would break rather than letting a foreign key speak for us.
       const users = await svc.usedBy(request.params.id);
       if (users.length > 0) {
-        throw ApiError.conflict(
+        throw new ApiError(
+          409,
+          'still_used',
           `Still used by ${users.map((u) => u.name).join(', ')}. Remove it from those first.`,
+          { names: users.map((u) => u.name) },
         );
       }
       const photos = await app.db
@@ -360,15 +363,25 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
 function scaleError(error: ExpandError): ApiError {
   switch (error.kind) {
     case 'no_portions':
-      return ApiError.badRequest(
+      return new ApiError(
+        400,
+        'scale_no_portions',
         'This recipe is not written in portions, so scale it by batch or by yield instead.',
       );
     case 'incompatible_units':
-      return ApiError.badRequest('That size is in different units from what this recipe makes.');
+      return new ApiError(
+        400,
+        'scale_units',
+        'That size is in different units from what this recipe makes.',
+      );
     case 'cycle':
-      return ApiError.badRequest('This recipe contains itself, so it cannot be scaled.');
+      return new ApiError(
+        400,
+        'scale_loop',
+        'This recipe contains itself, so it cannot be scaled.',
+      );
     default:
-      return ApiError.badRequest('That recipe could not be worked out at that size.');
+      return new ApiError(400, 'scale_failed', 'That recipe could not be worked out at that size.');
   }
 }
 
@@ -390,8 +403,11 @@ function unitsError(problem: UnitProblem): ApiError {
  */
 function cycleError(through: string[]): ApiError {
   const [parent, child] = through;
-  return ApiError.badRequest(
+  return new ApiError(
+    400,
+    'recipe_loop',
     `${parent} cannot contain ${child}, because ${child} already contains ${parent}. That would be a loop.`,
+    { parent, child },
   );
 }
 

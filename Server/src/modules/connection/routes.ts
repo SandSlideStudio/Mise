@@ -70,6 +70,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           400,
           'domain_locks_you_out',
           `You are connected through ${plainHost(request.hostname)}. Set this from inside the kitchen, or open Mise through ${domain} first.`,
+          { current: plainHost(request.hostname), domain },
         );
       }
       // Only a machine on the kitchen's own network: trusting one on the
@@ -106,7 +107,9 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       const names = [...new Set(request.body.names)];
       const wrong = names.find((name) => !validKitchenName(name));
       if (wrong) {
-        throw new ApiError(400, 'bad_name', `"${wrong}" is not an address or host name.`);
+        throw new ApiError(400, 'bad_name', `"${wrong}" is not an address or host name.`, {
+          name: wrong,
+        });
       }
       const outside = app.connection.namesOutsideAuthority(names);
       if (outside.length > 0) {
@@ -114,6 +117,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           400,
           'name_outside_kitchen',
           `The kitchen certificate only vouches for the kitchen network: addresses such as 192.168.1.50, and names ending in .local, .lan, .home or .internal. "${outside[0]}" isn't one of them.`,
+          { name: outside[0] },
         );
       }
       await app.connection.enableKitchenHttps(names, await kitchenName());

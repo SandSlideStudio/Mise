@@ -64,11 +64,15 @@ const photoRoutes: FastifyPluginAsync = async (app) => {
       if (!recipe) throw ApiError.notFound('That recipe');
 
       const file = await request.file({ limits: { fileSize: MAX_BYTES, files: 1 } });
-      if (!file) throw ApiError.badRequest('No image was attached.');
+      if (!file) throw new ApiError(400, 'image_missing', 'No image was attached.');
 
       const extension = ALLOWED[file.mimetype];
       if (!extension) {
-        throw ApiError.badRequest('That file is not an image we can store. Use JPEG, PNG or WebP.');
+        throw new ApiError(
+          400,
+          'image_type',
+          'That file is not an image we can store. Use JPEG, PNG or WebP.',
+        );
       }
 
       // Generated, never derived from what the browser sent.
@@ -78,7 +82,7 @@ const photoRoutes: FastifyPluginAsync = async (app) => {
 
       if (file.file.truncated) {
         await unlink(absolute).catch(() => {});
-        throw ApiError.badRequest('That image is larger than 8 MB.');
+        throw new ApiError(400, 'photo_too_large', 'That image is larger than 8 MB.');
       }
 
       // The first photograph on a recipe is the one that represents it.

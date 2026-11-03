@@ -28,27 +28,35 @@ function failureToError(failure: KitchenFailure): ApiError {
     case 'not_found':
       return ApiError.notFound('That person');
     case 'last_admin':
-      return ApiError.conflict(
+      return new ApiError(
+        409,
+        'last_admin',
         'This is the only administrator left. Promote somebody else first, or nobody will be able to manage this kitchen.',
       );
     case 'self_lockout':
-      return ApiError.conflict('You cannot remove your own account.');
+      return new ApiError(409, 'cannot_remove_self', 'You cannot remove your own account.');
     case 'no_credential':
-      return ApiError.badRequest(
+      return new ApiError(
+        400,
+        'no_way_to_sign_in',
         'That would leave them with no way to sign in. Give them a password or a PIN.',
       );
     case 'password_needs_email':
-      return ApiError.badRequest('Password sign-in needs an email address.');
+      return new ApiError(400, 'password_needs_email', 'Password sign-in needs an email address.');
     case 'outranked':
       return new ApiError(
         403,
-        'forbidden',
+        'staff_rank',
         'Only an administrator can manage staff at your rank or above.',
       );
     case 'email_taken':
-      return ApiError.conflict('Someone already has that email address.');
+      return new ApiError(409, 'email_taken', 'Someone already has that email address.');
     case 'admin_needs_password':
-      return ApiError.badRequest('An administrator needs an email and password, not only a PIN.');
+      return new ApiError(
+        400,
+        'admin_needs_password',
+        'An administrator needs an email and password, not only a PIN.',
+      );
   }
 }
 
