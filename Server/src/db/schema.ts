@@ -522,6 +522,12 @@ export const connectionSettings = pgTable('connection_settings', {
    * Only requests from this address may say who the visitor really is.
    */
   trustedProxy: text('trusted_proxy'),
+  /**
+   * Whether visitors relayed by the container's own gateway (rootless Docker,
+   * Podman, Docker Desktop) count as inside the kitchen. They can't be told
+   * apart from the internet, so off unless an administrator says otherwise.
+   */
+  trustContainerGateway: boolean('trust_container_gateway').notNull().default(false),
 
   /**
    * The kitchen certificate: Mise's own small certificate authority, which each

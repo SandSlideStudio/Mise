@@ -116,7 +116,9 @@ export async function buildApp(
   const always = setupCodeAlways(config);
   app.decorate(
     'setupCodeNeeded',
-    (request: FastifyRequest) => app.setupToken !== null && (always || !fromOwnNetwork(request)),
+    (request: FastifyRequest) =>
+      app.setupToken !== null &&
+      (always || !fromOwnNetwork(request) || app.relayedUnknown(request)),
   );
 
   app.setValidatorCompiler(validatorCompiler);

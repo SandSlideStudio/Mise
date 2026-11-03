@@ -38,6 +38,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       trustedProxy: app.connection.trustedProxy(),
       seenProxy: seen ? { ...seen, at: seen.at.toISOString() } : null,
       containerGateway: relayed ? { ...relayed, at: relayed.at.toISOString() } : null,
+      trustContainerGateway: app.connection.trustsContainerGateway(),
       currentHost: plainHost(request.hostname),
       inside: request.inside,
     };
@@ -82,7 +83,11 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           'Use the address of a web server on the kitchen network, such as 192.168.1.60.',
         );
       }
-      await app.connection.update({ outsideDomain: domain, trustedProxy: proxy });
+      await app.connection.update({
+        outsideDomain: domain,
+        trustedProxy: proxy,
+        trustContainerGateway: request.body.trustContainerGateway,
+      });
       return describe(request);
     },
   );

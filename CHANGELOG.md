@@ -8,6 +8,12 @@ a change in the first number means you should read these notes before updating.
 Printed prep lists and recipe cards, a safer PIN, offline that holds up better, and every fix
 from a full review of the code.
 
+**Before updating**
+
+- On rootless Docker, Podman or Docker Desktop, tablets on the kitchen network may now be asked
+  to request access once (see Security below). To skip that, an administrator can switch it off
+  under **Settings → Connection** before or after updating.
+
 **Printing**
 
 - **Print** on Today prints the prep list: only what is still to do, grouped by station, each line
@@ -56,8 +62,10 @@ from a full review of the code.
   network, so a tablet that trusts it trusts it for no other website. One made before keeps
   working, so no tablet has to trust it again.
 - When Docker relays every visitor itself (rootless Docker, Podman, Docker Desktop, or IPv6 without
-  an IPv6 network), Mise can't tell who is inside the kitchen. It now notices and says so in
-  **Settings → Connection**, with the fix.
+  an IPv6 network), Mise can't tell the kitchen from the internet. Those visitors now count as
+  outside: each device asks for access once, and setup asks for the setup code. **Settings →
+  Connection** says when this happens, with the fix, and can count them as inside again if Mise
+  can't be reached from the internet. A web server you trust on the same machine works as before.
 - The saved NAS password only goes to the server it was saved for.
 - Changes are only accepted from Mise's own page.
 - On its own domain, Mise tells the browser to stay on HTTPS.

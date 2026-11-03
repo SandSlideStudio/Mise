@@ -1001,7 +1001,12 @@ export const fr: Record<MessageKey, string> = {
   'settings.tabConnection': 'Connexion',
   'connection.relayedTitle': 'Mise ne peut pas savoir qui est dans la cuisine',
   'connection.relayedBody':
-    'Certains visiteurs atteignent Mise par le relais de Docker ({address}), qui cache d’où ils viennent vraiment. Mise les compte comme étant dans la cuisine : ils échappent à l’approbation exigée des appareils extérieurs.',
+    'Certains visiteurs atteignent Mise par le relais de Docker ({address}), qui cache d’où ils viennent vraiment. Mise les compte donc comme extérieurs : chaque appareil demande l’accès une fois, et un chef l’approuve.',
+  'connection.relayedTrusted':
+    'Certains visiteurs atteignent Mise par le relais de Docker ({address}), qui cache d’où ils viennent vraiment. Vous avez choisi de les compter comme étant dans la cuisine : ils échappent à l’approbation exigée des appareils extérieurs, où qu’ils soient.',
+  'connection.relayedTrust': 'Compter ces visiteurs comme étant dans la cuisine',
+  'connection.relayedTrustHint':
+    'Seulement si Mise n’est pas joignable depuis Internet, ou seulement par un serveur web de confiance. Sinon, quiconque le trouve échappe à l’approbation.',
   'connection.relayedFix':
     'Cela arrive avec Docker sans root, Podman, Docker Desktop, ou en IPv6 quand le réseau de Docker n’en a pas. Lancez Mise avec le réseau de l’hôte (network_mode: host), ou activez l’IPv6 pour le réseau de Docker, afin que Mise voie l’adresse de chaque visiteur. Voir « From outside the kitchen » dans le README.',
   'connection.domainTitle': 'Adresse depuis l’extérieur',

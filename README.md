@@ -79,8 +79,11 @@ the device that sets Mise up (or restores a backup onto it) is approved automati
 "Inside" means a visitor's own address is a private one. Docker usually passes that address on,
 but rootless Docker, Podman and Docker Desktop relay every connection themselves, as does Docker
 for IPv6 when its network has none. Then everyone, wherever they are, arrives from Docker's own
-address and counts as inside. Mise notices and says so in **Settings → Connection**. To fix it,
-run Mise with `network_mode: host`, or turn on IPv6 for Docker's network.
+address, and Mise can't tell the kitchen from the internet. So it counts them as outside: each
+device asks for access once, and setup asks for the setup code. **Settings → Connection** says
+when this happens, and can count them as inside instead, if Mise can't be reached from the
+internet. Better still, run Mise with `network_mode: host`, or turn on IPv6 for Docker's network,
+so Mise sees each visitor's own address.
 
 **Settings → Connection** can also name the one domain that leads to Mise from outside, such as
 `mise.yourkitchen.com`. Then the bare IP address, or another website's name on the same server,

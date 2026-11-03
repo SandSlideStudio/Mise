@@ -986,7 +986,12 @@ export const es: Record<MessageKey, string> = {
   'settings.tabConnection': 'Conexión',
   'connection.relayedTitle': 'Mise no puede saber quién está dentro de la cocina',
   'connection.relayedBody':
-    'Algunos visitantes llegan a Mise a través del propio relé de Docker ({address}), que oculta dónde están realmente. Mise los cuenta como dentro de la cocina, así que se saltan la aprobación que necesitan los dispositivos de fuera.',
+    'Algunos visitantes llegan a Mise a través del propio relé de Docker ({address}), que oculta dónde están realmente. Por eso Mise los cuenta como de fuera: cada dispositivo pide acceso una vez y un chef lo aprueba.',
+  'connection.relayedTrusted':
+    'Algunos visitantes llegan a Mise a través del propio relé de Docker ({address}), que oculta dónde están realmente. Elegiste contarlos como dentro de la cocina, así que se saltan la aprobación que necesitan los dispositivos de fuera, estén donde estén.',
+  'connection.relayedTrust': 'Contar a estos visitantes como dentro de la cocina',
+  'connection.relayedTrustHint':
+    'Solo si a Mise no se puede llegar desde internet, o solo a través de un servidor web de confianza. Si no, cualquiera que lo encuentre se salta la aprobación.',
   'connection.relayedFix':
     'Pasa con Docker sin root, Podman, Docker Desktop, o por IPv6 cuando la red de Docker no lo tiene. Ejecuta Mise con la red del host (network_mode: host), o activa IPv6 en la red de Docker, para que Mise vea la dirección de cada visitante. Consulta «From outside the kitchen» en el README.',
   'connection.domainTitle': 'Dirección desde fuera',

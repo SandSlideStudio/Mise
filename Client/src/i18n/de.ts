@@ -1003,7 +1003,12 @@ export const de: Record<MessageKey, string> = {
   'settings.tabConnection': 'Verbindung',
   'connection.relayedTitle': 'Mise kann nicht erkennen, wer in der Küche ist',
   'connection.relayedBody':
-    'Manche Besucher erreichen Mise über Dockers eigene Weiterleitung ({address}), die verbirgt, wo sie wirklich sind. Mise zählt sie zur Küche, also überspringen sie die Freigabe, die Geräte von außen brauchen.',
+    'Manche Besucher erreichen Mise über Dockers eigene Weiterleitung ({address}), die verbirgt, wo sie wirklich sind. Deshalb zählt Mise sie als außerhalb der Küche: Jedes Gerät bittet einmal um Zugang, und ein Chef gibt es frei.',
+  'connection.relayedTrusted':
+    'Manche Besucher erreichen Mise über Dockers eigene Weiterleitung ({address}), die verbirgt, wo sie wirklich sind. Du hast gewählt, sie zur Küche zu zählen, also überspringen sie die Freigabe, die Geräte von außen brauchen, wo immer sie sind.',
+  'connection.relayedTrust': 'Diese Besucher zur Küche zählen',
+  'connection.relayedTrustHint':
+    'Nur wenn Mise aus dem Internet nicht erreichbar ist, oder nur über einen Webserver, dem du vertraust. Sonst überspringt jeder, der es findet, die Freigabe.',
   'connection.relayedFix':
     'Das passiert mit rootless Docker, Podman, Docker Desktop oder über IPv6, wenn Dockers Netzwerk keins hat. Starte Mise mit Host-Netzwerk (network_mode: host) oder schalte IPv6 für Dockers Netzwerk ein, damit Mise die eigene Adresse jedes Besuchers sieht. Siehe „From outside the kitchen“ in der README.',
   'connection.domainTitle': 'Adresse von außen',

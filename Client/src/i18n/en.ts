@@ -969,7 +969,12 @@ export const en = {
   'settings.tabConnection': 'Connection',
   'connection.relayedTitle': 'Mise can’t tell who is inside the kitchen',
   'connection.relayedBody':
-    'Some visitors reach Mise through Docker’s own relay ({address}), which hides where they really are. Mise counts them as inside the kitchen, so they skip the approval that outside devices need.',
+    'Some visitors reach Mise through Docker’s own relay ({address}), which hides where they really are. So Mise counts them as outside the kitchen: each device asks for access once, and a chef approves it.',
+  'connection.relayedTrusted':
+    'Some visitors reach Mise through Docker’s own relay ({address}), which hides where they really are. You chose to count them as inside the kitchen, so they skip the approval outside devices need, wherever they are.',
+  'connection.relayedTrust': 'Count these visitors as inside the kitchen',
+  'connection.relayedTrustHint':
+    'Only when Mise can’t be reached from the internet, or only through a web server you trust. Otherwise anyone who finds it skips the approval.',
   'connection.relayedFix':
     'This happens with rootless Docker, Podman, Docker Desktop, or over IPv6 when Docker’s network has none. Run Mise with host networking (network_mode: host), or turn on IPv6 for Docker’s network, so Mise sees each visitor’s own address. See “From outside the kitchen” in the README.',
   'connection.domainTitle': 'Address from outside',

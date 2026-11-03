@@ -35,6 +35,8 @@ export const connectionSchema = z.object({
    * where such visitors really are, and counts them as inside.
    */
   containerGateway: z.object({ address: z.string(), at: z.string() }).nullable(),
+  /** Whether those relayed visitors count as inside anyway, as an administrator chose. */
+  trustContainerGateway: z.boolean(),
   https: z.object({
     /** The port HTTPS answers on inside Mise. The install may publish it as another. */
     port: z.number(),
@@ -66,6 +68,7 @@ export type Connection = z.infer<typeof connectionSchema>;
 export const updateConnectionSchema = z.object({
   outsideDomain: domainSchema.nullable().optional(),
   trustedProxy: addressSchema.nullable().optional(),
+  trustContainerGateway: z.boolean().optional(),
 });
 export type UpdateConnection = z.infer<typeof updateConnectionSchema>;
 

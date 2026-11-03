@@ -989,7 +989,12 @@ export const nl: Record<MessageKey, string> = {
   'settings.tabConnection': 'Verbinding',
   'connection.relayedTitle': 'Mise kan niet zien wie er in de keuken is',
   'connection.relayedBody':
-    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte ({address}), die verbergt waar ze echt zijn. Mise rekent ze tot de keuken, dus slaan ze de goedkeuring over die apparaten van buiten nodig hebben.',
+    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte ({address}), die verbergt waar ze echt zijn. Daarom rekent Mise ze tot buiten de keuken: elk apparaat vraagt één keer toegang aan, en een chef keurt het goed.',
+  'connection.relayedTrusted':
+    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte ({address}), die verbergt waar ze echt zijn. Je hebt gekozen ze tot de keuken te rekenen, dus slaan ze de goedkeuring over die apparaten van buiten nodig hebben, waar ze ook zijn.',
+  'connection.relayedTrust': 'Reken deze bezoekers tot de keuken',
+  'connection.relayedTrustHint':
+    'Alleen als Mise niet vanaf internet te bereiken is, of alleen via een webserver die je vertrouwt. Anders slaat iedereen die het vindt de goedkeuring over.',
   'connection.relayedFix':
     'Dit gebeurt met rootless Docker, Podman, Docker Desktop, of via IPv6 als het netwerk van Docker dat niet heeft. Draai Mise met hostnetwerk (network_mode: host), of zet IPv6 aan voor het netwerk van Docker, zodat Mise het eigen adres van elke bezoeker ziet. Zie “From outside the kitchen” in de README.',
   'connection.domainTitle': 'Adres van buitenaf',

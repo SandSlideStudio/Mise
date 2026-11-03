@@ -1,0 +1,1 @@
+ALTER TABLE "connection_settings" ADD COLUMN "trust_container_gateway" boolean DEFAULT false NOT NULL;

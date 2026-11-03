@@ -62,7 +62,7 @@ export function createConnectionService(options: {
   const { db, state, listener } = options;
   const issue = options.issue ?? issueDomainCertificate;
   let seen: SeenProxy | null = null;
-  /** The last visitor relayed by the container's own gateway, who looks inside. */
+  /** The last visitor relayed by the container's own gateway: where they are can't be told. */
   let relayed: { address: string; at: Date } | null = null;
   let row: Row | null = null;
   /** Let's Encrypt's tokens while a certificate is being fetched. */
@@ -159,8 +159,18 @@ export function createConnectionService(options: {
     /** The domain plain HTTP is sent on to HTTPS for, or null. */
     httpsDomain: () => state.httpsDomain,
 
-    async update(changes: { outsideDomain?: string | null; trustedProxy?: string | null }) {
+    /** Whether visitors relayed by the container's gateway count as inside. */
+    trustsContainerGateway: () => row?.trustContainerGateway ?? false,
+
+    async update(changes: {
+      outsideDomain?: string | null;
+      trustedProxy?: string | null;
+      trustContainerGateway?: boolean;
+    }) {
       const values: Partial<Row> = {};
+      if (changes.trustContainerGateway !== undefined) {
+        values.trustContainerGateway = changes.trustContainerGateway;
+      }
       if (changes.outsideDomain !== undefined) {
         values.outsideDomain = changes.outsideDomain && plainHost(changes.outsideDomain);
       }
