@@ -54,9 +54,11 @@ export function keepOnDevice(queryKey: QueryKey, hasAnswer: boolean): boolean {
   return hasAnswer && !NOT_KEPT.has(String(queryKey[0]));
 }
 
-/** Forget everything kept, as signing out on a shared tablet does. */
+/** Forget everything kept, as signing out on a shared tablet does: data and photos. */
 export async function forgetKept(): Promise<void> {
   await del(STORE_KEY).catch(() => undefined);
+  // The photos the service worker keeps (sw/service-worker.js).
+  if (typeof caches !== 'undefined') await caches.delete('mise-photos').catch(() => false);
 }
 
 // --- loading ahead -------------------------------------------------------------

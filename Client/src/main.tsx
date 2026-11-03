@@ -4,7 +4,7 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RequestFailed, setOutboxUser } from './api/client.js';
 import { useOutboxSender } from './api/outbox.js';
-import { KEPT_FOR_MS, keepOnDevice, persister, useLoadAhead } from './api/offline.js';
+import { forgetKept, KEPT_FOR_MS, keepOnDevice, persister, useLoadAhead } from './api/offline.js';
 import {
   createRootRoute,
   createRoute,
@@ -65,10 +65,21 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureConte
  * request page instead.
  */
 function signedOutElsewhere(error: unknown): void {
+  // A session that ended, or a device no longer let in from outside: what
+  // this device kept goes too, so a revoked phone keeps no recipes.
+  const ended =
+    error instanceof RequestFailed &&
+    error.isUnauthenticated &&
+    queryClient.getQueryData(['me']) != null;
   if (error instanceof RequestFailed && error.isUnauthenticated) {
     queryClient.setQueryData(['me'], null);
   }
   if (isAccessRequired(error)) markAccessRequired();
+  if (ended || isAccessRequired(error)) {
+    const keep = new Set(['setup-status', 'me', 'access-status']);
+    queryClient.removeQueries({ predicate: (query) => !keep.has(String(query.queryKey[0])) });
+    void forgetKept();
+  }
 }
 
 /** How often a screen that can't reach the server tries again. */
