@@ -143,3 +143,25 @@ test('an amount changed offline shows at once; its allergens say they update onc
   expect(saved.components[0]!.quantity.value).toBe(400);
   await context.close();
 });
+
+test('signing out offline signs out at once, and on Mise as soon as it answers', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
+  const tablet = await context.newPage();
+  await signIn(tablet);
+  await tablet.evaluate(() => navigator.serviceWorker.ready);
+
+  await context.setOffline(true);
+  await tablet.getByRole('button', { name: 'Sign out' }).click();
+  await tablet.waitForURL(/\/login$/);
+
+  await context.setOffline(false);
+  // The session in the cookie ends on Mise too: the next cook is never the last one.
+  await expect
+    .poll(async () => (await context.request.get('/api/auth/me')).status(), { timeout: 30_000 })
+    .toBe(401);
+  await tablet.reload();
+  await expect(tablet).toHaveURL(/\/login$/);
+  await context.close();
+});

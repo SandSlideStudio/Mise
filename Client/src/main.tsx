@@ -19,7 +19,7 @@ import { useEffect } from 'react';
 import { isAccessRequired, markAccessRequired, useAccessRequired } from './api/access.js';
 import { useLiveUpdates } from './api/live.js';
 import { useTickSender } from './api/ticks.js';
-import { useCurrentUser, useSetupStatus } from './api/session.js';
+import { useCurrentUser, useFinishSignOut, useSetupStatus } from './api/session.js';
 import { I18nProvider, useT } from './i18n/index.js';
 import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
@@ -130,6 +130,7 @@ function Shell() {
   useVersionWatch();
   // Saved ticks keep being sent whichever screen is open.
   useTickSender();
+  useFinishSignOut();
 
   useEffect(() => {
     if (setupStatus.isPending) return;

@@ -1,4 +1,6 @@
+import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { onReachable } from '../lib/connectivity.js';
 import type {
   LoginRequest,
   RosterEntry,
@@ -8,9 +10,66 @@ import type {
   UpdateMe,
 } from '@mise/contracts';
 import { useNavigate } from '@tanstack/react-router';
-import { api, RequestFailed } from './client.js';
+import { api, noAnswer, RequestFailed } from './client.js';
 import { sendPending } from './ticks.js';
 import { forgetKept } from './offline.js';
+
+/**
+ * A sign-out Mise didn't hear yet.
+ *
+ * The session lives in a cookie the page can't touch, so signing out offline
+ * is remembered here: the device counts as signed out at once, and tells Mise
+ * before anything else once it answers. The next cook never carries on as
+ * the last one, and never sends changes under their name.
+ */
+const SIGNED_OUT_KEY = 'mise.signedOut';
+
+function signOutPending(): boolean {
+  try {
+    return localStorage.getItem(SIGNED_OUT_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
+
+function setSignOutPending(pending: boolean): void {
+  try {
+    if (pending) localStorage.setItem(SIGNED_OUT_KEY, '1');
+    else localStorage.removeItem(SIGNED_OUT_KEY);
+  } catch {
+    // Storage blocked: the sign-out is only as good as the server's answer.
+  }
+}
+
+/** Finish a sign-out made offline. True once nobody is signed in on Mise either. */
+export async function finishSignOut(): Promise<boolean> {
+  if (!signOutPending()) return true;
+  try {
+    await api.post<void>('/auth/logout');
+  } catch (error) {
+    if (!(error instanceof RequestFailed && error.isUnauthenticated)) return false;
+  }
+  setSignOutPending(false);
+  return true;
+}
+
+/** Finish a sign-out made offline as soon as Mise answers. Mounted once, in the shell. */
+export function useFinishSignOut(): void {
+  useEffect(() => {
+    const finish = () => {
+      if (signOutPending()) void finishSignOut();
+    };
+    finish();
+    const timer = window.setInterval(finish, 10_000);
+    const offReachable = onReachable(finish);
+    window.addEventListener('online', finish);
+    return () => {
+      window.clearInterval(timer);
+      offReachable();
+      window.removeEventListener('online', finish);
+    };
+  }, []);
+}
 
 /** Whether this server has ever been set up, the language it speaks, and its name. */
 export function useSetupStatus() {
@@ -29,6 +88,8 @@ export function useCurrentUser() {
   return useQuery({
     queryKey: ['me'],
     queryFn: async () => {
+      // Signed out while Mise couldn't hear it: signed out until it has.
+      if (!(await finishSignOut())) return null;
       try {
         const { user } = await api.get<{ user: SessionUser }>('/auth/me');
         return user;
@@ -55,8 +116,13 @@ export function useUpdateMe() {
 export function useLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: LoginRequest) => api.post<{ user: SessionUser }>('/auth/login', input),
+    mutationFn: async (input: LoginRequest) => {
+      await finishSignOut();
+      return api.post<{ user: SessionUser }>('/auth/login', input);
+    },
     onSuccess: ({ user }) => {
+      // Signed in afresh: the old cookie is gone from this device either way.
+      setSignOutPending(false);
       queryClient.setQueryData(['me'], user);
     },
   });
@@ -75,6 +141,8 @@ export function useLogout() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   return useMutation({
+    // Never held until the browser is back online: signing out works offline.
+    networkMode: 'always',
     mutationFn: async () => {
       const user = queryClient.getQueryData<SessionUser | null>(['me']);
       if (user) {
@@ -83,7 +151,13 @@ export function useLogout() {
           new Promise((resolve) => window.setTimeout(resolve, FLUSH_MS)),
         ]);
       }
-      await api.post<void>('/auth/logout');
+      try {
+        await api.post<void>('/auth/logout');
+      } catch (error) {
+        // Mise can't be reached: signed out here now, and on Mise once it answers.
+        if (!noAnswer(error)) throw error;
+        setSignOutPending(true);
+      }
       return user;
     },
     onSuccess: async (user) => {
@@ -133,9 +207,12 @@ export function useRoster(enabled: boolean) {
 export function usePinLogin() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (input: { userId: string; pin: string }) =>
-      api.post<{ user: SessionUser }>('/auth/pin-login', input),
+    mutationFn: async (input: { userId: string; pin: string }) => {
+      await finishSignOut();
+      return api.post<{ user: SessionUser }>('/auth/pin-login', input);
+    },
     onSuccess: ({ user }) => {
+      setSignOutPending(false);
       queryClient.setQueryData(['me'], user);
     },
   });
