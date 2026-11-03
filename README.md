@@ -50,8 +50,19 @@ Chefs and managers sign in with an email and password, on any device.
 
 Cooks sign in on a kitchen tablet by tapping their name and typing their PIN. That only works on a
 tablet you've enrolled: sign in on it as the administrator, go to **Settings → Devices** and enrol
-it. Five wrong PINs lock that person out for 15 minutes. Anyone can have a PIN, managers included;
-whoever sets up the kitchen can choose one during setup.
+it. Anyone can have a PIN, managers included; whoever sets up the kitchen can choose one during
+setup.
+
+A PIN is short, so it never stands between anyone and the kitchen's security. Signed in with a PIN,
+a chef can do everything in the kitchen (recipes, dishes, menus, the prep list, stations, dish
+cards), but staff, devices, the connection and backups need a password sign-in. Settings shows
+those sections greyed out, with a note to sign in with the password.
+
+Five wrong PINs lock that person out for 15 minutes, on every tablet. Each lock after that lasts
+twice as long, up to a day, until they sign in. An administrator setting a new PIN lifts it.
+
+Signing out works offline too: the tablet is signed out at once, and Mise hears about it as soon
+as it answers again, so the next cook never carries on as the last one.
 
 ## From outside the kitchen
 
