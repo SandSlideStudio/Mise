@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import { and, asc, eq, isNull, lt, or, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from 'drizzle-orm';
 import type { Database } from '../../db/client.js';
 import { remoteDevices, users } from '../../db/schema.js';
 import { generateToken, hashToken } from '../../lib/crypto.js';
@@ -23,6 +23,8 @@ export const IDLE_DAYS = 90;
 export const PENDING_HOURS = 24;
 /** At most this many requests wait at once, so nobody can flood the list. */
 export const MAX_PENDING = 20;
+/** Requests waiting from one address at a time. */
+export const MAX_PENDING_PER_ADDRESS = 3;
 /** Browsers keep a cookie at most about this long; it is renewed as the device is used. */
 export const COOKIE_DAYS = 400;
 /** How often a device's last use is written down. Once an hour is plenty for a 90-day limit. */
@@ -104,29 +106,58 @@ export function createAccessService(db: Database) {
       );
   }
 
+  /**
+   * The device a cookie belongs to. Asked on every request from outside, so
+   * it reads only: a delete each time would wear out an SD card. An expired
+   * one counts as gone, and is cleared the next time anyone asks or approves.
+   */
   async function byToken(token: string) {
-    await sweep();
     const [row] = await db
       .select()
       .from(remoteDevices)
       .where(eq(remoteDevices.tokenHash, hashToken(token)))
       .limit(1);
-    return row ?? null;
+    if (!row) return null;
+    const idle = idleSince();
+    const expired =
+      row.status === 'pending'
+        ? row.requestedAt < pendingSince()
+        : row.status === 'approved' && (row.lastSeenAt ?? row.approvedAt ?? new Date()) < idle;
+    return expired ? null : row;
   }
 
   return {
     /** A new request. Returns the cookie's token and the code to read out. */
     async ask(input: { name: string; userAgent: string | null; address: string }) {
       await sweep();
-      const [{ waiting } = { waiting: 0 }] = await db
-        .select({ waiting: sql<number>`count(*)::int` })
+      // One address can't fill the list; and a full list makes room by
+      // dropping the oldest request, so nobody can lock real ones out.
+      const shown = shownAddress(input.address);
+      if (shown) {
+        const [{ fromHere } = { fromHere: 0 }] = await db
+          .select({ fromHere: sql<number>`count(*)::int` })
+          .from(remoteDevices)
+          .where(and(eq(remoteDevices.status, 'pending'), eq(remoteDevices.address, shown)));
+        if (fromHere >= MAX_PENDING_PER_ADDRESS) {
+          throw new ApiError(
+            429,
+            'too_many_requests',
+            'Too many devices are waiting to be approved. Try again later.',
+          );
+        }
+      }
+      const oldest = await db
+        .select({ id: remoteDevices.id })
         .from(remoteDevices)
-        .where(eq(remoteDevices.status, 'pending'));
-      if (waiting >= MAX_PENDING) {
-        throw new ApiError(
-          429,
-          'too_many_requests',
-          'Too many devices are waiting to be approved. Try again later.',
+        .where(eq(remoteDevices.status, 'pending'))
+        .orderBy(desc(remoteDevices.requestedAt))
+        .offset(MAX_PENDING - 1);
+      if (oldest.length > 0) {
+        await db.delete(remoteDevices).where(
+          inArray(
+            remoteDevices.id,
+            oldest.map((row) => row.id),
+          ),
         );
       }
       const token = generateToken();

@@ -68,7 +68,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
           username: request.body.webdavUsername ?? null,
           password: request.body.webdavPassword ?? null,
         })
-        .catch(failed);
+        .catch((error: unknown) => failed(error, request.log));
       return reply.status(204).send(null);
     },
   );
@@ -100,7 +100,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request) => {
       await allowed(request, headerToken(request));
-      await app.backups.connectOnedrive().catch(failed);
+      await app.backups.connectOnedrive().catch((error: unknown) => failed(error, request.log));
       return (await app.backups.status()).onedrive;
     },
   );

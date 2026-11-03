@@ -3,7 +3,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyBaseLogger, FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
@@ -23,9 +23,17 @@ import { AlreadySetUpError, validTimeZone } from './service.js';
 /** Big enough for years of plating photos. */
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024 * 1024;
 
-export function failed(error: unknown): never {
+export function failed(error: unknown, log?: FastifyBaseLogger): never {
   if (error instanceof BackupFailure) {
-    throw new ApiError(400, `backup_${error.code}`, error.message);
+    log?.warn({ err: error }, 'backup step failed');
+    // Only what went wrong, never the details (addresses, ports, the other
+    // server's words): those are for the log, or the test becomes a way to
+    // probe the network.
+    throw new ApiError(
+      400,
+      `backup_${error.code}`,
+      `The backup could not be done (${error.code}).`,
+    );
   }
   throw error;
 }
@@ -98,7 +106,7 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
           username: request.body.webdavUsername ?? null,
           password: request.body.webdavPassword ?? null,
         })
-        .catch(failed);
+        .catch((error: unknown) => failed(error, request.log));
       return reply.status(204).send(null);
     },
   );
@@ -109,8 +117,8 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
       ...admin,
       schema: { response: { 200: backupStatusSchema, 400: errorSchema, 403: errorSchema } },
     },
-    async () => {
-      await app.backups.connectOnedrive().catch(failed);
+    async (request) => {
+      await app.backups.connectOnedrive().catch((error: unknown) => failed(error, request.log));
       return app.backups.status();
     },
   );
@@ -214,7 +222,7 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
             if (error instanceof AlreadySetUpError) {
               throw new ApiError(409, 'already_set_up', 'This server has already been set up.');
             }
-            return failed(error);
+            return failed(error, request.log);
           });
         const timeZone = fields.timeZone;
         if (timeZone && validTimeZone(timeZone)) await app.backups.update({ timeZone });
