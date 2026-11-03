@@ -1,4 +1,4 @@
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import {
   DISH_CARD_PARTS,
   type DishCard,
@@ -71,8 +71,15 @@ export function createDishCardService(db: Database) {
   async function settings(): Promise<StoredSettings> {
     const [row] = await db.select().from(dishCardSettings).limit(1);
     if (row) return row;
-    const [created] = await db.insert(dishCardSettings).values({}).returning();
-    return created!;
+    // The first time, made once: two pages opening at the same moment would
+    // otherwise make two, and changes would go to one and be read from the other.
+    return db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-dish-card-settings'))`);
+      const [made] = await tx.select().from(dishCardSettings).limit(1);
+      if (made) return made;
+      const [created] = await tx.insert(dishCardSettings).values({}).returning();
+      return created!;
+    });
   }
 
   async function update(input: UpdateDishCardSettings): Promise<StoredSettings> {

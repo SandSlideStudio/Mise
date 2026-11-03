@@ -195,6 +195,17 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
             'You can only put your own name against a task.',
           );
         }
+        // Dropping a claim is for the person who made it.
+        if (request.body.assignedUserId === null) {
+          const task = await svc.getTask(request.params.id);
+          if (task?.assignedUserId && task.assignedUserId !== user.id) {
+            throw new ApiError(
+              403,
+              'task_not_yours',
+              'You can only put your own name against a task.',
+            );
+          }
+        }
       }
 
       // A line gone from the list stays gone. Unticking is refused as if it
