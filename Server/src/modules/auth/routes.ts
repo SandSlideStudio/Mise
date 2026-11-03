@@ -101,7 +101,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
   r.post(
     '/login',
     {
-      config: { rateLimit: { max: 10, timeWindow: '5 minutes' } },
+      config: { rateLimit: { max: app.config.LOGIN_ATTEMPTS, timeWindow: '5 minutes' } },
       schema: {
         body: loginRequestSchema,
         response: {
