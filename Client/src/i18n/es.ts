@@ -35,6 +35,52 @@ export const es: Record<MessageKey, string> = {
   'common.loadFailed': 'No se ha podido cargar. Revisa la conexión y vuelve a intentarlo.',
 
   'error.generic': 'Algo ha fallado.',
+  'error.notFound': 'Eso ya no está. Puede que alguien lo haya quitado.',
+  'error.validationFailed': 'Algo no está bien rellenado. Revísalo y vuelve a intentarlo.',
+  'error.alreadyExists': 'Eso ya existe.',
+  'error.stillReferenced': 'Todavía se usa en otro sitio, así que no se puede quitar.',
+  'error.invalidData': 'Ese valor no se permite aquí.',
+  'error.writeInProgress': 'Ese cambio se está guardando. Vuelve a intentarlo en un momento.',
+  'error.backupFileMissing': 'Adjunta el archivo de copia de seguridad.',
+  'error.onedriveNotConnected': 'Conecta OneDrive primero.',
+  'error.nasAddressNeeded': 'Escribe la dirección del NAS al que enviar las copias.',
+  'error.fileTooLarge': 'Ese archivo es demasiado grande.',
+  'error.unknownTimeZone': 'Este servidor no conoce esa zona horaria.',
+  'error.alreadySetUp': 'Este servidor ya está configurado.',
+  'error.imageType': 'Usa una imagen JPEG, PNG o WebP.',
+  'error.imageMissing': 'No se ha adjuntado ninguna imagen.',
+  'error.notADish': 'Solo un plato tiene ficha de plato.',
+  'error.logoTooLarge': 'Ese logotipo ocupa más de 2 MB.',
+  'error.photoTooLarge': 'Esa imagen ocupa más de 8 MB.',
+  'error.taskNotYours': 'Solo puedes poner tu propio nombre en una línea.',
+  'error.taskChefOnly':
+    'Puedes empezar y terminar una línea, pero solo un chef puede cambiar lo que dice.',
+  'error.staffRank': 'Solo un administrador puede gestionar personal de tu rango o superior.',
+  'error.adminNeedsPassword': 'Un administrador necesita correo y contraseña, no solo un PIN.',
+  'error.passwordNeedsEmail': 'Entrar con contraseña necesita un correo electrónico.',
+  'error.noWayToSignIn': 'Se quedaría sin forma de entrar. Dale una contraseña o un PIN.',
+  'error.emailTaken': 'Alguien ya tiene ese correo electrónico.',
+  'error.lastAdmin':
+    'Es el único administrador que queda. Haz administrador a otra persona primero, o nadie podrá gestionar esta cocina.',
+  'error.cannotRemoveSelf': 'No puedes quitar tu propia cuenta.',
+  'error.onlyDishes': 'En un menú solo van platos: {names}.',
+  'error.menuNameTaken': 'Ya hay un menú con ese nombre.',
+  'error.menuUnavailable':
+    'No se pueden calcular los alérgenos de {names}, porque apunta a una receta o ingrediente que ya no existe. Arregla primero la receta.',
+  'error.recipeGone': 'Esa receta ya no existe.',
+  'error.recipeLoop':
+    '{parent} no puede contener {child}, porque {child} ya contiene {parent}. Sería un bucle.',
+  'error.scaleFailed': 'Esa receta no se pudo calcular a ese tamaño.',
+  'error.scaleUnits': 'Ese tamaño está en otro tipo de unidad que lo que rinde la receta.',
+  'error.scaleLoop': 'Esta receta se contiene a sí misma, así que no se puede escalar.',
+  'error.scaleNoPortions':
+    'Esta receta no está escrita en raciones. Escálala por tanda o por rendimiento.',
+  'error.stillUsed': 'Todavía lo usa {names}. Quítalo de ahí primero.',
+  'error.alreadyInside': 'Este dispositivo está en la red de la cocina y no necesita aprobación.',
+  'error.allergensUnknown':
+    'No se pueden calcular los alérgenos de esta receta: falta algo o hace referencia a sí misma. Revisa lo que lleva en el editor.',
+  'error.nameOutsideKitchen':
+    'El certificado de la cocina solo vale para la red de la cocina: direcciones como 192.168.1.50 y nombres que acaban en .local, .lan, .home o .internal. «{name}» no es uno de ellos.',
   'error.invalidCredentials': 'No coincide. Inténtalo de nuevo.',
   'error.accountInactive': 'Esa cuenta ya no está activa.',
   'error.deviceNotEnrolled':
@@ -354,7 +400,7 @@ export const es: Record<MessageKey, string> = {
   'recipe.empty': 'Esta receta todavía está vacía.',
   'recipe.method': 'Elaboración',
   'recipe.storage': 'Conservación',
-  'recipe.print': 'Imprimir este tamaño',
+  'recipe.print': 'Imprimir ficha de receta',
   'recipe.duplicate': 'Duplicar',
   'recipe.copyName': '{name} (copia)',
   'recipe.usedBy': 'Se usa en',
@@ -375,7 +421,6 @@ export const es: Record<MessageKey, string> = {
   'plating.add': 'Añadir una foto del emplatado',
   'plating.addAnother': 'Añadir otra foto',
 
-  'print.printed': 'Impreso {date} · {time}',
   'print.whatGoesIn': 'Qué lleva',
 
   'editor.editing': 'Editando',
@@ -939,6 +984,16 @@ export const es: Record<MessageKey, string> = {
     'Aprobar desde fuera necesita una contraseña, y esta cuenta no tiene. Apruébalo desde la cocina.',
   'error.tooManyRequests': 'Hay demasiados dispositivos esperando aprobación. Inténtalo más tarde.',
   'settings.tabConnection': 'Conexión',
+  'connection.relayedTitle': 'Mise no puede saber quién está dentro de la cocina',
+  'connection.relayedBody':
+    'Algunos visitantes llegan a Mise a través del propio relé de Docker ({address}), que oculta dónde están realmente. Por eso Mise los cuenta como de fuera: cada dispositivo pide acceso una vez y un chef lo aprueba.',
+  'connection.relayedTrusted':
+    'Algunos visitantes llegan a Mise a través del propio relé de Docker ({address}), que oculta dónde están realmente. Elegiste contarlos como dentro de la cocina, así que se saltan la aprobación que necesitan los dispositivos de fuera, estén donde estén.',
+  'connection.relayedTrust': 'Contar a estos visitantes como dentro de la cocina',
+  'connection.relayedTrustHint':
+    'Solo si a Mise no se puede llegar desde internet, o solo a través de un servidor web de confianza. Si no, cualquiera que lo encuentre se salta la aprobación.',
+  'connection.relayedFix':
+    'Pasa con Docker sin root, Podman, Docker Desktop, o por IPv6 cuando la red de Docker no lo tiene. Ejecuta Mise con la red del host (network_mode: host), o activa IPv6 en la red de Docker, para que Mise vea la dirección de cada visitante. Consulta «From outside the kitchen» en el README.',
   'connection.domainTitle': 'Dirección desde fuera',
   'connection.domainBody':
     'Si Mise es accesible por internet, escribe la dirección que lleva a él, como mise.tucocina.es. Desde fuera de la cocina, Mise solo responde en esa dirección: la IP sola, o el nombre de otra web en el mismo servidor, no encuentra nada. En la red de la cocina y la VPN, todas las direcciones siguen funcionando.',
@@ -1064,7 +1119,15 @@ export const es: Record<MessageKey, string> = {
   'offline.sending_one': 'Enviando 1 cambio hecho sin conexión…',
   'offline.sending_other': 'Enviando {count} cambios hechos sin conexión…',
   'offline.dropped': 'No se pudo guardar {what}: {reason}',
+  'offline.setAside':
+    '{what} no se pudo guardar: Mise tuvo un problema con ello. Los demás cambios siguen.',
+  'offline.tryAgain': 'Reintentar',
+  'offline.letGo': 'Descartar',
   'offline.lineWaiting': 'Esperando envío',
+  'offline.allergensOnceSent': 'Los alérgenos se actualizarán cuando se envíen tus cambios.',
+  'offline.cardOnceSent': 'Esta ficha se actualizará cuando se envíen tus cambios.',
+  'offline.menuOnceSent':
+    'Los alérgenos y las fichas de plato se actualizarán cuando se envíen tus cambios.',
   'offline.conflictTitle': 'Cambiado en otro dispositivo',
   'offline.conflictBody':
     'Mientras estabas sin conexión, otra persona cambió {what}. ¿Qué versión se queda?',
@@ -1081,6 +1144,17 @@ export const es: Record<MessageKey, string> = {
   'offline.field.tags': 'Etiquetas',
   'offline.field.components': 'Componentes',
   'offline.field.dishes': 'Platos',
+  'offline.field.type': 'Tipo de receta',
+  'offline.field.yield': 'Rinde',
+  'offline.field.portions': 'Raciones',
+  'offline.field.prepMinutes': 'Tiempo de preparación',
+  'offline.field.cookMinutes': 'Tiempo de cocción',
+  'offline.field.keeps': 'Se conserva',
+  'offline.field.allergens': 'Alérgenos',
+  'offline.field.mayContain': 'Puede contener',
+  'offline.yes': 'Sí',
+  'offline.no': 'No',
+  'offline.unknownStation': 'Una partida ya eliminada',
   'offline.label.note': 'la nota de relevo',
   'offline.label.addLine': 'la línea de mise en place “{name}”',
   'offline.label.editLine': 'un cambio en una línea de mise en place',
@@ -1090,4 +1164,48 @@ export const es: Record<MessageKey, string> = {
   'offline.label.ingredient': 'el ingrediente “{name}”',
   'error.offline':
     'Ahora no se puede conectar con Mise, y esto necesita la conexión. Vuelve a intentarlo cuando vuelva.',
+  'prepPrint.print': 'Imprimir',
+  'prepPrint.title': 'Mise en place',
+  'prepPrint.empty': 'Nada en la lista.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Rinde',
+  'recipeCard.prepTime': 'Preparación',
+  'recipeCard.keeps': 'Se conserva',
+  'recipeCard.days_one': '{count} día',
+  'recipeCard.days_other': '{count} días',
+  'recipeCard.hours_one': '{count} hora',
+  'recipeCard.hours_other': '{count} horas',
+  'recipeCard.mayContain': 'Puede contener: {allergens}',
+  'recipeCard.onThePlate': 'En el plato',
+  'recipeCard.plating': 'Emplatado',
+  'recipeCard.ownRecipe': 'su propia receta',
+  'updated.title': 'Mise se ha actualizado',
+  'updated.body':
+    'Mise se ha actualizado. Recarga para usar la nueva versión; no se pierde nada pendiente de enviar.',
+  'updated.bodyVersion':
+    'Mise se ha actualizado a {version}. Recarga para usarla; no se pierde nada pendiente de enviar.',
+  'updated.reload': 'Recargar',
+  'error.pageTitle': 'Esta página no se abrió',
+  'error.pageBody': 'Algo salió mal al abrirla. Recargar suele solucionarlo.',
+  'access.waitingOne': '“{name}” pide acceso desde fuera de la cocina.',
+  'access.waitingCount_one': '1 dispositivo pide acceso desde fuera de la cocina.',
+  'access.waitingCount_other': '{count} dispositivos piden acceso desde fuera de la cocina.',
+  'access.checkCode': 'Comprobar el código y aprobar',
+  'error.incompatibleUnits':
+    '{child} rinde en {makes}, así que aquí no se puede medir en {unit}. Usa el mismo tipo de unidad, o cambia lo que rinde {child}.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} usa {child} en {unit}, y eso no se puede calcular a partir de {makes}. Cambia primero esa línea, o mantén el rendimiento en el mismo tipo de unidad.',
+  'recipe.shownAsWritten':
+    'Esta receta no se puede calcular para la cantidad pedida, así que se muestra tal como está escrita.',
+  'passwordOnly.signIn': 'Iniciar sesión con contraseña',
+  'passwordOnly.staff':
+    'Has iniciado sesión con tu PIN. Para añadir personal o cambiar roles, contraseñas y PIN, inicia sesión con tu contraseña.',
+  'passwordOnly.devices':
+    'Has iniciado sesión con tu PIN. Para registrar tablets o dejar entrar dispositivos de fuera, inicia sesión con tu contraseña.',
+  'passwordOnly.connection':
+    'Has iniciado sesión con tu PIN. Para cambiar cómo se accede a Mise, inicia sesión con tu contraseña.',
+  'passwordOnly.backups':
+    'Has iniciado sesión con tu PIN. Para gestionar las copias o ver la clave de recuperación, inicia sesión con tu contraseña.',
+  'error.passwordRequired':
+    'Inicia sesión con tu contraseña para hacer esto. Con un PIN puedes hacer todo lo demás.',
 };

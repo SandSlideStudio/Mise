@@ -35,7 +35,8 @@ export function DishCardSettings() {
   const settings = useDishCardSettings();
 
   if (settings.isPending) return <p className="text-ink-soft">{t('common.loading')}</p>;
-  if (settings.isError) return <p className="text-danger">{t('common.loadFailed')}</p>;
+  if (settings.isError && settings.data === undefined)
+    return <p className="text-danger">{t('common.loadFailed')}</p>;
   return <SettingsForm settings={settings.data} />;
 }
 

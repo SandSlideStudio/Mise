@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { expandRecipe, factorFor } from './expand.js';
 import { book, cyclicBook } from './fixtures.js';
+import { createRecipeBook } from './recipe.js';
 import { unwrap } from './result.js';
 import { qty } from './units.js';
 
@@ -105,5 +106,67 @@ describe('scaling a dish to a service', () => {
     expect(lines.find((l) => l.name === 'Chicken stock')?.quantity.value).toBeCloseTo(1000);
     // And 1000 ml of stock is half a batch, so half its 200 g of onion.
     expect(lines.find((l) => l.name === 'Onion')?.quantity.value).toBeCloseTo(100);
+  });
+});
+
+describe('a sub-recipe in a kind of unit its yield cannot be turned into', () => {
+  // Saved before Mise refused it: millilitres of a sauce that makes kilos.
+  const mixed = createRecipeBook(
+    [
+      {
+        id: 'r-sauce',
+        name: 'Beurre blanc',
+        type: 'prep',
+        yield: qty(1000, 'g'),
+        components: [
+          {
+            id: 'c-1',
+            sortOrder: 0,
+            ref: { kind: 'ingredient', ingredientId: 'i-butter' },
+            quantity: qty(800, 'g'),
+          },
+        ],
+      },
+      {
+        id: 'r-fish',
+        name: 'Cod, beurre blanc',
+        type: 'dish',
+        yield: qty(1, 'each'),
+        portions: 1,
+        components: [
+          {
+            id: 'c-2',
+            sortOrder: 0,
+            ref: { kind: 'recipe', recipeId: 'r-sauce' },
+            quantity: qty(60, 'ml'),
+          },
+          {
+            id: 'c-3',
+            sortOrder: 1,
+            ref: { kind: 'ingredient', ingredientId: 'i-flour' },
+            quantity: qty(5, 'g'),
+          },
+        ],
+      },
+    ],
+    [
+      { id: 'i-butter', name: 'Butter', baseUnit: 'g', allergens: ['milk'], yieldPercent: 100 },
+      {
+        id: 'i-flour',
+        name: 'Plain flour',
+        baseUnit: 'g',
+        allergens: ['gluten'],
+        yieldPercent: 100,
+      },
+    ],
+  );
+
+  it('still opens: the line is shown, its contents are left to its own recipe', () => {
+    const lines = unwrap(expandRecipe('r-fish', 1, mixed));
+    expect(lines.map((line) => [line.depth, line.name])).toEqual([
+      [0, 'Beurre blanc'],
+      [0, 'Plain flour'],
+    ]);
+    expect(lines[0]!.quantity).toEqual(qty(60, 'ml'));
   });
 });

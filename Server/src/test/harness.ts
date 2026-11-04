@@ -51,6 +51,7 @@ export const TEST_CONFIG: Config = {
   CLIENT_DIR: '../Client/dist',
   TRUST_PROXY: false,
   OUTSIDE_ACCESS: 'approved',
+  LOGIN_ATTEMPTS: 10,
   ONEDRIVE_CLIENT_ID: 'test-client',
 };
 

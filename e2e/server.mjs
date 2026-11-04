@@ -35,6 +35,8 @@ const server = spawn(process.execPath, ['Server/dist/index.js'], {
     HOST: '127.0.0.1',
     UPLOAD_DIR: path.join(data, 'uploads'),
     BACKUP_DIR: path.join(data, 'backups'),
+    // Every test signs in from this one machine.
+    LOGIN_ATTEMPTS: '1000',
     // Nothing in the tests should reach the internet.
     ACME_DIRECTORY: 'https://acme.invalid/directory',
   },

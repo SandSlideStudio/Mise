@@ -243,8 +243,50 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   domain_locks_you_out: 'error.domainLocksYouOut',
   proxy_not_local: 'error.proxyNotLocal',
   bad_name: 'error.badName',
+  password_required: 'error.passwordRequired',
   no_domain: 'error.noDomain',
   internal_error: 'error.generic',
+  request_failed: 'error.generic',
+  card_unavailable: 'card.unavailable',
+  not_found: 'error.notFound',
+  validation_failed: 'error.validationFailed',
+  already_exists: 'error.alreadyExists',
+  still_referenced: 'error.stillReferenced',
+  invalid_data: 'error.invalidData',
+  write_in_progress: 'error.writeInProgress',
+  backup_file_missing: 'error.backupFileMissing',
+  onedrive_not_connected: 'error.onedriveNotConnected',
+  nas_address_needed: 'error.nasAddressNeeded',
+  file_too_large: 'error.fileTooLarge',
+  unknown_time_zone: 'error.unknownTimeZone',
+  already_set_up: 'error.alreadySetUp',
+  image_type: 'error.imageType',
+  image_missing: 'error.imageMissing',
+  not_a_dish: 'error.notADish',
+  logo_too_large: 'error.logoTooLarge',
+  photo_too_large: 'error.photoTooLarge',
+  task_not_yours: 'error.taskNotYours',
+  task_chef_only: 'error.taskChefOnly',
+  staff_rank: 'error.staffRank',
+  admin_needs_password: 'error.adminNeedsPassword',
+  password_needs_email: 'error.passwordNeedsEmail',
+  no_way_to_sign_in: 'error.noWayToSignIn',
+  email_taken: 'error.emailTaken',
+  last_admin: 'error.lastAdmin',
+  cannot_remove_self: 'error.cannotRemoveSelf',
+  only_dishes: 'error.onlyDishes',
+  menu_name_taken: 'error.menuNameTaken',
+  menu_unavailable: 'error.menuUnavailable',
+  recipe_gone: 'error.recipeGone',
+  recipe_loop: 'error.recipeLoop',
+  scale_failed: 'error.scaleFailed',
+  scale_units: 'error.scaleUnits',
+  scale_loop: 'error.scaleLoop',
+  scale_no_portions: 'error.scaleNoPortions',
+  still_used: 'error.stillUsed',
+  already_inside: 'error.alreadyInside',
+  allergens_unknown: 'error.allergensUnknown',
+  name_outside_kitchen: 'error.nameOutsideKitchen',
   backup_bad_key: 'backups.reason.bad_key',
   backup_wrong_key: 'backups.reason.wrong_key',
   backup_not_a_backup: 'backups.reason.not_a_backup',
@@ -278,6 +320,29 @@ export function errorMessage(translator: Translator, error: unknown): string {
       : translator.t('error.accountLocked');
   }
 
+  if (error.code === 'incompatible_units') {
+    const details = error.details as
+      { child?: string; unit?: string; makes?: string; usedIn?: string | null } | undefined;
+    if (details?.child && details.unit && details.makes) {
+      const vars = { child: details.child, unit: details.unit, makes: details.makes };
+      return details.usedIn
+        ? translator.t('error.incompatibleUnitsUsedIn', { ...vars, usedIn: details.usedIn })
+        : translator.t('error.incompatibleUnits', vars);
+    }
+  }
+
+  if (error.status === 429) return translator.t('error.tooManyRequests');
+
   const key = TRANSLATED_ERRORS[error.code];
-  return key ? translator.t(key) : error.message;
+  if (!key) return error.message;
+  // Names the message mentions come along in the details.
+  const details = (error.details ?? {}) as Record<string, unknown>;
+  const vars: Record<string, string> = {};
+  for (const [name, value] of Object.entries(details)) {
+    if (Array.isArray(value)) vars[name] = value.map(String).join(', ');
+    else if (typeof value === 'string' || typeof value === 'number') vars[name] = String(value);
+  }
+  const text = translator.t(key, vars);
+  // A name missing from the details: the server's own words beat a gap.
+  return /\{[a-z]+\}/i.test(text) ? error.message : text;
 }

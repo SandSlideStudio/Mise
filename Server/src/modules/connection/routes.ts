@@ -25,6 +25,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
 
   function describe(request: FastifyRequest) {
     const seen = app.connection.seenProxy();
+    const relayed = app.connection.containerGateway();
     const https = app.connection.https();
     return {
       https: {
@@ -36,6 +37,8 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       outsideDomain: app.connection.outsideDomain(),
       trustedProxy: app.connection.trustedProxy(),
       seenProxy: seen ? { ...seen, at: seen.at.toISOString() } : null,
+      containerGateway: relayed ? { ...relayed, at: relayed.at.toISOString() } : null,
+      trustContainerGateway: app.connection.trustsContainerGateway(),
       currentHost: plainHost(request.hostname),
       inside: request.inside,
     };
@@ -53,7 +56,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.put(
     '/connection',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: updateConnectionSchema,
         response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
@@ -68,6 +71,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           400,
           'domain_locks_you_out',
           `You are connected through ${plainHost(request.hostname)}. Set this from inside the kitchen, or open Mise through ${domain} first.`,
+          { current: plainHost(request.hostname), domain },
         );
       }
       // Only a machine on the kitchen's own network: trusting one on the
@@ -79,7 +83,11 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           'Use the address of a web server on the kitchen network, such as 192.168.1.60.',
         );
       }
-      await app.connection.update({ outsideDomain: domain, trustedProxy: proxy });
+      await app.connection.update({
+        outsideDomain: domain,
+        trustedProxy: proxy,
+        trustContainerGateway: request.body.trustContainerGateway,
+      });
       return describe(request);
     },
   );
@@ -94,7 +102,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.put(
     '/connection/kitchen-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: kitchenHttpsSchema,
         response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
@@ -104,7 +112,18 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       const names = [...new Set(request.body.names)];
       const wrong = names.find((name) => !validKitchenName(name));
       if (wrong) {
-        throw new ApiError(400, 'bad_name', `"${wrong}" is not an address or host name.`);
+        throw new ApiError(400, 'bad_name', `"${wrong}" is not an address or host name.`, {
+          name: wrong,
+        });
+      }
+      const outside = app.connection.namesOutsideAuthority(names);
+      if (outside.length > 0) {
+        throw new ApiError(
+          400,
+          'name_outside_kitchen',
+          `The kitchen certificate only vouches for the kitchen network: addresses such as 192.168.1.50, and names ending in .local, .lan, .home or .internal. "${outside[0]}" isn't one of them.`,
+          { name: outside[0] },
+        );
       }
       await app.connection.enableKitchenHttps(names, await kitchenName());
       return describe(request);
@@ -114,7 +133,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/connection/kitchen-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: { response: { 200: connectionSchema, 403: errorSchema } },
     },
     async (request) => {
@@ -126,7 +145,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.post(
     '/connection/domain-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       // Let's Encrypt allows only a few failed tries an hour.
       config: { rateLimit: { max: 5, timeWindow: '1 hour' } },
       schema: {
@@ -152,7 +171,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/connection/domain-https',
     {
-      onRequest: [app.requireRole('admin')],
+      onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: { response: { 200: connectionSchema, 403: errorSchema } },
     },
     async (request) => {

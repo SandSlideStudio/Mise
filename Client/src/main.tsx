@@ -4,7 +4,7 @@ import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
 import { RequestFailed, setOutboxUser } from './api/client.js';
 import { useOutboxSender } from './api/outbox.js';
-import { KEPT_FOR_MS, keepOnDevice, persister, useLoadAhead } from './api/offline.js';
+import { forgetKept, KEPT_FOR_MS, keepOnDevice, persister, useLoadAhead } from './api/offline.js';
 import {
   createRootRoute,
   createRoute,
@@ -19,7 +19,7 @@ import { useEffect } from 'react';
 import { isAccessRequired, markAccessRequired, useAccessRequired } from './api/access.js';
 import { useLiveUpdates } from './api/live.js';
 import { useTickSender } from './api/ticks.js';
-import { useCurrentUser, useSetupStatus } from './api/session.js';
+import { useCurrentUser, useFinishSignOut, useSetupStatus } from './api/session.js';
 import { I18nProvider, useT } from './i18n/index.js';
 import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
@@ -38,6 +38,8 @@ import { Settings } from './routes/Settings.js';
 import { Setup } from './routes/Setup.js';
 import { applyTheme } from './lib/theme.js';
 import { VERSION } from './version.js';
+import { useVersionWatch } from './lib/freshness.js';
+import { RouteError } from './components/UpdatedNotice.js';
 import { TourHost } from './components/Tour.js';
 // Self-hosted, so a kitchen server with no internet still draws its own type.
 import '@fontsource/barlow/400.css';
@@ -63,10 +65,21 @@ if (import.meta.env.PROD && 'serviceWorker' in navigator && window.isSecureConte
  * request page instead.
  */
 function signedOutElsewhere(error: unknown): void {
+  // A session that ended, or a device no longer let in from outside: what
+  // this device kept goes too, so a revoked phone keeps no recipes.
+  const ended =
+    error instanceof RequestFailed &&
+    error.isUnauthenticated &&
+    queryClient.getQueryData(['me']) != null;
   if (error instanceof RequestFailed && error.isUnauthenticated) {
     queryClient.setQueryData(['me'], null);
   }
   if (isAccessRequired(error)) markAccessRequired();
+  if (ended || isAccessRequired(error)) {
+    const keep = new Set(['setup-status', 'me', 'access-status']);
+    queryClient.removeQueries({ predicate: (query) => !keep.has(String(query.queryKey[0])) });
+    void forgetKept();
+  }
 }
 
 /** How often a screen that can't reach the server tries again. */
@@ -125,8 +138,10 @@ function Shell() {
   setOutboxUser(currentUser.data?.id ?? null);
   useOutboxSender();
   useLoadAhead(currentUser.data != null);
+  useVersionWatch();
   // Saved ticks keep being sent whichever screen is open.
   useTickSender();
+  useFinishSignOut();
 
   useEffect(() => {
     if (setupStatus.isPending) return;
@@ -269,7 +284,8 @@ const routeTree = rootRoute.addChildren([
 // No view transitions: where the browser can't run one (a dimmed or covered
 // tablet), it aborts it and the page change never finishes. Pages animate in
 // with plain CSS instead; see .app-main in styles.css.
-const router = createRouter({ routeTree });
+// A page that can't open says why; after an update, that's a reload away.
+const router = createRouter({ routeTree, defaultErrorComponent: RouteError });
 
 declare module '@tanstack/react-router' {
   interface Register {
@@ -290,8 +306,11 @@ createRoot(rootElement).render(
         // A new version may shape things differently: start its cache afresh.
         buster: VERSION,
         dehydrateOptions: {
+          // "Nobody signed in" is never kept: restored after signing in again,
+          // it would send the person back to the sign-in page.
           shouldDehydrateQuery: (query) =>
-            keepOnDevice(query.queryKey, query.state.status === 'success'),
+            keepOnDevice(query.queryKey, query.state.data !== undefined) &&
+            !(query.queryKey[0] === 'me' && query.state.data === null),
           // Changes waiting have their own, safer place (lib/outbox.ts).
           shouldDehydrateMutation: () => false,
         },

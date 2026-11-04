@@ -29,7 +29,8 @@ export function KitchenSettings() {
   }, [kitchen.data]);
 
   if (kitchen.isPending) return <p className="text-ink-soft">{t('common.loading')}</p>;
-  if (kitchen.isError) return <p className="text-danger">{t('kitchen.loadError')}</p>;
+  if (kitchen.isError && kitchen.data === undefined)
+    return <p className="text-danger">{t('kitchen.loadError')}</p>;
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();

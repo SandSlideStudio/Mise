@@ -361,4 +361,28 @@ describe('being made', () => {
     });
     expect(refused.statusCode).toBe(403);
   });
+
+  it('does not let a cook take somebody else’s name off a job', async () => {
+    const created = await add({ description: 'Veal jus' });
+    const id = created.json().task.id;
+    const adminMe = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/auth/me',
+      cookies: as(admin),
+    });
+    await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/tasks/${id}`,
+      payload: { status: 'in_progress', assignedUserId: adminMe.json().user.id },
+      cookies: as(admin),
+    });
+    const cook = await signInCook();
+    const refused = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/tasks/${id}`,
+      payload: { assignedUserId: null },
+      cookies: as(cook),
+    });
+    expect(refused.statusCode).toBe(403);
+  });
 });

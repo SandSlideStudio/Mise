@@ -36,6 +36,53 @@ export const nl: Record<MessageKey, string> = {
     'Dit kon niet worden geladen. Controleer de verbinding en probeer het opnieuw.',
 
   'error.generic': 'Er ging iets mis.',
+  'error.notFound': 'Dat is er niet meer. Misschien heeft iemand het verwijderd.',
+  'error.validationFailed': 'Er is iets niet goed ingevuld. Kijk het na en probeer het opnieuw.',
+  'error.alreadyExists': 'Dat bestaat al.',
+  'error.stillReferenced': 'Dat wordt nog ergens anders gebruikt, dus het kan niet weg.',
+  'error.invalidData': 'Die waarde mag hier niet.',
+  'error.writeInProgress': 'Die wijziging wordt opgeslagen. Probeer het zo opnieuw.',
+  'error.backupFileMissing': 'Voeg het back-upbestand toe.',
+  'error.onedriveNotConnected': 'Koppel eerst OneDrive.',
+  'error.nasAddressNeeded': 'Vul het adres in van de NAS waar back-ups heen gaan.',
+  'error.fileTooLarge': 'Dat bestand is te groot.',
+  'error.unknownTimeZone': 'Die tijdzone kent deze server niet.',
+  'error.alreadySetUp': 'Deze server is al ingesteld.',
+  'error.imageType': 'Gebruik een JPEG-, PNG- of WebP-afbeelding.',
+  'error.imageMissing': 'Er is geen afbeelding toegevoegd.',
+  'error.notADish': 'Alleen een gerecht heeft een gerechtenkaart.',
+  'error.logoTooLarge': 'Dat logo is groter dan 2 MB.',
+  'error.photoTooLarge': 'Die afbeelding is groter dan 8 MB.',
+  'error.taskNotYours': 'Je kunt alleen je eigen naam bij een regel zetten.',
+  'error.taskChefOnly':
+    'Je kunt een regel starten en afronden, maar alleen een chef kan de tekst wijzigen.',
+  'error.staffRank': 'Alleen een beheerder kan personeel van jouw rang of hoger beheren.',
+  'error.adminNeedsPassword':
+    'Een beheerder heeft een e-mailadres en wachtwoord nodig, niet alleen een pincode.',
+  'error.passwordNeedsEmail': 'Inloggen met een wachtwoord vraagt een e-mailadres.',
+  'error.noWayToSignIn': 'Dan kunnen ze niet meer inloggen. Geef ze een wachtwoord of een pincode.',
+  'error.emailTaken': 'Iemand heeft dat e-mailadres al.',
+  'error.lastAdmin':
+    'Dit is de laatste beheerder. Maak eerst iemand anders beheerder, anders kan niemand deze keuken beheren.',
+  'error.cannotRemoveSelf': 'Je kunt je eigen account niet verwijderen.',
+  'error.onlyDishes': 'Alleen gerechten kunnen op een menu: {names}.',
+  'error.menuNameTaken': 'Er is al een menu met die naam.',
+  'error.menuUnavailable':
+    'De allergenen van {names} zijn niet te bepalen, omdat het verwijst naar een recept of ingrediënt dat niet meer bestaat. Herstel eerst het recept.',
+  'error.recipeGone': 'Dat recept bestaat niet meer.',
+  'error.recipeLoop':
+    '{parent} kan {child} niet bevatten, want {child} bevat {parent} al. Dat zou een kringloop zijn.',
+  'error.scaleFailed': 'Dat recept kon niet op die hoeveelheid worden uitgerekend.',
+  'error.scaleUnits': 'Die hoeveelheid is in een ander soort eenheid dan wat dit recept oplevert.',
+  'error.scaleLoop': 'Dit recept bevat zichzelf, dus het kan niet worden omgerekend.',
+  'error.scaleNoPortions':
+    'Dit recept is niet in porties geschreven. Reken het om per batch of per opbrengst.',
+  'error.stillUsed': 'Wordt nog gebruikt door {names}. Haal het daar eerst uit.',
+  'error.alreadyInside': 'Dit apparaat zit op het keukennetwerk en heeft geen goedkeuring nodig.',
+  'error.allergensUnknown':
+    'De allergenen van dit recept zijn niet te bepalen: er ontbreekt iets of het verwijst naar zichzelf. Kijk in de editor wat erin gaat.',
+  'error.nameOutsideKitchen':
+    'Het keukencertificaat geldt alleen voor het keukennetwerk: adressen zoals 192.168.1.50, en namen die eindigen op .local, .lan, .home of .internal. “{name}” hoort daar niet bij.',
   'error.invalidCredentials': 'Dat klopt niet. Probeer het opnieuw.',
   'error.accountInactive': 'Dat account is niet meer actief.',
   'error.deviceNotEnrolled':
@@ -353,7 +400,7 @@ export const nl: Record<MessageKey, string> = {
   'recipe.empty': 'Dit recept is nog leeg.',
   'recipe.method': 'Bereiding',
   'recipe.storage': 'Bewaren',
-  'recipe.print': 'Deze hoeveelheid afdrukken',
+  'recipe.print': 'Receptkaart printen',
   'recipe.duplicate': 'Dupliceren',
   'recipe.copyName': '{name} (kopie)',
   'recipe.usedBy': 'Gebruikt in',
@@ -374,7 +421,6 @@ export const nl: Record<MessageKey, string> = {
   'plating.add': 'Foto van het bord toevoegen',
   'plating.addAnother': 'Nog een foto toevoegen',
 
-  'print.printed': 'Afgedrukt {date} · {time}',
   'print.whatGoesIn': 'Wat erin gaat',
 
   'editor.editing': 'Bewerken',
@@ -941,6 +987,16 @@ export const nl: Record<MessageKey, string> = {
   'error.tooManyRequests':
     'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
   'settings.tabConnection': 'Verbinding',
+  'connection.relayedTitle': 'Mise kan niet zien wie er in de keuken is',
+  'connection.relayedBody':
+    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte ({address}), die verbergt waar ze echt zijn. Daarom rekent Mise ze tot buiten de keuken: elk apparaat vraagt één keer toegang aan, en een chef keurt het goed.',
+  'connection.relayedTrusted':
+    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte ({address}), die verbergt waar ze echt zijn. Je hebt gekozen ze tot de keuken te rekenen, dus slaan ze de goedkeuring over die apparaten van buiten nodig hebben, waar ze ook zijn.',
+  'connection.relayedTrust': 'Reken deze bezoekers tot de keuken',
+  'connection.relayedTrustHint':
+    'Alleen als Mise niet vanaf internet te bereiken is, of alleen via een webserver die je vertrouwt. Anders slaat iedereen die het vindt de goedkeuring over.',
+  'connection.relayedFix':
+    'Dit gebeurt met rootless Docker, Podman, Docker Desktop, of via IPv6 als het netwerk van Docker dat niet heeft. Draai Mise met hostnetwerk (network_mode: host), of zet IPv6 aan voor het netwerk van Docker, zodat Mise het eigen adres van elke bezoeker ziet. Zie “From outside the kitchen” in de README.',
   'connection.domainTitle': 'Adres van buitenaf',
   'connection.domainBody':
     'Als Mise via internet bereikbaar is, vul dan het adres in dat ernaartoe leidt, zoals mise.jouwkeuken.nl. Van buiten de keuken antwoordt Mise dan alleen op dat adres: het kale IP-adres, of de naam van een andere website op dezelfde server, vindt niets. Op het keukennetwerk en de VPN blijft elk adres werken.',
@@ -1067,7 +1123,15 @@ export const nl: Record<MessageKey, string> = {
   'offline.sending_one': '1 wijziging van offline wordt verstuurd…',
   'offline.sending_other': '{count} wijzigingen van offline worden verstuurd…',
   'offline.dropped': '{what} kon niet worden opgeslagen: {reason}',
+  'offline.setAside':
+    '{what} kon niet worden opgeslagen: Mise liep er tegen een probleem aan. Andere wijzigingen gaan door.',
+  'offline.tryAgain': 'Opnieuw proberen',
+  'offline.letGo': 'Laten gaan',
   'offline.lineWaiting': 'Wacht op versturen',
+  'offline.allergensOnceSent': 'Allergenen worden bijgewerkt zodra je wijzigingen verstuurd zijn.',
+  'offline.cardOnceSent': 'Deze kaart wordt bijgewerkt zodra je wijzigingen verstuurd zijn.',
+  'offline.menuOnceSent':
+    'Allergenen en gerechtenkaarten worden bijgewerkt zodra je wijzigingen verstuurd zijn.',
   'offline.conflictTitle': 'Gewijzigd op een ander apparaat',
   'offline.conflictBody':
     'Terwijl je offline was, heeft iemand anders {what} gewijzigd. Welke versie moet blijven?',
@@ -1084,6 +1148,17 @@ export const nl: Record<MessageKey, string> = {
   'offline.field.tags': 'Labels',
   'offline.field.components': 'Onderdelen',
   'offline.field.dishes': 'Gerechten',
+  'offline.field.type': 'Soort recept',
+  'offline.field.yield': 'Opbrengst',
+  'offline.field.portions': 'Porties',
+  'offline.field.prepMinutes': 'Voorbereidingstijd',
+  'offline.field.cookMinutes': 'Kooktijd',
+  'offline.field.keeps': 'Houdbaar',
+  'offline.field.allergens': 'Allergenen',
+  'offline.field.mayContain': 'Kan sporen bevatten',
+  'offline.yes': 'Ja',
+  'offline.no': 'Nee',
+  'offline.unknownStation': 'Een inmiddels verwijderde post',
   'offline.label.note': 'de overdrachtsnotitie',
   'offline.label.addLine': 'de prepregel “{name}”',
   'offline.label.editLine': 'een wijziging aan een prepregel',
@@ -1093,4 +1168,48 @@ export const nl: Record<MessageKey, string> = {
   'offline.label.ingredient': 'het ingrediënt “{name}”',
   'error.offline':
     'Mise is nu niet bereikbaar, en hiervoor is de verbinding nodig. Probeer het opnieuw zodra die terug is.',
+  'prepPrint.print': 'Printen',
+  'prepPrint.title': 'Preplijst',
+  'prepPrint.empty': 'Niets op de lijst.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Opbrengst',
+  'recipeCard.prepTime': 'Bereidingstijd',
+  'recipeCard.keeps': 'Houdbaar',
+  'recipeCard.days_one': '{count} dag',
+  'recipeCard.days_other': '{count} dagen',
+  'recipeCard.hours_one': '{count} uur',
+  'recipeCard.hours_other': '{count} uur',
+  'recipeCard.mayContain': 'Kan bevatten: {allergens}',
+  'recipeCard.onThePlate': 'Op het bord',
+  'recipeCard.plating': 'Opmaak',
+  'recipeCard.ownRecipe': 'eigen recept',
+  'updated.title': 'Mise is bijgewerkt',
+  'updated.body':
+    'Mise is bijgewerkt. Herlaad om de nieuwe versie te gebruiken; niets wat nog verstuurd moet worden gaat verloren.',
+  'updated.bodyVersion':
+    'Mise is bijgewerkt naar {version}. Herlaad om die te gebruiken; niets wat nog verstuurd moet worden gaat verloren.',
+  'updated.reload': 'Herladen',
+  'error.pageTitle': 'Deze pagina opende niet',
+  'error.pageBody': 'Er ging iets mis bij het openen. Herladen lost het meestal op.',
+  'access.waitingOne': '“{name}” vraagt toegang van buiten de keuken.',
+  'access.waitingCount_one': '1 apparaat vraagt toegang van buiten de keuken.',
+  'access.waitingCount_other': '{count} apparaten vragen toegang van buiten de keuken.',
+  'access.checkCode': 'Controleer de code en keur goed',
+  'error.incompatibleUnits':
+    '{child} levert {makes} op, dus het kan hier niet in {unit} worden afgemeten. Gebruik dezelfde soort eenheid, of pas aan wat {child} oplevert.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} gebruikt {child} in {unit}, en dat is niet uit {makes} af te leiden. Pas eerst die regel aan, of houd de opbrengst in dezelfde soort eenheid.',
+  'recipe.shownAsWritten':
+    'Dit recept kan niet naar de gevraagde hoeveelheid worden omgerekend, dus je ziet het zoals het geschreven is.',
+  'passwordOnly.signIn': 'Inloggen met wachtwoord',
+  'passwordOnly.staff':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om personeel toe te voegen of rollen, wachtwoorden en pincodes te wijzigen.',
+  'passwordOnly.devices':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om tablets te koppelen of apparaten van buitenaf toe te laten.',
+  'passwordOnly.connection':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om te wijzigen hoe Mise bereikbaar is.',
+  'passwordOnly.backups':
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
+  'error.passwordRequired':
+    'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
 };

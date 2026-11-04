@@ -573,6 +573,18 @@
     display: none !important;
   }
 
+  /*
+   * Print shows the page as it is at that moment; an animation doesn't play.
+   * A print layout that only appears for print would otherwise stay stuck at
+   * its first frame, fully transparent, and print as a blank page.
+   */
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
   @page {
     size: A4;
     margin: 14mm;

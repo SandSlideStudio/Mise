@@ -3,6 +3,8 @@ import { Link } from '@tanstack/react-router';
 import type { DishSummary } from '@mise/contracts';
 import { ALLERGENS, COURSES, type Allergen } from '@mise/domain';
 import { useDishCardSettings, useDishes } from '../api/dishcards.js';
+import { useAwaiting } from '../lib/awaiting.js';
+import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell, PageHeader } from '../components/AppShell.js';
 import { AllergenChips } from '../components/DishCardView.js';
@@ -128,7 +130,9 @@ export function Dishes() {
         </div>
 
         {dishes.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-        {dishes.isError ? <LoadError onRetry={() => void dishes.refetch()} /> : null}
+        {dishes.isError && dishes.data === undefined ? (
+          <LoadError onRetry={() => void dishes.refetch()} />
+        ) : null}
         {dishes.data && shown.length === 0 ? (
           <p className="text-ink-soft border-line border-2 border-dashed p-8 text-center text-lg">
             {filtering ? t('dishes.noMatch') : t('dishes.empty')}
@@ -176,6 +180,7 @@ export function Dishes() {
 /** The front of a dish card, small enough to put a whole menu on one screen. */
 function DishTile({ dish, opensCard }: { dish: DishSummary; opensCard: boolean }) {
   const { t } = useT();
+  const awaiting = useAwaiting();
   const details = [
     dish.servingTemperature ? temperatureName(t, dish.servingTemperature) : null,
     dish.flavourProfile.length > 0 ? dish.flavourProfile.join(' / ') : null,
@@ -209,6 +214,7 @@ function DishTile({ dish, opensCard }: { dish: DishSummary; opensCard: boolean }
           ) : (
             <p className="text-danger text-sm">{t('dishes.broken')}</p>
           )}
+          {awaiting.recipe(dish.id) ? <AwaitingNote what="card" className="mt-2" /> : null}
         </div>
       </div>
     </>

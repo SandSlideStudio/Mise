@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import { sql } from 'drizzle-orm';
 import { setUpKitchen, useTestContext } from '../../test/harness.js';
 
 const ctx = useTestContext();
@@ -683,5 +684,128 @@ describe('a save that fails', () => {
 
     const retried = await addRecipe(ctx.app, admin, { name: 'Velouté' });
     expect(retried.name).toBe('Velouté');
+  });
+});
+
+describe('a sub-recipe in a kind of unit its yield cannot be turned into', () => {
+  async function sauceAndButter() {
+    const butter = await addIngredient(ctx.app, admin, { name: 'Butter', allergens: ['milk'] });
+    const sauce = await addRecipe(ctx.app, admin, {
+      name: 'Beurre blanc',
+      yield: { value: 1, unit: 'kg' },
+      components: [
+        {
+          ref: { kind: 'ingredient', ingredientId: butter.id },
+          quantity: { value: 800, unit: 'g' },
+          sortOrder: 0,
+        },
+      ],
+    });
+    return { butter, sauce };
+  }
+
+  function dish(sauceId: string, unit: string) {
+    return ctx.app.inject({
+      method: 'POST',
+      url: '/api/recipes',
+      payload: {
+        name: `Cod, beurre blanc (${unit})`,
+        type: 'dish',
+        yield: { value: 1, unit: 'each' },
+        portions: 1,
+        components: [
+          {
+            ref: { kind: 'recipe', recipeId: sauceId },
+            quantity: { value: 60, unit },
+            sortOrder: 0,
+          },
+        ],
+      },
+      cookies: as(admin),
+    });
+  }
+
+  it('is refused when saving, naming the recipe and both units', async () => {
+    const { sauce } = await sauceAndButter();
+    const refused = await dish(sauce.id, 'ml');
+    expect(refused.statusCode).toBe(422);
+    expect(refused.json().error).toMatchObject({
+      code: 'incompatible_units',
+      details: { child: 'Beurre blanc', unit: 'ml', makes: 'kg', usedIn: null },
+    });
+    // Nothing half-saved.
+    const all = (
+      await ctx.app.inject({ method: 'GET', url: '/api/recipes', cookies: as(admin) })
+    ).json();
+    expect(all.map((r: { name: string }) => r.name)).not.toContain('Cod, beurre blanc (ml)');
+
+    expect((await dish(sauce.id, 'g')).statusCode).toBe(200);
+  });
+
+  it('is refused when changing the yield would break a recipe that uses it', async () => {
+    const { sauce } = await sauceAndButter();
+    expect((await dish(sauce.id, 'g')).statusCode).toBe(200);
+    const changed = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${sauce.id}`,
+      payload: { yield: { value: 1, unit: 'l' } },
+      cookies: as(admin),
+    });
+    expect(changed.statusCode).toBe(422);
+    expect(changed.json().error.details).toMatchObject({
+      child: 'Beurre blanc',
+      usedIn: 'Cod, beurre blanc (g)',
+    });
+    // The same kind of unit is fine.
+    const same = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${sauce.id}`,
+      payload: { yield: { value: 2, unit: 'kg' } },
+      cookies: as(admin),
+    });
+    expect(same.statusCode).toBe(200);
+  });
+
+  it('still opens when it was saved before Mise refused it', async () => {
+    const { sauce } = await sauceAndButter();
+    const fine = (await dish(sauce.id, 'g')).json();
+    // As an older version could have stored it.
+    await ctx.db.execute(
+      sql`update recipe_component set unit_entered = 'ml' where child_recipe_id = ${sauce.id}`,
+    );
+    const expanded = await ctx.app.inject({
+      method: 'GET',
+      url: `/api/recipes/${fine.id}/expanded`,
+      cookies: as(admin),
+    });
+    expect(expanded.statusCode).toBe(200);
+    expect(expanded.json().lines.map((l: { name: string }) => l.name)).toEqual(['Beurre blanc']);
+  });
+});
+
+describe('allergens that cannot be worked out', () => {
+  it('are an error, never a shorter list', async () => {
+    const base = await addRecipe(ctx.app, admin, { name: 'Base', declaredAllergens: ['milk'] });
+    const sauce = await addRecipe(ctx.app, admin, {
+      name: 'Sauce',
+      components: [
+        {
+          ref: { kind: 'recipe', recipeId: base.id },
+          quantity: { value: 100, unit: 'g' },
+          sortOrder: 0,
+        },
+      ],
+    });
+    // A loop, as two edits at once or a damaged restore could leave behind.
+    await ctx.app.db.execute(sql`
+      insert into recipe_component
+        (recipe_id, sort_order, quantity_base, quantity_entered, unit_entered, child_recipe_id)
+      values (${base.id}, 0, 100, 100, 'g', ${sauce.id})`);
+
+    for (const url of [`/api/recipes/${sauce.id}/allergens`, `/api/recipes/${sauce.id}/expanded`]) {
+      const response = await ctx.app.inject({ method: 'GET', url, cookies: as(admin) });
+      expect(response.statusCode, url).not.toBe(200);
+      if (url.endsWith('/allergens')) expect(response.json().error.code).toBe('allergens_unknown');
+    }
   });
 });

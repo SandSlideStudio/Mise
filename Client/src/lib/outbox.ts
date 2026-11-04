@@ -28,6 +28,14 @@ export interface OutboxEntry {
   queuedAt: number;
   /** Set when the server says someone changed it meanwhile: what is there now. */
   conflict?: { current: unknown };
+  /** Server errors in a row, and when to try again. */
+  failures?: number;
+  retryAt?: number;
+  /**
+   * Set aside after failing again and again: it no longer holds up changes to
+   * other things, and waits for the person to try again or let it go.
+   */
+  setAside?: { status: number };
 }
 
 /** 128 random bits. crypto.randomUUID only exists over HTTPS; this works over plain HTTP too. */
@@ -68,6 +76,15 @@ export function add(entry: Omit<OutboxEntry, 'queuedAt'>): OutboxEntry {
 
 export function entriesFor(userId: string): OutboxEntry[] {
   return read().filter((entry) => entry.userId === userId);
+}
+
+/**
+ * Changes that are going out, as opposed to waiting on the person: not set
+ * aside, and not behind one that is.
+ */
+export function goingOut(entries: OutboxEntry[]): OutboxEntry[] {
+  const stuck = new Set(entries.filter((entry) => entry.setAside).map((entry) => entry.path));
+  return entries.filter((entry) => !stuck.has(entry.path));
 }
 
 export function remove(id: string): void {

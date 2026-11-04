@@ -27,7 +27,8 @@ export function BackupSettings() {
   const run = useRunBackup();
 
   if (status.isPending) return <p className="text-ink-soft">{t('common.loading')}</p>;
-  if (status.isError) return <LoadError onRetry={() => void status.refetch()} />;
+  if (status.isError && status.data === undefined)
+    return <LoadError onRetry={() => void status.refetch()} />;
 
   const data = status.data;
   const newest = data.files[0];

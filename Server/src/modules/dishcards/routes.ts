@@ -80,11 +80,11 @@ const dishCardRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request) => {
       const file = await request.file({ limits: { fileSize: LOGO_MAX_BYTES, files: 1 } });
-      if (!file) throw ApiError.badRequest('No image was attached.');
+      if (!file) throw new ApiError(400, 'image_missing', 'No image was attached.');
 
       const extension = LOGO_TYPES[file.mimetype];
       if (!extension) {
-        throw ApiError.badRequest('A logo has to be a JPEG, PNG or WebP image.');
+        throw new ApiError(400, 'image_type', 'A logo has to be a JPEG, PNG or WebP image.');
       }
 
       // Generated, never derived from what the browser sent.
@@ -93,7 +93,7 @@ const dishCardRoutes: FastifyPluginAsync = async (app) => {
       await pipeline(file.file, createWriteStream(absolute));
       if (file.file.truncated) {
         await unlink(absolute).catch(() => {});
-        throw ApiError.badRequest('That logo is larger than 2 MB.');
+        throw new ApiError(400, 'logo_too_large', 'That logo is larger than 2 MB.');
       }
 
       const previous = await svc.setLogo(storedName);
@@ -149,7 +149,7 @@ const dishCardRoutes: FastifyPluginAsync = async (app) => {
         case 'not_found':
           throw ApiError.notFound('That recipe');
         case 'not_a_dish':
-          throw ApiError.badRequest('Only a dish has a dish card.');
+          throw new ApiError(400, 'not_a_dish', 'Only a dish has a dish card.');
         case 'broken':
           throw new ApiError(
             422,

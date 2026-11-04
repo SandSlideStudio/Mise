@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { LANGUAGES, type DishCard, type DishCardTheme, type Language } from '@mise/contracts';
 import { RequestFailed } from '../api/client.js';
 import { useDishCard } from '../api/dishcards.js';
+import { useAwaiting } from '../lib/awaiting.js';
+import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { DishCardSheet } from '../components/DishCardSheet.js';
@@ -34,6 +36,7 @@ export function DishCardPage() {
   const translator = useT();
   const { t } = translator;
   const card = useDishCard(recipeId);
+  const awaiting = useAwaiting();
 
   return (
     <AppShell>
@@ -47,7 +50,12 @@ export function DishCardPage() {
         </Link>
 
         {card.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-        {card.isError ? <p className="text-danger">{failure(translator, card.error)}</p> : null}
+        {card.isError && card.data === undefined ? (
+          <p className="text-danger">{failure(translator, card.error)}</p>
+        ) : null}
+        {card.data && awaiting.recipe(recipeId) ? (
+          <AwaitingNote what="card" className="mb-3" />
+        ) : null}
         {card.data ? <CardView card={card.data} /> : null}
       </main>
     </AppShell>

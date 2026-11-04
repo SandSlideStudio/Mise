@@ -38,6 +38,52 @@ export const en = {
   'common.loadFailed': 'Couldn’t load this. Check the connection and try again.',
 
   'error.generic': 'Something went wrong.',
+  'error.notFound': 'That isn’t there any more. Someone may have removed it.',
+  'error.validationFailed': 'Something in that isn’t filled in right. Check it and try again.',
+  'error.alreadyExists': 'That already exists.',
+  'error.stillReferenced': 'That is still used somewhere else, so it can’t be removed.',
+  'error.invalidData': 'That value isn’t allowed here.',
+  'error.writeInProgress': 'That change is being saved. Try again in a moment.',
+  'error.backupFileMissing': 'Attach the backup file.',
+  'error.onedriveNotConnected': 'Connect OneDrive first.',
+  'error.nasAddressNeeded': 'Enter the address of the NAS to send backups to.',
+  'error.fileTooLarge': 'That file is too large.',
+  'error.unknownTimeZone': 'That time zone isn’t one this server knows.',
+  'error.alreadySetUp': 'This server has already been set up.',
+  'error.imageType': 'Use a JPEG, PNG or WebP image.',
+  'error.imageMissing': 'No image was attached.',
+  'error.notADish': 'Only a dish has a dish card.',
+  'error.logoTooLarge': 'That logo is larger than 2 MB.',
+  'error.photoTooLarge': 'That image is larger than 8 MB.',
+  'error.taskNotYours': 'You can only put your own name against a line.',
+  'error.taskChefOnly': 'You can start and finish a line, but only a chef can change what it says.',
+  'error.staffRank': 'Only an administrator can manage staff at your rank or above.',
+  'error.adminNeedsPassword':
+    'An administrator needs an email address and password, not only a PIN.',
+  'error.passwordNeedsEmail': 'Signing in with a password needs an email address.',
+  'error.noWayToSignIn': 'That would leave them no way to sign in. Give them a password or a PIN.',
+  'error.emailTaken': 'Someone already has that email address.',
+  'error.lastAdmin':
+    'This is the only administrator left. Make someone else an administrator first, or nobody can manage this kitchen.',
+  'error.cannotRemoveSelf': 'You can’t remove your own account.',
+  'error.onlyDishes': 'Only dishes go on a menu: {names}.',
+  'error.menuNameTaken': 'There is already a menu with that name.',
+  'error.menuUnavailable':
+    'The allergens of {names} can’t be worked out, because it points at a recipe or ingredient that no longer exists. Fix the recipe first.',
+  'error.recipeGone': 'That recipe no longer exists.',
+  'error.recipeLoop':
+    '{parent} can’t contain {child}, because {child} already contains {parent}. That would be a loop.',
+  'error.scaleFailed': 'That recipe couldn’t be worked out at that size.',
+  'error.scaleUnits': 'That size is in a different kind of unit from what this recipe makes.',
+  'error.scaleLoop': 'This recipe contains itself, so it can’t be scaled.',
+  'error.scaleNoPortions':
+    'This recipe isn’t written in portions. Scale it by batch or by yield instead.',
+  'error.stillUsed': 'Still used by {names}. Take it out of those first.',
+  'error.alreadyInside': 'This device is on the kitchen network and needs no approval.',
+  'error.allergensUnknown':
+    'The allergens of this recipe can’t be worked out: something in it is missing or refers back to itself. Check what goes into it in the editor.',
+  'error.nameOutsideKitchen':
+    'The kitchen certificate only vouches for the kitchen network: addresses such as 192.168.1.50, and names ending in .local, .lan, .home or .internal. “{name}” isn’t one of them.',
   'error.invalidCredentials': 'That didn’t match. Try again.',
   'error.accountInactive': 'That account is no longer active.',
   'error.deviceNotEnrolled': 'PIN sign-in only works on a tablet an administrator has enrolled.',
@@ -352,7 +398,7 @@ export const en = {
   'recipe.empty': 'Nothing in this recipe yet.',
   'recipe.method': 'Method',
   'recipe.storage': 'Storage',
-  'recipe.print': 'Print this size',
+  'recipe.print': 'Print recipe card',
   'recipe.duplicate': 'Duplicate',
   'recipe.copyName': '{name} (copy)',
   'recipe.usedBy': 'Used by',
@@ -373,7 +419,6 @@ export const en = {
   'plating.add': 'Add a plating photograph',
   'plating.addAnother': 'Add another photograph',
 
-  'print.printed': 'Printed {date} · {time}',
   'print.whatGoesIn': 'What goes in',
 
   'editor.editing': 'Editing',
@@ -922,6 +967,16 @@ export const en = {
     'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
   'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
   'settings.tabConnection': 'Connection',
+  'connection.relayedTitle': 'Mise can’t tell who is inside the kitchen',
+  'connection.relayedBody':
+    'Some visitors reach Mise through Docker’s own relay ({address}), which hides where they really are. So Mise counts them as outside the kitchen: each device asks for access once, and a chef approves it.',
+  'connection.relayedTrusted':
+    'Some visitors reach Mise through Docker’s own relay ({address}), which hides where they really are. You chose to count them as inside the kitchen, so they skip the approval outside devices need, wherever they are.',
+  'connection.relayedTrust': 'Count these visitors as inside the kitchen',
+  'connection.relayedTrustHint':
+    'Only when Mise can’t be reached from the internet, or only through a web server you trust. Otherwise anyone who finds it skips the approval.',
+  'connection.relayedFix':
+    'This happens with rootless Docker, Podman, Docker Desktop, or over IPv6 when Docker’s network has none. Run Mise with host networking (network_mode: host), or turn on IPv6 for Docker’s network, so Mise sees each visitor’s own address. See “From outside the kitchen” in the README.',
   'connection.domainTitle': 'Address from outside',
   'connection.domainBody':
     'If Mise can be reached over the internet, enter the address that leads to it, such as mise.yourkitchen.com. From outside the kitchen, Mise then answers only on that address: the bare IP, or another website’s name on the same server, finds nothing. On the kitchen network and VPN, every address keeps working.',
@@ -1044,7 +1099,14 @@ export const en = {
   'offline.sending_one': 'Sending 1 change made while offline…',
   'offline.sending_other': 'Sending {count} changes made while offline…',
   'offline.dropped': '{what} couldn’t be saved: {reason}',
+  'offline.setAside':
+    '{what} couldn’t be saved: Mise ran into a problem with it. Other changes go on.',
+  'offline.tryAgain': 'Try again',
+  'offline.letGo': 'Let it go',
   'offline.lineWaiting': 'Waiting to be sent',
+  'offline.allergensOnceSent': 'Allergens update once your changes are sent.',
+  'offline.cardOnceSent': 'This card updates once your changes are sent.',
+  'offline.menuOnceSent': 'Allergens and dish cards update once your changes are sent.',
   'offline.conflictTitle': 'Changed on another device',
   'offline.conflictBody':
     'While you were offline, someone else changed {what}. Which version should stay?',
@@ -1061,6 +1123,17 @@ export const en = {
   'offline.field.tags': 'Tags',
   'offline.field.components': 'Components',
   'offline.field.dishes': 'Dishes',
+  'offline.field.type': 'Kind of recipe',
+  'offline.field.yield': 'Makes',
+  'offline.field.portions': 'Portions',
+  'offline.field.prepMinutes': 'Prep time',
+  'offline.field.cookMinutes': 'Cooking time',
+  'offline.field.keeps': 'Keeps',
+  'offline.field.allergens': 'Allergens',
+  'offline.field.mayContain': 'May contain',
+  'offline.yes': 'Yes',
+  'offline.no': 'No',
+  'offline.unknownStation': 'A station since removed',
   'offline.label.note': 'the handover note',
   'offline.label.addLine': 'the prep line “{name}”',
   'offline.label.editLine': 'a change to a prep line',
@@ -1070,6 +1143,49 @@ export const en = {
   'offline.label.ingredient': 'the ingredient “{name}”',
   'error.offline':
     'Mise can’t be reached right now, and this needs the connection. Try again once it’s back.',
+  'prepPrint.print': 'Print',
+  'prepPrint.title': 'Prep list',
+  'prepPrint.empty': 'Nothing on the list.',
+  'prepPrint.line': '{name}, {amount}',
+  'recipeCard.makes': 'Makes',
+  'recipeCard.prepTime': 'Prep time',
+  'recipeCard.keeps': 'Keeps',
+  'recipeCard.days_one': '{count} day',
+  'recipeCard.days_other': '{count} days',
+  'recipeCard.hours_one': '{count} hour',
+  'recipeCard.hours_other': '{count} hours',
+  'recipeCard.mayContain': 'May contain: {allergens}',
+  'recipeCard.onThePlate': 'On the plate',
+  'recipeCard.plating': 'Plating',
+  'recipeCard.ownRecipe': 'its own recipe',
+  'updated.title': 'Mise was updated',
+  'updated.body':
+    'Mise was updated. Reload to use the new version; nothing waiting to be sent is lost.',
+  'updated.bodyVersion':
+    'Mise was updated to {version}. Reload to use it; nothing waiting to be sent is lost.',
+  'updated.reload': 'Reload',
+  'error.pageTitle': 'This page didn’t open',
+  'error.pageBody': 'Something went wrong while opening it. Reloading usually fixes it.',
+  'access.waitingOne': '“{name}” is asking for access from outside the kitchen.',
+  'access.waitingCount_one': '1 device is asking for access from outside the kitchen.',
+  'access.waitingCount_other': '{count} devices are asking for access from outside the kitchen.',
+  'access.checkCode': 'Check the code and approve',
+  'error.incompatibleUnits':
+    '{child} makes {makes}, so it can’t be measured in {unit} here. Use the same kind of unit, or change what {child} makes.',
+  'error.incompatibleUnitsUsedIn':
+    '{usedIn} uses {child} in {unit}, which can’t be worked out from {makes}. Change that line first, or keep the yield in the same kind of unit.',
+  'recipe.shownAsWritten':
+    'This recipe can’t be made to the amount asked for, so it shows as written.',
+  'passwordOnly.signIn': 'Sign in with password',
+  'passwordOnly.staff':
+    'You’re signed in with your PIN. To add staff or change roles, passwords and PINs, sign in with your password.',
+  'passwordOnly.devices':
+    'You’re signed in with your PIN. To enrol tablets or let devices in from outside, sign in with your password.',
+  'passwordOnly.connection':
+    'You’re signed in with your PIN. To change how Mise is reached, sign in with your password.',
+  'passwordOnly.backups':
+    'You’re signed in with your PIN. To manage backups or see the recovery key, sign in with your password.',
+  'error.passwordRequired': 'Sign in with your password to do this. A PIN can do everything else.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -3,6 +3,85 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.2.2
+
+Printed prep lists and recipe cards, a safer PIN, offline that holds up better, and every fix
+from a full review of the code.
+
+**Before updating**
+
+- On rootless Docker, Podman or Docker Desktop, tablets on the kitchen network may now be asked
+  to request access once (see Security below). To skip that, an administrator can switch it off
+  under **Settings → Connection** before or after updating.
+
+**Printing**
+
+- **Print** on Today prints the prep list: only what is still to do, grouped by station, each line
+  with how much to make and a box to tick. Ticked lines stay off it, to save ink on a list some
+  kitchens print every day.
+- **Print recipe card** on a recipe prints it as a card to laminate and keep at the station: what
+  it makes, how long it keeps, allergens, what goes in and the method, always at its written size.
+- Fix: printing a recipe could give a blank page.
+
+**Signing in**
+
+- A PIN keeps everyday rights: a chef signed in with a PIN can do everything in the kitchen, but
+  staff, devices, the connection and backups need a password sign-in. Settings shows those greyed
+  out, with a note saying so.
+- Five wrong PINs lock that person on every tablet, not just one, for 15 minutes; each lock after
+  that lasts twice as long, up to a day.
+- Signing out works offline: the tablet is signed out at once, and Mise hears about it as soon as
+  it answers.
+- Reloading just after signing in no longer sends you back to the sign-in page.
+
+**When the network drops**
+
+- What goes into a recipe, changed offline, shows at once, and a dish put on a menu offline shows
+  on it. Allergens and dish cards that change with it say they update once the change is sent.
+- Every recipe opens for editing offline.
+- Fix: a tablet that reloaded twice while Mise couldn't be reached lost what it had saved.
+- A change Mise keeps failing on no longer holds up the others: it is tried again a few times, then
+  set aside with **Try again** and **Let it go**.
+- A change sent twice at once, from two tabs or a resend, is made once.
+- When the same thing was changed on another device, the side-by-side view is in your language,
+  with stations, dishes, amounts and steps as you know them.
+- Pages show what the device kept instead of "Couldn't load this" when only the refresh failed.
+- A scaled recipe offline shows the amounts asked for, worked out on the device, never other ones
+  under that label.
+
+**Recipes**
+
+- A sub-recipe in a kind of unit its yield can't be turned into (ml of a sauce that makes 1 kg) is
+  refused when saving, with a message naming both, instead of breaking the dish later.
+- Allergens that can't be worked out are an error, never a shorter list.
+- Two cooks adding the same prep line at the same moment both count.
+
+**Security**
+
+- The kitchen certificate authority, when made from this version on, can vouch only for the kitchen
+  network, so a tablet that trusts it trusts it for no other website. One made before keeps
+  working, so no tablet has to trust it again.
+- When Docker relays every visitor itself (rootless Docker, Podman, Docker Desktop, or IPv6 without
+  an IPv6 network), Mise can't tell the kitchen from the internet. Those visitors now count as
+  outside: each device asks for access once, and setup asks for the setup code. **Settings →
+  Connection** says when this happens, with the fix, and can count them as inside again if Mise
+  can't be reached from the internet. A web server you trust on the same machine works as before.
+- The saved NAS password only goes to the server it was saved for.
+- Changes are only accepted from Mise's own page.
+- On its own domain, Mise tells the browser to stay on HTTPS.
+- Backup errors no longer show addresses or ports in the browser.
+- A device's data and photos are cleared when its session or access ends.
+- A cook can't take someone else's name off a prep line.
+- One address can keep only three access requests waiting, and a full list drops the oldest.
+
+**Also**
+
+- A tablet left open across an update offers a reload, and a page whose code is gone after an
+  update says so instead of an error.
+- A red dot on Settings, and a line on Today, while a device outside the kitchen waits for access.
+- About forty more messages from the server are now in your language.
+- The upgrade test covers 2.2.1.
+
 ## 2.2.1
 
 - **New dish** on the Dishes tab no longer opens the editor under Recipes. Dishes have their own

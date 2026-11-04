@@ -50,8 +50,19 @@ Chefs and managers sign in with an email and password, on any device.
 
 Cooks sign in on a kitchen tablet by tapping their name and typing their PIN. That only works on a
 tablet you've enrolled: sign in on it as the administrator, go to **Settings → Devices** and enrol
-it. Five wrong PINs lock that person out for 15 minutes. Anyone can have a PIN, managers included;
-whoever sets up the kitchen can choose one during setup.
+it. Anyone can have a PIN, managers included; whoever sets up the kitchen can choose one during
+setup.
+
+A PIN is short, so it never stands between anyone and the kitchen's security. Signed in with a PIN,
+a chef can do everything in the kitchen (recipes, dishes, menus, the prep list, stations, dish
+cards), but staff, devices, the connection and backups need a password sign-in. Settings shows
+those sections greyed out, with a note to sign in with the password.
+
+Five wrong PINs lock that person out for 15 minutes, on every tablet. Each lock after that lasts
+twice as long, up to a day, until they sign in. An administrator setting a new PIN lifts it.
+
+Signing out works offline too: the tablet is signed out at once, and Mise hears about it as soon
+as it answers again, so the next cook never carries on as the last one.
 
 ## From outside the kitchen
 
@@ -64,6 +75,15 @@ asking, then approve. Approving from outside the kitchen asks for your password 
 An approval lasts until it is revoked, or until the device goes 90 days unused. Requests nobody
 answers are dropped after a day. On a server with no kitchen network, such as one in the cloud,
 the device that sets Mise up (or restores a backup onto it) is approved automatically.
+
+"Inside" means a visitor's own address is a private one. Docker usually passes that address on,
+but rootless Docker, Podman and Docker Desktop relay every connection themselves, as does Docker
+for IPv6 when its network has none. Then everyone, wherever they are, arrives from Docker's own
+address, and Mise can't tell the kitchen from the internet. So it counts them as outside: each
+device asks for access once, and setup asks for the setup code. **Settings → Connection** says
+when this happens, and can count them as inside instead, if Mise can't be reached from the
+internet. Better still, run Mise with `network_mode: host`, or turn on IPv6 for Docker's network,
+so Mise sees each visitor's own address.
 
 **Settings → Connection** can also name the one domain that leads to Mise from outside, such as
 `mise.yourkitchen.com`. Then the bare IP address, or another website's name on the same server,

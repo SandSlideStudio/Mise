@@ -26,7 +26,8 @@ export function StaffSettings() {
   const [editing, setEditing] = useState<User | null>(null);
 
   if (staff.isPending) return <p className="text-ink-soft">{t('line.loading')}</p>;
-  if (staff.isError) return <p className="text-danger">{t('staff.loadError')}</p>;
+  if (staff.isError && staff.data === undefined)
+    return <p className="text-danger">{t('staff.loadError')}</p>;
 
   return (
     <section>

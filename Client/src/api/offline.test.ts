@@ -133,6 +133,44 @@ describe('sending what waited', () => {
     expect(entriesFor(ME)).toHaveLength(0);
   });
 
+  it('tries a change Mise fails on again later, then sets it aside, and sends the rest meanwhile', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    try {
+      await waiting(
+        ['PATCH', '/recipes/r1', { name: 'Tart' }],
+        ['PATCH', '/recipes/r1', { name: 'Tart, again' }],
+        ['POST', '/running/tasks', { description: 'Stock' }],
+      );
+      fetchMock.mockImplementation((url) =>
+        Promise.resolve(String(url).includes('/recipes/') ? answer(500, {}) : answer(200, {})),
+      );
+      await flush(ME);
+      // The recipe waits to be tried again, its later change behind it; the line went out.
+      expect(entriesFor(ME).map((entry) => entry.path)).toEqual(['/recipes/r1', '/recipes/r1']);
+      expect(entriesFor(ME)[0]).toMatchObject({ failures: 1 });
+
+      // Not again before its time.
+      fetchMock.mockClear();
+      await flush(ME);
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      for (let round = 0; round < 4; round++) {
+        vi.setSystemTime(Date.now() + 10 * 60 * 1000);
+        await flush(ME);
+      }
+      expect(entriesFor(ME)[0]).toMatchObject({ setAside: { status: 500 } });
+
+      // Set aside, it holds up nothing else.
+      fetchMock.mockClear();
+      fetchMock.mockResolvedValue(answer(200, {}));
+      expect(isQueued(await sendOrQueue('PUT', '/running/note', { text: 'x' }, { label }))).toBe(
+        false,
+      );
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('stops at no answer and keeps the rest for next time', async () => {
     await waiting(
       ['POST', '/running/tasks', { description: 'Stock' }],

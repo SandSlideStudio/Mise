@@ -46,7 +46,11 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       if (await app.auth.needsSetup()) throw ApiError.notFound('This page');
       if (request.inside) {
-        throw ApiError.conflict('This device is on the kitchen network and needs no approval.');
+        throw new ApiError(
+          409,
+          'already_inside',
+          'This device is on the kitchen network and needs no approval.',
+        );
       }
       const current = await app.access.status(request.cookies[ACCESS_COOKIE]);
       if (current.status !== 'none') return current;
@@ -87,7 +91,7 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
   r.post(
     '/devices/:id/approve',
     {
-      onRequest: [app.requireRole(...MANAGERS)],
+      onRequest: [app.requireRole(...MANAGERS), app.requirePassword],
       config: { rateLimit: { max: 20, timeWindow: '15 minutes' } },
       schema: {
         params: z.object({ id: idSchema }),
@@ -132,7 +136,7 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
   r.delete(
     '/devices/:id',
     {
-      onRequest: [app.requireRole(...MANAGERS)],
+      onRequest: [app.requireRole(...MANAGERS), app.requirePassword],
       schema: { params: z.object({ id: idSchema }), response: { 204: z.null(), 403: errorSchema } },
     },
     async (request, reply) => {

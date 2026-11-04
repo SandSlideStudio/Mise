@@ -16,6 +16,8 @@ import {
 import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
+import { PrepListPrint } from '../components/PrepListPrint.js';
+import { useWaitingAccess } from '../api/access.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
 import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
@@ -47,7 +49,7 @@ export function Today() {
 
   return (
     <AppShell>
-      <main className="pb-12">
+      <main className="pb-12 print:hidden">
         <div className="border-line bg-surface-raised flex items-center gap-x-4 gap-y-3 border-b-2 px-4 py-3 sm:flex-wrap sm:gap-x-6 sm:px-7 sm:py-4">
           <div className="flex min-w-0 flex-col">
             <h1 className="text-[28px] sm:text-[34px]">{t('nav.today')}</h1>
@@ -57,6 +59,13 @@ export function Today() {
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-3 sm:gap-7">
+            <button
+              type="button"
+              onClick={() => window.print()}
+              className="btn-quiet no-print h-12 border-2 px-4 text-lg tracking-[0.1em] sm:h-16 sm:px-[22px] sm:text-[22px]"
+            >
+              {t('prepPrint.print')}
+            </button>
             <button
               type="button"
               onClick={toggleNight}
@@ -78,8 +87,10 @@ export function Today() {
           </div>
         </div>
 
+        <AccessWaitingNotice />
         <RunningPrep />
       </main>
+      <PrepListPrint kitchenName={user.kitchenName} />
     </AppShell>
   );
 }
@@ -106,6 +117,34 @@ function useToday(): string {
     };
   }, []);
   return today;
+}
+
+/**
+ * A device outside the kitchen asking to be let in, said where a chef looks
+ * first. The code it shows has to be checked with whoever is asking before
+ * approving, so this sends them to Settings → Devices rather than approving
+ * from here.
+ */
+function AccessWaitingNotice() {
+  const { t, plural } = useT();
+  const { data: user } = useCurrentUser();
+  const waiting = useWaitingAccess(user != null && user.role !== 'cook');
+  if (waiting.length === 0) return null;
+  return (
+    <div
+      role="status"
+      className="no-print border-danger mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-2 px-4 py-3 sm:mx-7 sm:px-5"
+    >
+      <p className="text-lg">
+        {waiting.length === 1
+          ? t('access.waitingOne', { name: waiting[0]!.name })
+          : plural('access.waitingCount', waiting.length)}
+      </p>
+      <a className="btn-small" href="/settings?tab=devices">
+        {t('access.checkCode')}
+      </a>
+    </div>
+  );
 }
 
 /**

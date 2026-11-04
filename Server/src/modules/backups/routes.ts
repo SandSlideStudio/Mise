@@ -3,7 +3,7 @@ import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import type { FastifyPluginAsync } from 'fastify';
+import type { FastifyBaseLogger, FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
@@ -23,16 +23,25 @@ import { AlreadySetUpError, validTimeZone } from './service.js';
 /** Big enough for years of plating photos. */
 const MAX_UPLOAD_BYTES = 4 * 1024 * 1024 * 1024;
 
-export function failed(error: unknown): never {
+export function failed(error: unknown, log?: FastifyBaseLogger): never {
   if (error instanceof BackupFailure) {
-    throw new ApiError(400, `backup_${error.code}`, error.message);
+    log?.warn({ err: error }, 'backup step failed');
+    // Only what went wrong, never the details (addresses, ports, the other
+    // server's words): those are for the log, or the test becomes a way to
+    // probe the network.
+    throw new ApiError(
+      400,
+      `backup_${error.code}`,
+      `The backup could not be done (${error.code}).`,
+    );
   }
   throw error;
 }
 
 const backupRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
-  const admin = { onRequest: [app.requireRole('admin')] };
+  // Backups hold the whole kitchen and the key to it: never on a PIN alone.
+  const admin = { onRequest: [app.requireRole('admin'), app.requirePassword] };
 
   r.get(
     '/backups',
@@ -51,14 +60,22 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request) => {
       if (request.body.timeZone !== undefined && !validTimeZone(request.body.timeZone)) {
-        throw ApiError.badRequest('That time zone is not one this server knows.');
+        throw new ApiError(
+          400,
+          'unknown_time_zone',
+          'That time zone is not one this server knows.',
+        );
       }
       const result = await app.backups.update(request.body);
       if (result === 'needs_address') {
-        throw ApiError.badRequest('Enter the address of the NAS to send backups to.');
+        throw new ApiError(
+          400,
+          'nas_address_needed',
+          'Enter the address of the NAS to send backups to.',
+        );
       }
       if (result === 'needs_onedrive') {
-        throw ApiError.badRequest('Connect OneDrive first.');
+        throw new ApiError(400, 'onedrive_not_connected', 'Connect OneDrive first.');
       }
       return app.backups.status();
     },
@@ -89,7 +106,7 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
           username: request.body.webdavUsername ?? null,
           password: request.body.webdavPassword ?? null,
         })
-        .catch(failed);
+        .catch((error: unknown) => failed(error, request.log));
       return reply.status(204).send(null);
     },
   );
@@ -100,8 +117,8 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
       ...admin,
       schema: { response: { 200: backupStatusSchema, 400: errorSchema, 403: errorSchema } },
     },
-    async () => {
-      await app.backups.connectOnedrive().catch(failed);
+    async (request) => {
+      await app.backups.connectOnedrive().catch((error: unknown) => failed(error, request.log));
       return app.backups.status();
     },
   );
@@ -193,18 +210,19 @@ const backupRoutes: FastifyPluginAsync = async (app) => {
             );
           }
           await pipeline(part.file, createWriteStream(upload));
-          if (part.file.truncated) throw ApiError.badRequest('That file is too large.');
+          if (part.file.truncated)
+            throw new ApiError(400, 'file_too_large', 'That file is too large.');
           received = true;
         }
-        if (!received) throw ApiError.badRequest('Attach the backup file.');
+        if (!received) throw new ApiError(400, 'backup_file_missing', 'Attach the backup file.');
 
         const result = await app.backups
           .restore(upload, fields.recoveryKey ?? '')
           .catch((error) => {
             if (error instanceof AlreadySetUpError) {
-              throw ApiError.conflict('This server has already been set up.');
+              throw new ApiError(409, 'already_set_up', 'This server has already been set up.');
             }
-            return failed(error);
+            return failed(error, request.log);
           });
         const timeZone = fields.timeZone;
         if (timeZone && validTimeZone(timeZone)) await app.backups.update({ timeZone });

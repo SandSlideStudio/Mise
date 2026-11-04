@@ -23,6 +23,8 @@
     "@mise/contracts": "*",
     "@mise/domain": "*",
     "@node-rs/argon2": "^2.2.1",
+    "@peculiar/asn1-schema": "^2.11.1",
+    "@peculiar/asn1-x509": "^2.11.1",
     "@peculiar/x509": "^1.14.3",
     "acme-client": "^5.4.0",
     "drizzle-orm": "^0.45.2",

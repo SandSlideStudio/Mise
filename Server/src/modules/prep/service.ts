@@ -1,7 +1,7 @@
 import { and, asc, eq, gte, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import type { CreatePrepTask, TickedRetention, UpdatePrepTask } from '@mise/contracts';
 import { baseUnitOf, toBase, type UnitCode } from '@mise/domain';
-import type { Database } from '../../db/client.js';
+import type { Database, Executor } from '../../db/client.js';
 import { prepTasks, stations, users } from '../../db/schema.js';
 
 /**
@@ -94,15 +94,15 @@ export function createPrepService(db: Database) {
     return row ?? null;
   }
 
-  async function nextSortOrder(): Promise<number> {
-    const [row] = await db
+  async function nextSortOrder(exec: Executor = db): Promise<number> {
+    const [row] = await exec
       .select({ value: sql<number>`coalesce(max(${prepTasks.sortOrder}), -1)::int` })
       .from(prepTasks);
     return (row?.value ?? -1) + 1;
   }
 
-  async function createTask(input: CreatePrepTask) {
-    const [row] = await db
+  async function insertTask(input: CreatePrepTask, exec: Executor): Promise<string | null> {
+    const [row] = await exec
       .insert(prepTasks)
       .values({
         stationId: input.stationId ?? null,
@@ -111,11 +111,10 @@ export function createPrepService(db: Database) {
         ...toBaseQuantity(input.quantity),
         status: 'open',
         assignedUserId: input.assignedUserId ?? null,
-        sortOrder: await nextSortOrder(),
+        sortOrder: await nextSortOrder(exec),
       })
       .returning({ id: prepTasks.id });
-    if (!row) return null;
-    return getTaskForApi(row.id);
+    return row?.id ?? null;
   }
 
   /**
@@ -196,46 +195,53 @@ export function createPrepService(db: Database) {
   async function addTask(input: CreatePrepTask) {
     const added = toBaseQuantity(input.quantity);
 
-    const candidates = await db
-      .select()
-      .from(prepTasks)
-      .where(
-        and(
-          inArray(prepTasks.status, ['open', 'in_progress']),
-          sql`lower(trim(${prepTasks.description})) = lower(trim(${input.description}))`,
-          input.stationId ? eq(prepTasks.stationId, input.stationId) : isNull(prepTasks.stationId),
-        ),
-      )
-      .orderBy(asc(prepTasks.sortOrder));
+    // One at a time: two cooks adding the same line at once both count.
+    const outcome = await db.transaction(async (tx) => {
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-prep-add'))`);
+      const candidates = await tx
+        .select()
+        .from(prepTasks)
+        .where(
+          and(
+            inArray(prepTasks.status, ['open', 'in_progress']),
+            sql`lower(trim(${prepTasks.description})) = lower(trim(${input.description}))`,
+            input.stationId
+              ? eq(prepTasks.stationId, input.stationId)
+              : isNull(prepTasks.stationId),
+          ),
+        )
+        .orderBy(asc(prepTasks.sortOrder));
 
-    const match = candidates.find(
-      (task) =>
-        added.quantityUnit === null ||
-        task.quantityUnit === null ||
-        task.quantityUnit === added.quantityUnit,
-    );
+      const match = candidates.find(
+        (task) =>
+          added.quantityUnit === null ||
+          task.quantityUnit === null ||
+          task.quantityUnit === added.quantityUnit,
+      );
+      if (!match) return { id: await insertTask(input, tx), merged: false };
 
-    if (!match) return { task: await createTask(input), merged: false };
+      const linksRecipe = !match.recipeId && input.recipeId;
+      if (added.quantityBase !== null || linksRecipe) {
+        await tx
+          .update(prepTasks)
+          .set({
+            ...(added.quantityBase !== null
+              ? {
+                  // Added in the database, to what is there now.
+                  quantityBase: sql`coalesce(${prepTasks.quantityBase}, 0) + ${added.quantityBase}`,
+                  quantityUnit: sql`coalesce(${prepTasks.quantityUnit}, ${added.quantityUnit})`,
+                }
+              : {}),
+            // Typed by hand first and picked from the book later: keep the link.
+            ...(linksRecipe ? { recipeId: input.recipeId } : {}),
+            updatedAt: new Date(),
+          })
+          .where(eq(prepTasks.id, match.id));
+      }
+      return { id: match.id, merged: true };
+    });
 
-    const linksRecipe = !match.recipeId && input.recipeId;
-    if (added.quantityBase !== null || linksRecipe) {
-      await db
-        .update(prepTasks)
-        .set({
-          ...(added.quantityBase !== null
-            ? {
-                quantityBase: (match.quantityBase ?? 0) + added.quantityBase,
-                quantityUnit: match.quantityUnit ?? added.quantityUnit,
-              }
-            : {}),
-          // Typed by hand first and picked from the book later: keep the link.
-          ...(linksRecipe ? { recipeId: input.recipeId } : {}),
-          updatedAt: new Date(),
-        })
-        .where(eq(prepTasks.id, match.id));
-    }
-
-    return { task: await getTaskForApi(match.id), merged: true };
+    return { task: outcome.id ? await getTaskForApi(outcome.id) : null, merged: outcome.merged };
   }
 
   return {

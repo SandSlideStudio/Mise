@@ -70,6 +70,12 @@ const configSchema = z.object({
    */
   // An empty SETUP_TOKEN= line in .env counts as not set.
   SETUP_TOKEN: z.preprocess((v) => (v === '' ? undefined : v), z.string().min(16).optional()),
+  /**
+   * Password sign-ins one address may try per five minutes. Only the browser
+   * tests, which all sign in from the same machine, need more; wrong
+   * passwords still lock an account out whatever this says.
+   */
+  LOGIN_ATTEMPTS: z.coerce.number().int().min(1).default(10),
   /** Where the built client lives. Served as static files from the same origin. */
   CLIENT_DIR: z.string().default('../Client/dist'),
 });

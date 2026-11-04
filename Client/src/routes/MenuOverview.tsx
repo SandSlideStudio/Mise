@@ -9,6 +9,8 @@ import {
 } from '@mise/contracts';
 import { RequestFailed } from '../api/client.js';
 import { useMenuOverview } from '../api/menus.js';
+import { useAwaiting } from '../lib/awaiting.js';
+import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { DishCardSheet } from '../components/DishCardSheet.js';
@@ -28,9 +30,10 @@ export function MenuOverviewPage() {
   const translator = useT();
   const { t } = translator;
   const overview = useMenuOverview(menuId);
+  const awaiting = useAwaiting();
 
   let failure: string | null = null;
-  if (overview.isError) {
+  if (overview.isError && overview.data === undefined) {
     const error = overview.error;
     failure =
       error instanceof RequestFailed && error.status === 403
@@ -50,6 +53,13 @@ export function MenuOverviewPage() {
         </Link>
         {overview.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
         {failure ? <p className="text-danger">{failure}</p> : null}
+        {overview.data &&
+        awaiting.menu(
+          menuId,
+          overview.data.dishes.map((dish) => dish.recipeId),
+        ) ? (
+          <AwaitingNote what="menu" className="mb-3" />
+        ) : null}
         {overview.data ? <OverviewView overview={overview.data} /> : null}
       </main>
     </AppShell>

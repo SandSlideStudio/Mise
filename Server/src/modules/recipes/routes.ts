@@ -30,6 +30,7 @@ import { ensureUnchanged } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { recipePhotos } from '../../db/schema.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
+import type { UnitProblem } from './service.js';
 import { createRecipesService } from './service.js';
 
 /**
@@ -143,12 +144,19 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole(...MANAGERS)],
       schema: {
         body: createRecipeSchema,
-        response: { 200: recipeSchema, 400: errorSchema, 403: errorSchema, 409: errorSchema },
+        response: {
+          200: recipeSchema,
+          400: errorSchema,
+          403: errorSchema,
+          409: errorSchema,
+          422: errorSchema,
+        },
       },
     },
     async (request) => {
       const result = await svc.createRecipe(request.body, request.user?.id ?? null);
       if (result.outcome === 'cycle') throw cycleError(result.through);
+      if (result.outcome === 'units') throw unitsError(result.problem);
 
       const full = await svc.getRecipe(result.recipe.id);
       if (!full) throw new ApiError(500, 'internal_error', 'Could not read that recipe back.');
@@ -179,7 +187,12 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireUser],
       schema: {
         params: z.object({ id: idSchema }),
-        response: { 200: allergenProfileSchema, 401: errorSchema, 404: errorSchema },
+        response: {
+          200: allergenProfileSchema,
+          401: errorSchema,
+          404: errorSchema,
+          422: errorSchema,
+        },
       },
     },
     async (request) => {
@@ -207,6 +220,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
           400: errorSchema,
           401: errorSchema,
           404: errorSchema,
+          422: errorSchema,
         },
       },
     },
@@ -266,6 +280,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
           403: errorSchema,
           404: errorSchema,
           409: errorSchema,
+          422: errorSchema,
         },
       },
     },
@@ -278,6 +293,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       const result = await svc.updateRecipe(request.params.id, request.body);
       if (result.outcome === 'not_found') throw ApiError.notFound('That recipe');
       if (result.outcome === 'cycle') throw cycleError(result.through);
+      if (result.outcome === 'units') throw unitsError(result.problem);
 
       const full = await svc.getRecipe(request.params.id);
       if (!full) throw ApiError.notFound('That recipe');
@@ -317,8 +333,11 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       // Say what would break rather than letting a foreign key speak for us.
       const users = await svc.usedBy(request.params.id);
       if (users.length > 0) {
-        throw ApiError.conflict(
+        throw new ApiError(
+          409,
+          'still_used',
           `Still used by ${users.map((u) => u.name).join(', ')}. Remove it from those first.`,
+          { names: users.map((u) => u.name) },
         );
       }
       const photos = await app.db
@@ -344,16 +363,38 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
 function scaleError(error: ExpandError): ApiError {
   switch (error.kind) {
     case 'no_portions':
-      return ApiError.badRequest(
+      return new ApiError(
+        400,
+        'scale_no_portions',
         'This recipe is not written in portions, so scale it by batch or by yield instead.',
       );
     case 'incompatible_units':
-      return ApiError.badRequest('That size is in different units from what this recipe makes.');
+      return new ApiError(
+        400,
+        'scale_units',
+        'That size is in different units from what this recipe makes.',
+      );
     case 'cycle':
-      return ApiError.badRequest('This recipe contains itself, so it cannot be scaled.');
+      return new ApiError(
+        400,
+        'scale_loop',
+        'This recipe contains itself, so it cannot be scaled.',
+      );
     default:
-      return ApiError.badRequest('That recipe could not be worked out at that size.');
+      return new ApiError(400, 'scale_failed', 'That recipe could not be worked out at that size.');
   }
+}
+
+/**
+ * A sub-recipe in a kind of unit its yield can't be turned into. The message
+ * names the recipe and both units, and the details carry them for the app to
+ * say it in the kitchen's language.
+ */
+function unitsError(problem: UnitProblem): ApiError {
+  const message = problem.usedIn
+    ? `${problem.usedIn} uses ${problem.child} in ${problem.unit}, which can't be worked out from ${problem.makes}. Change that line first, or keep the yield in the same kind of unit.`
+    : `${problem.child} makes ${problem.makes}, so it can't be measured in ${problem.unit} here. Use the same kind of unit, or change what ${problem.child} makes.`;
+  return new ApiError(422, 'incompatible_units', message, problem);
 }
 
 /**
@@ -362,8 +403,11 @@ function scaleError(error: ExpandError): ApiError {
  */
 function cycleError(through: string[]): ApiError {
   const [parent, child] = through;
-  return ApiError.badRequest(
+  return new ApiError(
+    400,
+    'recipe_loop',
     `${parent} cannot contain ${child}, because ${child} already contains ${parent}. That would be a loop.`,
+    { parent, child },
   );
 }
 

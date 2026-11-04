@@ -11,7 +11,9 @@ import type {
   UpdateIngredient,
   UpdateRecipe,
 } from '@mise/contracts';
-import { api, BASE_URL, isQueued, RequestFailed, sendOrQueue } from './client.js';
+import { componentsAsSent, knownNames, linesAsSent } from './offlineEdits.js';
+import { api, BASE_URL, isQueued, noAnswer, RequestFailed, sendOrQueue } from './client.js';
+import { factorForPortions, factorForYield, isUnitCode, ok, type UnitCode } from '@mise/domain';
 
 /** The ingredient catalogue and the recipe library. */
 
@@ -91,10 +93,19 @@ export function useRecipes(filters: RecipeFilters = {}) {
 }
 
 export function useRecipe(id: string | undefined) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: ['recipe', id],
     enabled: Boolean(id),
     queryFn: () => api.get<Recipe>(`/recipes/${id}`),
+    // Every recipe is loaded ahead as written, which includes the recipe
+    // itself: start from that, so it opens for editing offline too.
+    initialData: () =>
+      id
+        ? queryClient.getQueryData<ExpandedRecipe>(['recipe-expanded', id, {}])?.recipe
+        : undefined,
+    initialDataUpdatedAt: () =>
+      id ? queryClient.getQueryState(['recipe-expanded', id, {}])?.dataUpdatedAt : undefined,
   });
 }
 
@@ -123,7 +134,7 @@ export function useCreateRecipe() {
   });
 }
 
-/** What an edit says that a recipe shows as is. Components need the server to name them. */
+/** What an edit says that a recipe shows as is. Components are named from what the device knows. */
 const SHOWN_AS_IS = [
   'name',
   'type',
@@ -166,12 +177,29 @@ export function useUpdateRecipe(id: string) {
           }
           return shown as T;
         };
-        queryClient.setQueryData<Recipe>(['recipe', id], (old) => old && withEdit(old));
+        // What goes in, named from what this device knows; the amounts in a
+        // sub-recipe follow its new amount.
+        const before =
+          queryClient.getQueryData<Recipe>(['recipe', id])?.components ??
+          queryClient.getQueryData<ExpandedRecipe>(['recipe-expanded', id, {}])?.recipe
+            .components ??
+          [];
+        const components = input.components
+          ? componentsAsSent(input.components, before, knownNames(queryClient, before))
+          : null;
+        queryClient.setQueryData<Recipe>(
+          ['recipe', id],
+          (old) => old && { ...withEdit(old), ...(components ? { components } : {}) },
+        );
         for (const [key, expanded] of queryClient.getQueriesData<ExpandedRecipe>({
           queryKey: ['recipe-expanded', id],
         })) {
           if (expanded) {
-            queryClient.setQueryData(key, { ...expanded, recipe: withEdit(expanded.recipe) });
+            queryClient.setQueryData(key, {
+              ...expanded,
+              recipe: { ...withEdit(expanded.recipe), ...(components ? { components } : {}) },
+              lines: components ? linesAsSent(expanded, components) : expanded.lines,
+            });
           }
         }
         for (const [key, list] of queryClient.getQueriesData<RecipeSummary[]>({
@@ -222,12 +250,62 @@ export interface ScaleTarget {
  * same domain code the prep explosion uses, so a scaled spec and a prep list
  * can never disagree.
  */
+/**
+ * A size worked out on this device, from the recipe as written, when Mise
+ * can't be reached. Scaling is a straight multiplication all the way down the
+ * tree (the server does the same), so the amounts are the ones it would give.
+ * Null when the size can't be worked out here either.
+ */
+export function scaleOnDevice(written: ExpandedRecipe, target: ScaleTarget): ExpandedRecipe | null {
+  const { recipe } = written;
+  const asRecipe = {
+    id: recipe.id,
+    name: recipe.name,
+    type: recipe.type,
+    yield: { value: recipe.yield.value, unit: recipe.yield.unit as UnitCode },
+    portions: recipe.portions,
+    components: [],
+  };
+  const factor =
+    target.factor !== undefined
+      ? ok(target.factor)
+      : target.portions !== undefined
+        ? factorForPortions(asRecipe, target.portions)
+        : target.yieldValue !== undefined && target.yieldUnit && isUnitCode(target.yieldUnit)
+          ? factorForYield(asRecipe, { value: target.yieldValue, unit: target.yieldUnit })
+          : null;
+  if (!factor?.ok || written.factor === 0) return null;
+  const by = factor.value / written.factor;
+  return {
+    ...written,
+    factor: factor.value,
+    lines: written.lines.map((line) => ({
+      ...line,
+      quantity: { ...line.quantity, value: line.quantity.value * by },
+    })),
+  };
+}
+
 export function useExpandedRecipe(id: string | undefined, target: ScaleTarget) {
+  const queryClient = useQueryClient();
   return useQuery({
     queryKey: ['recipe-expanded', id, target],
     enabled: Boolean(id),
-    queryFn: () =>
-      api.get<ExpandedRecipe>(`/recipes/${id}/expanded`, target as Record<string, number | string>),
+    queryFn: async () => {
+      try {
+        return await api.get<ExpandedRecipe>(
+          `/recipes/${id}/expanded`,
+          target as Record<string, number | string>,
+        );
+      } catch (error) {
+        // No answer: work the size out from the recipe as written, if this
+        // device has it. A real refusal ("can't be scaled to that") stands.
+        const written = queryClient.getQueryData<ExpandedRecipe>(['recipe-expanded', id, {}]);
+        const scaled = noAnswer(error) && written ? scaleOnDevice(written, target) : null;
+        if (scaled) return scaled;
+        throw error;
+      }
+    },
     // Keep the previous size on screen while the next one loads, so changing
     // the portion count doesn't flash the list away. Only for the same recipe.
     placeholderData: (previous, previousQuery) =>

@@ -3,7 +3,12 @@ import type { Database } from '../../db/client.js';
 import { connectionSettings } from '../../db/schema.js';
 import { plainAddress } from '../../lib/network.js';
 import { acmeReason, issueDomainCertificate, type ChallengeAnswers } from './acme.js';
-import { createAuthority, fingerprint, issueKitchenCertificate } from './certificates.js';
+import {
+  authorityPermits,
+  createAuthority,
+  fingerprint,
+  issueKitchenCertificate,
+} from './certificates.js';
 import type { HttpsListener } from './listener.js';
 
 /** The one row's id. */
@@ -57,6 +62,8 @@ export function createConnectionService(options: {
   const { db, state, listener } = options;
   const issue = options.issue ?? issueDomainCertificate;
   let seen: SeenProxy | null = null;
+  /** The last visitor relayed by the container's own gateway: where they are can't be told. */
+  let relayed: { address: string; at: Date } | null = null;
   let row: Row | null = null;
   /** Let's Encrypt's tokens while a certificate is being fetched. */
   const answers: ChallengeAnswers = new Map();
@@ -103,7 +110,7 @@ export function createConnectionService(options: {
     const authority =
       row?.kitchenCaCert && row.kitchenCaKey
         ? { cert: row.kitchenCaCert, key: row.kitchenCaKey }
-        : await createAuthority(kitchenName);
+        : await createAuthority(kitchenName, names);
     const issued = await issueKitchenCertificate(authority, names);
     return {
       kitchenCaCert: authority.cert,
@@ -152,8 +159,18 @@ export function createConnectionService(options: {
     /** The domain plain HTTP is sent on to HTTPS for, or null. */
     httpsDomain: () => state.httpsDomain,
 
-    async update(changes: { outsideDomain?: string | null; trustedProxy?: string | null }) {
+    /** Whether visitors relayed by the container's gateway count as inside. */
+    trustsContainerGateway: () => row?.trustContainerGateway ?? false,
+
+    async update(changes: {
+      outsideDomain?: string | null;
+      trustedProxy?: string | null;
+      trustContainerGateway?: boolean;
+    }) {
       const values: Partial<Row> = {};
+      if (changes.trustContainerGateway !== undefined) {
+        values.trustContainerGateway = changes.trustContainerGateway;
+      }
       if (changes.outsideDomain !== undefined) {
         values.outsideDomain = changes.outsideDomain && plainHost(changes.outsideDomain);
       }
@@ -171,6 +188,11 @@ export function createConnectionService(options: {
       seen = { address: plainAddress(address), host: plainHost(host), at: new Date() };
     },
     seenProxy: () => seen,
+
+    sawContainerGateway(address: string): void {
+      relayed = { address: plainAddress(address), at: new Date() };
+    },
+    containerGateway: () => relayed,
 
     /** How HTTPS stands, for Settings → Connection. */
     https() {
@@ -192,6 +214,12 @@ export function createConnectionService(options: {
 
     /** The authority a tablet trusts, or null before there is one. */
     authority: () => row?.kitchenCaCert ?? null,
+
+    /** Names the kitchen's authority can't vouch for, made before or not. */
+    namesOutsideAuthority(names: string[]): string[] {
+      const authority = row?.kitchenCaCert;
+      return authority ? names.filter((name) => !authorityPermits(authority, name)) : [];
+    },
 
     async enableKitchenHttps(names: string[], kitchenName: string): Promise<void> {
       await save({ kitchenHttps: true, ...(await makeKitchenCertificate(names, kitchenName)) });

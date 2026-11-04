@@ -1,6 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router';
 import { RequestFailed } from '../api/client.js';
 import { useDishCard } from '../api/dishcards.js';
+import { useAwaiting } from '../lib/awaiting.js';
+import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { DishCardView } from '../components/DishCardView.js';
@@ -17,6 +19,7 @@ export function DishView() {
   const { dishId } = useParams({ strict: false }) as { dishId: string };
   const { data: user } = useCurrentUser();
   const card = useDishCard(dishId);
+  const awaiting = useAwaiting();
 
   if (!user) return null;
   const canManage = user.role !== 'cook';
@@ -50,8 +53,11 @@ export function DishView() {
         {card.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
         {kept ? <p className="text-ink-soft text-lg">{t('dishes.kept')}</p> : null}
         {broken ? <p className="text-danger text-lg">{t('dishes.broken')}</p> : null}
-        {card.isError && !kept && !broken ? (
+        {card.isError && card.data === undefined && !kept && !broken ? (
           <LoadError onRetry={() => void card.refetch()} />
+        ) : null}
+        {card.data && awaiting.recipe(dishId) ? (
+          <AwaitingNote what="card" className="mb-3" />
         ) : null}
         {card.data ? <DishCardView card={card.data} /> : null}
       </main>

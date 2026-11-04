@@ -45,13 +45,20 @@ export const persister = createAsyncStoragePersister({
   throttleTime: 2_000,
 });
 
-export function keepOnDevice(queryKey: QueryKey, succeeded: boolean): boolean {
-  return succeeded && !NOT_KEPT.has(String(queryKey[0]));
+/**
+ * Whether a query is saved on the device. Anything with an answer is, even
+ * when asking again just failed: that failure is Mise being out of reach, and
+ * the last answer is exactly what to open with next time.
+ */
+export function keepOnDevice(queryKey: QueryKey, hasAnswer: boolean): boolean {
+  return hasAnswer && !NOT_KEPT.has(String(queryKey[0]));
 }
 
-/** Forget everything kept, as signing out on a shared tablet does. */
+/** Forget everything kept, as signing out on a shared tablet does: data and photos. */
 export async function forgetKept(): Promise<void> {
   await del(STORE_KEY).catch(() => undefined);
+  // The photos the service worker keeps (sw/service-worker.js).
+  if (typeof caches !== 'undefined') await caches.delete('mise-photos').catch(() => false);
 }
 
 // --- loading ahead -------------------------------------------------------------
@@ -93,7 +100,7 @@ async function loadAhead(queryClient: QueryClient): Promise<void> {
     () => load(queryClient, ['recipes', {}], '/recipes'),
     () => load(queryClient, ['dishes'], '/dishes'),
     () => load(queryClient, ['menus'], '/menus'),
-    () => load(queryClient, ['dish-card-settings'], '/dish-card-settings'),
+    () => load(queryClient, ['dish-card-settings'], '/dish-cards/settings'),
   ]);
 
   const recipes = queryClient.getQueryData<RecipeSummary[]>(['recipes', {}]) ?? [];

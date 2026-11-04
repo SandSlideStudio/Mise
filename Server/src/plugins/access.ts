@@ -1,7 +1,8 @@
 import fp from 'fastify-plugin';
 import type { FastifyPluginAsync, FastifyReply, FastifyRequest } from 'fastify';
 import { ApiError } from '../lib/errors.js';
-import { forwarded, insideKitchen, isPrivateAddress } from '../lib/network.js';
+import { forwarded, insideKitchen, isPrivateAddress, plainAddress } from '../lib/network.js';
+import { containerGateways } from '../lib/containerGateway.js';
 import {
   createConnectionService,
   plainHost,
@@ -36,6 +37,11 @@ declare module 'fastify' {
     connection: ConnectionService;
     /** Whether this request comes from the kitchen's own network or VPN. */
     insideKitchen: (request: FastifyRequest) => boolean;
+    /**
+     * Relayed by the container's own gateway, so where it really comes from
+     * can't be told, and not counted as inside by an administrator's choice.
+     */
+    relayedUnknown: (request: FastifyRequest) => boolean;
     setAccessCookie: (reply: FastifyReply, token: string) => void;
   }
 
@@ -73,11 +79,21 @@ const accessPlugin: FastifyPluginAsync<AccessOptions> = async (app, options) => 
     }),
   );
   app.addHook('onReady', async () => app.connection.load());
-  app.decorate('insideKitchen', (request: FastifyRequest) =>
-    insideKitchen(
-      request,
-      (proxy) => app.config.TRUST_PROXY !== false || proxy === app.connection.trustedProxy(),
-    ),
+  const gateways = containerGateways();
+  const trusts = (proxy: string) =>
+    app.config.TRUST_PROXY !== false || proxy === app.connection.trustedProxy();
+  /** From the container's gateway, and not a trusted web server passing a visitor on. */
+  const relayed = (request: FastifyRequest) => {
+    const peer = plainAddress(request.socket.remoteAddress ?? '');
+    return gateways.has(peer) && !(forwarded(request) && trusts(peer));
+  };
+  app.decorate(
+    'relayedUnknown',
+    (request: FastifyRequest) => relayed(request) && !app.connection.trustsContainerGateway(),
+  );
+  app.decorate(
+    'insideKitchen',
+    (request: FastifyRequest) => !app.relayedUnknown(request) && insideKitchen(request, trusts),
   );
   app.decorate('setAccessCookie', (reply: FastifyReply, token: string) => {
     reply.setCookie(ACCESS_COOKIE, token, {
@@ -99,6 +115,9 @@ const accessPlugin: FastifyPluginAsync<AccessOptions> = async (app, options) => 
     const peer = request.socket.remoteAddress ?? '';
     if (forwarded(request) && isPrivateAddress(peer))
       app.connection.sawProxy(peer, request.hostname);
+    // Relayed by the container: who it really is can't be told. Settings →
+    // Connection says so, and lets an administrator decide how to count it.
+    if (relayed(request)) app.connection.sawContainerGateway(peer);
 
     // From outside, only the kitchen's own address leads here once one is set,
     // like a website on a shared server. Anything else (the bare IP, another

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { setUpKitchen, useTestContext } from '../test/harness.js';
+import { writeReceipts } from '../db/schema.js';
 
 const ctx = useTestContext();
 
@@ -39,6 +40,55 @@ describe('a change sent again after a dropped connection', () => {
     const list = await runningList(admin);
     expect(list).toHaveLength(1);
     expect(list[0]!.quantity).toEqual({ value: 2000, unit: 'g' });
+  });
+
+  it('sent again while the first send is still being made, waits rather than making it twice', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const me = (await send(admin, 'GET', '/api/auth/me')).json().user.id as string;
+    const line = { description: 'Pick chervil', quantity: { value: 2, unit: 'kg' } };
+    // The first send has claimed the id and is still running.
+    await ctx.app.db.insert(writeReceipts).values({ key: `${me}:tablet-change-0002`, status: 0 });
+
+    const second = await send(admin, 'POST', '/api/running/tasks', line, {
+      'x-mise-write': 'tablet-change-0002',
+    });
+    expect(second.statusCode).toBe(503);
+    expect(second.json().error.code).toBe('write_in_progress');
+    expect((await runningList(admin)).some((t) => t.description === line.description)).toBe(false);
+  });
+
+  it('takes over a claim left by a send that never finished', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const me = (await send(admin, 'GET', '/api/auth/me')).json().user.id as string;
+    await ctx.app.db.insert(writeReceipts).values({
+      key: `${me}:tablet-change-0004`,
+      status: 0,
+      createdAt: new Date(Date.now() - 10 * 60 * 1000),
+    });
+    const made = await send(
+      admin,
+      'POST',
+      '/api/running/tasks',
+      { description: 'Shell peas' },
+      { 'x-mise-write': 'tablet-change-0004' },
+    );
+    expect(made.statusCode).toBe(200);
+  });
+
+  it('refused, is made afresh when sent again', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const write = { 'x-mise-write': 'tablet-change-0003' };
+    const refused = await send(admin, 'POST', '/api/running/tasks', { description: '' }, write);
+    expect(refused.statusCode).toBe(400);
+    const made = await send(
+      admin,
+      'POST',
+      '/api/running/tasks',
+      { description: 'Zest lemons' },
+      write,
+    );
+    expect(made.statusCode).toBe(200);
+    expect(made.headers['x-mise-replayed']).toBeUndefined();
   });
 
   it('without an id, behaves as always', async () => {

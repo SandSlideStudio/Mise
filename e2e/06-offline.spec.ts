@@ -1,29 +1,14 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Page } from '@playwright/test';
 import { ensureKitchen, signIn, signedInApi, unique } from './helpers.js';
 
 test.beforeEach(async ({ request }) => ensureKitchen(request));
 
-test('with Mise unreachable, the tablet opens, keeps changes, and sends them once back', async ({
-  browser,
-  request,
-}) => {
-  const api = await signedInApi(request);
-  const recipe = await (
-    await api.post('/api/recipes', {
-      data: { name: unique('Brown butter'), type: 'prep', yield: { value: 500, unit: 'g' } },
-    })
-  ).json();
-
-  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
-  const tablet = await context.newPage();
-  await signIn(tablet);
-  await tablet.evaluate(() => navigator.serviceWorker.ready);
-  // The kitchen loads ahead in the background shortly after sign-in, and is
-  // saved on the device: wait until this recipe's page is in that copy.
+/** Wait until this recipe, as written, is in the copy saved on the device. */
+async function keptOnDevice(page: Page, recipeId: string) {
   await expect
     .poll(
       () =>
-        tablet.evaluate(
+        page.evaluate(
           (id) =>
             new Promise<boolean>((resolve) => {
               const open = indexedDB.open('keyval-store');
@@ -42,11 +27,31 @@ test('with Mise unreachable, the tablet opens, keeps changes, and sends them onc
                 }
               };
             }),
-          recipe.id,
+          recipeId,
         ),
       { timeout: 45_000, intervals: [1_000] },
     )
     .toBe(true);
+}
+
+test('with Mise unreachable, the tablet opens, keeps changes, and sends them once back', async ({
+  browser,
+  request,
+}) => {
+  const api = await signedInApi(request);
+  const recipe = await (
+    await api.post('/api/recipes', {
+      data: { name: unique('Brown butter'), type: 'prep', yield: { value: 500, unit: 'g' } },
+    })
+  ).json();
+
+  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
+  const tablet = await context.newPage();
+  await signIn(tablet);
+  await tablet.evaluate(() => navigator.serviceWorker.ready);
+  // The kitchen loads ahead in the background shortly after sign-in, and is
+  // saved on the device: wait until this recipe's page is in that copy.
+  await keptOnDevice(tablet, recipe.id);
 
   await context.setOffline(true);
   await tablet.reload();
@@ -83,5 +88,80 @@ test('with Mise unreachable, the tablet opens, keeps changes, and sends them onc
     .toBe(mine);
   const lines = (await (await api.get('/api/running/tasks')).json()) as { description: string }[];
   expect(lines.filter((task) => task.description === line)).toHaveLength(1);
+  await context.close();
+});
+
+test('an amount changed offline shows at once; its allergens say they update once sent', async ({
+  browser,
+  request,
+}) => {
+  const api = await signedInApi(request);
+  const butter = await (
+    await api.post('/api/ingredients', {
+      data: { name: unique('Butter'), baseUnit: 'g', allergens: ['milk'] },
+    })
+  ).json();
+  const recipe = await (
+    await api.post('/api/recipes', {
+      data: {
+        name: unique('Beurre blanc'),
+        type: 'prep',
+        yield: { value: 500, unit: 'g' },
+        components: [
+          {
+            ref: { kind: 'ingredient', ingredientId: butter.id },
+            quantity: { value: 250, unit: 'g' },
+            sortOrder: 0,
+          },
+        ],
+      },
+    })
+  ).json();
+
+  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
+  const tablet = await context.newPage();
+  await signIn(tablet);
+  await tablet.evaluate(() => navigator.serviceWorker.ready);
+  await keptOnDevice(tablet, recipe.id);
+
+  await context.setOffline(true);
+  await tablet.goto(`/recipes/${recipe.id}/edit`).catch(() => undefined);
+  await tablet.getByLabel('How much').first().fill('400');
+  await tablet.locator('form button[type=submit]').last().click();
+  await tablet.waitForURL((url) => url.pathname === `/recipes/${recipe.id}`);
+
+  const note = tablet.getByText('Allergens update once your changes are sent.');
+  await expect(note).toBeVisible();
+  await expect(tablet.locator('main')).toContainText('400 g');
+  await expect(tablet.locator('main')).not.toContainText('250 g');
+
+  await context.setOffline(false);
+  await expect(note).toBeHidden({ timeout: 30_000 });
+  const saved = (await (await api.get(`/api/recipes/${recipe.id}`)).json()) as {
+    components: { quantity: { value: number } }[];
+  };
+  expect(saved.components[0]!.quantity.value).toBe(400);
+  await context.close();
+});
+
+test('signing out offline signs out at once, and on Mise as soon as it answers', async ({
+  browser,
+}) => {
+  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
+  const tablet = await context.newPage();
+  await signIn(tablet);
+  await tablet.evaluate(() => navigator.serviceWorker.ready);
+
+  await context.setOffline(true);
+  await tablet.getByRole('button', { name: 'Sign out' }).click();
+  await tablet.waitForURL(/\/login$/);
+
+  await context.setOffline(false);
+  // The session in the cookie ends on Mise too: the next cook is never the last one.
+  await expect
+    .poll(async () => (await context.request.get('/api/auth/me')).status(), { timeout: 30_000 })
+    .toBe(401);
+  await tablet.reload();
+  await expect(tablet).toHaveURL(/\/login$/);
   await context.close();
 });

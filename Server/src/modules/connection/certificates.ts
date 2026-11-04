@@ -1,6 +1,14 @@
-import { isIP } from 'node:net';
+import { BlockList, isIP } from 'node:net';
 import { randomBytes, webcrypto, X509Certificate } from 'node:crypto';
 import * as x509 from '@peculiar/x509';
+import { AsnConvert } from '@peculiar/asn1-schema';
+import {
+  GeneralName,
+  GeneralSubtree,
+  GeneralSubtrees,
+  NameConstraints,
+  id_ce_nameConstraints,
+} from '@peculiar/asn1-x509';
 
 /**
  * The kitchen certificate: HTTPS on the kitchen network, with no domain and no
@@ -77,8 +85,76 @@ function plain(text: string): string {
   );
 }
 
-/** The authority, made once per server. */
-export async function createAuthority(kitchenName: string): Promise<PemPair> {
+/** Names only a kitchen network uses: nobody can get a public certificate for these. */
+const KITCHEN_DOMAINS = ['local', 'lan', 'home', 'home.arpa', 'internal', 'localhost', 'intranet'];
+/** Private and link-local addresses, and the machine itself. */
+const KITCHEN_RANGES = [
+  '10.0.0.0/8',
+  '172.16.0.0/12',
+  '192.168.0.0/16',
+  '169.254.0.0/16',
+  '100.64.0.0/10',
+  '127.0.0.0/8',
+  'fc00::/7',
+  'fe80::/10',
+  '::1/128',
+];
+
+/**
+ * What the authority may vouch for: the kitchen network's own names and
+ * addresses, and the names it was first made for. A tablet that trusts it
+ * then trusts it for nothing else: not a bank, not any website, even if the
+ * server were ever taken over.
+ */
+function nameConstraints(names: string[]): x509.Extension {
+  const dns = [...KITCHEN_DOMAINS, ...names.filter((name) => !isIP(name))];
+  const ips = [
+    ...KITCHEN_RANGES,
+    ...names.filter((name) => isIP(name)).map((ip) => `${ip}/${isIP(ip) === 4 ? 32 : 128}`),
+  ];
+  const permitted = new GeneralSubtrees([
+    ...[...new Set(dns)].map(
+      (dNSName) => new GeneralSubtree({ base: new GeneralName({ dNSName }) }),
+    ),
+    ...[...new Set(ips)].map(
+      (iPAddress) => new GeneralSubtree({ base: new GeneralName({ iPAddress }) }),
+    ),
+  ]);
+  return new x509.Extension(
+    id_ce_nameConstraints,
+    true,
+    AsnConvert.serialize(new NameConstraints({ permittedSubtrees: permitted })),
+  );
+}
+
+/**
+ * Whether an authority may vouch for a name. One made before 2.2.2 has no
+ * limits; replacing it would mean trusting it again on every tablet.
+ */
+export function authorityPermits(authorityPem: string, name: string): boolean {
+  const extension = new x509.X509Certificate(authorityPem).getExtension(id_ce_nameConstraints);
+  if (!extension) return true;
+  const constraints = AsnConvert.parse(extension.value, NameConstraints);
+  const subtrees = constraints.permittedSubtrees ?? [];
+  const version = isIP(name);
+  if (version) {
+    const ranges = new BlockList();
+    for (const { base } of subtrees) {
+      if (!base.iPAddress) continue;
+      const [address, prefix] = base.iPAddress.split('/') as [string, string];
+      const type = isIP(address) === 6 ? 'ipv6' : 'ipv4';
+      ranges.addSubnet(address, Number(prefix), type);
+    }
+    return ranges.check(name, version === 6 ? 'ipv6' : 'ipv4');
+  }
+  return subtrees.some(
+    ({ base }) =>
+      base.dNSName !== undefined && (name === base.dNSName || name.endsWith(`.${base.dNSName}`)),
+  );
+}
+
+/** The authority, made once per server, for the names it is first asked for. */
+export async function createAuthority(kitchenName: string, names: string[] = []): Promise<PemPair> {
   const keys = await keyPair();
   const now = Date.now();
   const cert = await x509.X509CertificateGenerator.createSelfSigned({
@@ -95,6 +171,7 @@ export async function createAuthority(kitchenName: string): Promise<PemPair> {
         true,
       ),
       await x509.SubjectKeyIdentifierExtension.create(keys.publicKey),
+      nameConstraints(names),
     ],
   });
   return { cert: cert.toString('pem'), key: await keyPem(keys.privateKey) };
@@ -113,7 +190,10 @@ export async function issueKitchenCertificate(
 
   const cert = await x509.X509CertificateGenerator.create({
     serialNumber: serial(),
-    subject: `CN=${plain(names[0] ?? 'mise')}`,
+    // Not a host name: with only addresses in the certificate, OpenSSL would
+    // hold a name-like CN to the authority's limits too. Browsers go by the
+    // alternative names alone.
+    subject: 'CN=Mise kitchen',
     issuer: ca.subject,
     notBefore: new Date(now - DAY),
     notAfter: expiresAt,

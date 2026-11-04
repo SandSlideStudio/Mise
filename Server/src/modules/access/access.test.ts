@@ -12,7 +12,7 @@ import {
   setUpKitchen,
   useTestContext,
 } from '../../test/harness.js';
-import { MAX_PENDING, describeAgent } from './service.js';
+import { MAX_PENDING, MAX_PENDING_PER_ADDRESS, describeAgent } from './service.js';
 
 const ctx = useTestContext();
 
@@ -373,16 +373,30 @@ describe('running out', () => {
     expect(status.json().status).toBe('none');
   });
 
-  it(`lets at most ${MAX_PENDING} requests wait at once`, async () => {
+  it(`keeps at most ${MAX_PENDING} requests waiting, dropping the oldest for a new one`, async () => {
     await setUpKitchen(ctx.app);
-    for (let i = 0; i < MAX_PENDING; i += 1) await ask(`Phone ${i}`, `198.51.100.${i + 1}`);
-    const one = await from('198.51.100.200', {
+    const first = await ask('Phone 0', '198.51.100.1');
+    for (let i = 1; i < MAX_PENDING; i += 1) await ask(`Phone ${i}`, `198.51.100.${i + 1}`);
+    // A full list never locks a real request out.
+    await ask('One more', '198.51.100.200');
+    const status = await from('198.51.100.1', {
+      method: 'GET',
+      url: '/api/access/status',
+      cookie: first.cookie,
+    });
+    expect(status.json().status).toBe('none');
+  });
+
+  it(`lets one address keep only ${MAX_PENDING_PER_ADDRESS} requests waiting`, async () => {
+    await setUpKitchen(ctx.app);
+    for (let i = 0; i < MAX_PENDING_PER_ADDRESS; i += 1) await ask(`Try ${i}`, '198.51.100.9');
+    const more = await from('198.51.100.9', {
       method: 'POST',
       url: '/api/access/request',
       payload: { name: 'One too many' },
     });
-    expect(one.statusCode).toBe(429);
-    expect(one.json().error.code).toBe('too_many_requests');
+    expect(more.statusCode).toBe(429);
+    expect(more.json().error.code).toBe('too_many_requests');
   });
 
   it('limits how often one address can ask', async () => {

@@ -48,8 +48,44 @@ export function ConnectionSettings() {
       <p className="text-ink-soft mb-5 max-w-[70ch] text-sm">{t('connection.domainBody')}</p>
 
       {connection.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-      {connection.isError ? (
+      {connection.isError && connection.data === undefined ? (
         <LoadError className="mb-5" onRetry={() => void connection.refetch()} />
+      ) : null}
+
+      {connection.data &&
+      (connection.data.containerGateway || connection.data.trustContainerGateway) ? (
+        <div
+          role={connection.data.trustContainerGateway ? 'alert' : 'status'}
+          className={`mb-6 max-w-[80ch] border-2 px-4 py-3 ${
+            connection.data.trustContainerGateway ? 'border-danger' : 'border-accent'
+          }`}
+        >
+          <p className="font-display text-lg font-semibold">{t('connection.relayedTitle')}</p>
+          <p className="mt-1 text-sm">
+            {t(
+              connection.data.trustContainerGateway
+                ? 'connection.relayedTrusted'
+                : 'connection.relayedBody',
+              { address: connection.data.containerGateway?.address ?? '' },
+            )}
+          </p>
+          <p className="text-ink-soft mt-2 text-sm">{t('connection.relayedFix')}</p>
+          <label className="mt-3 flex cursor-pointer items-start gap-3">
+            <input
+              type="checkbox"
+              className="accent-accent mt-1 size-4 shrink-0"
+              checked={connection.data.trustContainerGateway}
+              disabled={update.isPending}
+              onChange={(e) => update.mutate({ trustContainerGateway: e.target.checked })}
+            />
+            <span>
+              <span className="block font-medium">{t('connection.relayedTrust')}</span>
+              <span className="text-ink-soft mt-0.5 block text-sm">
+                {t('connection.relayedTrustHint')}
+              </span>
+            </span>
+          </label>
+        </div>
       ) : null}
 
       {connection.data ? (

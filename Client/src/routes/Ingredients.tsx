@@ -79,7 +79,7 @@ export function Ingredients() {
               <p className="text-ink-soft px-6 py-6">{t('common.loading')}</p>
             ) : null}
 
-            {ingredients.isError ? (
+            {ingredients.isError && ingredients.data === undefined ? (
               <LoadError className="m-4 sm:m-6" onRetry={() => void ingredients.refetch()} />
             ) : null}
 

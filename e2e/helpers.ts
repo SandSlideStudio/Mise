@@ -39,7 +39,7 @@ export async function signedInApi(request: APIRequestContext) {
   const response = await request.post('/api/auth/login', {
     data: { email: CHEF.email, password: CHEF.password },
   });
-  expect(response.ok()).toBe(true);
+  expect(response.ok(), await response.text()).toBe(true);
   return request;
 }
 
