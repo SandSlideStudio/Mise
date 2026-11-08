@@ -134,7 +134,7 @@ sudo certbot --apache -d ${name}`;
 
   return (
     <details className="border-line bg-surface-raised mt-8 border">
-      <summary className="font-display cursor-pointer px-4 py-3 text-lg font-semibold tracking-[0.08em] uppercase">
+      <summary className="font-display cursor-pointer px-4 py-3 text-lg font-semibold">
         {t('proxy.apacheTitle')}
       </summary>
       <div className="border-line flex flex-col gap-5 border-t p-4">

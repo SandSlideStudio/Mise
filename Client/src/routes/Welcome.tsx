@@ -19,7 +19,7 @@ export function WelcomePage() {
   const { t } = useT();
   return (
     <>
-      <PageHeading eyebrow={t('welcome.eyebrow')} title={t('welcome.headline')}>
+      <PageHeading title={t('welcome.headline')}>
         {t('welcome.lead1')} <span className="text-ink">{t('welcome.lead2')}</span>
       </PageHeading>
 
@@ -46,7 +46,7 @@ export function WelcomeAside({
       <Plate className="bg-surface-raised flex flex-col gap-[18px] px-[18px] py-5 sm:gap-[22px] sm:px-6 sm:pt-[26px] sm:pb-6 xl:gap-[26px] xl:px-8 xl:pt-[34px] xl:pb-[30px]">
         <StepIndex position={0} />
         <div>
-          <h2 className="text-ink-faint font-display text-[11px] font-semibold tracking-[0.16em] uppercase xl:text-xs">
+          <h2 className="text-ink-faint font-display text-[13px] font-semibold xl:text-xs">
             {t('welcome.readyLabel')}
           </h2>
           <ul className="mt-2.5 flex flex-col gap-2 xl:mt-3 xl:gap-[9px]">
@@ -71,7 +71,7 @@ export function WelcomeAside({
 
       {/* Phone only: the top bar has no room for the language buttons. */}
       <div className="sm:hidden">
-        <h2 className="text-ink-faint font-display text-[11px] font-semibold tracking-[0.16em] uppercase">
+        <h2 className="text-ink-faint font-display text-[13px] font-semibold">
           {t('kitchen.language')}
         </h2>
         <div className="bg-rule mt-2.5 grid grid-cols-3 gap-px p-px">
@@ -82,7 +82,7 @@ export function WelcomeAside({
               label={LANGUAGE_NAMES[code]}
               selected={code === language}
               onLanguage={onLanguage}
-              className="h-12 text-base tracking-[0.08em]"
+              className="h-12 text-base"
             />
           ))}
           <span className="bg-surface" />
@@ -127,7 +127,7 @@ function Feature({ icon, title, body }: { icon: ReactNode; title: string; body: 
     <li className="grid grid-cols-[24px_minmax(0,1fr)] items-start gap-3 sm:grid-cols-[26px_minmax(0,1fr)] sm:gap-3.5 xl:grid-cols-[28px_minmax(0,1fr)] xl:gap-4">
       <span className="text-brand">{icon}</span>
       <div>
-        <h2 className="text-ink font-display text-[17px] font-semibold tracking-[0.08em] uppercase sm:text-lg xl:text-[19px]">
+        <h2 className="text-ink font-display text-[17px] font-semibold sm:text-lg xl:text-[19px]">
           {title}
         </h2>
         <p className="text-ink-soft mt-0.5 max-w-[44ch] text-sm leading-[1.45] text-pretty sm:mt-[3px] sm:text-[15px] xl:mt-1 xl:leading-normal">

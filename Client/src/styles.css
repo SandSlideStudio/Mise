@@ -4,8 +4,8 @@
  * A kitchen tool, drawn like a spec sheet.
  *
  * Barlow Condensed names and counts, Barlow explains. Things sit on square
- * hairline plates with registration marks at the corners, a station is an
- * olive band, and the row is the only thing anyone touches.
+ * hairline plates, a station is an olive band, and the row is the only thing
+ * anyone touches.
  *
  * Two grounds, neither a preference: paper for the office at four, ink for the
  * pass at eleven. Ochre is the only accent that holds on both, so it carries
@@ -157,59 +157,33 @@
     @apply border-line bg-surface-raised relative border;
   }
 
-  /* Registration marks, drawn outside the box so the plate reads as drawn. */
-  .plate > .corner {
-    position: absolute;
-    width: 11px;
-    height: 11px;
-    color: color-mix(in srgb, var(--color-ink) 55%, transparent);
-    pointer-events: none;
+  /* A row that scrolls sideways fades where there is more (lib/scrollFade.ts). */
+  [data-more~='end'] {
+    mask-image: linear-gradient(to right, black calc(100% - 40px), transparent);
   }
-  .plate > .corner::before,
-  .plate > .corner::after {
-    content: '';
-    position: absolute;
-    background: currentColor;
+  [data-more~='start'] {
+    mask-image: linear-gradient(to left, black calc(100% - 40px), transparent);
   }
-  .plate > .corner::before {
-    left: 5px;
-    top: 0;
-    width: 1px;
-    height: 100%;
-  }
-  .plate > .corner::after {
-    top: 5px;
-    left: 0;
-    width: 100%;
-    height: 1px;
-  }
-  .plate > .corner.tl {
-    top: -6px;
-    left: -6px;
-  }
-  .plate > .corner.tr {
-    top: -6px;
-    right: -6px;
-  }
-  .plate > .corner.bl {
-    bottom: -6px;
-    left: -6px;
-  }
-  .plate > .corner.br {
-    bottom: -6px;
-    right: -6px;
+  [data-more~='start'][data-more~='end'] {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      black 40px,
+      black calc(100% - 40px),
+      transparent
+    );
   }
 
   /* ── type roles ──────────────────────────────────────────────────────── */
 
   /* What a column or a field is. */
   .eyebrow {
-    @apply text-ink-faint text-[11px] font-medium tracking-[0.12em] uppercase;
+    @apply text-ink-soft text-[13px] font-medium;
   }
 
   /* A named run of things: "On tonight", "Method", "The rest". */
   .heading-rule {
-    @apply font-display text-brand flex items-center gap-3 text-xl font-semibold tracking-[0.14em] uppercase;
+    @apply font-display text-brand flex items-center gap-3 text-[22px] font-semibold;
   }
   .heading-rule::after {
     content: '';
@@ -223,7 +197,7 @@
 
   /* Column headings over a table of rows. */
   .col-head {
-    @apply bg-surface-sunk border-line text-ink-faint border-b text-[11px] tracking-[0.12em] uppercase;
+    @apply bg-surface-sunk border-line text-ink-soft border-b text-[13px] font-medium;
   }
 
   /* A station: olive, reversed, counted. Found by the stripe, not by reading. */
@@ -252,7 +226,7 @@
 
   /* Same look as .eyebrow; spelled out because a class cannot @apply another. */
   .label {
-    @apply text-ink-faint mb-1.5 block text-[11px] font-medium tracking-[0.12em] uppercase;
+    @apply text-ink-soft mb-1.5 block text-[13px] font-medium;
   }
 
   /* Grouped rather than composed: Tailwind cannot @apply a class of our own. */
@@ -260,7 +234,7 @@
   .btn-primary,
   .btn-quiet,
   .btn-danger {
-    @apply font-display inline-flex items-center justify-center gap-2 border px-5 text-lg font-semibold tracking-[0.08em] whitespace-nowrap uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-45;
+    @apply font-display inline-flex items-center justify-center gap-2 border px-5 text-lg font-semibold tracking-[0.01em] whitespace-nowrap transition-colors disabled:cursor-not-allowed disabled:opacity-45;
     min-height: var(--spacing-touch);
   }
 
@@ -278,7 +252,7 @@
 
   /* For dense rows like a staff list, where a full touch target is too tall. */
   .btn-small {
-    @apply border-line bg-surface-raised text-ink-soft hover:bg-surface-sunk hover:text-ink inline-flex min-h-9 items-center justify-center gap-1.5 border px-3 text-[13px] font-medium tracking-[0.08em] uppercase transition-colors disabled:cursor-not-allowed disabled:opacity-45;
+    @apply border-line bg-surface-raised text-ink-soft hover:bg-surface-sunk hover:text-ink inline-flex min-h-9 items-center justify-center gap-1.5 border px-3 text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45;
   }
 
   .card {
@@ -286,7 +260,7 @@
   }
 
   .tag {
-    @apply border-line text-ink-soft inline-flex items-center border px-2 py-0.5 text-[12px] font-medium tracking-[0.1em] uppercase;
+    @apply border-line text-ink-soft inline-flex items-center border px-2 py-0.5 text-[13px] font-medium;
   }
   .tag-brand {
     @apply border-brand text-brand;
@@ -317,19 +291,9 @@
     filter: var(--logo-filter);
   }
 
-  /* The drafting grid behind setup and sign-in: 64px squares, 80px on wide screens. */
-  .grid-paper {
-    --grid-line: color-mix(in srgb, var(--color-line) 55%, transparent);
+  /* Setup and sign-in: the plain page, nothing behind it. */
+  .plain-page {
     background-color: var(--color-surface);
-    background-image:
-      linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-      linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-    background-size: 64px 64px;
-  }
-  @media (min-width: 80rem) {
-    .grid-paper {
-      background-size: 80px 80px;
-    }
   }
 
   /*
@@ -369,11 +333,6 @@
     }
     .frame-leave {
       animation: frame-leave 420ms cubic-bezier(0.4, 0, 0.2, 1) both;
-    }
-
-    /* Whatever arrives on a page after loading fades in rather than popping. */
-    .app-main :is(main > *, main > .plate > *) {
-      animation: fade-swap 280ms ease-out both;
     }
 
     /* The tour: the dimming fades, the card rises, the spotlight glides between stops. */
@@ -477,31 +436,11 @@
 }
 
 /*
- * Changing page in the app: the new page rises in under the header. Plain CSS,
- * so it can never hold a page change up.
+ * Movement only where it answers what someone did: a wrong PIN or password
+ * shakes its head, and each digit lands in its slot. Pages themselves never
+ * move: nothing should shift under a cook's eyes.
  */
 @media (prefers-reduced-motion: no-preference) {
-  .app-main > main {
-    animation: route-enter 300ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
-  }
-}
-
-@keyframes route-enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-}
-
-/*
- * The sign-in screens. Names on the tablet arrive one after another, a wrong
- * PIN or password shakes its head, and each digit lands in its slot.
- */
-@media (prefers-reduced-motion: no-preference) {
-  .stagger-in {
-    animation: page-late 420ms cubic-bezier(0.2, 0.7, 0.3, 1) both;
-    animation-delay: calc(var(--i, 0) * 45ms + 80ms);
-  }
   .shake {
     animation: shake 420ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
@@ -604,10 +543,6 @@
   /* A band prints as a ruled heading, not a block of toner. */
   .band {
     border-bottom: 1.5pt solid black;
-  }
-
-  .plate > .corner {
-    display: none;
   }
 
   /* Never split a line or a step across two sheets. */

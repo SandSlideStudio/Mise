@@ -6,7 +6,7 @@ import {
   useUpdateConnection,
 } from '../../api/connection.js';
 import { LoadError } from '../../components/LoadError.js';
-import { errorMessage, useT } from '../../i18n/index.js';
+import { clockTime, errorMessage, useT } from '../../i18n/index.js';
 
 /**
  * How this server is reached.
@@ -18,7 +18,7 @@ import { errorMessage, useT } from '../../i18n/index.js';
  */
 export function ConnectionSettings() {
   const translator = useT();
-  const { t } = translator;
+  const { t, locale } = translator;
   const connection = useConnection();
   const update = useUpdateConnection();
   const [domain, setDomain] = useState('');
@@ -66,9 +66,17 @@ export function ConnectionSettings() {
               connection.data.trustContainerGateway
                 ? 'connection.relayedTrusted'
                 : 'connection.relayedBody',
-              { address: connection.data.containerGateway?.address ?? '' },
             )}
           </p>
+          {connection.data.containerGateway ? (
+            <p className="text-ink-soft mt-1 text-sm">
+              {t('connection.relayedSeen', {
+                address: connection.data.containerGateway.address,
+                // In the reader's own day, not the UTC one.
+                when: `${new Date(connection.data.containerGateway.at).toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' })} ${clockTime(locale, connection.data.containerGateway.at)}`,
+              })}
+            </p>
+          ) : null}
           <p className="text-ink-soft mt-2 text-sm">{t('connection.relayedFix')}</p>
           <label className="mt-3 flex cursor-pointer items-start gap-3">
             <input

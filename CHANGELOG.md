@@ -3,6 +3,34 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.2.3
+
+Fixes for tablets and phones, and a calmer interface that reads as made for a kitchen.
+
+**Fixes**
+
+- The recipe editor shows the names of what goes in on a 10-inch tablet again. "The rest" moves
+  below the lines until the screen is wide enough for both.
+- The top bar fits on a 1024 px tablet. On phones, the top bar and the Settings tabs fade at the
+  edge when there's more to scroll to, and no page scrolls sideways any more.
+- Settings → Connection no longer shows empty brackets after a restart.
+- The backup warning names the day of the last backup, such as "No backup since Tuesday 3
+  November", instead of a number of days that could be wrong.
+
+**A calmer interface**
+
+- Buttons, navigation and labels use normal capitals. Capitals stay where they mark something:
+  station and course bands, allergens, codes and printed sheets.
+- On Today, each line has one clear action: **Start**, **Stop** on your own line, or **Take over**
+  on someone else's. The recipe is a link and removing is a plain ×. Lines nobody has claimed no
+  longer say "Anyone".
+- Sign-in and setup lose the drafting grid, corner marks, arrows on buttons and small labels above
+  headings.
+- Empty fields look empty. Examples moved to a hint under the field, or start with "e.g.".
+- Pages and lists no longer slide in. Movement stays only where it answers what you did: the tick, a
+  wrong PIN, starting a line.
+- The upgrade test covers 2.2.2.
+
 ## 2.2.2
 
 Printed prep lists and recipe cards, a safer PIN, offline that holds up better, and every fix

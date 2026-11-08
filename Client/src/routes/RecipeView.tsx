@@ -428,7 +428,7 @@ function ScaleControl({
           type="button"
           aria-pressed={active}
           onClick={() => apply(key, values[key])}
-          className={`font-display h-[52px] min-w-[112px] border px-4 text-xl font-semibold tracking-[0.08em] uppercase sm:min-w-0 sm:px-5 ${
+          className={`font-display h-[52px] min-w-[112px] border px-4 text-xl font-semibold sm:min-w-0 sm:px-5 ${
             active
               ? 'border-accent bg-accent text-accent-ink'
               : 'border-line bg-surface-raised text-ink hover:bg-surface'

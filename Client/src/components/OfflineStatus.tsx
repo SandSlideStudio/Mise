@@ -148,9 +148,7 @@ function ConflictDialog({ entry }: { entry: OutboxEntry }) {
           <p className="eyebrow">{t('offline.theirs')}</p>
           {(fields.length ? fields : Object.keys(mine)).map((key) => (
             <div key={key} className="border-line col-span-2 grid grid-cols-subgrid border-t pt-3">
-              <p className="text-ink-faint col-span-2 mb-1 text-xs tracking-[0.12em] uppercase">
-                {fieldName(translator, key)}
-              </p>
+              <p className="text-ink-faint col-span-2 mb-1 text-xs">{fieldName(translator, key)}</p>
               <p className="whitespace-pre-wrap break-words">{show(key, mine[key])}</p>
               <p className="whitespace-pre-wrap break-words">{show(key, current[key])}</p>
             </div>

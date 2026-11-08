@@ -3,6 +3,7 @@ import { Link } from '@tanstack/react-router';
 import type { PrepTask, PrepTaskStatus, Station } from '@mise/contracts';
 import { formatQuantity, humanize, isUnitCode } from '@mise/domain';
 import { useT, type Translator } from '../i18n/index.js';
+import { useCurrentUser } from '../api/session.js';
 
 /**
  * One line of the prep list.
@@ -14,9 +15,9 @@ import { useT, type Translator } from '../i18n/index.js';
  * margin and a sunk ground — so a bad screen, a colourblind cook and a
  * photocopy all read it the same.
  *
- * Beside the row sits a second, smaller tick: "being made". It puts the name
- * of whoever tapped it on the line, so two cooks do not both start the stock.
- * A chef also gets a way to take a line off the list again.
+ * Beside the row sits a Start button. It puts the name of whoever tapped it on
+ * the line, so two cooks do not both start the stock. A chef also gets a way
+ * to take a line off the list again.
  */
 
 /** Starting a job, or putting it back. */
@@ -92,7 +93,7 @@ export function PrepTaskRow({
         </span>
 
         <span
-          className={`col-start-2 mt-1 text-[15px] tracking-[0.06em] uppercase sm:text-base md:col-start-auto md:mt-0 md:text-right md:text-[19px] ${
+          className={`col-start-2 mt-1 text-[15px] sm:text-base md:col-start-auto md:mt-0 md:text-right md:text-[19px] ${
             making ? 'text-accent font-semibold' : soft
           }`}
         >
@@ -104,7 +105,7 @@ export function PrepTaskRow({
         done ? (
           // Keep the column, so finished rows line up with the rest.
           <span
-            className="bg-done border-rule no-print w-[76px] shrink-0 border-l sm:w-[92px]"
+            className="bg-done border-rule no-print w-[109px] shrink-0 border-l sm:w-[121px]"
             aria-hidden
           />
         ) : (
@@ -120,8 +121,9 @@ export function PrepTaskRow({
 }
 
 /**
- * The small tick: "being made". Deliberately its own target beside the row,
- * so reaching for it never ticks the job off by accident.
+ * Starting a job: one plain button that says what it does. "Start" on a free
+ * line, "Stop" on your own, "Take over" on someone else's. Deliberately its own
+ * target beside the row, so reaching for it never ticks the job off by accident.
  */
 function ProgressTick({
   task,
@@ -135,34 +137,25 @@ function ProgressTick({
   disabled?: boolean;
 }) {
   const { t } = useT();
-  const label = t('task.beingMade');
+  const { data: me } = useCurrentUser();
+  const mine = making && task.assignedUserId === me?.id;
+  const label = !making ? t('task.start') : mine ? t('task.stop') : t('task.takeOver');
 
   return (
-    <button
-      type="button"
-      disabled={disabled}
-      aria-pressed={making}
-      aria-label={`${label}: ${task.description}`}
-      data-tour="being-made"
-      onClick={() => onProgress(making ? 'open' : 'in_progress')}
-      className={`no-print border-rule flex w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 border-l px-1 text-center transition-colors disabled:opacity-45 sm:w-[92px] ${
-        making
-          ? 'bg-accent-wash text-accent'
-          : 'bg-surface-raised text-ink-soft active:bg-surface-sunk'
-      }`}
-    >
-      <span
-        aria-hidden
-        className={`flex h-7 w-7 shrink-0 items-center justify-center border-2 text-base leading-none ${
-          making ? 'border-accent bg-accent text-accent-ink' : 'border-ink-soft'
-        }`}
+    <span className="no-print border-rule bg-surface-raised flex shrink-0 items-center border-l px-2.5 sm:px-3">
+      <button
+        type="button"
+        disabled={disabled}
+        aria-pressed={making}
+        aria-label={`${label}: ${task.description}`}
+        data-tour="being-made"
+        // Someone else's line becomes yours; your own goes back on the list.
+        onClick={() => onProgress(mine ? 'open' : 'in_progress')}
+        className="btn-quiet min-h-11 min-w-[84px] px-3 text-base sm:min-w-[96px]"
       >
-        {making ? '✓' : ''}
-      </span>
-      <span className="text-[11px] leading-tight font-medium tracking-[0.06em] uppercase sm:text-xs">
         {label}
-      </span>
-    </button>
+      </button>
+    </span>
   );
 }
 
@@ -178,24 +171,9 @@ function RecipeLink({ task, recipeId }: { task: PrepTask; recipeId: string }) {
       params={{ recipeId }}
       search={task.quantity ? { amount: task.quantity.value, unit: task.quantity.unit } : {}}
       aria-label={t('task.openRecipe', { task: task.description })}
-      className="no-print border-rule bg-surface-raised text-ink-soft active:bg-surface-sunk flex w-[64px] shrink-0 flex-col items-center justify-center gap-1 border-l px-1 text-center sm:w-[76px]"
+      className="no-print border-rule bg-surface-raised text-ink-soft hover:text-ink active:bg-surface-sunk flex shrink-0 items-center border-l px-3 text-base font-medium underline underline-offset-4 sm:px-4"
     >
-      <svg
-        aria-hidden
-        width="22"
-        height="22"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="M4 5.5C4 4.7 4.7 4 5.5 4H11v16H5.5A1.5 1.5 0 0 1 4 18.5zM20 5.5c0-.8-.7-1.5-1.5-1.5H13v16h5.5c.8 0 1.5-.7 1.5-1.5z" />
-      </svg>
-      <span className="text-[11px] leading-tight font-medium tracking-[0.06em] uppercase">
-        {t('task.recipe')}
-      </span>
+      {t('task.recipe')}
     </Link>
   );
 }
@@ -223,18 +201,13 @@ function RemoveButton({
       aria-label={t('task.remove', { task: task.description })}
       onClick={() => (confirming ? onRemove() : setConfirming(true))}
       onBlur={() => setConfirming(false)}
-      className={`no-print border-rule flex w-[64px] shrink-0 flex-col items-center justify-center gap-1 border-l px-1 text-center transition-colors disabled:opacity-45 sm:w-[76px] ${
+      className={`no-print border-rule flex w-14 shrink-0 items-center justify-center border-l text-center transition-colors disabled:opacity-45 sm:w-16 ${
         confirming
-          ? 'bg-danger text-white'
-          : 'bg-surface-raised text-ink-soft active:bg-surface-sunk'
+          ? 'bg-danger text-sm font-semibold text-white'
+          : 'bg-surface-raised text-ink-soft active:bg-surface-sunk text-xl'
       }`}
     >
-      <span aria-hidden className="text-xl leading-none">
-        ✕
-      </span>
-      <span className="text-[11px] leading-tight font-medium tracking-[0.06em] uppercase">
-        {confirming ? t('task.removeConfirm') : t('common.remove')}
-      </span>
+      {confirming ? t('task.removeConfirm') : <span aria-hidden>✕</span>}
     </button>
   );
 }
@@ -262,7 +235,8 @@ function who(t: Translator['t'], task: PrepTask): string {
       ? t('task.beingMadeBy', { name: task.assignedUserName })
       : t('task.beingMade');
   }
-  return task.assignedUserName ?? t('common.anyone');
+  // A line nobody has claimed already looks unclaimed: no word for it.
+  return task.assignedUserName ?? '';
 }
 
 /**

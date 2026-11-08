@@ -94,7 +94,7 @@ export function SetupFrame({
         : `${t('setup.stepOf', { current: position, total })} · ${t(SETUP_STEPS[position - 1]!.label)}`;
 
   return (
-    <div className={`grid-paper flex min-h-dvh flex-col ${closing ? 'frame-leave' : ''}`}>
+    <div className={`plain-page flex min-h-dvh flex-col ${closing ? 'frame-leave' : ''}`}>
       <header className="bg-surface-raised border-rule sticky top-0 z-20 border-b">
         <div className="flex h-[60px] items-center justify-between gap-6 px-5 sm:h-[76px] sm:px-10 xl:h-[72px] xl:px-16">
           <div className="flex min-w-0 items-center gap-3.5">
@@ -106,14 +106,14 @@ export function SetupFrame({
           </div>
           <span
             key={`short-${position}`}
-            className="fade-swap text-accent font-display text-[11px] font-semibold tracking-[0.16em] uppercase sm:hidden"
+            className="fade-swap text-accent font-display text-[13px] font-semibold sm:hidden"
           >
             {position === 0
               ? t('welcome.step0')
               : t('setup.stepShort', { current: Math.min(position, total), total })}
           </span>
           <div className="hidden items-center gap-3.5 sm:flex">
-            <span className="text-ink-faint font-display hidden text-[11px] font-semibold tracking-[0.16em] uppercase xl:inline">
+            <span className="text-ink-faint font-display hidden text-[13px] font-semibold xl:inline">
               {t('kitchen.language')}
             </span>
             <div className="bg-rule flex gap-px p-px">
@@ -152,7 +152,7 @@ export function SetupFrame({
           </div>
           <p
             key={`label-${position}`}
-            className="fade-swap text-accent font-display hidden pt-2 pb-2.5 text-[11px] font-semibold tracking-[0.16em] uppercase sm:block"
+            className="fade-swap text-accent font-display hidden pt-2 pb-2.5 text-[13px] font-semibold sm:block"
           >
             {label}
           </p>
@@ -204,10 +204,7 @@ export function ReadyPage({ kitchenName }: { kitchenName: string }) {
         <path className="draw-check" d="m13 25 7 7 15-16" pathLength={1} />
       </svg>
       <div role="status" className="page-late mt-7 xl:mt-9">
-        <PageHeading
-          eyebrow={t('setup.readyEyebrow')}
-          title={t('setup.readyTitle', { kitchen: kitchenName })}
-        >
+        <PageHeading title={t('setup.readyTitle', { kitchen: kitchenName })}>
           {t('setup.readyBody')}
         </PageHeading>
       </div>
@@ -215,31 +212,22 @@ export function ReadyPage({ kitchenName }: { kitchenName: string }) {
   );
 }
 
-/** Eyebrow, headline, olive rule and lead: the top of every page. */
+/** Headline and lead: the top of every page. The frame above already says which step this is. */
 export function PageHeading({
-  eyebrow,
   title,
   tag,
   children,
 }: {
-  eyebrow: string;
   title: string;
   tag?: string;
   children: ReactNode;
 }) {
   return (
     <header>
-      <p className="text-ink-faint font-display text-[11px] font-semibold tracking-[0.16em] uppercase xl:text-xs">
-        {eyebrow}
-      </p>
-      <h1 className="text-ink mt-2.5 flex flex-wrap items-center gap-x-4 gap-y-2 text-[38px] leading-[1.02] tracking-[-0.01em] text-pretty sm:mt-3 sm:text-[48px] sm:leading-none xl:mt-4 xl:text-[62px] xl:tracking-[-0.015em]">
+      <h1 className="text-ink flex flex-wrap items-center gap-x-4 gap-y-2 text-[38px] leading-[1.02] tracking-[-0.01em] text-pretty sm:text-[48px] sm:leading-none xl:text-[62px] xl:tracking-[-0.015em]">
         <span>{title}</span>
-        {tag ? <span className="tag-accent text-xs tracking-[0.14em]">{tag}</span> : null}
+        {tag ? <span className="tag-accent text-xs">{tag}</span> : null}
       </h1>
-      <span
-        aria-hidden
-        className="bg-brand mt-3.5 block h-0.5 w-12 sm:mt-4 sm:w-14 xl:mt-[22px] xl:w-16"
-      />
       <p className="text-ink-soft mt-3.5 max-w-[52ch] text-base leading-normal text-pretty sm:mt-4 xl:mt-[22px] xl:text-[17px] xl:leading-[1.55]">
         {children}
       </p>
@@ -260,7 +248,7 @@ export function StepIndex({
   return (
     <div>
       <div className="flex items-baseline justify-between gap-4">
-        <h2 className="text-ink-faint font-display text-[11px] font-semibold tracking-[0.16em] uppercase xl:text-xs">
+        <h2 className="text-ink-faint font-display text-[13px] font-semibold xl:text-xs">
           {t('welcome.stepsLabel')}
         </h2>
         <span className="text-ink-faint font-mono text-[11px]">{t('welcome.duration')}</span>
@@ -337,13 +325,14 @@ export function LanguageButton({
       aria-pressed={selected}
       aria-label={LANGUAGE_NAMES[code]}
       onClick={() => onLanguage(code)}
-      className={`font-display font-semibold uppercase transition-colors ${className} ${
+      className={`font-display font-semibold transition-colors ${className} ${
         selected
           ? 'bg-accent text-accent-ink'
           : 'bg-surface-raised text-ink-soft hover:bg-surface-sunk hover:text-ink'
       }`}
     >
-      {label}
+      {/* A language code is an abbreviation, so it is written in capitals. */}
+      {label.toUpperCase()}
     </button>
   );
 }
@@ -363,10 +352,9 @@ export function ForwardButton({
       type="submit"
       disabled={disabled}
       autoFocus={autoFocus}
-      className="btn-primary font-display flex h-14 min-w-0 flex-1 items-center justify-between gap-4 px-6 text-xl font-semibold tracking-[0.12em] uppercase sm:h-[60px] sm:text-[22px] lg:flex-none lg:px-8 xl:min-w-[340px] xl:gap-[22px] xl:text-[23px]"
+      className="btn-primary font-display flex h-14 min-w-0 flex-1 items-center justify-center gap-4 px-6 text-xl font-semibold sm:h-[60px] sm:text-[22px] lg:flex-none lg:px-8 xl:min-w-[340px] xl:gap-[22px] xl:text-[23px]"
     >
       <span className="truncate">{children}</span>
-      <Arrow />
     </button>
   );
 }
@@ -385,7 +373,7 @@ export function BackButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="btn-quiet font-display flex h-14 shrink-0 items-center gap-3 px-4 text-lg font-semibold tracking-[0.12em] uppercase sm:h-[60px] sm:px-6 sm:text-xl"
+      className="btn-quiet font-display flex h-14 shrink-0 items-center gap-3 px-4 text-lg font-semibold sm:h-[60px] sm:px-6 sm:text-xl"
     >
       <Arrow back />
       <span className="hidden sm:inline">{children}</span>

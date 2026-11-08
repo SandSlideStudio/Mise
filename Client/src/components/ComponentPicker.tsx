@@ -199,7 +199,7 @@ export function ComponentPicker({
                 onClick={() => choose(option)}
               >
                 <span className="truncate">{option.name}</span>
-                <span className="text-brand text-[11px] tracking-[0.1em] uppercase">
+                <span className="text-brand text-[13px]">
                   {option.kind === 'recipe' ? t('editor.kindRecipe') : ''}
                 </span>
               </button>

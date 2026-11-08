@@ -62,7 +62,7 @@ export function Today() {
             <button
               type="button"
               onClick={() => window.print()}
-              className="btn-quiet no-print h-12 border-2 px-4 text-lg tracking-[0.1em] sm:h-16 sm:px-[22px] sm:text-[22px]"
+              className="btn-quiet no-print h-12 border-2 px-4 text-lg sm:h-16 sm:px-[22px] sm:text-[22px]"
             >
               {t('prepPrint.print')}
             </button>
@@ -70,7 +70,7 @@ export function Today() {
               type="button"
               onClick={toggleNight}
               aria-pressed={night}
-              className="btn-quiet no-print h-12 border-2 px-4 text-lg tracking-[0.1em] sm:h-16 sm:px-[22px] sm:text-[22px]"
+              className="btn-quiet no-print h-12 border-2 px-4 text-lg sm:h-16 sm:px-[22px] sm:text-[22px]"
             >
               {night ? t('today.day') : t('today.night')}
             </button>
@@ -79,9 +79,7 @@ export function Today() {
                 {user.displayName}
               </span>
               {myStation ? (
-                <span className="text-brand text-[15px] tracking-[0.08em] uppercase sm:text-[17px]">
-                  {myStation.name}
-                </span>
+                <span className="text-brand text-[15px] sm:text-[17px]">{myStation.name}</span>
               ) : null}
             </div>
           </div>
@@ -335,9 +333,7 @@ function Handover() {
           }`}
         >
           {confirmingRemove ? (
-            <span className="text-[13px] tracking-[0.06em] uppercase">
-              {t('handover.removeConfirm')}
-            </span>
+            <span className="text-[13px]">{t('handover.removeConfirm')}</span>
           ) : (
             <span aria-hidden>✕</span>
           )}
@@ -678,7 +674,7 @@ function Chip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`font-display h-12 shrink-0 border-2 px-4 text-lg font-semibold tracking-[0.08em] uppercase transition-colors sm:h-14 sm:px-5 sm:text-xl md:h-[68px] md:px-7 md:text-[26px] ${
+      className={`font-display h-12 shrink-0 border-2 px-4 text-lg font-semibold transition-colors sm:h-14 sm:px-5 sm:text-xl md:h-[68px] md:px-7 md:text-[26px] ${
         active ? 'border-accent bg-accent text-accent-ink' : 'border-rule text-ink bg-transparent'
       }`}
     >
