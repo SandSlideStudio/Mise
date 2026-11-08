@@ -102,9 +102,7 @@ function WaitingDevice({ device, inside }: { device: RemoteDevice; inside: boole
           </p>
         </div>
         <div className="text-right">
-          <p className="text-ink-faint text-[11px] tracking-[0.12em] uppercase">
-            {t('outside.code')}
-          </p>
+          <p className="text-ink-faint text-[13px]">{t('outside.code')}</p>
           <p className="font-display text-[26px] leading-none font-semibold tracking-[0.12em]">
             {device.code}
           </p>

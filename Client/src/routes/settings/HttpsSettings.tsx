@@ -76,9 +76,7 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
     <div className="border-line bg-surface-raised border p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-xl font-semibold tracking-[0.06em] uppercase">
-            {t('https.kitchenTitle')}
-          </h3>
+          <h3 className="font-display text-xl font-semibold">{t('https.kitchenTitle')}</h3>
           <p className="text-ink-soft mt-1 max-w-[65ch] text-sm">{t('https.kitchenBody')}</p>
         </div>
         <span className={`tag ${kitchen.enabled ? 'tag-accent' : ''} px-2 py-0.5 text-xs`}>
@@ -179,7 +177,7 @@ function DomainCertificate({ connection }: { connection: Connection }) {
     <div className="border-line bg-surface-raised border p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <h3 className="font-display text-xl font-semibold tracking-[0.06em] uppercase">
+          <h3 className="font-display text-xl font-semibold">
             {target ? t('https.domainTitleFor', { domain: target }) : t('https.domainTitle')}
           </h3>
           <p className="text-ink-soft mt-1 max-w-[65ch] text-sm">{t('https.domainBody')}</p>

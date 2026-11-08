@@ -129,7 +129,7 @@ function TourPrompt({ name, onAnswer }: { name: string; onAnswer: (takeTour: boo
         className="tour-card w-full max-w-[460px]"
       >
         <Plate className="bg-surface-raised flex flex-col gap-4 p-6 sm:p-8">
-          <p className="text-ink-faint font-display text-xs font-semibold tracking-[0.16em] uppercase">
+          <p className="text-ink-faint font-display text-xs font-semibold">
             {t('tour.promptEyebrow', { name })}
           </p>
           <h2
@@ -138,21 +138,20 @@ function TourPrompt({ name, onAnswer }: { name: string; onAnswer: (takeTour: boo
           >
             {t('tour.promptTitle')}
           </h2>
-          <span aria-hidden className="bg-brand block h-0.5 w-12" />
           <p className="text-ink-soft text-pretty">{t('tour.promptBody')}</p>
           <div className="mt-2 flex flex-col gap-2.5 sm:flex-row-reverse">
             <button
               type="button"
               autoFocus
               onClick={() => onAnswer(true)}
-              className="btn-primary font-display h-14 flex-1 text-lg font-semibold tracking-[0.12em] uppercase"
+              className="btn-primary font-display h-14 flex-1 text-lg font-semibold"
             >
               {t('tour.start')}
             </button>
             <button
               type="button"
               onClick={() => onAnswer(false)}
-              className="btn-quiet font-display h-14 flex-1 text-lg font-semibold tracking-[0.12em] uppercase"
+              className="btn-quiet font-display h-14 flex-1 text-lg font-semibold"
             >
               {t('tour.notNow')}
             </button>
@@ -269,13 +268,13 @@ function Tour({
       >
         <Plate className="bg-surface-raised flex w-full max-w-[440px] flex-col gap-3 p-5 sm:p-6">
           <div className="flex items-center justify-between gap-4">
-            <p className="text-accent font-display text-xs font-semibold tracking-[0.16em] uppercase tabular-nums">
+            <p className="text-accent font-display text-xs font-semibold tabular-nums">
               {index + 1} / {stops.length}
             </p>
             <button
               type="button"
               onClick={onClose}
-              className="text-ink-soft hover:text-ink font-display text-xs font-semibold tracking-[0.14em] uppercase"
+              className="text-ink-soft hover:text-ink font-display text-xs font-semibold"
             >
               {t('tour.skip')}
             </button>
@@ -303,7 +302,7 @@ function Tour({
               <button
                 type="button"
                 onClick={() => setIndex(index - 1)}
-                className="btn-quiet font-display h-12 px-5 text-base font-semibold tracking-[0.12em] uppercase"
+                className="btn-quiet font-display h-12 px-5 text-base font-semibold"
               >
                 {t('setup.back')}
               </button>
@@ -312,7 +311,7 @@ function Tour({
               type="button"
               autoFocus
               onClick={() => (last ? onClose() : setIndex(index + 1))}
-              className="btn-primary font-display h-12 flex-1 text-base font-semibold tracking-[0.12em] uppercase"
+              className="btn-primary font-display h-12 flex-1 text-base font-semibold"
             >
               {last ? t('tour.finish') : t('setup.next')}
             </button>

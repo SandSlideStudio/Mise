@@ -1,4 +1,4 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { RosterEntry } from '@mise/contracts';
@@ -40,9 +40,7 @@ export function Line() {
   if (roster.isPending) {
     body = (
       <Centered key="loading">
-        <p className="text-ink-soft font-display text-2xl tracking-[0.12em] uppercase">
-          {t('line.loading')}
-        </p>
+        <p className="text-ink-soft font-display text-2xl">{t('line.loading')}</p>
       </Centered>
     );
   } else if (roster.isError) {
@@ -67,7 +65,7 @@ export function Line() {
   }
 
   return (
-    <div className="night grid-paper text-ink flex min-h-dvh flex-col">
+    <div className="night plain-page text-ink flex min-h-dvh flex-col">
       <TabletBar />
       {body}
     </div>
@@ -87,13 +85,13 @@ function TabletBar() {
         {kitchenName ? (
           <>
             <span aria-hidden className="bg-rule hidden h-7 w-px sm:block" />
-            <span className="text-ink-soft font-display hidden truncate text-lg font-semibold tracking-[0.12em] uppercase sm:block">
+            <span className="text-ink-soft font-display hidden truncate text-lg font-semibold sm:block">
               {kitchenName}
             </span>
           </>
         ) : null}
         <div className="ml-auto flex items-baseline gap-4">
-          <span className="text-ink-faint font-display hidden text-base tracking-[0.12em] uppercase md:inline">
+          <span className="text-ink-faint font-display hidden text-base md:inline">
             {now.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'short' })}
           </span>
           <time
@@ -129,13 +127,9 @@ function Roster({
 
   return (
     <main className="fade-swap flex flex-1 flex-col px-5 pt-7 pb-8 sm:px-10 sm:pt-10 sm:pb-10">
-      <p className="text-brand font-display text-sm font-semibold tracking-[0.16em] uppercase sm:text-base">
-        {t('line.eyebrow')}
-      </p>
-      <h1 className="mt-2 text-[52px] leading-none sm:text-[76px] xl:text-[88px]">
+      <h1 className="text-[52px] leading-none sm:text-[76px] xl:text-[88px]">
         {t('line.whoIsOn')}
       </h1>
-      <span aria-hidden className="bg-brand mt-4 block h-0.5 w-16 sm:mt-5" />
       <p className="text-ink-soft mt-4 text-xl sm:text-[22px]">{t('line.tapNamePin')}</p>
 
       {people.length === 0 ? (
@@ -144,8 +138,8 @@ function Roster({
         </Plate>
       ) : (
         <ul className="mt-8 grid auto-rows-[minmax(104px,1fr)] grid-cols-1 gap-3 sm:mt-10 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4">
-          {people.map((person, i) => (
-            <li key={person.id} className="stagger-in" style={{ '--i': i } as CSSProperties}>
+          {people.map((person) => (
+            <li key={person.id}>
               <button
                 type="button"
                 onClick={() => onPick(person)}
@@ -156,11 +150,10 @@ function Roster({
                   <span className="font-display truncate text-[32px] leading-none font-semibold sm:text-[38px]">
                     {person.displayName}
                   </span>
-                  <span className="text-brand truncate text-base tracking-[0.12em] uppercase sm:text-lg">
+                  <span className="text-brand truncate text-base sm:text-lg">
                     {person.stationName ?? roleName(t, person.role)}
                   </span>
                 </span>
-                <Arrow className="text-ink-faint group-hover:text-accent h-7 w-7 shrink-0 transition-colors duration-150" />
               </button>
             </li>
           ))}
@@ -199,14 +192,12 @@ function NotEnrolled() {
         <h1 className="text-[40px] leading-none text-pretty sm:text-[52px]">
           {t('line.notEnrolledTitle')}
         </h1>
-        <span aria-hidden className="bg-brand block h-0.5 w-14" />
         <p className="text-ink-soft text-xl text-pretty">{t('line.notEnrolledBody')}</p>
         <Link
           to="/login"
-          className="btn-quiet font-display mt-2 flex h-16 items-center gap-4 border-2 px-6 text-xl font-semibold tracking-[0.1em] uppercase"
+          className="btn-quiet font-display mt-2 flex h-16 items-center gap-4 border-2 px-6 text-xl font-semibold"
         >
           {t('line.signInPassword')}
-          <Arrow className="h-6 w-6" />
         </Link>
       </Plate>
     </Centered>
@@ -296,7 +287,7 @@ function PinPad({ person, onCancel }: { person: RosterEntry; onCancel: () => voi
           type="button"
           onClick={onCancel}
           disabled={busy}
-          className="text-ink-soft hover:text-ink font-display flex items-center gap-3 self-start text-lg font-semibold tracking-[0.12em] uppercase transition-colors disabled:opacity-50 sm:text-xl"
+          className="text-ink-soft hover:text-ink font-display flex items-center gap-3 self-start text-lg font-semibold transition-colors disabled:opacity-50 sm:text-xl"
         >
           <Arrow className="h-6 w-6 rotate-180" />
           {t('line.notMe')}
@@ -305,13 +296,11 @@ function PinPad({ person, onCancel }: { person: RosterEntry; onCancel: () => voi
         <div className="mt-6 flex items-center gap-5 md:mt-12">
           <Monogram name={person.displayName} large />
           <div className="min-w-0">
-            <p className="text-brand font-display text-base tracking-[0.16em] uppercase sm:text-lg">
-              {t('line.signingIn')}
-            </p>
+            <p className="text-brand font-display text-base sm:text-lg">{t('line.signingIn')}</p>
             <h1 className="mt-1 truncate text-[44px] leading-none sm:text-[56px] md:text-[64px]">
               {person.displayName}
             </h1>
-            <p className="text-ink-soft mt-2 truncate text-lg tracking-[0.1em] uppercase">
+            <p className="text-ink-soft mt-2 truncate text-lg">
               {person.stationName ?? roleName(t, person.role)}
             </p>
           </div>
@@ -412,10 +401,8 @@ function Key({
 }) {
   const tones = {
     digit: 'bg-surface-raised text-ink text-[44px] font-semibold sm:text-[56px] active:bg-rule',
-    quiet:
-      'bg-surface-sunk text-ink-soft text-xl tracking-[0.1em] uppercase sm:text-2xl active:bg-rule',
-    accent:
-      'bg-accent text-accent-ink text-2xl font-semibold tracking-[0.1em] uppercase sm:text-3xl',
+    quiet: 'bg-surface-sunk text-ink-soft text-xl sm:text-2xl active:bg-rule',
+    accent: 'bg-accent text-accent-ink text-2xl font-semibold sm:text-3xl',
   };
   return (
     <button

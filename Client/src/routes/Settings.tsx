@@ -13,6 +13,7 @@ import { ConnectionSettings } from './settings/ConnectionSettings.js';
 import { ProxySettings } from './settings/ProxySettings.js';
 import { HttpsSettings } from './settings/HttpsSettings.js';
 import { PasswordOnly } from '../components/PasswordOnly.js';
+import { useScrollFade } from '../lib/scrollFade.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
 
 type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups';
@@ -37,6 +38,7 @@ function tabFromAddress(): TabId {
 export function Settings() {
   const { t } = useT();
   const { data: user } = useCurrentUser();
+  const tabsRef = useScrollFade<HTMLDivElement>();
   const [tab, setTab] = useState<TabId>(tabFromAddress);
 
   if (!user) return null;
@@ -56,7 +58,11 @@ export function Settings() {
       <main className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
         <PageHeader title={t('nav.settings')} />
 
-        <div className="border-line mb-8 flex overflow-x-auto border-b" role="tablist">
+        <div
+          ref={tabsRef}
+          className="border-line mb-8 flex overflow-x-auto border-b"
+          role="tablist"
+        >
           {TABS.filter((entry) => !entry.adminOnly || user.role === 'admin').map((entry) => (
             <button
               key={entry.id}
@@ -64,7 +70,7 @@ export function Settings() {
               role="tab"
               aria-selected={tab === entry.id}
               onClick={() => setTab(entry.id)}
-              className={`font-display -mb-px shrink-0 border-b-4 px-4 py-2.5 text-lg font-semibold tracking-[0.1em] uppercase transition-colors sm:px-5 ${
+              className={`font-display -mb-px shrink-0 border-b-4 px-4 py-2.5 text-lg font-semibold transition-colors sm:px-5 ${
                 tab === entry.id
                   ? 'border-accent text-ink'
                   : 'text-ink-soft hover:text-ink border-transparent'

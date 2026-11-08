@@ -16,7 +16,6 @@ export const fr: Record<MessageKey, string> = {
   'common.create': 'Créer',
   'common.creating': 'Création…',
   'common.none': 'Aucun',
-  'common.anyone': "N'importe qui",
   'common.name': 'Nom',
   'common.email': 'E-mail',
   'common.password': 'Mot de passe',
@@ -178,7 +177,6 @@ export const fr: Record<MessageKey, string> = {
   'login.signingIn': 'Connexion…',
   'login.onTheLine': 'Au passe ?',
   'login.pinLink': 'Se connecter avec votre code',
-  'login.eyebrow': 'E-mail et mot de passe',
   'login.titleKitchen': 'Connexion à {kitchen}',
   'login.show': 'Afficher',
   'login.hide': 'Masquer',
@@ -187,7 +185,6 @@ export const fr: Record<MessageKey, string> = {
   'login.tabletBody':
     'Les cuisiniers se connectent sur la tablette de cuisine : touchez votre nom, puis saisissez votre code.',
   'login.server': 'Connecté à {host}',
-  'line.eyebrow': 'Tablette de cuisine',
   'line.tapNamePin': 'Touchez votre nom, puis saisissez votre code.',
   'line.enterPin': 'Saisissez votre code.',
   'line.digitsTyped_one': '{count} chiffre saisi',
@@ -200,7 +197,7 @@ export const fr: Record<MessageKey, string> = {
   'setup.body':
     "Ce serveur est vide. Nommez votre cuisine et créez le premier compte administrateur. Vous ne verrez cette page qu'une fois.",
   'setup.kitchenName': 'Nom de la cuisine',
-  'setup.kitchenPlaceholder': 'Le Lion d’Or',
+  'setup.kitchenPlaceholder': 'ex. Le Lion d’Or',
   'setup.yourName': 'Votre nom',
   'setup.yourNamePlaceholder': 'Comme la brigade vous appelle',
   'setup.passwordHint': 'Au moins 12 caractères.',
@@ -292,7 +289,6 @@ export const fr: Record<MessageKey, string> = {
   'setup.defaultGrill': 'Grill',
   'setup.defaultPastry': 'Pâtisserie',
   'welcome.step0': 'Bienvenue',
-  'welcome.eyebrow': "Serveur neuf · rien n'est encore configuré",
   'welcome.headline': 'Vos recettes et votre mise en place, sur votre propre serveur.',
   'welcome.lead1':
     'Ceci est un nouveau serveur Mise. Configurer la cuisine prend environ cinq minutes.',
@@ -320,7 +316,6 @@ export const fr: Record<MessageKey, string> = {
     "Tout ce que vous saisissez reste sur ce serveur. Aucun compte n'est créé ailleurs, et Mise ne communique rien vers l'extérieur.",
   'welcome.cta': 'Configurer cette cuisine',
   'setup.readyLabel': 'Prêt',
-  'setup.readyEyebrow': 'Configuration terminée',
   'setup.readyTitle': '{kitchen} est prête.',
   'setup.readyBody': 'Ouverture de la cuisine…',
   'tour.label': 'Visite',
@@ -344,7 +339,7 @@ export const fr: Record<MessageKey, string> = {
   'tour.tickBody':
     'Touchez une ligne quand elle est faite. Elle passe en gris sur tous les écrans aussitôt.',
   'tour.makingBody':
-    'Vous commencez quelque chose ? Touchez d’abord la petite coche, pour que personne d’autre ne prépare la même chose.',
+    'Vous commencez quelque chose ? Touchez d’abord Commencer, pour que personne d’autre ne prépare la même chose.',
   'tour.addLineTitle': 'Ajouter à la liste',
   'tour.addLineBody':
     'La mise en place s’ajoute à la main sur la liste continue. Ajoutez deux fois la même chose et les quantités s’additionnent sur une ligne.',
@@ -362,7 +357,7 @@ export const fr: Record<MessageKey, string> = {
   'task.removeConfirm': 'Retirer ?',
 
   'addTask.what': 'À faire',
-  'addTask.placeholder': 'Échalotes en brunoise',
+  'addTask.placeholder': 'Ce qu’il faut faire',
   'addTask.submit': 'Ajouter la ligne',
   'addTask.fromBook': 'Du livre de recettes',
   'addTask.makes': 'donne {amount}',
@@ -435,17 +430,16 @@ export const fr: Record<MessageKey, string> = {
 
   'editor.editing': 'Modification',
   'editor.name': 'Nom de la recette',
-  'editor.namePlaceholder': 'Velouté de volaille',
+  'editor.namePlaceholder': 'Nom de la recette',
   'editor.status': 'Statut',
   'editor.lastSaved': 'Enregistrée {time}',
   'editor.notSaved': 'Pas encore enregistrée',
-  'editor.colSort': 'Type',
   'editor.colWhat': "Ce que c'est",
   'editor.colNote': 'Note',
   'editor.sectionHeading': 'Titre de section',
   'editor.removeHeading': 'Retirer le titre',
   'editor.newSection': 'Section {count}',
-  'editor.notePlaceholder': 'finement ciselé',
+  'editor.notePlaceholder': 'Note',
   'editor.removeLine': 'Retirer la ligne',
   'editor.addLine': 'Ajouter une ligne',
   'editor.lines_one': '{count} ligne',
@@ -465,9 +459,9 @@ export const fr: Record<MessageKey, string> = {
   'editor.yieldUnit': 'Unité de rendement',
   'editor.prepMinutes': 'Préparation, minutes',
   'editor.keepsHours': 'Conservation, heures',
-  'editor.storagePlaceholder': 'Sous vide, chambre froide, étiqueté',
+  'editor.storageHint': 'Où et comment il se conserve, par exemple sous vide en chambre froide.',
   'editor.tags': 'Étiquettes',
-  'editor.tagsPlaceholder': 'tourte, à la carte',
+  'editor.tagsHint': 'Séparez par des virgules, par exemple tourte, à la carte.',
   'editor.mayContain': 'Peut contenir · contamination croisée seulement',
   'editor.rolledUp': 'Additionné à partir des lignes',
   'editor.rollupUnsaved': 'Enregistrez pour calculer les allergènes.',
@@ -507,7 +501,7 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.counted': 'Compté',
   'ingredients.weighed': 'Pesé',
   'ingredients.category': 'Catégorie',
-  'ingredients.categoryPlaceholder': 'Légume',
+  'ingredients.categoryPlaceholder': 'ex. Légume',
   'ingredients.measured': 'Mesuré habituellement',
   'ingredients.optWeight': 'Au poids',
   'ingredients.optVolume': 'Au volume',
@@ -555,7 +549,7 @@ export const fr: Record<MessageKey, string> = {
   'stations.empty':
     "Pas encore de postes. Une cuisine en a besoin d'au moins un avant qu'une liste puisse être groupée.",
   'stations.addLabel': 'Ajouter un poste',
-  'stations.placeholder': 'Garde-manger',
+  'stations.placeholder': 'ex. Garde-manger',
   'stations.rename': 'Renommer',
   'stations.moveEarlier': 'Avancer {name}',
   'stations.moveLater': 'Reculer {name}',
@@ -568,7 +562,7 @@ export const fr: Record<MessageKey, string> = {
   'devices.neverUsed': 'jamais utilisée',
   'devices.empty': 'Aucune tablette enregistrée, donc personne ne peut se connecter par code.',
   'devices.enrolLabel': "Enregistrer l'appareil que vous utilisez",
-  'devices.placeholder': 'Tablette du passe',
+  'devices.placeholder': 'ex. Tablette du passe',
   'devices.enrolling': 'Enregistrement…',
   'devices.enrol': 'Enregistrer cet appareil',
   'devices.enrolledOk':
@@ -622,7 +616,7 @@ export const fr: Record<MessageKey, string> = {
 
   'handover.title': 'Passation',
   'handover.empty': 'Laisser un mot à l’équipe suivante',
-  'handover.placeholder': 'Le poisson arrive en retard ; fond à lancer à 15 h.',
+  'handover.placeholder': 'ex. Le poisson arrive en retard ; fond à lancer à 15 h.',
   'handover.save': 'Enregistrer le mot',
   'handover.clear': 'Effacer le mot',
   'handover.edit': 'Modifier',
@@ -638,6 +632,9 @@ export const fr: Record<MessageKey, string> = {
 
   'task.beingMade': 'En préparation',
   'task.beingMadeBy': 'Préparé par {name}',
+  'task.start': 'Commencer',
+  'task.stop': 'Arrêter',
+  'task.takeOver': 'Reprendre',
   'settings.tabBackups': 'Sauvegardes',
   'backups.title': 'Sauvegardes',
   'backups.body':
@@ -704,7 +701,8 @@ export const fr: Record<MessageKey, string> = {
   'backups.kept': 'Sur cette machine',
   'backups.keptEmpty': 'Rien pour l’instant.',
   'backups.bannerFailed': 'La dernière sauvegarde a échoué.',
-  'backups.bannerStale': 'Aucune sauvegarde depuis deux jours.',
+  'backups.bannerStale': 'Aucune sauvegarde n’a encore été faite.',
+  'backups.bannerSince': 'Aucune sauvegarde depuis le {date}.',
   'backups.bannerKey':
     'Personne n’a encore noté la clé de récupération des sauvegardes. Sans elle, aucune sauvegarde ne s’ouvre.',
   'backups.bannerAction': 'Voir les sauvegardes',
@@ -733,7 +731,6 @@ export const fr: Record<MessageKey, string> = {
   'backups.reason.onedrive_failed':
     'OneDrive a refusé la sauvegarde. Mise réessaiera dans quelques heures.',
   'restore.cta': 'Restaurer une sauvegarde',
-  'restore.eyebrow': 'Restauration',
   'restore.title': 'Ramener une cuisine',
   'restore.body':
     'Choisissez un fichier de sauvegarde et saisissez la clé de récupération imprimée pour lui. Équipe, recettes, photos et listes de mise en place reviennent toutes. Chacun se reconnecte ensuite.',
@@ -761,14 +758,13 @@ export const fr: Record<MessageKey, string> = {
   'editor.frontOfHouse': 'Salle',
   'editor.frontOfHouseHint': 'Ce que la fiche plat dit à la salle.',
   'editor.flavour': 'Profil de saveur',
-  'editor.flavourPlaceholder': 'crémeux, ail, frais',
+  'editor.flavourHint': 'Séparez par des virgules, par exemple crémeux, ail, frais.',
   'editor.temperature': 'Servi',
   'editor.course': 'Place dans le menu',
   'editor.drinks': 'Accords boissons',
-  'editor.drinksPlaceholder': 'Bordeaux blanc, kombucha',
+  'editor.drinksHint': 'Par exemple Bordeaux blanc, kombucha.',
   'editor.cutlery': 'Couverts',
-  'editor.cutleryPlaceholder': 'petite cuillère',
-  'editor.listHint': 'Séparez par des virgules.',
+  'editor.cutleryHint': 'Par exemple une petite cuillère.',
   'editor.notSet': 'Non renseigné',
   'temperature.cold': 'Froid',
   'temperature.room': 'Température ambiante',
@@ -791,8 +787,8 @@ export const fr: Record<MessageKey, string> = {
     'Une fiche plat ne dit jamais qu’un plat est végan tant qu’un de ses ingrédients n’est pas précisé.',
   'ingredients.whichCereals': 'Quelles céréales',
   'ingredients.whichNuts': 'Quels fruits à coque',
-  'ingredients.cerealsPlaceholder': 'blé, seigle',
-  'ingredients.nutsPlaceholder': 'noisette, noix',
+  'ingredients.cerealsPlaceholder': 'ex. blé, seigle',
+  'ingredients.nutsPlaceholder': 'ex. noisette, noix',
   'ingredients.detailsHint':
     'La loi demande que la céréale et le fruit à coque soient nommés sur une fiche plat.',
   'card.title': 'Fiche plat',
@@ -923,7 +919,7 @@ export const fr: Record<MessageKey, string> = {
   'menus.subtitle':
     'Les plats que la salle vend ensemble. Imprimez la vue d’ensemble des allergènes d’un menu, ou toutes ses fiches plats d’un coup.',
   'menus.name': 'Nom du menu',
-  'menus.namePlaceholder': 'Menu d’automne 2026',
+  'menus.namePlaceholder': 'ex. Menu d’automne 2026',
   'menus.new': 'Nouveau menu',
   'menus.empty': 'Pas encore de menu. Commencez-en un avec un nom ci-dessus.',
   'menus.dishes_one': '{count} plat',
@@ -958,7 +954,6 @@ export const fr: Record<MessageKey, string> = {
   'menus.backToMenu': '← Le menu',
   'menus.overviewTitle': 'Allergènes du menu',
   'menus.dish': 'Plat',
-  'access.eyebrow': 'Hors de la cuisine',
   'access.title': 'Demander l’accès',
   'access.body':
     'Hors de la cuisine, Mise ne s’ouvre que sur les appareils approuvés par la cuisine. Donnez un nom à cet appareil et demandez l’accès. Un chef ou l’administrateur l’approuve dans Réglages → Appareils.',
@@ -1001,9 +996,10 @@ export const fr: Record<MessageKey, string> = {
   'settings.tabConnection': 'Connexion',
   'connection.relayedTitle': 'Mise ne peut pas savoir qui est dans la cuisine',
   'connection.relayedBody':
-    'Certains visiteurs atteignent Mise par le relais de Docker ({address}), qui cache d’où ils viennent vraiment. Mise les compte donc comme extérieurs : chaque appareil demande l’accès une fois, et un chef l’approuve.',
+    'Certains visiteurs atteignent Mise par le relais de Docker, qui cache d’où ils viennent vraiment. Mise les compte donc comme extérieurs : chaque appareil demande l’accès une fois, et un chef l’approuve.',
   'connection.relayedTrusted':
-    'Certains visiteurs atteignent Mise par le relais de Docker ({address}), qui cache d’où ils viennent vraiment. Vous avez choisi de les compter comme étant dans la cuisine : ils échappent à l’approbation exigée des appareils extérieurs, où qu’ils soient.',
+    'Certains visiteurs atteignent Mise par le relais de Docker, qui cache d’où ils viennent vraiment. Vous avez choisi de les compter comme étant dans la cuisine : ils échappent à l’approbation exigée des appareils extérieurs, où qu’ils soient.',
+  'connection.relayedSeen': 'Dernier visiteur relayé : {address}, {when}.',
   'connection.relayedTrust': 'Compter ces visiteurs comme étant dans la cuisine',
   'connection.relayedTrustHint':
     'Seulement si Mise n’est pas joignable depuis Internet, ou seulement par un serveur web de confiance. Sinon, quiconque le trouve échappe à l’approbation.',
@@ -1085,7 +1081,6 @@ export const fr: Record<MessageKey, string> = {
   'https.failedHint':
     'Le plus souvent, le port 80 n’atteint pas encore Mise, ou le domaine ne pointe pas encore ici. Let’s Encrypt n’autorise que quelques échecs par heure.',
   'https.renewFailed': 'Le dernier renouvellement a échoué ; Mise réessaiera : {reason}',
-  'trust.eyebrow': 'Cet appareil',
   'trust.title': 'Faire confiance au certificat de la cuisine',
   'trust.body':
     'Une fois par appareil. Ensuite Mise s’ouvre ici en HTTPS, continue de fonctionner quand le réseau tombe et peut être installé comme une app.',

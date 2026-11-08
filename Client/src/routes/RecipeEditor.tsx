@@ -68,7 +68,9 @@ interface EditorLine {
 type LineField = 'picker' | 'amount' | 'unit' | 'note';
 
 /** Column widths of a line, shared with its heading so they line up. */
-const LINE_COLUMNS = 'lg:grid-cols-[96px_minmax(0,1fr)_96px_84px_minmax(0,220px)_100px]';
+// The name never shrinks to nothing: it is what the line is. What sort it is
+// sits under the name rather than in a column of its own.
+const LINE_COLUMNS = 'lg:grid-cols-[minmax(180px,1fr)_96px_96px_minmax(0,220px)_100px]';
 
 /** "romig, knoflook, fris" into a list, and back. */
 function splitList(value: string): string[] {
@@ -331,7 +333,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
               placeholder={t('editor.namePlaceholder')}
               required
               autoFocus={!recipe}
-              className="font-display text-ink border-field focus-visible:border-accent placeholder:text-ink-faint min-w-0 flex-1 border-b-2 bg-transparent px-1 pb-0.5 text-[30px] font-semibold focus-visible:outline-none sm:max-w-[420px] sm:text-[34px]"
+              className="font-display text-ink border-field focus-visible:border-accent placeholder:text-ink-faint min-w-0 flex-1 basis-full border-b-2 bg-transparent px-1 pb-0.5 text-[30px] sm:basis-0 font-semibold focus-visible:outline-none sm:max-w-[420px] sm:text-[34px]"
             />
             <select
               aria-label={t('editor.status')}
@@ -391,12 +393,12 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
             </p>
           ) : null}
 
-          <div className="grid lg:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="border-line lg:border-r">
+          {/* "The rest" goes beside the lines only where both fit; on a tablet it sits below. */}
+          <div className="grid xl:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="border-line xl:border-r">
               <div
                 className={`col-head hidden items-center gap-3 px-6 py-2.5 lg:grid ${LINE_COLUMNS}`}
               >
-                <span>{t('editor.colSort')}</span>
                 <span>{t('editor.colWhat')}</span>
                 <span className="text-right">{t('common.howMuch')}</span>
                 <span>{t('common.unit')}</span>
@@ -426,12 +428,12 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                               setFocusTarget(`${line.key}:picker`);
                             }
                           }}
-                          className="font-display text-brand placeholder:text-ink-faint focus-visible:border-accent max-w-[70%] border-b border-transparent bg-transparent text-lg font-semibold tracking-[0.14em] uppercase focus-visible:outline-none"
+                          className="font-display text-brand placeholder:text-ink-faint focus-visible:border-accent max-w-[70%] border-b border-transparent bg-transparent text-lg font-semibold focus-visible:outline-none"
                         />
                         <span className="bg-field h-px flex-1" aria-hidden />
                         <button
                           type="button"
-                          className="text-ink-faint hover:text-ink text-xs tracking-[0.1em] uppercase"
+                          className="text-ink-faint hover:text-ink text-xs"
                           onClick={() => renameSection(index, previous?.section ?? '')}
                         >
                           {t('editor.removeHeading')}
@@ -442,8 +444,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                     <div
                       className={`bg-surface-raised border-rule grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 border-t px-4 py-2 sm:px-6 lg:gap-3 lg:py-1.5 ${LINE_COLUMNS}`}
                     >
-                      <KindTag line={line} />
-                      <div className="col-span-3 lg:col-span-1">
+                      <div className="col-span-3 flex min-w-0 flex-col gap-1 lg:col-span-1">
                         <ComponentPicker
                           value={line.ref}
                           displayName={line.displayName}
@@ -455,6 +456,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                           onChosen={() => setFocusTarget(`${line.key}:amount`)}
                           onKeyDown={(e) => onLineKey(e, index, 'picker')}
                         />
+                        <KindTag line={line} />
                       </div>
                       <input
                         ref={register(`${line.key}:amount`)}
@@ -551,8 +553,8 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
               </div>
             </div>
 
-            <aside className="bg-surface border-line flex flex-col gap-[18px] border-t px-4 py-5 sm:px-[22px] lg:border-t-0">
-              <h2 className="font-display text-brand text-xl font-semibold tracking-[0.14em] uppercase">
+            <aside className="bg-surface border-line flex flex-col gap-[18px] border-t px-4 py-5 sm:px-[22px] xl:border-t-0">
+              <h2 className="font-display text-brand text-xl font-semibold">
                 {t('editor.theRest')}
               </h2>
 
@@ -656,24 +658,26 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                   {plural('editor.dishPlates', dishSize.portions)}
                 </p>
               ) : (
-                <RailField label={t('recipe.storage')} htmlFor="storage">
+                <RailField
+                  label={t('recipe.storage')}
+                  htmlFor="storage"
+                  hint={t('editor.storageHint')}
+                >
                   <input
                     id="storage"
                     className="field min-h-10"
                     value={storage}
                     onChange={(e) => setStorage(e.target.value)}
-                    placeholder={t('editor.storagePlaceholder')}
                   />
                 </RailField>
               )}
 
-              <RailField label={t('editor.tags')} htmlFor="tags">
+              <RailField label={t('editor.tags')} htmlFor="tags" hint={t('editor.tagsHint')}>
                 <input
                   id="tags"
                   className="field min-h-10"
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
-                  placeholder={t('editor.tagsPlaceholder')}
                 />
               </RailField>
 
@@ -738,9 +742,7 @@ function KindTag({ line }: { line: EditorLine }) {
         ? [t('editor.kindIngredient'), '']
         : [t('editor.kindNew'), 'tag-accent'];
   return (
-    <span className={`tag hidden justify-self-start px-2 text-[11px] lg:inline-flex ${tone}`}>
-      {label}
-    </span>
+    <span className={`tag hidden self-start px-2 text-[11px] lg:inline-flex ${tone}`}>{label}</span>
   );
 }
 
@@ -796,7 +798,7 @@ function RailField({
         {label}
       </label>
       {children}
-      {hint ? <span className="text-ink-faint text-xs">{hint}</span> : null}
+      {hint ? <span className="text-ink-soft text-[13px]">{hint}</span> : null}
     </span>
   );
 }
@@ -821,7 +823,7 @@ function FrontOfHouse(props: {
   return (
     <div className="flex flex-col gap-[18px]">
       <div>
-        <h2 className="font-display text-brand text-xl font-semibold tracking-[0.14em] uppercase">
+        <h2 className="font-display text-brand text-xl font-semibold">
           {t('editor.frontOfHouse')}
         </h2>
         <p className="text-ink-faint text-xs">{t('editor.frontOfHouseHint')}</p>
@@ -860,31 +862,28 @@ function FrontOfHouse(props: {
         </RailField>
       </div>
 
-      <RailField label={t('editor.flavour')} htmlFor="flavour" hint={t('editor.listHint')}>
+      <RailField label={t('editor.flavour')} htmlFor="flavour" hint={t('editor.flavourHint')}>
         <input
           id="flavour"
           className="field min-h-10"
           value={props.flavour}
           onChange={(e) => props.onFlavour(e.target.value)}
-          placeholder={t('editor.flavourPlaceholder')}
         />
       </RailField>
-      <RailField label={t('editor.drinks')} htmlFor="drinks">
+      <RailField label={t('editor.drinks')} htmlFor="drinks" hint={t('editor.drinksHint')}>
         <input
           id="drinks"
           className="field min-h-10"
           value={props.drinks}
           onChange={(e) => props.onDrinks(e.target.value)}
-          placeholder={t('editor.drinksPlaceholder')}
         />
       </RailField>
-      <RailField label={t('editor.cutlery')} htmlFor="cutlery">
+      <RailField label={t('editor.cutlery')} htmlFor="cutlery" hint={t('editor.cutleryHint')}>
         <input
           id="cutlery"
           className="field min-h-10"
           value={props.cutlery}
           onChange={(e) => props.onCutlery(e.target.value)}
-          placeholder={t('editor.cutleryPlaceholder')}
         />
       </RailField>
     </div>
@@ -909,7 +908,7 @@ function AllergenRollup({ recipeId }: { recipeId?: string }) {
           <span className="text-ink-soft text-[13px]">{t('editor.rollupUnsaved')}</span>
         ) : contains.length > 0 ? (
           <>
-            <span className="font-display block text-lg leading-tight font-semibold tracking-[0.12em] uppercase">
+            <span className="font-display block text-lg leading-tight font-semibold">
               {t('editor.rollupContains', { allergens: contains.join(', ') })}
             </span>
             <span className="text-ink-soft mt-0.5 block text-[13px]">{t('editor.rollupNote')}</span>

@@ -76,15 +76,6 @@ function isStep(page: Page): page is Step {
 const READY_HOLD_MS = 1900;
 const CLOSE_MS = 420;
 
-const STEP_LABEL: Record<Step, MessageKey> = {
-  kitchen: 'setup.stepKitchen',
-  you: 'setup.stepYou',
-  brigade: 'setup.stepBrigade',
-  recipes: 'setup.stepRecipes',
-  settings: 'setup.stepSettings',
-  check: 'setup.stepCheck',
-};
-
 const STEP_TITLE: Record<Step, MessageKey> = {
   kitchen: 'setup.kitchenTitle',
   you: 'setup.youTitle',
@@ -517,7 +508,7 @@ export function Setup() {
       <WelcomeAside language={language} onLanguage={chooseLanguage} />
     ) : page === 'restore' || page === 'restored' ? (
       <Plate className="bg-surface-raised hidden flex-col gap-4 px-6 pt-[26px] pb-6 lg:flex xl:px-8 xl:pt-[34px] xl:pb-[30px]">
-        <p className="text-ink-faint font-display text-[11px] font-semibold tracking-[0.16em] uppercase xl:text-xs">
+        <p className="text-ink-faint font-display text-[13px] font-semibold xl:text-xs">
           {t('restore.asideTitle')}
         </p>
         <ul className="flex flex-col">
@@ -555,9 +546,7 @@ export function Setup() {
         <WelcomePage />
       ) : shown === 'restore' ? (
         <>
-          <PageHeading eyebrow={t('restore.eyebrow')} title={t('restore.title')}>
-            {t('restore.body')}
-          </PageHeading>
+          <PageHeading title={t('restore.title')}>{t('restore.body')}</PageHeading>
           <div className="page-late mt-7 flex max-w-[720px] flex-col gap-6 xl:mt-9">
             <Field label={t('restore.file')} htmlFor="backupFile">
               <input
@@ -614,10 +603,7 @@ export function Setup() {
         </>
       ) : shown === 'restored' ? (
         <>
-          <PageHeading
-            eyebrow={t('restore.eyebrow')}
-            title={t('restore.done', { kitchen: restored?.kitchenName ?? '' })}
-          >
+          <PageHeading title={t('restore.done', { kitchen: restored?.kitchenName ?? '' })}>
             {t('restore.doneBody')}
           </PageHeading>
           <p className="page-late mt-7 text-lg xl:mt-9">
@@ -633,7 +619,6 @@ export function Setup() {
       ) : (
         <>
           <PageHeading
-            eyebrow={`${String(STEPS.indexOf(shown) + 1).padStart(2, '0')} · ${t(STEP_LABEL[shown])}`}
             title={t(STEP_TITLE[shown])}
             tag={shown === 'recipes' ? t('setup.optional') : undefined}
           >
@@ -1268,11 +1253,7 @@ function SetupOnedrive({ status, code }: { status: OnedriveStatus | null; code: 
 }
 
 function SectionTitle({ children }: { children: ReactNode }) {
-  return (
-    <h2 className="text-ink font-display mb-3 text-[19px] font-semibold tracking-[0.08em] uppercase">
-      {children}
-    </h2>
-  );
+  return <h2 className="text-ink font-display mb-3 text-[19px] font-semibold">{children}</h2>;
 }
 
 function Field({
@@ -1650,7 +1631,7 @@ function Summary({
   return (
     <div className="flex items-start gap-4 p-4 xl:p-5">
       <div className="min-w-0 flex-1">
-        <dt className="text-ink-faint font-display mb-1 text-[11px] font-semibold tracking-[0.16em] uppercase xl:text-xs">
+        <dt className="text-ink-faint font-display mb-1 text-[13px] font-semibold xl:text-xs">
           {title}
         </dt>
         <dd>{children}</dd>

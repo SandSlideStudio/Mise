@@ -17,6 +17,7 @@ import {
   type MessageKey,
 } from '../i18n/index.js';
 import { Logo } from './Logo.js';
+import { useScrollFade } from '../lib/scrollFade.js';
 
 /**
  * The frame around every signed-in page. Kept deliberately thin: a kitchen
@@ -31,6 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { t } = translator;
   const logout = useLogout();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const navRef = useScrollFade<HTMLElement>();
 
   if (!user) return null;
 
@@ -48,7 +50,10 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Logo size={32} wordmarkClassName="text-[26px] hidden sm:inline" />
           </Link>
 
-          <nav className="border-rule order-last flex w-full min-w-0 items-stretch overflow-x-auto border-t lg:order-none lg:w-auto lg:border-t-0">
+          <nav
+            ref={navRef}
+            className="border-rule order-last flex w-full min-w-0 items-stretch overflow-x-auto border-t lg:order-none lg:w-auto lg:border-t-0"
+          >
             <NavLink to="/" label="nav.today" active={pathname === '/'} />
             <NavLink to="/recipes" label="nav.recipes" active={pathname.startsWith('/recipes')} />
             <NavLink to="/dishes" label="nav.dishes" active={pathname.startsWith('/dishes')} />
@@ -158,7 +163,7 @@ function TickStatus() {
  * a failed backup until the day they need it.
  */
 function BackupWarning() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const status = useBackupStatus();
   const data = status.data;
   if (!data?.problem) return null;
@@ -180,7 +185,16 @@ function BackupWarning() {
       }`}
     >
       <p className={`text-lg ${data.problem === 'key_unconfirmed' ? '' : 'text-danger'}`}>
-        {t(message)}
+        {/* The day of the last backup, not a count: always true, and easy to act on. */}
+        {data.problem === 'stale' && data.lastSuccessAt
+          ? t('backups.bannerSince', {
+              date: new Date(data.lastSuccessAt).toLocaleDateString(locale, {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              }),
+            })
+          : t(message)}
       </p>
       <a className="btn-small" href="/settings?tab=backups">
         {t('backups.bannerAction')}
@@ -201,7 +215,7 @@ function LanguagePicker() {
 
   return (
     <label className="btn-small focus-within:outline-accent relative cursor-pointer focus-within:outline-2 focus-within:outline-offset-2">
-      <span aria-hidden>{language}</span>
+      <span aria-hidden>{language.toUpperCase()}</span>
       <select
         aria-label={t('shell.language')}
         value={user.language ?? ''}
@@ -239,7 +253,7 @@ function NavLink({
       to={to}
       data-tour={`nav-${to === '/' ? 'today' : to.slice(1)}`}
       aria-current={active ? 'page' : undefined}
-      className={`font-display flex h-12 shrink-0 grow items-center justify-center border-b-4 px-3 text-base font-semibold tracking-[0.1em] uppercase transition-colors sm:text-lg lg:h-[58px] lg:grow-0 lg:px-5 lg:text-xl ${
+      className={`font-display flex h-12 shrink-0 grow items-center justify-center border-b-4 px-3 text-base font-semibold transition-colors sm:text-lg lg:h-[58px] lg:grow-0 lg:px-5 lg:text-xl ${
         active ? 'border-accent text-ink' : 'text-ink-soft hover:text-ink border-transparent'
       }`}
     >

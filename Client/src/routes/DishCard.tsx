@@ -181,9 +181,7 @@ function CardView({ card }: { card: DishCard }) {
 
       {attention.length > 0 ? (
         <div className="no-print border-accent bg-accent-wash border-l-4 px-4 py-3">
-          <p className="font-display text-lg font-semibold tracking-[0.1em] uppercase">
-            {t('card.attentionTitle')}
-          </p>
+          <p className="font-display text-lg font-semibold">{t('card.attentionTitle')}</p>
           <ul className="mt-1 flex flex-col gap-1 text-[15px]">
             {attention.map((item) => (
               <li key={item}>{item}</li>
