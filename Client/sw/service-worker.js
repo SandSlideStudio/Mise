@@ -58,6 +58,16 @@ function serverFirst(request, fallback) {
       .then((response) => {
         clearTimeout(timer);
         if (settled) return;
+        // A web server in front answering for a Mise that is down (502, 503,
+        // 504) is no answer from Mise: open the kept app instead of its error.
+        if (response.status >= 500) {
+          void caches.match(fallback).then((kept) => {
+            if (settled) return;
+            settled = true;
+            resolve(kept || response);
+          });
+          return;
+        }
         settled = true;
         resolve(response);
       })

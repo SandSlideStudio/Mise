@@ -39,6 +39,8 @@ export const de: Record<MessageKey, string> = {
   'error.validationFailed': 'Etwas ist nicht richtig ausgefüllt. Prüfe es und versuche es erneut.',
   'error.alreadyExists': 'Das gibt es schon.',
   'error.stillReferenced': 'Das wird noch woanders verwendet und kann nicht entfernt werden.',
+  'error.referenceGone':
+    'Etwas, das du gewählt hast, etwa ein Posten oder ein Rezept, gibt es nicht mehr.',
   'error.invalidData': 'Dieser Wert ist hier nicht erlaubt.',
   'error.writeInProgress':
     'Diese Änderung wird gerade gespeichert. Versuche es gleich noch einmal.',

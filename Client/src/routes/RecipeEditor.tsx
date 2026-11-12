@@ -312,7 +312,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
         : void navigate({ to: '/recipes/$recipeId', params: { recipeId: saved.id } });
     };
 
-    if (recipe) update.mutate(payload, { onSuccess });
+    if (recipe) update.mutate({ ...payload, base: recipe.updatedAt }, { onSuccess });
     else create.mutate(payload, { onSuccess });
   }
 

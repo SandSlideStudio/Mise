@@ -1,3 +1,4 @@
+import { ensureUnchanged } from '../../lib/conflict.js';
 import { and, asc, eq, ilike, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
@@ -43,6 +44,7 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
         nuts: row.allergenDetails.nuts ?? [],
       },
       notes: row.notes,
+      updatedAt: row.updatedAt.toISOString(),
     };
   }
 
@@ -148,6 +150,15 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      // Someone else changed it since this edit started (offline, or with the
+      // page open): ask which to keep, rather than overwrite their allergens.
+      const [before] = await app.db
+        .select()
+        .from(ingredients)
+        .where(eq(ingredients.id, request.params.id))
+        .limit(1);
+      if (!before) throw ApiError.notFound('That ingredient');
+      await ensureUnchanged(request, before.updatedAt, () => serialise(before));
       const [row] = await app.db
         .update(ingredients)
         .set({ ...request.body, updatedAt: new Date() })

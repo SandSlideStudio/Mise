@@ -14,6 +14,10 @@ import { useSyncExternalStore } from 'react';
 
 const STORAGE_KEY = 'mise.outbox';
 
+/** A line added while Mise couldn't be reached carries this in front of its id until it's sent. */
+export const WAITING = 'waiting:';
+export const isWaiting = (id: string) => id.startsWith(WAITING);
+
 export interface OutboxEntry {
   /** Sent as X-Mise-Write. */
   id: string;

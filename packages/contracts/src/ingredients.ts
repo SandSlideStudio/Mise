@@ -26,6 +26,8 @@ export const ingredientSchema = z.object({
   vegan: z.boolean().nullable(),
   allergenDetails: allergenDetailsSchema,
   notes: z.string().nullable(),
+  /** When it last changed: the version an edit starts from. */
+  updatedAt: z.string(),
 });
 
 const ingredientFields = z.object({

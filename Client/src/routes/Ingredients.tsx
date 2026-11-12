@@ -265,7 +265,11 @@ function IngredientForm({
         nuts: allergens.includes('nuts') ? splitNames(nuts) : [],
       },
     };
-    if (ingredient) update.mutate({ id: ingredient.id, ...payload }, { onSuccess: onDone });
+    if (ingredient)
+      update.mutate(
+        { id: ingredient.id, base: ingredient.updatedAt, ...payload },
+        { onSuccess: onDone },
+      );
     else create.mutate(payload, { onSuccess: onDone });
   }
 

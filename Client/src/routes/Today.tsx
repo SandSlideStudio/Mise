@@ -22,6 +22,7 @@ import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
 import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
 import { useNight } from '../lib/theme.js';
+import { serverNow } from '../lib/serverClock.js';
 
 /**
  * What the tablet on the pass shows, and what a cook sees on their own phone.
@@ -158,10 +159,11 @@ function RunningPrep() {
   const remove = useDeletePrepTask();
   const canManage = user?.role !== 'cook';
 
-  // Lines drop off on the clock, not only when someone taps, so keep time.
-  const [now, setNow] = useState(() => Date.now());
+  // Lines drop off on the clock, not only when someone taps, so keep time:
+  // the server's, since the tablet's own clock may be off.
+  const [now, setNow] = useState(() => serverNow());
   useEffect(() => {
-    const timer = window.setInterval(() => setNow(Date.now()), 30_000);
+    const timer = window.setInterval(() => setNow(serverNow()), 30_000);
     return () => window.clearInterval(timer);
   }, []);
 

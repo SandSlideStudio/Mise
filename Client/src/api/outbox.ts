@@ -7,8 +7,10 @@ import {
   remove,
   subscribe,
   update,
+  WAITING,
   type OutboxEntry,
 } from '../lib/outbox.js';
+import { retarget } from '../lib/retryQueue.js';
 import { noAnswer, request, RequestFailed } from './client.js';
 import { useCurrentUser } from './session.js';
 
@@ -30,6 +32,17 @@ import { useCurrentUser } from './session.js';
 const RETRY_MS = 10_000;
 /** Server errors in a row before a change is set aside: about five minutes of trying. */
 const SET_ASIDE_AFTER = 5;
+/** Refusals that are about the device or the sign-in, not the change itself. */
+const HELD_FOR = new Set(['access_required', 'password_required', 'bad_origin']);
+
+/** The version a successful answer carries: a thing's last-changed time, or the note's. */
+function versionOf(answer: unknown): string | null {
+  if (!answer || typeof answer !== 'object') return null;
+  const { updatedAt, at } = answer as { updatedAt?: unknown; at?: unknown };
+  if (typeof updatedAt === 'string') return updatedAt;
+  if (typeof at === 'string') return at;
+  return null;
+}
 
 /** A refusal that came back for a change made earlier, shown once. */
 export interface DroppedChange {
@@ -58,6 +71,13 @@ export function useDroppedChanges(): DroppedChange[] {
     },
     () => dropped,
   );
+}
+
+/** The real id of a line added offline, once the server has it. */
+function lineOf(entry: OutboxEntry, answer: unknown): string | null {
+  if (entry.method !== 'POST' || entry.path !== '/running/tasks') return null;
+  const id = (answer as { task?: { id?: unknown } } | null)?.task?.id;
+  return typeof id === 'string' ? id : null;
 }
 
 let sending = false;
@@ -89,14 +109,17 @@ async function flushHere(userId: string): Promise<boolean> {
   try {
     // A path with an unsettled conflict holds back later changes to the same thing.
     const held = new Set<string>();
-    for (const entry of entriesFor(userId)) {
+    for (const { id } of entriesFor(userId)) {
+      // As it is now: sending an earlier one may have moved its base on.
+      const entry = entriesFor(userId).find((other) => other.id === id);
+      if (!entry) continue;
       if (entry.conflict || entry.setAside || (entry.retryAt ?? 0) > Date.now()) {
         held.add(entry.path);
         continue;
       }
       if (held.has(entry.path)) continue;
       try {
-        await request(entry.path, {
+        const answer = await request<unknown>(entry.path, {
           method: entry.method,
           body: entry.body,
           headers: {
@@ -104,8 +127,21 @@ async function flushHere(userId: string): Promise<boolean> {
             ...(entry.base ? { 'x-mise-base': entry.base } : {}),
           },
         });
+        // Ticks made on a line added offline go to the line it became.
+        const line = lineOf(entry, answer);
+        if (line) retarget(`${WAITING}${entry.id}`, line);
         remove(entry.id);
         sent = true;
+        // A later change to the same thing, made on this device, builds on
+        // this one: it isn't someone else's change to choose against.
+        const now = versionOf(answer);
+        if (now) {
+          for (const later of entriesFor(userId)) {
+            if (later.path === entry.path && later.base && !later.conflict) {
+              update(later.id, { base: now });
+            }
+          }
+        }
       } catch (error) {
         if (error instanceof RequestFailed && error.code === 'changed_meanwhile') {
           const current = (error.details as { current?: unknown } | undefined)?.current ?? null;
@@ -113,6 +149,9 @@ async function flushHere(userId: string): Promise<boolean> {
           held.add(entry.path);
           continue;
         }
+        // Refusals that clear up by themselves: the device is let in again, or
+        // someone signs in with their password. Kept, like when signed out.
+        if (error instanceof RequestFailed && HELD_FOR.has(error.code)) break;
         if (
           error instanceof RequestFailed &&
           error.status >= 400 &&

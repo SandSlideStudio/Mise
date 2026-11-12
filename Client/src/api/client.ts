@@ -7,6 +7,7 @@ import {
   newWriteId,
   type OutboxEntry,
 } from '../lib/outbox.js';
+import { noteServerDate } from '../lib/serverClock.js';
 
 /**
  * The one place that knows how to talk to a Mise server.
@@ -63,6 +64,7 @@ function buildUrl(path: string, query?: RequestOptions['query']): string {
 
 export async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
   let response: Response;
+  const sentAt = Date.now();
   try {
     response = await send(path, options);
   } catch (error) {
@@ -71,17 +73,39 @@ export async function request<T>(path: string, options: RequestOptions = {}): Pr
     throw error;
   }
   if (UNREACHABLE.has(response.status)) markUnreachable();
-  else markReachable();
+  else {
+    markReachable();
+    noteServerDate(response.headers.get('date'), sentAt, Date.now());
+  }
 
   if (response.status === 204) return undefined as T;
 
   const text = await response.text();
-  const parsed: unknown = text ? JSON.parse(text) : null;
+  const parsed = parseJson(text, response.headers.get('content-type'));
 
+  // An error is an error, whatever its body: a web server's HTML error page
+  // or a plain "Not found" must be a refusal like any other, never "no answer".
   if (!response.ok) {
     throw new RequestFailed(response.status, parsed as ApiError | null, response.statusText);
   }
-  return parsed as T;
+  // A success that isn't Mise's JSON came from something in between, such as
+  // a hotel wifi login page: as good as no answer.
+  if (text && parsed === undefined) {
+    markUnreachable();
+    throw new TypeError('Not an answer from Mise');
+  }
+  return (parsed ?? null) as T;
+}
+
+/** The body as JSON, or undefined when it isn't. */
+function parseJson(text: string, contentType: string | null): unknown {
+  if (!text) return null;
+  if (contentType && !contentType.includes('json')) return undefined;
+  try {
+    return JSON.parse(text) as unknown;
+  } catch {
+    return undefined;
+  }
 }
 
 function send(path: string, options: RequestOptions): Promise<Response> {
@@ -152,10 +176,33 @@ export async function sendOrQueue<T>(
     const behind = goingOut(entries).length > 0 || entries.some((entry) => entry.path === path);
     if (behind) return queue();
   }
+  const base = offline.base ?? undefined;
   try {
-    return await request<T>(path, { method, body, headers: { 'x-mise-write': id } });
+    return await request<T>(path, {
+      method,
+      body,
+      // The version this edit started from goes along online too, so two
+      // people saving the same thing never overwrite each other unseen.
+      headers: { 'x-mise-write': id, ...(base ? { 'x-mise-base': base } : {}) },
+    });
   } catch (error) {
     if (noAnswer(error)) return queue();
+    // Changed by someone else since: kept on the device with what is there
+    // now, and the same side-by-side choice as for a change made offline.
+    if (error instanceof RequestFailed && error.code === 'changed_meanwhile' && userId) {
+      const current = (error.details as { current?: unknown } | undefined)?.current ?? null;
+      addToOutbox({
+        id,
+        userId,
+        method,
+        path,
+        body,
+        label: offline.label,
+        ...(base ? { base } : {}),
+        conflict: { current },
+      });
+      return QUEUED;
+    }
     throw error;
   }
 }

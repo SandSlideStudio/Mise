@@ -45,11 +45,12 @@ export function useUpdateIngredient() {
   const queryClient = useQueryClient();
   return useMutation({
     networkMode: 'always',
-    mutationFn: ({ id, ...input }: UpdateIngredient & { id: string }) =>
+    mutationFn: ({ id, base, ...input }: UpdateIngredient & { id: string; base?: string }) =>
       sendOrQueue<Ingredient>('PATCH', `/ingredients/${id}`, input, {
         label: { key: 'offline.label.ingredient', vars: { name: input.name ?? '' } },
+        base,
       }),
-    onSuccess: (result, { id, ...input }) => {
+    onSuccess: (result, { id, base: _base, ...input }) => {
       if (isQueued(result)) {
         // Every list this ingredient is on shows the change at once.
         for (const [key, list] of queryClient.getQueriesData<Ingredient[]>({
@@ -159,11 +160,13 @@ export function useUpdateRecipe(id: string) {
   const queryClient = useQueryClient();
   return useMutation({
     networkMode: 'always',
-    mutationFn: (input: UpdateRecipe) => {
+    // base: the version the editor was opened with. Not the latest in the
+    // cache, which a live refresh may have moved past someone else's change.
+    mutationFn: ({ base, ...input }: UpdateRecipe & { base?: string }) => {
       const before = queryClient.getQueryData<Recipe>(['recipe', id]);
       return sendOrQueue<Recipe>('PATCH', `/recipes/${id}`, input, {
         label: { key: 'offline.label.recipe', vars: { name: input.name ?? before?.name ?? '' } },
-        base: before?.updatedAt,
+        base: base ?? before?.updatedAt,
       });
     },
     onSuccess: (recipe, input) => {

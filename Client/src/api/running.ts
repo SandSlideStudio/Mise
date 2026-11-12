@@ -12,7 +12,13 @@ import { api, isQueued, sendOrQueue } from './client.js';
 import { isRefusal, sendTick, usePendingOverlay } from './ticks.js';
 import { useCurrentUser } from './session.js';
 import { enqueue } from '../lib/retryQueue.js';
-import { remove as removeFromOutbox, useOutbox, type OutboxEntry } from '../lib/outbox.js';
+import {
+  isWaiting,
+  remove as removeFromOutbox,
+  useOutbox,
+  WAITING,
+  type OutboxEntry,
+} from '../lib/outbox.js';
 
 /**
  * The prep list: one list for the whole kitchen, added to by hand, under the
@@ -26,9 +32,7 @@ export const RUNNING_LIST = 'running';
 /** A ticked line is gone this long after it was ticked. */
 export const GONE_AFTER_MS = 2 * 60 * 60 * 1000;
 
-/** A line added while Mise couldn't be reached carries this in front of its id until it's sent. */
-export const WAITING = 'waiting:';
-export const isWaiting = (id: string) => id.startsWith(WAITING);
+export { WAITING, isWaiting } from '../lib/outbox.js';
 
 /**
  * The list as this person will see it once their waiting changes are sent:
@@ -90,7 +94,8 @@ export function useRunningTasks() {
     queryFn: () => api.get<PrepTask[]>('/running/tasks'),
     // Lines drop off on the clock as well as on a tap, so keep asking.
     refetchInterval: 60_000,
-    select: useCallback((tasks: PrepTask[]) => waiting(ticks(tasks)), [ticks, waiting]),
+    // Ticks after the waiting lines, so a line added offline shows ticked too.
+    select: useCallback((tasks: PrepTask[]) => ticks(waiting(tasks)), [ticks, waiting]),
   });
 }
 
@@ -179,9 +184,9 @@ export function useUpdatePrepTask() {
     networkMode: 'always',
     mutationFn: async (input: TaskUpdate): Promise<PrepTask | null> => {
       const { id, ...change } = input;
-      // Not on the server yet, so there is nothing to change there.
-      if (isWaiting(id)) return null;
       const user = queryClient.getQueryData<SessionUser | null>(['me']);
+      // Not on the server yet: only a tick can wait for it, and goes out right after it.
+      if (isWaiting(id) && (!isTick(input) || !user)) return null;
       if (!isTick(input) || !user) {
         const result = await sendOrQueue<PrepTask>('PATCH', `/tasks/${id}`, change, {
           label: { key: 'offline.label.editLine' },
@@ -197,7 +202,7 @@ export function useUpdatePrepTask() {
           ...(change.assignedUserId !== undefined ? { assignedUserId: change.assignedUserId } : {}),
         },
       });
-      return sendTick(entry);
+      return isWaiting(id) ? null : sendTick(entry);
     },
 
     onMutate: async ({ id, ...input }) => {

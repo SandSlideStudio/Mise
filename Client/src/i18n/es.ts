@@ -38,6 +38,7 @@ export const es: Record<MessageKey, string> = {
   'error.validationFailed': 'Algo no está bien rellenado. Revísalo y vuelve a intentarlo.',
   'error.alreadyExists': 'Eso ya existe.',
   'error.stillReferenced': 'Todavía se usa en otro sitio, así que no se puede quitar.',
+  'error.referenceGone': 'Algo que elegiste, como una partida o una receta, ya no existe.',
   'error.invalidData': 'Ese valor no se permite aquí.',
   'error.writeInProgress': 'Ese cambio se está guardando. Vuelve a intentarlo en un momento.',
   'error.backupFileMissing': 'Adjunta el archivo de copia de seguridad.',

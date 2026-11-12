@@ -156,7 +156,7 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
    * their name against it; they cannot reword it, move it or reassign it to
    * somebody else.
    */
-  const COOK_MAY_CHANGE = new Set(['status', 'assignedUserId']);
+  const COOK_MAY_CHANGE = new Set(['status', 'assignedUserId', 'doneMsAgo']);
 
   r.patch(
     '/tasks/:id',

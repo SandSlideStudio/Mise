@@ -39,6 +39,7 @@ export const nl: Record<MessageKey, string> = {
   'error.validationFailed': 'Er is iets niet goed ingevuld. Kijk het na en probeer het opnieuw.',
   'error.alreadyExists': 'Dat bestaat al.',
   'error.stillReferenced': 'Dat wordt nog ergens anders gebruikt, dus het kan niet weg.',
+  'error.referenceGone': 'Iets wat je koos, zoals een post of een recept, bestaat niet meer.',
   'error.invalidData': 'Die waarde mag hier niet.',
   'error.writeInProgress': 'Die wijziging wordt opgeslagen. Probeer het zo opnieuw.',
   'error.backupFileMissing': 'Voeg het back-upbestand toe.',

@@ -2,7 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { isQueued, QUEUED, sendOrQueue, setOutboxUser } from './client.js';
 import { dismissDropped, flush, keepMine } from './outbox.js';
-import { entriesFor } from '../lib/outbox.js';
+import { entriesFor, WAITING } from '../lib/outbox.js';
+import { enqueue, pendingFor } from '../lib/retryQueue.js';
 import { isReachable, markReachable } from '../lib/connectivity.js';
 
 /**
@@ -92,6 +93,52 @@ describe('sending a change', () => {
       status: 403,
     });
     expect(entriesFor(ME)).toHaveLength(0);
+  });
+
+  it('counts a web page in place of an answer, such as a wifi login, as no answer', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response('<html>Log in to Hotel Wifi</html>', {
+        status: 200,
+        headers: { 'content-type': 'text/html' },
+      }),
+    );
+    const result = await sendOrQueue('PUT', '/running/note', { text: 'x' }, { label });
+    expect(result).toBe(QUEUED);
+    expect(isReachable()).toBe(false);
+  });
+
+  it('counts an error page that is not JSON as a refusal, not as no answer', async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response('Not found', { status: 404, headers: { 'content-type': 'text/plain' } }),
+    );
+    await expect(
+      sendOrQueue('PUT', '/running/note', { text: 'x' }, { label }),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(entriesFor(ME)).toHaveLength(0);
+  });
+
+  it('sends the version it started from online too, and offers the choice when someone changed it', async () => {
+    fetchMock.mockResolvedValueOnce(
+      answer(409, {
+        error: {
+          code: 'changed_meanwhile',
+          message: 'x',
+          details: { current: { name: 'Pear and almond tart' } },
+        },
+      }),
+    );
+    const result = await sendOrQueue(
+      'PATCH',
+      '/recipes/r1',
+      { name: 'Poached pear tart' },
+      { label, base: '2026-01-01T00:00:00.000Z' },
+    );
+    expect(result).toBe(QUEUED);
+    const headers = fetchMock.mock.calls[0]![1]!.headers as Record<string, string>;
+    expect(headers['x-mise-base']).toBe('2026-01-01T00:00:00.000Z');
+    expect(entriesFor(ME)).toMatchObject([
+      { path: '/recipes/r1', conflict: { current: { name: 'Pear and almond tart' } } },
+    ]);
   });
 
   it('keeps each person’s changes as theirs', async () => {
@@ -225,6 +272,43 @@ describe('sending what waited', () => {
     );
     await flush(ME);
     expect(entriesFor(ME)).toHaveLength(0);
+  });
+
+  it('keeps everything while this device waits to be let in again, or for a password', async () => {
+    await waiting(['POST', '/running/tasks', { description: 'Stock' }]);
+    for (const code of ['access_required', 'password_required', 'bad_origin']) {
+      fetchMock.mockResolvedValueOnce(answer(403, { error: { code, message: 'x' } }));
+      await flush(ME);
+      expect(entriesFor(ME)).toHaveLength(1);
+    }
+  });
+
+  it('lets a later change to the same thing build on the one just sent', async () => {
+    await waiting(
+      ['PATCH', '/recipes/r1', { name: 'Pear tart' }, '2026-01-01T00:00:00.000Z'],
+      ['PATCH', '/recipes/r1', { name: 'Poached pear tart' }, '2026-01-01T00:00:00.000Z'],
+    );
+    fetchMock
+      .mockResolvedValueOnce(answer(200, { updatedAt: '2026-01-02T00:00:00.000Z' }))
+      .mockResolvedValueOnce(answer(200, { updatedAt: '2026-01-03T00:00:00.000Z' }));
+    await flush(ME);
+    const second = fetchMock.mock.calls[1]![1]!.headers as Record<string, string>;
+    expect(second['x-mise-base']).toBe('2026-01-02T00:00:00.000Z');
+    expect(entriesFor(ME)).toHaveLength(0);
+  });
+
+  it('hands ticks made on a line added offline to the line it became', async () => {
+    await waiting(['POST', '/running/tasks', { description: 'Stock' }]);
+    const line = entriesFor(ME)[0]!;
+    enqueue({
+      userId: ME,
+      taskId: `${WAITING}${line.id}`,
+      listKey: 'running',
+      patch: { status: 'done' },
+    });
+    fetchMock.mockResolvedValueOnce(answer(200, { task: { id: 'task-1' }, merged: false }));
+    await flush(ME);
+    expect(pendingFor(ME).map((tick) => tick.taskId)).toEqual(['task-1']);
   });
 
   it('keeps everything when signed out, to send after signing in again', async () => {

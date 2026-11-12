@@ -30,7 +30,9 @@ export interface PendingTick {
 }
 
 let counter = 0;
-const newId = () => `${Date.now().toString(36)}-${(counter += 1)}`;
+/** Also sent as X-Mise-Write, so a tick resent after a lost answer is made once. */
+const newId = () =>
+  `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}-${(counter += 1)}`;
 
 /** Entries being sent right now, so the background sender doesn't send them twice. */
 const inFlight = new Set<string>();
@@ -76,6 +78,25 @@ export function enqueue(tick: Omit<PendingTick, 'id' | 'queuedAt'>): PendingTick
 
 export function remove(entryId: string): void {
   write(read().filter((entry) => entry.id !== entryId));
+}
+
+/**
+ * A line added offline got its real id when it was sent: ticks made on it
+ * meanwhile go to that line now.
+ */
+export function retarget(fromTaskId: string, toTaskId: string): void {
+  const queue = read();
+  if (!queue.some((entry) => entry.taskId === fromTaskId)) return;
+  write(
+    queue.map((entry) => (entry.taskId === fromTaskId ? { ...entry, taskId: toTaskId } : entry)),
+  );
+}
+
+/** Forget the ticks on a line, such as one added offline that was never accepted. */
+export function removeForTask(taskId: string): void {
+  const queue = read();
+  if (!queue.some((entry) => entry.taskId === taskId)) return;
+  write(queue.filter((entry) => entry.taskId !== taskId));
 }
 
 export function pendingFor(userId: string | undefined): PendingTick[] {

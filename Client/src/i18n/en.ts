@@ -41,6 +41,7 @@ export const en = {
   'error.validationFailed': 'Something in that isn’t filled in right. Check it and try again.',
   'error.alreadyExists': 'That already exists.',
   'error.stillReferenced': 'That is still used somewhere else, so it can’t be removed.',
+  'error.referenceGone': 'Something you chose, such as a station or a recipe, no longer exists.',
   'error.invalidData': 'That value isn’t allowed here.',
   'error.writeInProgress': 'That change is being saved. Try again in a moment.',
   'error.backupFileMissing': 'Attach the backup file.',

@@ -33,6 +33,9 @@ function toBaseQuantity(quantity: { value: number; unit: string } | null | undef
   };
 }
 
+/** A tick sent late keeps its own time, but no more than a day back. */
+const DONE_AT_MAX_BACK_MS = 24 * 60 * 60 * 1000;
+
 /** Station order is how the kitchen is laid out, which is how a prep list should read. */
 const TASK_ORDER = [asc(stations.sortOrder), asc(prepTasks.sortOrder), asc(prepTasks.description)];
 
@@ -118,6 +121,17 @@ export function createPrepService(db: Database) {
   }
 
   /**
+   * When a tick sent late was really made: as long ago as the device says, but
+   * never before the line existed, and at most a day back.
+   */
+  function doneTime(msAgo: number | undefined, task: { createdAt: Date }): Date {
+    const now = Date.now();
+    if (!msAgo) return new Date(now);
+    const earliest = Math.max(task.createdAt.getTime(), now - DONE_AT_MAX_BACK_MS);
+    return new Date(Math.max(earliest, now - msAgo));
+  }
+
+  /**
    * Completing a task records who did it and when; reopening one clears both,
    * so the record never claims somebody finished something that is open again.
    */
@@ -129,7 +143,7 @@ export function createPrepService(db: Database) {
       input.status === undefined || input.status === existing.status
         ? {}
         : input.status === 'done'
-          ? { completedBy: actingUserId, completedAt: new Date() }
+          ? { completedBy: actingUserId, completedAt: doneTime(input.doneMsAgo, existing) }
           : { completedBy: null, completedAt: null };
 
     await db

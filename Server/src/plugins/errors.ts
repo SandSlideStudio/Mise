@@ -25,14 +25,25 @@ const PG_CHECK_VIOLATION = '23514';
  * cause chain. Postgres codes are always five characters, which keeps this
  * from mistaking a Node or Fastify code such as FST_ERR_VALIDATION for one.
  */
-function postgresErrorCode(error: unknown): string | undefined {
+function postgresError(error: unknown): { code: string; detail: string } | undefined {
   let current: unknown = error;
   for (let depth = 0; depth < 5 && current; depth += 1) {
-    const code = (current as { code?: unknown }).code;
-    if (typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)) return code;
+    const { code, detail } = current as { code?: unknown; detail?: unknown };
+    if (typeof code === 'string' && /^[0-9A-Z]{5}$/.test(code)) {
+      return { code, detail: typeof detail === 'string' ? detail : '' };
+    }
     current = (current as { cause?: unknown }).cause;
   }
   return undefined;
+}
+
+/**
+ * A foreign key check fails two ways: removing something still pointed at, or
+ * pointing at something that isn't there (a station deleted while a line for
+ * it waited on a tablet). Postgres says which in the detail.
+ */
+function pointsAtNothing(detail: string): boolean {
+  return /is not present in table/.test(detail);
 }
 
 const errorsPlugin: FastifyPluginAsync = async (app) => {
@@ -63,10 +74,19 @@ const errorsPlugin: FastifyPluginAsync = async (app) => {
     // The zod guards above narrow the parameter, so reach for the original
     // shape explicitly rather than relying on what is left of it.
     const failure = error as { code?: string; statusCode?: number; message?: string };
-    const pgCode = postgresErrorCode(error);
+    const pg = postgresError(error);
+    const pgCode = pg?.code;
     if (pgCode === PG_UNIQUE_VIOLATION) {
       return reply.status(409).send({
         error: { code: 'already_exists', message: 'That already exists.' },
+      });
+    }
+    if (pgCode === PG_FOREIGN_KEY_VIOLATION && pointsAtNothing(pg?.detail ?? '')) {
+      return reply.status(409).send({
+        error: {
+          code: 'reference_gone',
+          message: 'Something you chose, such as a station or a recipe, no longer exists.',
+        },
       });
     }
     if (pgCode === PG_RESTRICT_VIOLATION || pgCode === PG_FOREIGN_KEY_VIOLATION) {
