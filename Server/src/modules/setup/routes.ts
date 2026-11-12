@@ -169,46 +169,71 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
         throw new ApiError(400, 'onedrive_not_connected', 'Connect OneDrive first.');
       }
 
-      const result = await app.auth.runSetup(request.body);
-      if (!result.ok) {
+      // Everything below happens together with creating the kitchen, or not
+      // at all: a failure leaves a server that can simply be set up again.
+      const result = await app.auth.runSetup(request.body, async (tx, userId) => {
+        const saved = await app.backups.update(
+          {
+            ...(request.body.timeZone && validTimeZone(request.body.timeZone)
+              ? { timeZone: request.body.timeZone }
+              : {}),
+            ...(backups
+              ? {
+                  sendTo,
+                  webdavUrl: backups.webdavUrl ?? null,
+                  webdavUsername: backups.webdavUsername ?? null,
+                  ...(backups.webdavPassword ? { webdavPassword: backups.webdavPassword } : {}),
+                }
+              : {}),
+          },
+          tx,
+        );
+        if (saved === 'needs_address') {
+          throw new ApiError(
+            400,
+            'nas_address_needed',
+            'Enter the address of the NAS to send backups to.',
+          );
+        }
+        if (saved === 'needs_onedrive') {
+          throw new ApiError(400, 'onedrive_not_connected', 'Connect OneDrive first.');
+        }
+        // Sign the new administrator straight in; making them log in again
+        // immediately after choosing a password is pointless friction.
+        const session = await app.auth.issueSession(
+          userId,
+          {
+            expiresAt: new Date(Date.now() + PASSWORD_SESSION_DAYS * 86_400_000),
+            userAgent: request.headers['user-agent'] ?? null,
+          },
+          tx,
+        );
+        // Set up from outside, which took the setup code: that device is the
+        // first one approved, or a server with no local network could never
+        // let anyone in.
+        const access = request.inside
+          ? null
+          : await app.access.approveNew(
+              {
+                name: describeAgent(request.headers['user-agent']),
+                userAgent: request.headers['user-agent'] ?? null,
+                address: request.ip,
+                userId,
+              },
+              tx,
+            );
+        return { session, access };
+      });
+      if (!result.ok || !result.finished) {
         throw new ApiError(409, 'already_set_up', 'This server has already been set up.');
       }
-      await app.backups.update({
-        ...(request.body.timeZone && validTimeZone(request.body.timeZone)
-          ? { timeZone: request.body.timeZone }
-          : {}),
-        ...(backups
-          ? {
-              sendTo,
-              webdavUrl: backups.webdavUrl ?? null,
-              webdavUsername: backups.webdavUsername ?? null,
-              ...(backups.webdavPassword ? { webdavPassword: backups.webdavPassword } : {}),
-            }
-          : {}),
-      });
+      const { session, access } = result.finished;
+      app.setSessionCookie(reply, session.token, session.expiresAt);
+      if (access) app.setAccessCookie(reply, access.token);
+
       // Connected on the way, then another choice made: don't keep the sign-in.
       if (onedrive.account && !sendTo.includes('onedrive')) {
         await app.backups.disconnectOnedrive();
-      }
-
-      // Sign the new administrator straight in; making them log in again
-      // immediately after choosing a password is pointless friction.
-      const session = await app.auth.issueSession(result.userId, {
-        expiresAt: new Date(Date.now() + PASSWORD_SESSION_DAYS * 86_400_000),
-        userAgent: request.headers['user-agent'] ?? null,
-      });
-      app.setSessionCookie(reply, session.token, session.expiresAt);
-      // Set up from outside, which took the setup code: that device is the
-      // first one approved, or a server with no local network could never
-      // let anyone in.
-      if (!request.inside) {
-        const { token } = await app.access.approveNew({
-          name: describeAgent(request.headers['user-agent']),
-          userAgent: request.headers['user-agent'] ?? null,
-          address: request.ip,
-          userId: result.userId,
-        });
-        app.setAccessCookie(reply, token);
       }
 
       return {

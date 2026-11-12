@@ -38,6 +38,10 @@ export const nl: Record<MessageKey, string> = {
   'error.notFound': 'Dat is er niet meer. Misschien heeft iemand het verwijderd.',
   'error.validationFailed': 'Er is iets niet goed ingevuld. Kijk het na en probeer het opnieuw.',
   'error.alreadyExists': 'Dat bestaat al.',
+  'error.badOrigin':
+    'Wijzigingen kunnen alleen van Mise’s eigen pagina komen. Open Mise zelf en probeer het opnieuw.',
+  'error.changedMeanwhile': 'Iemand anders heeft dit veranderd sinds je begon.',
+  'error.certificateFailed': 'Let’s Encrypt gaf geen certificaat. De reden: {reason}',
   'error.stillReferenced': 'Dat wordt nog ergens anders gebruikt, dus het kan niet weg.',
   'error.referenceGone': 'Iets wat je koos, zoals een post of een recept, bestaat niet meer.',
   'error.invalidData': 'Die waarde mag hier niet.',
@@ -499,6 +503,7 @@ export const nl: Record<MessageKey, string> = {
   'staff.pinTag': 'Pincode',
   'staff.passwordTag': 'Wachtwoord',
   'staff.locked': 'Geblokkeerd',
+  'staff.unlock': 'Blokkade opheffen',
   'staff.namePlaceholder': 'Zoals de brigade diegene kent',
   'staff.role': 'Rol',
   'staff.station': 'Vaste post',

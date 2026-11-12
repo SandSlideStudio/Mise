@@ -45,7 +45,8 @@ export function Dishes() {
   if (!user) return null;
   const canManage = user.role !== 'cook';
   // Cooks in a kitchen that keeps cards to chefs go to the spec instead.
-  const opensCard = canManage || cardSettings.data?.access !== 'managers';
+  // Only once the settings say so: not for a moment while they load.
+  const opensCard = canManage || cardSettings.data?.access === 'everyone';
 
   const all = dishes.data ?? [];
   const needle = search.trim().toLowerCase();

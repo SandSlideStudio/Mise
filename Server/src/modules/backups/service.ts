@@ -20,7 +20,7 @@ import type {
   RestoreResult,
   UpdateBackupSettings,
 } from '@mise/contracts';
-import type { Database } from '../../db/client.js';
+import type { Database, Executor } from '../../db/client.js';
 import {
   backupSettings,
   dishCardSettings,
@@ -158,12 +158,12 @@ export function createBackupService({
   let signIn: (DeviceCode & { timer?: NodeJS.Timeout }) | null = null;
   let signInError: 'declined' | 'expired' | 'failed' | null = null;
 
-  async function settings(): Promise<Settings> {
+  async function settings(exec: Executor = db): Promise<Settings> {
     const find = () =>
-      db.select().from(backupSettings).where(eq(backupSettings.id, SETTINGS_ID)).limit(1);
+      exec.select().from(backupSettings).where(eq(backupSettings.id, SETTINGS_ID)).limit(1);
     const [row] = await find();
     if (row) return row;
-    await db
+    await exec
       .insert(backupSettings)
       .values({ id: SETTINGS_ID, recoveryKey: generateRecoveryKey() })
       .onConflictDoNothing();
@@ -171,8 +171,8 @@ export function createBackupService({
     return created!;
   }
 
-  async function record(values: Partial<Settings>): Promise<void> {
-    await db.update(backupSettings).set(values).where(eq(backupSettings.id, SETTINGS_ID));
+  async function record(values: Partial<Settings>, exec: Executor = db): Promise<void> {
+    await exec.update(backupSettings).set(values).where(eq(backupSettings.id, SETTINGS_ID));
   }
 
   /** Backups kept on this machine, newest first. */
@@ -251,10 +251,12 @@ export function createBackupService({
   }
 
   /** Refuses a NAS without an address, or OneDrive before it's connected. */
+  /** In `exec` when given, such as setup's transaction. */
   async function update(
     input: UpdateBackupSettings,
+    exec: Executor = db,
   ): Promise<'ok' | 'needs_address' | 'needs_onedrive'> {
-    const current = await settings();
+    const current = await settings(exec);
     const { sendTo: asked, ...rest } = input;
     const sendTo = asked ?? sendToOf(current);
     const webdavUrl = input.webdavUrl !== undefined ? input.webdavUrl : current.webdavUrl;
@@ -272,14 +274,17 @@ export function createBackupService({
     // unless a new one comes with it, rather than sent to whoever is there.
     const elsewhere =
       input.webdavPassword === undefined && !sameServer(webdavUrl, current.webdavUrl);
-    await record({
-      ...rest,
-      ...(elsewhere ? { webdavPassword: null } : {}),
-      sendToWebdav,
-      sendToOnedrive,
-      ...(moved ? { lastFingerprint: null } : {}),
-      updatedAt: new Date(),
-    });
+    await record(
+      {
+        ...rest,
+        ...(elsewhere ? { webdavPassword: null } : {}),
+        sendToWebdav,
+        sendToOnedrive,
+        ...(moved ? { lastFingerprint: null } : {}),
+        updatedAt: new Date(),
+      },
+      exec,
+    );
     return 'ok';
   }
 

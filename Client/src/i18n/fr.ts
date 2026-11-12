@@ -37,6 +37,10 @@ export const fr: Record<MessageKey, string> = {
   'error.notFound': 'Ce n’est plus là. Quelqu’un l’a peut-être supprimé.',
   'error.validationFailed': 'Quelque chose n’est pas bien rempli. Vérifiez et réessayez.',
   'error.alreadyExists': 'Cela existe déjà.',
+  'error.badOrigin':
+    'Les modifications ne peuvent venir que de la page de Mise. Ouvre Mise directement et réessaie.',
+  'error.changedMeanwhile': 'Quelqu’un d’autre a modifié ceci depuis que tu as commencé.',
+  'error.certificateFailed': 'Let’s Encrypt n’a pas délivré de certificat. Sa raison : {reason}',
   'error.stillReferenced': 'C’est encore utilisé ailleurs, donc impossible de le supprimer.',
   'error.referenceGone':
     'Quelque chose que tu as choisi, comme un poste ou une recette, n’existe plus.',
@@ -511,6 +515,7 @@ export const fr: Record<MessageKey, string> = {
   'staff.pinTag': 'Code',
   'staff.passwordTag': 'Mot de passe',
   'staff.locked': 'Bloqué',
+  'staff.unlock': 'Lever le blocage',
   'staff.namePlaceholder': 'Comme la brigade l’appelle',
   'staff.role': 'Rôle',
   'staff.station': 'Poste habituel',

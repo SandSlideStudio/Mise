@@ -159,6 +159,28 @@ export function createKitchenService(db: Database) {
    * administrator, and ends the person's sessions when their role or sign-in
    * details change.
    */
+  /**
+   * Lift a lockout someone ran into, or that a colleague caused on purpose by
+   * trying wrong PINs for them. Same rights as editing them; their PIN and
+   * password stay as they are.
+   */
+  async function unlockUser(
+    id: string,
+    actor: Actor,
+  ): Promise<
+    | { ok: true; user: NonNullable<Awaited<ReturnType<typeof getUser>>> }
+    | { ok: false; error: KitchenFailure }
+  > {
+    const [current] = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (!current) return { ok: false, error: { kind: 'not_found' } };
+    if (id !== actor.id && !mayManage(actor.role, current.role)) {
+      return { ok: false, error: { kind: 'outranked' } };
+    }
+    await db.update(users).set({ lockedUntil: null }).where(eq(users.id, id));
+    const user = await getUser(id);
+    return user ? { ok: true, user } : { ok: false, error: { kind: 'not_found' } };
+  }
+
   async function updateUser(
     id: string,
     input: UpdateUser,
@@ -306,6 +328,7 @@ export function createKitchenService(db: Database) {
     getUser,
     createUser,
     updateUser,
+    unlockUser,
     deleteUser,
     getKitchen,
     updateKitchen,

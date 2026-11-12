@@ -96,6 +96,17 @@ export function useRemoveStaff() {
   });
 }
 
+/** Lift someone's lock, without changing their PIN or password. */
+export function useUnlockStaff() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<User>(`/users/${id}/unlock`),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['users'] });
+    },
+  });
+}
+
 export function useKitchen() {
   return useQuery({
     queryKey: ['kitchen'],

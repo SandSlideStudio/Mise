@@ -1,7 +1,7 @@
 import { and, eq, isNull, lt, sql } from 'drizzle-orm';
 import { DEFAULT_STATIONS, type Language, type SetupRequest } from '@mise/contracts';
 import { toBase, type UnitCode } from '@mise/domain';
-import type { Database } from '../../db/client.js';
+import type { Database, Executor, Transaction } from '../../db/client.js';
 import { devices, kitchens, recipes, sessions, stations, users } from '../../db/schema.js';
 import {
   dummyVerify,
@@ -79,9 +79,10 @@ export function createAuthService(db: Database) {
   async function issueSession(
     userId: string,
     options: { deviceId?: string | null; expiresAt: Date; userAgent?: string | null },
+    exec: Executor = db,
   ): Promise<AuthenticatedSession> {
     const token = generateToken();
-    await db.insert(sessions).values({
+    await exec.insert(sessions).values({
       tokenHash: hashToken(token),
       userId,
       deviceId: options.deviceId ?? null,
@@ -340,9 +341,17 @@ export function createAuthService(db: Database) {
    * user table still being empty so two simultaneous requests cannot both
    * create an admin.
    */
-  async function runSetup(
+  /**
+   * The kitchen, its people and stations, and whatever `finish` adds (backup
+   * settings, the first sign-in), all at once or not at all: a setup that
+   * fails halfway leaves nothing behind, so it can simply be tried again.
+   */
+  async function runSetup<T = undefined>(
     input: SetupRequest,
-  ): Promise<{ ok: true; userId: string } | { ok: false; error: 'already_set_up' }> {
+    finish?: (tx: Transaction, userId: string) => Promise<T>,
+  ): Promise<
+    { ok: true; userId: string; finished: T | undefined } | { ok: false; error: 'already_set_up' }
+  > {
     // Hashing is slow on purpose, so it happens before a transaction is open.
     const passwordHash = await hashSecret(input.password);
     const pinHash = input.pin ? await hashSecret(input.pin) : null;
@@ -422,7 +431,8 @@ export function createAuthService(db: Database) {
         );
       }
 
-      return { ok: true as const, userId: user.id };
+      const finished = finish ? await finish(tx, user.id) : undefined;
+      return { ok: true as const, userId: user.id, finished };
     });
   }
 
@@ -436,6 +446,8 @@ export function createAuthService(db: Database) {
     loginWithPin,
     /** Start a person's count over everywhere, after an administrator resets them. */
     forgetFailures: (userId: string) => lockout.forget(userId),
+    /** When this person's PIN is locked until, across all tablets: kept in memory, not the database. */
+    pinLockedUntil: (userId: string) => lockout.pinLocked(userId),
     confirmPassword,
     markTourSeen,
     resolveSession,

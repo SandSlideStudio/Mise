@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto';
 import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from 'drizzle-orm';
-import type { Database } from '../../db/client.js';
+import type { Database, Executor } from '../../db/client.js';
 import { remoteDevices, users } from '../../db/schema.js';
 import { generateToken, hashToken } from '../../lib/crypto.js';
 import { ApiError } from '../../lib/errors.js';
@@ -173,14 +173,17 @@ export function createAccessService(db: Database) {
     },
 
     /** Approved straight away: the device that set this server up, or restored it, from outside. */
-    async approveNew(input: {
-      name: string;
-      userAgent: string | null;
-      address: string;
-      userId: string | null;
-    }) {
+    async approveNew(
+      input: {
+        name: string;
+        userAgent: string | null;
+        address: string;
+        userId: string | null;
+      },
+      exec: Executor = db,
+    ) {
       const token = generateToken();
-      await db.insert(remoteDevices).values({
+      await exec.insert(remoteDevices).values({
         name: input.name,
         code: newCode(),
         tokenHash: hashToken(token),

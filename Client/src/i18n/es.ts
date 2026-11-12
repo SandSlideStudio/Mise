@@ -37,6 +37,10 @@ export const es: Record<MessageKey, string> = {
   'error.notFound': 'Eso ya no está. Puede que alguien lo haya quitado.',
   'error.validationFailed': 'Algo no está bien rellenado. Revísalo y vuelve a intentarlo.',
   'error.alreadyExists': 'Eso ya existe.',
+  'error.badOrigin':
+    'Los cambios solo pueden venir de la propia página de Mise. Abre Mise directamente y vuelve a intentarlo.',
+  'error.changedMeanwhile': 'Alguien más ha cambiado esto desde que empezaste.',
+  'error.certificateFailed': 'Let’s Encrypt no dio un certificado. Su motivo: {reason}',
   'error.stillReferenced': 'Todavía se usa en otro sitio, así que no se puede quitar.',
   'error.referenceGone': 'Algo que elegiste, como una partida o una receta, ya no existe.',
   'error.invalidData': 'Ese valor no se permite aquí.',
@@ -499,6 +503,7 @@ export const es: Record<MessageKey, string> = {
   'staff.pinTag': 'PIN',
   'staff.passwordTag': 'Contraseña',
   'staff.locked': 'Bloqueado',
+  'staff.unlock': 'Quitar el bloqueo',
   'staff.namePlaceholder': 'Como le conoce la brigada',
   'staff.role': 'Rol',
   'staff.station': 'Partida habitual',

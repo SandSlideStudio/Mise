@@ -38,6 +38,10 @@ export const de: Record<MessageKey, string> = {
   'error.notFound': 'Das gibt es nicht mehr. Vielleicht hat es jemand entfernt.',
   'error.validationFailed': 'Etwas ist nicht richtig ausgefüllt. Prüfe es und versuche es erneut.',
   'error.alreadyExists': 'Das gibt es schon.',
+  'error.badOrigin':
+    'Änderungen können nur von Mises eigener Seite kommen. Öffne Mise selbst und versuch es noch einmal.',
+  'error.changedMeanwhile': 'Jemand anderes hat das geändert, seit du angefangen hast.',
+  'error.certificateFailed': 'Let’s Encrypt hat kein Zertifikat ausgestellt. Der Grund: {reason}',
   'error.stillReferenced': 'Das wird noch woanders verwendet und kann nicht entfernt werden.',
   'error.referenceGone':
     'Etwas, das du gewählt hast, etwa ein Posten oder ein Rezept, gibt es nicht mehr.',
@@ -509,6 +513,7 @@ export const de: Record<MessageKey, string> = {
   'staff.pinTag': 'PIN',
   'staff.passwordTag': 'Passwort',
   'staff.locked': 'Gesperrt',
+  'staff.unlock': 'Sperre aufheben',
   'staff.namePlaceholder': 'Wie die Brigade diese Person kennt',
   'staff.role': 'Rolle',
   'staff.station': 'Üblicher Posten',

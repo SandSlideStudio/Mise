@@ -353,6 +353,43 @@ describe('PIN sign-in on the line', () => {
     expect(after.statusCode).toBe(200);
   });
 
+  it('lets a manager lift the lock without changing the PIN, and shows the lock until then', async () => {
+    const enrolled = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookies: { mise_session: adminCookie },
+    });
+    const deviceCookie = cookieFrom(enrolled, 'mise_device')!;
+    const pinLogin = (pin: string) =>
+      ctx.app.inject({
+        method: 'POST',
+        url: '/api/auth/pin-login',
+        payload: { userId: cookId, pin },
+        cookies: { mise_device: deviceCookie },
+      });
+    // A colleague tries wrong PINs on purpose.
+    for (let attempt = 0; attempt < 5; attempt += 1) await pinLogin('0000');
+    expect((await pinLogin('4821')).statusCode).toBe(429);
+
+    const staff = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/users',
+      cookies: { mise_session: adminCookie },
+    });
+    const cook = staff.json().find((u: { id: string }) => u.id === cookId);
+    expect(Date.parse(cook.lockedUntil)).toBeGreaterThan(Date.now());
+
+    const lifted = await ctx.app.inject({
+      method: 'POST',
+      url: `/api/users/${cookId}/unlock`,
+      cookies: { mise_session: adminCookie },
+    });
+    expect(lifted.statusCode).toBe(200);
+    expect(lifted.json().lockedUntil).toBeNull();
+    expect((await pinLogin('4821')).statusCode).toBe(200);
+  });
+
   it('signs everyone out of a tablet when it is revoked', async () => {
     const enrolled = await ctx.app.inject({
       method: 'POST',

@@ -437,9 +437,10 @@ describe('a certificate for the domain', () => {
   it('says why, in Let’s Encrypt’s words, when it fails, and leaves HTTPS off', async () => {
     const { server, admin } = await withDomain(fakeLetsEncrypt('fails').issue);
     const response = await as(server, admin, 'POST', '/api/connection/domain-https');
-    expect(response.statusCode).toBe(502);
+    expect(response.statusCode).toBe(400);
     expect(response.json().error).toMatchObject({
       code: 'certificate_failed',
+      details: { reason: expect.stringContaining('Timeout during connect') },
       message: expect.stringContaining('Timeout during connect'),
     });
 

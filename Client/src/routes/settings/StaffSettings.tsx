@@ -3,6 +3,7 @@ import { mayManage, ROLES, type Role, type Station, type User } from '@mise/cont
 import {
   useCreateStaff,
   useRemoveStaff,
+  useUnlockStaff,
   useStaff,
   useStations,
   useUpdateStaff,
@@ -87,6 +88,7 @@ function StaffRow({
   const translator = useT();
   const { t } = translator;
   const remove = useRemoveStaff();
+  const unlock = useUnlockStaff();
   const [confirming, setConfirming] = useState(false);
 
   const station = stations.find((s) => s.id === person.defaultStationId);
@@ -114,6 +116,17 @@ function StaffRow({
             <span className="tag border-danger text-danger">{t('staff.locked')}</span>
           ) : null}
         </div>
+
+        {locked && canManage ? (
+          <button
+            type="button"
+            className="btn-small"
+            disabled={unlock.isPending}
+            onClick={() => unlock.mutate(person.id)}
+          >
+            {t('staff.unlock')}
+          </button>
+        ) : null}
 
         <div className="flex gap-2">
           {canManage ? (

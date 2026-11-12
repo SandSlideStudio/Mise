@@ -149,7 +149,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       // Let's Encrypt allows only a few failed tries an hour.
       config: { rateLimit: { max: 5, timeWindow: '1 hour' } },
       schema: {
-        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema, 502: errorSchema },
+        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
       },
     },
     async (request) => {
@@ -160,7 +160,8 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
         await app.connection.enableDomainHttps();
       } catch (error) {
         if (error instanceof CertificateFailure) {
-          throw new ApiError(502, 'certificate_failed', error.message);
+          // Not 502: the app takes that for Mise itself being unreachable.
+          throw new ApiError(400, 'certificate_failed', error.message, { reason: error.message });
         }
         throw error;
       }
