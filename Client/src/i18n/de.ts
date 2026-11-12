@@ -615,6 +615,9 @@ export const de: Record<MessageKey, string> = {
     'Jede Nacht speichert Mise die ganze Küche samt Fotos in einer verschlüsselten Datei. Bewahre auch eine Kopie außerhalb dieses Geräts auf.',
   'backups.lastGood': 'Letzte Sicherung: {time}',
   'backups.never': 'Noch keine Sicherung. Die erste läuft in wenigen Minuten.',
+  'backups.diskLowTitle': 'Wenig Platz auf diesem Server',
+  'backups.diskLow':
+    'Wo die Sicherungen liegen, sind nur noch {free} frei. Ist der Speicher voll, hören die Sicherungen auf. Schaff Platz, oder behalte weniger Sicherungen auf diesem Server.',
   'backups.failed': 'Die letzte Sicherung ist fehlgeschlagen.',
   'backups.reason.bad_key':
     'Ein Wiederherstellungsschlüssel hat 32 Buchstaben und Ziffern in Vierergruppen.',
@@ -1132,6 +1135,9 @@ export const de: Record<MessageKey, string> = {
   'offline.yours': 'Deine',
   'offline.theirs': 'Jetzt in Mise',
   'offline.keepMine': 'Meine behalten',
+  'offline.later': 'Später entscheiden',
+  'offline.conflictWaiting': '{what} wartet, bis du wählst, welche Fassung bleibt.',
+  'offline.choose': 'Wählen',
   'offline.keepTheirs': 'Die in Mise behalten',
   'offline.items_one': '1 Eintrag',
   'offline.items_other': '{count} Einträge',

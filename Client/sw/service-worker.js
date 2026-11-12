@@ -14,6 +14,12 @@
 const VERSION = '__VERSION__';
 const APP = `mise-app-${VERSION}`;
 const PHOTOS = 'mise-photos';
+/**
+ * Photos kept on the device at most. Every recipe's photos fit for most
+ * kitchens; past this, the ones fetched longest ago go first, so a tablet
+ * never fills up with photos of dishes long gone.
+ */
+const MAX_PHOTOS = 300;
 const FILES = JSON.parse('__FILES__');
 /** How long to wait for the server before opening the app from the cache. */
 const PATIENCE_MS = 3000;
@@ -92,7 +98,9 @@ self.addEventListener('fetch', (event) => {
           (kept) =>
             kept ||
             fetch(request).then((response) => {
-              if (response.ok) void cache.put(request, response.clone());
+              if (response.ok) {
+                void cache.put(request, response.clone()).then(() => trimPhotos(cache));
+              }
               return response;
             }),
         ),
@@ -113,3 +121,14 @@ self.addEventListener('fetch', (event) => {
   // The app's own files never change under one name: kept first.
   event.respondWith(caches.match(request).then((kept) => kept || fetch(request)));
 });
+
+/** Keep the photo cache to MAX_PHOTOS, dropping the ones stored first. */
+function trimPhotos(cache) {
+  return cache
+    .keys()
+    .then((kept) =>
+      Promise.all(
+        kept.slice(0, Math.max(0, kept.length - MAX_PHOTOS)).map((old) => cache.delete(old)),
+      ),
+    );
+}

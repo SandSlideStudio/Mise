@@ -482,7 +482,7 @@ function AddRunningLine() {
             <button
               key={recipe.id}
               type="button"
-              className="toggle min-h-10 px-3 text-[15px]"
+              className="toggle min-h-11 px-3 text-[15px]"
               onClick={() => pick(recipe)}
             >
               {recipe.name}

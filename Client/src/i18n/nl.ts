@@ -604,6 +604,9 @@ export const nl: Record<MessageKey, string> = {
     "Elke nacht bewaart Mise de hele keuken, foto's inbegrepen, in één versleuteld bestand. Bewaar ook een kopie buiten deze machine.",
   'backups.lastGood': 'Laatste back-up: {time}',
   'backups.never': 'Nog geen back-up. De eerste volgt binnen een paar minuten.',
+  'backups.diskLowTitle': 'Weinig ruimte over op deze server',
+  'backups.diskLow':
+    'Er is nog maar {free} vrij waar de back-ups staan. Als de schijf vol is, stoppen de back-ups. Maak ruimte vrij, of bewaar minder back-ups op deze server.',
   'backups.failed': 'De laatste back-up is mislukt.',
   'backups.reason.bad_key':
     'Een herstelsleutel bestaat uit 32 letters en cijfers, in groepjes van vier.',
@@ -1115,6 +1118,9 @@ export const nl: Record<MessageKey, string> = {
   'offline.yours': 'Die van jou',
   'offline.theirs': 'Nu in Mise',
   'offline.keepMine': 'Die van mij houden',
+  'offline.later': 'Later beslissen',
+  'offline.conflictWaiting': '{what} wacht tot je kiest welke versie je houdt.',
+  'offline.choose': 'Kiezen',
   'offline.keepTheirs': 'Houden wat in Mise staat',
   'offline.items_one': '1 onderdeel',
   'offline.items_other': '{count} onderdelen',

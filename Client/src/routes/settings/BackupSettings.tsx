@@ -49,6 +49,15 @@ export function BackupSettings() {
               : t('backups.never')}
           </p>
 
+          {data.disk?.low ? (
+            <div role="alert" className="border-accent border-2 px-4 py-3">
+              <p className="font-semibold">{t('backups.diskLowTitle')}</p>
+              <p className="text-ink-soft text-sm">
+                {t('backups.diskLow', { free: fileSize(translator.locale, data.disk.freeBytes) })}
+              </p>
+            </div>
+          ) : null}
+
           {data.lastError ? (
             <div role="alert" className="border-danger border-2 px-4 py-3">
               <p className="text-danger font-semibold">{t('backups.failed')}</p>

@@ -530,12 +530,12 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
               <div className="bg-surface border-line flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-3.5 sm:px-6">
                 <button
                   type="button"
-                  className="btn-quiet min-h-10 px-4"
+                  className="btn-quiet min-h-11 px-4"
                   onClick={() => insertAfter(lines.length - 1)}
                 >
                   {t('editor.addLine')}
                 </button>
-                <button type="button" className="btn-quiet min-h-10 px-4" onClick={addSection}>
+                <button type="button" className="btn-quiet min-h-11 px-4" onClick={addSection}>
                   {t('editor.addSection')}
                 </button>
                 <span className="text-ink-soft text-[13px]">{plural('editor.lines', filled)}</span>

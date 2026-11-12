@@ -71,6 +71,8 @@ export const backupStatusSchema = z.object({
   problem: backupProblemSchema.nullable(),
   /** Backups kept on the server, newest first. */
   files: z.array(backupFileSchema),
+  /** Room left where backups are kept; low when a few more might not fit. Null if unknown. */
+  disk: z.object({ freeBytes: z.number(), low: z.boolean() }).nullable(),
 });
 
 export const webdavUrlSchema = z

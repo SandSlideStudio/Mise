@@ -250,9 +250,17 @@
     @apply border-danger text-danger hover:bg-danger/10 bg-transparent;
   }
 
-  /* For dense rows like a staff list, where a full touch target is too tall. */
+  /*
+   * For dense rows like a staff list, where a full touch target is too tall
+   * for a mouse. On a touch screen it is still 44 px, the least a finger needs.
+   */
   .btn-small {
     @apply border-line bg-surface-raised text-ink-soft hover:bg-surface-sunk hover:text-ink inline-flex min-h-9 items-center justify-center gap-1.5 border px-3 text-[14px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-45;
+  }
+  @media (pointer: coarse) {
+    .btn-small {
+      min-height: 2.75rem;
+    }
   }
 
   .card {

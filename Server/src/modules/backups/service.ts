@@ -1,5 +1,14 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  stat,
+  statfs,
+  unlink,
+  writeFile,
+} from 'node:fs/promises';
 import path from 'node:path';
 import { eq, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
@@ -26,6 +35,9 @@ import { exportTables, restoreTables } from './data.js';
 import { BackupFailure, failureCode } from './failure.js';
 import type { DeviceCode, Onedrive } from './onedrive.js';
 import * as webdav from './webdav.js';
+
+/** Below this much free room, Settings → Backups warns. */
+const LOW_DISK_BYTES = 500 * 1024 * 1024;
 
 /**
  * Nightly backups, kept on this machine and optionally sent to a NAS.
@@ -219,7 +231,23 @@ export function createBackupService({
       running: running !== null,
       problem: problemOf(current, kitchen?.createdAt ?? null, now),
       files: files.map((file) => ({ ...file, createdAt: file.createdAt.toISOString() })),
+      disk: await diskSpace(files[0]?.size ?? 0),
     };
+  }
+
+  /**
+   * Room left on the disk backups are kept on. Low when it's under half a
+   * gigabyte, or under three backups the size of the newest: on a Raspberry
+   * Pi's SD card that runs out quietly otherwise.
+   */
+  async function diskSpace(newest: number): Promise<{ freeBytes: number; low: boolean } | null> {
+    try {
+      const disk = await statfs(backupDir);
+      const freeBytes = disk.bavail * disk.bsize;
+      return { freeBytes, low: freeBytes < Math.max(LOW_DISK_BYTES, newest * 3) };
+    } catch {
+      return null;
+    }
   }
 
   /** Refuses a NAS without an address, or OneDrive before it's connected. */
@@ -296,7 +324,7 @@ export function createBackupService({
       }
 
       const hash = createHash('sha256');
-      for (const table of tables) hash.update(table.name).update(table.json);
+      for (const table of tables) hash.update(table.name).update(table.fingerprint);
       for (const photo of photos) hash.update(`${photo.name}:${photo.size}:${photo.mtime}`);
       const fingerprint = hash.digest('hex');
 

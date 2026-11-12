@@ -619,6 +619,9 @@ export const fr: Record<MessageKey, string> = {
     'Chaque nuit, Mise enregistre toute la cuisine, photos comprises, dans un seul fichier chiffré. Gardez aussi une copie ailleurs que sur cette machine.',
   'backups.lastGood': 'Dernière sauvegarde : {time}',
   'backups.never': 'Pas encore de sauvegarde. La première aura lieu d’ici quelques minutes.',
+  'backups.diskLowTitle': 'Peu de place sur ce serveur',
+  'backups.diskLow':
+    'Il ne reste que {free} libres là où sont gardées les sauvegardes. Quand le disque est plein, les sauvegardes s’arrêtent. Libère de la place, ou garde moins de sauvegardes sur ce serveur.',
   'backups.failed': 'La dernière sauvegarde a échoué.',
   'backups.reason.bad_key':
     'Une clé de récupération compte 32 lettres et chiffres, par groupes de quatre.',
@@ -1131,6 +1134,9 @@ export const fr: Record<MessageKey, string> = {
   'offline.yours': 'La vôtre',
   'offline.theirs': 'Actuellement dans Mise',
   'offline.keepMine': 'Garder la mienne',
+  'offline.later': 'Décider plus tard',
+  'offline.conflictWaiting': '{what} attend que tu choisisses quelle version garder.',
+  'offline.choose': 'Choisir',
   'offline.keepTheirs': 'Garder celle de Mise',
   'offline.items_one': '1 élément',
   'offline.items_other': '{count} éléments',

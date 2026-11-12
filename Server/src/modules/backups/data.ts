@@ -52,6 +52,12 @@ export interface TableDump {
   name: string;
   json: string;
   rows: number;
+  /**
+   * What the table holds, for telling whether anything changed since the last
+   * backup: every row in a fixed order, without when a tablet was last seen,
+   * which changes all day without anything worth a new backup.
+   */
+  fingerprint: string;
 }
 
 /**
@@ -65,9 +71,15 @@ export async function exportTables(db: Database): Promise<TableDump[]> {
       .select({
         json: sql<string>`coalesce(json_agg(${table}), '[]'::json)::text`,
         rows: sql<number>`count(*)::int`,
+        fingerprint: sql<string>`coalesce(md5(string_agg((to_jsonb(${table}) - 'last_seen_at')::text, ',' order by (to_jsonb(${table}) - 'last_seen_at')::text)), '')`,
       })
       .from(table);
-    dumps.push({ name: getTableConfig(table).name, json: row?.json ?? '[]', rows: row?.rows ?? 0 });
+    dumps.push({
+      name: getTableConfig(table).name,
+      json: row?.json ?? '[]',
+      rows: row?.rows ?? 0,
+      fingerprint: row?.fingerprint ?? '',
+    });
   }
   return dumps;
 }

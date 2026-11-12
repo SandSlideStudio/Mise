@@ -132,7 +132,7 @@ function MenuView({ menu }: { menu: Menu }) {
                       <span className="flex gap-1">
                         <button
                           type="button"
-                          className="btn-quiet h-9 w-9 p-0"
+                          className="btn-quiet h-12 w-12 p-0"
                           aria-label={t('common.moveUp')}
                           disabled={
                             update.isPending || menu.dishes[index - 1]?.course !== dish.course
@@ -143,7 +143,7 @@ function MenuView({ menu }: { menu: Menu }) {
                         </button>
                         <button
                           type="button"
-                          className="btn-quiet h-9 w-9 p-0"
+                          className="btn-quiet h-12 w-12 p-0"
                           aria-label={t('common.moveDown')}
                           disabled={
                             update.isPending || menu.dishes[index + 1]?.course !== dish.course
@@ -154,7 +154,7 @@ function MenuView({ menu }: { menu: Menu }) {
                         </button>
                         <button
                           type="button"
-                          className="btn-quiet h-9 w-9 p-0"
+                          className="btn-quiet h-12 w-12 p-0"
                           aria-label={t('menus.removeDish', { name: dish.name })}
                           disabled={update.isPending}
                           onClick={() =>
