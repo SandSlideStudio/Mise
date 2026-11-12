@@ -7,7 +7,6 @@ const ctx = useTestContext();
 const FULL_SETUP = {
   ...ADMIN,
   language: 'nl',
-  unitSystem: 'metric',
   tickedRetention: 'delete',
   stations: ['Koude keuken', 'Sauzen', 'Patisserie'],
   staff: [
@@ -163,5 +162,23 @@ describe('setting a kitchen up in one go', () => {
   it('refuses a kitchen with no stations at all', async () => {
     const response = await setUp({ ...FULL_SETUP, stations: [], staff: [], recipes: [] });
     expect(response.statusCode).toBe(400);
+  });
+});
+
+describe('a setup that fails halfway', () => {
+  it('leaves nothing behind, so it can simply be tried again', async () => {
+    // Backups to a NAS with no address: refused after the kitchen was made.
+    const failed = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/setup',
+      payload: { ...ADMIN, backups: { sendTo: ['webdav'], webdavUrl: null } },
+    });
+    expect(failed.statusCode).toBe(400);
+    expect(cookieFrom(failed, 'mise_session')).toBeFalsy();
+    const status = await ctx.app.inject({ method: 'GET', url: '/api/setup/status' });
+    expect(status.json().needsSetup).toBe(true);
+
+    const again = await ctx.app.inject({ method: 'POST', url: '/api/setup', payload: ADMIN });
+    expect(again.statusCode).toBe(200);
   });
 });

@@ -74,9 +74,6 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
     name: row.name,
     baseUnit: row.baseUnit,
     allergens: toAllergens(row.allergens),
-    densityGPerMl: row.densityGPerMl,
-    itemWeightG: row.itemWeightG,
-    yieldPercent: row.yieldPercent,
     vegan: row.vegan,
     allergenDetails: row.allergenDetails,
   }));

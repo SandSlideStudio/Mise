@@ -312,6 +312,13 @@ describe('backing up and restoring', () => {
     expect(anonymous.statusCode).toBe(401);
   });
 
+  it('says how much room is left where backups are kept', async () => {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    const status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
+    expect(status.disk).toEqual({ freeBytes: expect.any(Number), low: expect.any(Boolean) });
+    expect(status.disk.freeBytes).toBeGreaterThan(0);
+  });
+
   it('only serves files that are backups', async () => {
     const cookies = { mise_session: await setUpKitchen(app) };
     for (const name of ['..%2F..%2Fpackage.json', 'mise-backup-20260101-000000.mise', '.env']) {
@@ -330,10 +337,15 @@ describe('backing up and restoring', () => {
     const { cookies } = await stockedKitchen();
 
     await app.backups.run({ force: false });
+    // A tablet seen during the day is not a change worth a backup.
+    await app.db.insert(schema.devices).values({ name: 'Pass tablet', tokenHash: 'x' });
+    vi.setSystemTime(new Date('2026-10-20T12:00:00Z'));
+    await app.backups.run({ force: true });
+    await app.db.update(schema.devices).set({ lastSeenAt: new Date('2026-10-20T18:00:00Z') });
     vi.setSystemTime(new Date('2026-10-21T04:00:00Z'));
     await app.backups.run({ force: false });
     let status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
-    expect(status.files).toHaveLength(1);
+    expect(status.files).toHaveLength(2);
     expect(status.lastSuccessAt).toBe('2026-10-21T04:00:00.000Z');
 
     await app.inject({
@@ -345,7 +357,7 @@ describe('backing up and restoring', () => {
     vi.setSystemTime(new Date('2026-10-22T04:00:00Z'));
     await app.backups.run({ force: false });
     status = (await app.inject({ method: 'GET', url: '/api/backups', cookies })).json();
-    expect(status.files).toHaveLength(2);
+    expect(status.files).toHaveLength(3);
   });
 });
 
@@ -503,7 +515,8 @@ describe('sending backups to a NAS', () => {
       payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'wrong' },
     });
     expect(wrong.statusCode).toBe(400);
-    expect(wrong.json().error.code).toBe('backup_auth');
+    // Before setup, one answer for every way it failed (see setup/token.test.ts).
+    expect(wrong.json().error.code).toBe('backup_test_failed');
 
     const right = await app.inject({
       method: 'POST',

@@ -40,7 +40,11 @@ export const en = {
   'error.notFound': 'That isn’t there any more. Someone may have removed it.',
   'error.validationFailed': 'Something in that isn’t filled in right. Check it and try again.',
   'error.alreadyExists': 'That already exists.',
+  'error.badOrigin': 'Changes can only come from Mise’s own page. Open Mise itself and try again.',
+  'error.changedMeanwhile': 'Someone else changed this since you started.',
+  'error.certificateFailed': 'Let’s Encrypt didn’t give a certificate. Its reason: {reason}',
   'error.stillReferenced': 'That is still used somewhere else, so it can’t be removed.',
+  'error.referenceGone': 'Something you chose, such as a station or a recipe, no longer exists.',
   'error.invalidData': 'That value isn’t allowed here.',
   'error.writeInProgress': 'That change is being saved. Try again in a moment.',
   'error.backupFileMissing': 'Attach the backup file.',
@@ -466,23 +470,11 @@ export const en = {
   'picker.creating': 'Creating',
 
   'ingredients.subtitle':
-    'Trim yield, density and weight per piece let the prep list say how much to pull from the walk-in. You can also add ingredients straight from the recipe editor.',
+    'What goes into your recipes, and the allergens in it. You can also add ingredients straight from the recipe editor.',
   'ingredients.search': 'Search ingredients',
   'ingredients.new': 'New ingredient',
-  'ingredients.colYield': 'Trim yield',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g each',
   'ingredients.noMatch': 'Nothing matches.',
   'ingredients.empty': 'Nothing here yet.',
-  'ingredients.explainTitle': 'What the three numbers are for',
-  'ingredients.yieldTitle': 'Trim yield.',
-  'ingredients.yieldBody':
-    'What’s left after peeling and trimming, as a share of what was bought: a kilo of onions gives about 900 g you can use.',
-  'ingredients.densityTitle': 'Grams per millilitre.',
-  'ingredients.densityBody':
-    'Lets a recipe written in litres pull a weight, and the other way round. Oil is about 0.92.',
-  'ingredients.eachTitle': 'Grams each.',
-  'ingredients.eachBody': 'Turns a count into a weight. An onion is about 170, an egg about 50.',
   'ingredients.byVolume': 'Measured by volume',
   'ingredients.counted': 'Counted',
   'ingredients.weighed': 'Weighed',
@@ -492,12 +484,6 @@ export const en = {
   'ingredients.optWeight': 'By weight',
   'ingredients.optVolume': 'By volume',
   'ingredients.optCount': 'By count',
-  'ingredients.yieldLabel': 'Trim yield, per cent',
-  'ingredients.yieldHint': 'What is left after peeling and trimming. Onions are about 90.',
-  'ingredients.densityLabel': 'Grams per millilitre',
-  'ingredients.densityHint': 'Only to convert between weight and volume. Oil is about 0.92.',
-  'ingredients.eachLabel': 'Grams each',
-  'ingredients.eachHint': 'Only to convert between count and weight. An egg is about 50.',
   'ingredients.allergens': 'Allergens',
 
   'settings.cookOnly': 'Only chefs and administrators can change how the kitchen is set up.',
@@ -513,6 +499,7 @@ export const en = {
   'staff.pinTag': 'PIN',
   'staff.passwordTag': 'Password',
   'staff.locked': 'Locked out',
+  'staff.unlock': 'Lift the lock',
   'staff.namePlaceholder': 'How the brigade knows them',
   'staff.role': 'Role',
   'staff.station': 'Usual station',
@@ -580,11 +567,6 @@ export const en = {
   'version.howDocker': 'Plain Docker',
   'version.howDockerSteps': 'In the folder with compose.yaml, run:',
   'kitchen.title': 'This kitchen',
-  'kitchen.units': 'Units',
-  'kitchen.metric': 'Metric — grams and litres',
-  'kitchen.imperial': 'Imperial — ounces and US cups',
-  'kitchen.unitsHint':
-    'Which units new recipes default to. Existing recipes keep whatever they were written in.',
   'kitchen.language': 'Language',
   'kitchen.languageHint':
     'What the interface speaks for anyone who has not chosen their own. Recipes stay exactly as they were typed.',
@@ -621,6 +603,9 @@ export const en = {
     'Every night Mise saves the whole kitchen, photos included, in one encrypted file. Keep a copy somewhere other than this machine as well.',
   'backups.lastGood': 'Last backup: {time}',
   'backups.never': 'No backup yet. The first one runs within a few minutes.',
+  'backups.diskLowTitle': 'Little room left on this server',
+  'backups.diskLow':
+    'Only {free} is free where backups are kept. When the disk is full, backups stop. Free up room, or keep fewer backups on this server.',
   'backups.failed': 'The last backup failed.',
   'backups.reason.bad_key': 'A recovery key is 32 letters and numbers, in groups of four.',
   'backups.reason.wrong_key': "That recovery key doesn't open this backup, or the file is damaged.",
@@ -628,6 +613,8 @@ export const en = {
   'backups.reason.too_new':
     'That backup comes from a newer version of Mise. Update this server first.',
   'backups.reason.local': "It couldn't be saved on this machine. The disk may be full.",
+  'backups.reason.test_failed':
+    'The NAS could not be reached, or the user name, password or folder is wrong. You can also set this up later in Settings → Backups.',
   'backups.reason.unreachable':
     "Mise couldn't reach the NAS. Check the address and that the NAS is switched on.",
   'backups.reason.auth': 'The NAS turned the username or password down.',
@@ -660,8 +647,9 @@ export const en = {
   'backups.whereWebdavHint':
     'Over WebDAV, which Synology, QNAP and Nextcloud all offer. A copy stays on this machine too.',
   'backups.webdavUrl': 'Folder address',
-  'backups.webdavUrlHint':
-    'The WebDAV address of a folder that already exists. Plain http:// is fine inside the restaurant.',
+  'backups.plainHttp':
+    'This address starts with http://, so the NAS password crosses the network readable. Use https:// if your NAS offers it.',
+  'backups.webdavUrlHint': 'The WebDAV address of a folder that already exists.',
   'backups.webdavUser': 'Username',
   'backups.webdavPassword': 'Password',
   'backups.webdavPasswordKept': 'Leave empty to keep the saved password.',
@@ -759,6 +747,8 @@ export const en = {
   'ingredients.veganUnknown': 'Not said',
   'ingredients.veganHint':
     'A dish card never calls a dish vegan while one of its ingredients is not said.',
+  'ingredients.veganConflict':
+    'It can’t be vegan with milk, eggs, fish or shellfish in it. Dish cards will say not vegan.',
   'ingredients.whichCereals': 'Which cereals',
   'ingredients.whichNuts': 'Which nuts',
   'ingredients.cerealsPlaceholder': 'e.g. wheat, rye',
@@ -992,6 +982,8 @@ export const en = {
   'proxy.none': 'No web server trusted: anything passed on by another machine counts as outside.',
   'proxy.stop': 'Stop trusting',
   'proxy.seen': 'Requests for {host} are arriving through {address}. Is that your web server?',
+  'proxy.seenShared':
+    'Until you trust it, everyone coming through it counts as one visitor: a few wrong passwords from anyone there lock everyone outside out for a while.',
   'proxy.trust': 'Trust {address}',
   'proxy.addressLabel': 'Or type the web server’s address',
   'proxy.trustTyped': 'Trust',
@@ -1107,6 +1099,9 @@ export const en = {
   'offline.yours': 'Yours',
   'offline.theirs': 'Now in Mise',
   'offline.keepMine': 'Keep mine',
+  'offline.later': 'Decide later',
+  'offline.conflictWaiting': '{what} is waiting for you to choose which version to keep.',
+  'offline.choose': 'Choose',
   'offline.keepTheirs': 'Keep what’s in Mise',
   'offline.items_one': '1 item',
   'offline.items_other': '{count} items',

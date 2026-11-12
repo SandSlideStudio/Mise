@@ -243,12 +243,27 @@ describe('the kitchen certificate', () => {
   it('vouches only for the kitchen network, so a tablet trusting it trusts nothing else', async () => {
     const server = await start();
     const admin = await signIn(server);
+    // Not even the first time: a public name or address, or a bare word such
+    // as "com" that would cover a whole public domain.
+    for (const name of ['kitchen.example.com', '8.8.8.8', 'com', 'mise']) {
+      const first = await as(server, admin, 'PUT', '/api/connection/kitchen-https', {
+        names: ['192.168.1.50', name],
+      });
+      expect(first.json().error?.code, name).toBe('name_outside_kitchen');
+    }
     const on = await as(server, admin, 'PUT', '/api/connection/kitchen-https', {
-      names: ['192.168.1.50', 'mise'],
+      names: ['192.168.1.50', 'mise.lan'],
     });
     expect(on.statusCode).toBe(200);
     const authority = server.connection.authority()!;
-    for (const name of ['192.168.1.50', '10.0.0.7', 'mise', 'pass.mise', 'mise.local', 'fd00::1'])
+    for (const name of [
+      '192.168.1.50',
+      '10.0.0.7',
+      'mise.lan',
+      'pass.mise.lan',
+      'mise.local',
+      'fd00::1',
+    ])
       expect(authorityPermits(authority, name), name).toBe(true);
     for (const name of ['www.mybank.com', '8.8.8.8', 'mise.com'])
       expect(authorityPermits(authority, name), name).toBe(false);
@@ -422,9 +437,10 @@ describe('a certificate for the domain', () => {
   it('says why, in Let’s Encrypt’s words, when it fails, and leaves HTTPS off', async () => {
     const { server, admin } = await withDomain(fakeLetsEncrypt('fails').issue);
     const response = await as(server, admin, 'POST', '/api/connection/domain-https');
-    expect(response.statusCode).toBe(502);
+    expect(response.statusCode).toBe(400);
     expect(response.json().error).toMatchObject({
       code: 'certificate_failed',
+      details: { reason: expect.stringContaining('Timeout during connect') },
       message: expect.stringContaining('Timeout during connect'),
     });
 

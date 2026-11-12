@@ -38,7 +38,12 @@ export const nl: Record<MessageKey, string> = {
   'error.notFound': 'Dat is er niet meer. Misschien heeft iemand het verwijderd.',
   'error.validationFailed': 'Er is iets niet goed ingevuld. Kijk het na en probeer het opnieuw.',
   'error.alreadyExists': 'Dat bestaat al.',
+  'error.badOrigin':
+    'Wijzigingen kunnen alleen van Mise’s eigen pagina komen. Open Mise zelf en probeer het opnieuw.',
+  'error.changedMeanwhile': 'Iemand anders heeft dit veranderd sinds je begon.',
+  'error.certificateFailed': 'Let’s Encrypt gaf geen certificaat. De reden: {reason}',
   'error.stillReferenced': 'Dat wordt nog ergens anders gebruikt, dus het kan niet weg.',
+  'error.referenceGone': 'Iets wat je koos, zoals een post of een recept, bestaat niet meer.',
   'error.invalidData': 'Die waarde mag hier niet.',
   'error.writeInProgress': 'Die wijziging wordt opgeslagen. Probeer het zo opnieuw.',
   'error.backupFileMissing': 'Voeg het back-upbestand toe.',
@@ -469,24 +474,11 @@ export const nl: Record<MessageKey, string> = {
   'picker.creating': 'Aanmaken',
 
   'ingredients.subtitle':
-    'Opbrengst na schoonmaken, dichtheid en gewicht per stuk zorgen dat de lijst zegt hoeveel je uit de koelcel pakt. Je kunt ingrediënten ook direct in de recepteditor toevoegen.',
+    'Wat er in je recepten gaat, en de allergenen erin. Je kunt ingrediënten ook direct in de recepteditor toevoegen.',
   'ingredients.search': 'Zoek ingrediënten',
   'ingredients.new': 'Nieuw ingrediënt',
-  'ingredients.colYield': 'Rendement',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g per stuk',
   'ingredients.noMatch': 'Niets gevonden.',
   'ingredients.empty': 'Hier staat nog niets.',
-  'ingredients.explainTitle': 'Waar de drie getallen voor zijn',
-  'ingredients.yieldTitle': 'Rendement.',
-  'ingredients.yieldBody':
-    'Wat er overblijft na schillen en schoonmaken, als deel van wat je inkoopt: een kilo uien geeft ongeveer 900 g bruikbaar.',
-  'ingredients.densityTitle': 'Gram per milliliter.',
-  'ingredients.densityBody':
-    'Laat een recept in liters een gewicht opleveren, en andersom. Olie is ongeveer 0,92.',
-  'ingredients.eachTitle': 'Gram per stuk.',
-  'ingredients.eachBody':
-    'Maakt van een aantal een gewicht. Een ui is ongeveer 170, een ei ongeveer 50.',
   'ingredients.byVolume': 'Op volume',
   'ingredients.counted': 'Geteld',
   'ingredients.weighed': 'Gewogen',
@@ -496,14 +488,6 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Op gewicht',
   'ingredients.optVolume': 'Op volume',
   'ingredients.optCount': 'Per stuk',
-  'ingredients.yieldLabel': 'Rendement, procent',
-  'ingredients.yieldHint': 'Wat er overblijft na schillen en schoonmaken. Uien zijn ongeveer 90.',
-  'ingredients.densityLabel': 'Gram per milliliter',
-  'ingredients.densityHint':
-    'Alleen om tussen gewicht en volume om te rekenen. Olie is ongeveer 0,92.',
-  'ingredients.eachLabel': 'Gram per stuk',
-  'ingredients.eachHint':
-    'Alleen om tussen aantal en gewicht om te rekenen. Een ei is ongeveer 50.',
   'ingredients.allergens': 'Allergenen',
 
   'settings.cookOnly': 'Alleen chefs en beheerders kunnen de inrichting van de keuken wijzigen.',
@@ -519,6 +503,7 @@ export const nl: Record<MessageKey, string> = {
   'staff.pinTag': 'Pincode',
   'staff.passwordTag': 'Wachtwoord',
   'staff.locked': 'Geblokkeerd',
+  'staff.unlock': 'Blokkade opheffen',
   'staff.namePlaceholder': 'Zoals de brigade diegene kent',
   'staff.role': 'Rol',
   'staff.station': 'Vaste post',
@@ -589,11 +574,6 @@ export const nl: Record<MessageKey, string> = {
   'version.howDocker': 'Gewoon Docker',
   'version.howDockerSteps': 'Voer in de map met compose.yaml uit:',
   'kitchen.title': 'Deze keuken',
-  'kitchen.units': 'Eenheden',
-  'kitchen.metric': 'Metrisch — grammen en liters',
-  'kitchen.imperial': 'Imperiaal — ounces en Amerikaanse cups',
-  'kitchen.unitsHint':
-    'In welke eenheden nieuwe recepten beginnen. Bestaande recepten houden waarin ze geschreven zijn.',
   'kitchen.language': 'Taal',
   'kitchen.languageHint':
     'De taal van de app voor iedereen die zelf geen taal heeft gekozen. Recepten blijven precies zoals ze zijn ingetypt.',
@@ -629,6 +609,9 @@ export const nl: Record<MessageKey, string> = {
     "Elke nacht bewaart Mise de hele keuken, foto's inbegrepen, in één versleuteld bestand. Bewaar ook een kopie buiten deze machine.",
   'backups.lastGood': 'Laatste back-up: {time}',
   'backups.never': 'Nog geen back-up. De eerste volgt binnen een paar minuten.',
+  'backups.diskLowTitle': 'Weinig ruimte over op deze server',
+  'backups.diskLow':
+    'Er is nog maar {free} vrij waar de back-ups staan. Als de schijf vol is, stoppen de back-ups. Maak ruimte vrij, of bewaar minder back-ups op deze server.',
   'backups.failed': 'De laatste back-up is mislukt.',
   'backups.reason.bad_key':
     'Een herstelsleutel bestaat uit 32 letters en cijfers, in groepjes van vier.',
@@ -639,6 +622,8 @@ export const nl: Record<MessageKey, string> = {
     'Die back-up komt van een nieuwere versie van Mise. Werk deze server eerst bij.',
   'backups.reason.local':
     'Hij kon niet op deze machine worden opgeslagen. Misschien is de schijf vol.',
+  'backups.reason.test_failed':
+    'De NAS was niet bereikbaar, of de gebruikersnaam, het wachtwoord of de map klopt niet. Je kunt dit ook later instellen in Instellingen → Back-ups.',
   'backups.reason.unreachable':
     'Mise kon de NAS niet bereiken. Controleer het adres en of de NAS aan staat.',
   'backups.reason.auth': 'De NAS weigerde de gebruikersnaam of het wachtwoord.',
@@ -671,8 +656,9 @@ export const nl: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Via WebDAV, dat Synology, QNAP en Nextcloud allemaal bieden. Er blijft ook een kopie op deze machine.',
   'backups.webdavUrl': 'Adres van de map',
-  'backups.webdavUrlHint':
-    'Het WebDAV-adres van een map die al bestaat. Gewoon http:// is prima binnen het restaurant.',
+  'backups.plainHttp':
+    'Dit adres begint met http://, dus het NAS-wachtwoord gaat leesbaar over het netwerk. Gebruik https:// als je NAS dat heeft.',
+  'backups.webdavUrlHint': 'Het WebDAV-adres van een map die al bestaat.',
   'backups.webdavUser': 'Gebruikersnaam',
   'backups.webdavPassword': 'Wachtwoord',
   'backups.webdavPasswordKept': 'Laat leeg om het opgeslagen wachtwoord te houden.',
@@ -773,6 +759,8 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Niet gezegd',
   'ingredients.veganHint':
     'Een gerechtenkaart noemt een gerecht nooit vegan zolang een van de ingrediënten niet gezegd is.',
+  'ingredients.veganConflict':
+    'Het kan niet vegan zijn met melk, ei, vis of schaaldieren erin. Op gerechtenkaarten staat dan niet vegan.',
   'ingredients.whichCereals': 'Welke granen',
   'ingredients.whichNuts': 'Welke noten',
   'ingredients.cerealsPlaceholder': 'bijv. tarwe, rogge',
@@ -1014,6 +1002,8 @@ export const nl: Record<MessageKey, string> = {
     'Geen webserver vertrouwd: alles wat via een andere machine binnenkomt telt als buiten.',
   'proxy.stop': 'Niet meer vertrouwen',
   'proxy.seen': 'Verzoeken voor {host} komen binnen via {address}. Is dat je webserver?',
+  'proxy.seenShared':
+    'Tot je het vertrouwt, telt iedereen die erdoor komt als één bezoeker: een paar verkeerde wachtwoorden van wie dan ook sluiten iedereen buiten de keuken een tijdje uit.',
   'proxy.trust': 'Vertrouw {address}',
   'proxy.addressLabel': 'Of typ het adres van de webserver',
   'proxy.trustTyped': 'Vertrouwen',
@@ -1133,6 +1123,9 @@ export const nl: Record<MessageKey, string> = {
   'offline.yours': 'Die van jou',
   'offline.theirs': 'Nu in Mise',
   'offline.keepMine': 'Die van mij houden',
+  'offline.later': 'Later beslissen',
+  'offline.conflictWaiting': '{what} wacht tot je kiest welke versie je houdt.',
+  'offline.choose': 'Kiezen',
   'offline.keepTheirs': 'Houden wat in Mise staat',
   'offline.items_one': '1 onderdeel',
   'offline.items_other': '{count} onderdelen',

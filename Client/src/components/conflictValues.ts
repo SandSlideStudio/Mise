@@ -57,6 +57,8 @@ const FIELD_NAMES: Record<string, MessageKey> = {
   shelfLifeHours: 'offline.field.keeps',
   storage: 'recipe.storage',
   declaredAllergens: 'offline.field.allergens',
+  allergens: 'offline.field.allergens',
+  allergenDetails: 'offline.field.allergens',
   mayContain: 'offline.field.mayContain',
   flavourProfile: 'editor.flavour',
   servingTemperature: 'editor.temperature',
@@ -127,6 +129,13 @@ export function showValue(
       return temperatureName(t, String(value));
     case 'course':
       return courseName(t, String(value));
+    case 'allergenDetails': {
+      // Which cereals and nuts, as typed.
+      const details = value as { gluten?: string[]; nuts?: string[] };
+      const names = [...(details.gluten ?? []), ...(details.nuts ?? [])];
+      return names.length > 0 ? names.join(', ') : NOTHING;
+    }
+    case 'allergens':
     case 'declaredAllergens':
     case 'mayContain':
       return (value as string[]).map((a) => allergenName(t, a)).join(', ');

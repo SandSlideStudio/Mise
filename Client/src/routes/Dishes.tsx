@@ -45,7 +45,8 @@ export function Dishes() {
   if (!user) return null;
   const canManage = user.role !== 'cook';
   // Cooks in a kitchen that keeps cards to chefs go to the spec instead.
-  const opensCard = canManage || cardSettings.data?.access !== 'managers';
+  // Only once the settings say so: not for a moment while they load.
+  const opensCard = canManage || cardSettings.data?.access === 'everyone';
 
   const all = dishes.data ?? [];
   const needle = search.trim().toLowerCase();
@@ -53,7 +54,11 @@ export function Dishes() {
     (dish) =>
       (!needle || dish.name.toLowerCase().includes(needle)) &&
       (!course || (dish.course ?? NO_COURSE) === course) &&
-      (!freeFrom || (dish.facts !== null && !dish.facts.contains.includes(freeFrom as Allergen))) &&
+      // Free from means neither in it nor possibly in it; unknown allergens never qualify.
+      (!freeFrom ||
+        (dish.facts !== null &&
+          !dish.facts.contains.includes(freeFrom as Allergen) &&
+          !dish.facts.mayContain.includes(freeFrom as Allergen))) &&
       (!onMenu || dish.menus.length > 0),
   );
   const groups = new Map<string, DishSummary[]>();

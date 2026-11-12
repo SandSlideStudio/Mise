@@ -74,7 +74,6 @@ export const updateUserSchema = z.object({
 export const kitchenSchema = z.object({
   id: idSchema,
   name: z.string(),
-  unitSystem: z.enum(['metric', 'imperial']),
   /** What the interface speaks for anyone who has not chosen for themselves. */
   language: languageSchema,
   tickedRetention: tickedRetentionSchema,
@@ -82,7 +81,6 @@ export const kitchenSchema = z.object({
 
 export const updateKitchenSchema = z.object({
   name: z.string().min(1).max(120).optional(),
-  unitSystem: z.enum(['metric', 'imperial']).optional(),
   language: languageSchema.optional(),
   tickedRetention: tickedRetentionSchema.optional(),
 });

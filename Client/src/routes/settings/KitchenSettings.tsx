@@ -14,7 +14,6 @@ export function KitchenSettings() {
   const kitchen = useKitchen();
   const update = useUpdateKitchen();
   const [name, setName] = useState('');
-  const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [language, setLanguage] = useState<Language>('en');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
 
@@ -22,7 +21,6 @@ export function KitchenSettings() {
   useEffect(() => {
     if (kitchen.data) {
       setName(kitchen.data.name);
-      setUnitSystem(kitchen.data.unitSystem);
       setLanguage(kitchen.data.language);
       setTickedRetention(kitchen.data.tickedRetention);
     }
@@ -34,7 +32,7 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    update.mutate({ name, unitSystem, language, tickedRetention });
+    update.mutate({ name, language, tickedRetention });
   }
 
   return (
@@ -88,22 +86,6 @@ export function KitchenSettings() {
             ))}
           </select>
           <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.languageHint')}</p>
-        </div>
-
-        <div>
-          <label className="label" htmlFor="unitSystem">
-            {t('kitchen.units')}
-          </label>
-          <select
-            id="unitSystem"
-            className="field"
-            value={unitSystem}
-            onChange={(e) => setUnitSystem(e.target.value as 'metric' | 'imperial')}
-          >
-            <option value="metric">{t('kitchen.metric')}</option>
-            <option value="imperial">{t('kitchen.imperial')}</option>
-          </select>
-          <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.unitsHint')}</p>
         </div>
 
         {update.error ? (

@@ -427,14 +427,23 @@ export function createRecipesService(db: Database) {
       .where(eq(recipeComponents.childRecipeId, id));
   }
 
-  /** Recipes containing a given allergen anywhere in their tree. */
+  /**
+   * Recipes that can't be called free from an allergen: they contain it or may
+   * contain it anywhere in their tree, or their allergens can't be worked out.
+   * "Free from" is what someone with the allergy is shown, so doubt counts.
+   */
   async function idsWithAllergen(allergen: Allergen): Promise<Set<string>> {
     const book = await loadRecipeBook(db);
     const all = await db.select({ id: recipes.id }).from(recipes);
     const matching = new Set<string>();
     for (const { id } of all) {
       const profile = rollUpAllergens(id, book);
-      if (profile.ok && profile.value.contains.includes(allergen)) matching.add(id);
+      if (
+        !profile.ok ||
+        profile.value.contains.includes(allergen) ||
+        profile.value.mayContain.includes(allergen)
+      )
+        matching.add(id);
     }
     return matching;
   }

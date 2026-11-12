@@ -37,7 +37,12 @@ export const es: Record<MessageKey, string> = {
   'error.notFound': 'Eso ya no está. Puede que alguien lo haya quitado.',
   'error.validationFailed': 'Algo no está bien rellenado. Revísalo y vuelve a intentarlo.',
   'error.alreadyExists': 'Eso ya existe.',
+  'error.badOrigin':
+    'Los cambios solo pueden venir de la propia página de Mise. Abre Mise directamente y vuelve a intentarlo.',
+  'error.changedMeanwhile': 'Alguien más ha cambiado esto desde que empezaste.',
+  'error.certificateFailed': 'Let’s Encrypt no dio un certificado. Su motivo: {reason}',
   'error.stillReferenced': 'Todavía se usa en otro sitio, así que no se puede quitar.',
+  'error.referenceGone': 'Algo que elegiste, como una partida o una receta, ya no existe.',
   'error.invalidData': 'Ese valor no se permite aquí.',
   'error.writeInProgress': 'Ese cambio se está guardando. Vuelve a intentarlo en un momento.',
   'error.backupFileMissing': 'Adjunta el archivo de copia de seguridad.',
@@ -468,24 +473,11 @@ export const es: Record<MessageKey, string> = {
   'picker.creating': 'Creando',
 
   'ingredients.subtitle':
-    'El rendimiento tras limpiar, la densidad y el peso por pieza permiten que la lista diga cuánto sacar de la cámara. También puedes añadir ingredientes desde el editor de recetas.',
+    'Lo que va en tus recetas, y los alérgenos que lleva. También puedes añadir ingredientes desde el editor de recetas.',
   'ingredients.search': 'Buscar ingredientes',
   'ingredients.new': 'Nuevo ingrediente',
-  'ingredients.colYield': 'Rendimiento',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g por unidad',
   'ingredients.noMatch': 'No hay resultados.',
   'ingredients.empty': 'Todavía no hay nada.',
-  'ingredients.explainTitle': 'Para qué sirven los tres números',
-  'ingredients.yieldTitle': 'Rendimiento.',
-  'ingredients.yieldBody':
-    'Lo que queda después de pelar y limpiar, como parte de lo que se compra: un kilo de cebollas da unos 900 g aprovechables.',
-  'ingredients.densityTitle': 'Gramos por mililitro.',
-  'ingredients.densityBody':
-    'Permite que una receta escrita en litros dé un peso, y al revés. El aceite ronda 0,92.',
-  'ingredients.eachTitle': 'Gramos por unidad.',
-  'ingredients.eachBody':
-    'Convierte un número de piezas en un peso. Una cebolla ronda 170, un huevo unos 50.',
   'ingredients.byVolume': 'Se mide por volumen',
   'ingredients.counted': 'Se cuenta',
   'ingredients.weighed': 'Se pesa',
@@ -495,12 +487,6 @@ export const es: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Por peso',
   'ingredients.optVolume': 'Por volumen',
   'ingredients.optCount': 'Por unidades',
-  'ingredients.yieldLabel': 'Rendimiento, por ciento',
-  'ingredients.yieldHint': 'Lo que queda después de pelar y limpiar. La cebolla ronda 90.',
-  'ingredients.densityLabel': 'Gramos por mililitro',
-  'ingredients.densityHint': 'Solo para pasar de peso a volumen. El aceite ronda 0,92.',
-  'ingredients.eachLabel': 'Gramos por unidad',
-  'ingredients.eachHint': 'Solo para pasar de unidades a peso. Un huevo ronda 50.',
   'ingredients.allergens': 'Alérgenos',
 
   'settings.cookOnly':
@@ -517,6 +503,7 @@ export const es: Record<MessageKey, string> = {
   'staff.pinTag': 'PIN',
   'staff.passwordTag': 'Contraseña',
   'staff.locked': 'Bloqueado',
+  'staff.unlock': 'Quitar el bloqueo',
   'staff.namePlaceholder': 'Como le conoce la brigada',
   'staff.role': 'Rol',
   'staff.station': 'Partida habitual',
@@ -587,11 +574,6 @@ export const es: Record<MessageKey, string> = {
   'version.howDocker': 'Docker solo',
   'version.howDockerSteps': 'En la carpeta con compose.yaml, ejecuta:',
   'kitchen.title': 'Esta cocina',
-  'kitchen.units': 'Unidades',
-  'kitchen.metric': 'Métrico — gramos y litros',
-  'kitchen.imperial': 'Imperial — onzas y tazas estadounidenses',
-  'kitchen.unitsHint':
-    'Las unidades con las que empiezan las recetas nuevas. Las existentes conservan las suyas.',
   'kitchen.language': 'Idioma',
   'kitchen.languageHint':
     'El idioma de la aplicación para quien no haya elegido el suyo. Las recetas se quedan tal como se escribieron.',
@@ -628,6 +610,9 @@ export const es: Record<MessageKey, string> = {
     'Cada noche Mise guarda toda la cocina, fotos incluidas, en un único archivo cifrado. Guarda también una copia fuera de esta máquina.',
   'backups.lastGood': 'Última copia: {time}',
   'backups.never': 'Aún no hay ninguna copia. La primera se hará en unos minutos.',
+  'backups.diskLowTitle': 'Queda poco espacio en este servidor',
+  'backups.diskLow':
+    'Solo quedan {free} libres donde se guardan las copias. Cuando el disco se llena, las copias se detienen. Libera espacio, o guarda menos copias en este servidor.',
   'backups.failed': 'La última copia ha fallado.',
   'backups.reason.bad_key':
     'Una clave de recuperación tiene 32 letras y números, en grupos de cuatro.',
@@ -637,6 +622,8 @@ export const es: Record<MessageKey, string> = {
   'backups.reason.too_new':
     'Esa copia viene de una versión más nueva de Mise. Actualiza primero este servidor.',
   'backups.reason.local': 'No se pudo guardar en esta máquina. Puede que el disco esté lleno.',
+  'backups.reason.test_failed':
+    'No se pudo llegar al NAS, o el usuario, la contraseña o la carpeta no son correctos. También puedes configurarlo más tarde en Ajustes → Copias de seguridad.',
   'backups.reason.unreachable':
     'Mise no pudo conectar con el NAS. Revisa la dirección y que el NAS esté encendido.',
   'backups.reason.auth': 'El NAS rechazó el usuario o la contraseña.',
@@ -670,8 +657,9 @@ export const es: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Por WebDAV, que ofrecen Synology, QNAP y Nextcloud. También queda una copia en esta máquina.',
   'backups.webdavUrl': 'Dirección de la carpeta',
-  'backups.webdavUrlHint':
-    'La dirección WebDAV de una carpeta que ya exista. Dentro del restaurante basta con http://.',
+  'backups.plainHttp':
+    'Esta dirección empieza por http://, así que la contraseña del NAS viaja legible por la red. Usa https:// si tu NAS lo permite.',
+  'backups.webdavUrlHint': 'La dirección WebDAV de una carpeta que ya exista.',
   'backups.webdavUser': 'Usuario',
   'backups.webdavPassword': 'Contraseña',
   'backups.webdavPasswordKept': 'Déjalo vacío para mantener la contraseña guardada.',
@@ -772,6 +760,8 @@ export const es: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Sin indicar',
   'ingredients.veganHint':
     'Una ficha de plato nunca llama vegano a un plato mientras uno de sus ingredientes esté sin indicar.',
+  'ingredients.veganConflict':
+    'No puede ser vegano con leche, huevo, pescado o marisco. Las fichas de plato dirán que no es vegano.',
   'ingredients.whichCereals': 'Qué cereales',
   'ingredients.whichNuts': 'Qué frutos de cáscara',
   'ingredients.cerealsPlaceholder': 'p. ej. trigo, centeno',
@@ -1010,6 +1000,8 @@ export const es: Record<MessageKey, string> = {
     'Ningún servidor web de confianza: todo lo que llega a través de otra máquina cuenta como de fuera.',
   'proxy.stop': 'Dejar de confiar',
   'proxy.seen': 'Las peticiones para {host} llegan a través de {address}. ¿Es tu servidor web?',
+  'proxy.seenShared':
+    'Hasta que confíes en él, todos los que llegan por ahí cuentan como un solo visitante: unas pocas contraseñas incorrectas de cualquiera bloquean a todos los de fuera durante un rato.',
   'proxy.trust': 'Confiar en {address}',
   'proxy.addressLabel': 'O escribe la dirección del servidor web',
   'proxy.trustTyped': 'Confiar',
@@ -1128,6 +1120,9 @@ export const es: Record<MessageKey, string> = {
   'offline.yours': 'La tuya',
   'offline.theirs': 'Ahora en Mise',
   'offline.keepMine': 'Quedarme con la mía',
+  'offline.later': 'Decidir más tarde',
+  'offline.conflictWaiting': '{what} espera a que elijas qué versión conservar.',
+  'offline.choose': 'Elegir',
   'offline.keepTheirs': 'Quedarme con la de Mise',
   'offline.items_one': '1 elemento',
   'offline.items_other': '{count} elementos',

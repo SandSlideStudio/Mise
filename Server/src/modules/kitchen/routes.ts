@@ -79,6 +79,14 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const kitchen = createKitchenService(app.db);
 
+  /** A PIN lock is kept in memory, not with the account: shown as the lock it is. */
+  function withLock(user: Parameters<typeof serialiseUser>[0]) {
+    const pin = app.auth.pinLockedUntil(user.id);
+    const lockedUntil =
+      pin && (!user.lockedUntil || pin > user.lockedUntil) ? pin : user.lockedUntil;
+    return serialiseUser({ ...user, lockedUntil });
+  }
+
   // --- stations -----------------------------------------------------------
 
   // Readable by anyone signed in: every prep view groups by station.
@@ -163,7 +171,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole(...MANAGERS)],
       schema: { response: { 200: z.array(userSchema), 403: errorSchema } },
     },
-    async () => (await kitchen.listUsers()).map(serialiseUser),
+    async () => (await kitchen.listUsers()).map(withLock),
   );
 
   r.post(
@@ -178,7 +186,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const result = await kitchen.createUser(request.body, request.user!);
       if (!result.ok) throw failureToError(result.error);
-      return serialiseUser(result.user);
+      return withLock(result.user);
     },
   );
 
@@ -205,7 +213,25 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       if (request.body.password || request.body.pin !== undefined) {
         app.auth.forgetFailures(request.params.id);
       }
-      return serialiseUser(result.user);
+      return withLock(result.user);
+    },
+  );
+
+  /** Lift someone's lock, PIN and password alike, without changing either. */
+  r.post(
+    '/users/:id/unlock',
+    {
+      onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
+      schema: {
+        params: z.object({ id: idSchema }),
+        response: { 200: userSchema, 403: errorSchema, 404: errorSchema },
+      },
+    },
+    async (request) => {
+      const result = await kitchen.unlockUser(request.params.id, request.user!);
+      if (!result.ok) throw failureToError(result.error);
+      app.auth.forgetFailures(request.params.id);
+      return withLock(result.user);
     },
   );
 
@@ -240,7 +266,6 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       return {
         id: row.id,
         name: row.name,
-        unitSystem: row.unitSystem,
         language: row.language,
         tickedRetention: row.tickedRetention,
       };
@@ -262,7 +287,6 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       return {
         id: row.id,
         name: row.name,
-        unitSystem: row.unitSystem,
         language: row.language,
         tickedRetention: row.tickedRetention,
       };

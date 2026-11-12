@@ -3,6 +3,79 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.2.4
+
+Every fix from a second full review of the code: allergens shown right everywhere, no edit or tick
+lost or overwritten unseen, and the security gaps it found closed.
+
+**Before updating**
+
+- The metric or imperial setting is gone: it was never used. So are trim yield, density and weight
+  per piece on ingredients, which nothing used either. What was entered for them stays in the
+  database, for when costing uses them.
+- Turning on kitchen HTTPS for the first time now takes addresses and local names only, such as
+  `192.168.1.50` or `mise.local`. A one-word name such as `truenas` is refused: type
+  `truenas.local` or the address instead. A kitchen certificate you already have is unchanged.
+- The installer checks every file it downloads against the release's checksums.
+
+**Allergens**
+
+- **Free from** leaves out dishes that may contain the allergen, not only those that contain it,
+  and dishes whose allergens aren't all known yet.
+- A dish or ingredient with milk, eggs, fish, crustaceans or molluscs is never shown as vegan, even
+  if it was ticked as vegan. The ingredient form says when the two disagree.
+- A recipe or ingredient changed on another tablet shows on every open screen at once.
+
+**Nothing lost or overwritten**
+
+- Editing an ingredient someone else changed meanwhile opens the side-by-side choice, as recipes and
+  menus already did. Recipes and ingredients edited online get the same check, not only offline
+  ones.
+- Two edits to the same thing made offline no longer conflict with each other.
+- Changes waiting on a tablet are kept while it waits to be let in again or for a password.
+- A tick made offline keeps the time it was made, so the line drops off two hours after the tick
+  and not after the wifi came back. A tick on a line added offline goes out right after the line.
+- Ticked lines drop off by the server's clock, so a tablet with the wrong time doesn't matter.
+- A web page in place of an answer, such as a hotel wifi login, counts as no answer; an error page
+  counts as a refusal.
+- When Mise answers with an error, the app opens from the tablet instead of the error page.
+- Pointing at a station or recipe deleted meanwhile says it no longer exists.
+- The conflict choice takes the keyboard focus, keeps Tab inside, and **Decide later** (or Escape)
+  leaves it waiting in the notice at the top.
+
+**Security**
+
+- The "changes only from Mise's own page" check can no longer be skipped with an oddly written
+  address.
+- Before setup, a page opened on the kitchen network can't set Mise up under its own name: the
+  setup code is needed unless Mise is reached by its address or a local name. The TrueNAS
+  instructions now set a setup code. The NAS test during setup no longer tells a stranger why it
+  failed.
+- Signing in gives the same answer for an unknown email, an account that only has a PIN, and one
+  that was switched off.
+- The development compose file keeps the database on the machine itself and needs a password.
+- Settings → Connection says when everyone coming through an untrusted tunnel counts as one
+  visitor, so a few wrong passwords lock everyone out.
+- A NAS address starting with http:// gets a warning that the password crosses the network
+  readable.
+- A release runs every check, browser tests included, and only the newest version becomes
+  "latest" and "2".
+
+**Smaller things**
+
+- Managers can lift someone's lock under **Settings → Staff**, without a new PIN. A PIN lock now
+  shows there too.
+- Setup either happens completely or not at all, so a failed setup can simply be tried again.
+- Backups are skipped again when nothing changed; a tablet being seen counted as a change.
+  **Settings → Backups** warns when the disk is getting full.
+- The app comes compressed, without its debugging files, and is kept by the browser between
+  visits. A tablet keeps at most 300 photos.
+- Buttons are at least 44 px tall on touch screens.
+- A failed Let's Encrypt request says why instead of "Mise can't be reached", and the remaining
+  English-only messages are translated.
+- The dish card link no longer flashes for cooks in kitchens that keep cards to chefs.
+- The upgrade test covers 2.2.3.
+
 ## 2.2.3
 
 Fixes for tablets and phones, and a calmer interface that reads as made for a kitchen.

@@ -37,7 +37,12 @@ export function HttpsSettings() {
 /** Names worth suggesting: the address this page is open on, if it's on the kitchen network. */
 function suggestedNames(connection: Connection): string {
   const host = window.location.hostname.toLowerCase();
-  const local = /^(\d+\.){3}\d+$/.test(host) || host.endsWith('.local') || !host.includes('.');
+  // The same names the server accepts: an address, or a name with a local ending.
+  const local =
+    /^(\d+\.){3}\d+$/.test(host) ||
+    ['.local', '.lan', '.home', '.home.arpa', '.internal', '.intranet'].some((end) =>
+      host.endsWith(end),
+    );
   return connection.inside && local && host !== 'localhost' && host !== connection.outsideDomain
     ? host
     : '';

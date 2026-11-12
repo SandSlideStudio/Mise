@@ -1,3 +1,4 @@
+import { ensureUnchanged } from '../../lib/conflict.js';
 import { and, asc, eq, ilike, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
@@ -34,15 +35,13 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       category: row.category,
       baseUnit: row.baseUnit,
       allergens: row.allergens.filter(isAllergen),
-      densityGPerMl: row.densityGPerMl,
-      itemWeightG: row.itemWeightG,
-      yieldPercent: row.yieldPercent,
       vegan: row.vegan,
       allergenDetails: {
         gluten: row.allergenDetails.gluten ?? [],
         nuts: row.allergenDetails.nuts ?? [],
       },
       notes: row.notes,
+      updatedAt: row.updatedAt.toISOString(),
     };
   }
 
@@ -104,9 +103,6 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           category: request.body.category ?? null,
           baseUnit: request.body.baseUnit,
           allergens: request.body.allergens,
-          densityGPerMl: request.body.densityGPerMl ?? null,
-          itemWeightG: request.body.itemWeightG ?? null,
-          yieldPercent: request.body.yieldPercent,
           vegan: request.body.vegan ?? null,
           allergenDetails: request.body.allergenDetails ?? {},
           notes: request.body.notes ?? null,
@@ -148,6 +144,15 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      // Someone else changed it since this edit started (offline, or with the
+      // page open): ask which to keep, rather than overwrite their allergens.
+      const [before] = await app.db
+        .select()
+        .from(ingredients)
+        .where(eq(ingredients.id, request.params.id))
+        .limit(1);
+      if (!before) throw ApiError.notFound('That ingredient');
+      await ensureUnchanged(request, before.updatedAt, () => serialise(before));
       const [row] = await app.db
         .update(ingredients)
         .set({ ...request.body, updatedAt: new Date() })

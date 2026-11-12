@@ -150,13 +150,12 @@ describe('a sub-recipe in a kind of unit its yield cannot be turned into', () =>
       },
     ],
     [
-      { id: 'i-butter', name: 'Butter', baseUnit: 'g', allergens: ['milk'], yieldPercent: 100 },
+      { id: 'i-butter', name: 'Butter', baseUnit: 'g', allergens: ['milk'] },
       {
         id: 'i-flour',
         name: 'Plain flour',
         baseUnit: 'g',
         allergens: ['gluten'],
-        yieldPercent: 100,
       },
     ],
   );

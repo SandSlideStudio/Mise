@@ -54,6 +54,12 @@ export const updatePrepTaskSchema = z.object({
   assignedUserId: idSchema.nullable().optional(),
   status: prepTaskStatusSchema.optional(),
   sortOrder: z.number().int().optional(),
+  /**
+   * How long ago it was ticked done, for a tick made offline and sent later.
+   * Measured on the device itself, so a tablet with the wrong time doesn't
+   * matter. The server never goes back past the line's creation or a day.
+   */
+  doneMsAgo: z.number().int().min(0).optional(),
 });
 
 /** The note above the list for the next shift. */

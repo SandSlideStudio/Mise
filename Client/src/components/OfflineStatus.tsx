@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
   discardSetAside,
@@ -29,6 +30,8 @@ export function OfflineStatus() {
   const setAside = waiting.filter((entry) => entry.setAside && !entry.conflict);
   const pending = goingOut(waiting).filter((entry) => !entry.conflict).length;
   const queryClient = useQueryClient();
+  // Put off with Escape: the choice waits in the notice instead of on top of everything.
+  const [later, setLater] = useState<string | null>(null);
 
   if (reachable && waiting.length === 0 && dropped.length === 0) return null;
 
@@ -97,7 +100,24 @@ export function OfflineStatus() {
         </div>
       ) : null}
 
-      {conflict ? <ConflictDialog entry={conflict} /> : null}
+      {conflict && conflict.id === later ? (
+        <div
+          role="status"
+          className="border-accent flex flex-wrap items-center justify-between gap-3 border-2 px-4 py-3 sm:px-5"
+        >
+          <p className="text-lg">
+            {sentence(
+              t('offline.conflictWaiting', { what: labelOf(translator, conflict) }),
+              locale,
+            )}
+          </p>
+          <button type="button" className="btn-small" onClick={() => setLater(null)}>
+            {t('offline.choose')}
+          </button>
+        </div>
+      ) : conflict ? (
+        <ConflictDialog entry={conflict} onLater={() => setLater(conflict.id)} />
+      ) : null}
     </div>
   );
 }
@@ -115,7 +135,7 @@ function labelOf(translator: Translator, entry: OutboxEntry): string {
  * Both versions, field by field, for what this person changed. Only the
  * fields that now differ are shown: the rest agree, whichever is kept.
  */
-function ConflictDialog({ entry }: { entry: OutboxEntry }) {
+function ConflictDialog({ entry, onLater }: { entry: OutboxEntry; onLater: () => void }) {
   const translator = useT();
   const { t } = translator;
   const queryClient = useQueryClient();
@@ -127,19 +147,53 @@ function ConflictDialog({ entry }: { entry: OutboxEntry }) {
   const fields = Object.keys(mine).filter(
     (key) => show(key, mine[key]) !== show(key, current[key]),
   );
+  const box = useRef<HTMLDivElement>(null);
+
+  // Into the dialog when it opens, and back where it was when it closes.
+  useEffect(() => {
+    const before = document.activeElement as HTMLElement | null;
+    box.current?.querySelector<HTMLElement>('h2')?.focus();
+    return () => before?.focus?.();
+  }, [entry.id]);
+
+  // Escape puts the choice off; Tab stays inside, as nothing behind can be used.
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      onLater();
+      return;
+    }
+    if (event.key !== 'Tab' || !box.current) return;
+    const focusable = [...box.current.querySelectorAll<HTMLElement>('button, [tabindex="-1"]')];
+    const first = focusable[0];
+    const last = focusable.at(-1);
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  }
 
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="conflict-title"
+      aria-describedby="conflict-body"
+      onKeyDown={onKeyDown}
       className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-4 sm:items-center"
     >
-      <div className="bg-surface-raised border-line max-h-[90dvh] w-full max-w-2xl overflow-y-auto border-2 p-5 sm:p-6">
-        <h2 id="conflict-title" className="text-2xl">
+      <div
+        ref={box}
+        className="bg-surface-raised border-line max-h-[90dvh] w-full max-w-2xl overflow-y-auto border-2 p-5 sm:p-6"
+      >
+        <h2 id="conflict-title" tabIndex={-1} className="text-2xl outline-none">
           {t('offline.conflictTitle')}
         </h2>
-        <p className="text-ink-soft mt-1.5">
+        <p id="conflict-body" className="text-ink-soft mt-1.5">
           {t('offline.conflictBody', { what: labelOf(translator, entry) })}
         </p>
 
@@ -165,6 +219,9 @@ function ConflictDialog({ entry }: { entry: OutboxEntry }) {
             onClick={() => keepTheirs(entry, queryClient)}
           >
             {t('offline.keepTheirs')}
+          </button>
+          <button type="button" className="btn-quiet" onClick={onLater}>
+            {t('offline.later')}
           </button>
         </div>
       </div>

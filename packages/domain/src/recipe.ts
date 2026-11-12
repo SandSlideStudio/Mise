@@ -36,13 +36,6 @@ export interface Ingredient {
   /** The unit this ingredient is normally counted in. */
   baseUnit: BaseUnit;
   allergens: Allergen[];
-  densityGPerMl?: number | null;
-  itemWeightG?: number | null;
-  /**
-   * Edible portion as a percentage of what you buy. Onions come in around 90:
-   * a kilo bought is 900 g once peeled and trimmed.
-   */
-  yieldPercent: number;
   /** True or false when someone has said; null or absent when nobody has. */
   vegan?: boolean | null;
   /** Which gluten cereals and which nuts, for the ones that contain them. */
@@ -94,10 +87,6 @@ export function createRecipeBook(
     recipe: (id) => recipeMap.get(id),
     ingredient: (id) => ingredientMap.get(id),
   };
-}
-
-export function conversionContextFor(i: Ingredient): ConversionContext {
-  return { densityGPerMl: i.densityGPerMl ?? null, itemWeightG: i.itemWeightG ?? null };
 }
 
 // --- errors ---------------------------------------------------------------

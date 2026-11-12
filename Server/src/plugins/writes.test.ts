@@ -238,6 +238,26 @@ describe('an edit made offline, when someone else changed the same thing', () =>
     expect(mine.json().error.details.current.name).toBe('Spring lunch');
   });
 
+  it('checks ingredients too', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const created = await send(admin, 'POST', '/api/ingredients', {
+      name: 'Shallot',
+      baseUnit: 'g',
+    });
+    const ingredient = created.json() as { id: string; updatedAt: string };
+    expect(ingredient.updatedAt).toEqual(expect.any(String));
+    await send(admin, 'PATCH', `/api/ingredients/${ingredient.id}`, { name: 'Banana shallot' });
+    const mine = await send(
+      admin,
+      'PATCH',
+      `/api/ingredients/${ingredient.id}`,
+      { name: 'Echalion' },
+      { 'x-mise-base': ingredient.updatedAt },
+    );
+    expect(mine.statusCode).toBe(409);
+    expect(mine.json().error.details.current.name).toBe('Banana shallot');
+  });
+
   it('checks the handover note, including one written where there was none', async () => {
     const admin = await setUpKitchen(ctx.app);
     // Written offline when there was no note, but someone left one meanwhile.

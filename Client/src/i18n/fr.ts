@@ -37,7 +37,13 @@ export const fr: Record<MessageKey, string> = {
   'error.notFound': 'Ce n’est plus là. Quelqu’un l’a peut-être supprimé.',
   'error.validationFailed': 'Quelque chose n’est pas bien rempli. Vérifiez et réessayez.',
   'error.alreadyExists': 'Cela existe déjà.',
+  'error.badOrigin':
+    'Les modifications ne peuvent venir que de la page de Mise. Ouvre Mise directement et réessaie.',
+  'error.changedMeanwhile': 'Quelqu’un d’autre a modifié ceci depuis que tu as commencé.',
+  'error.certificateFailed': 'Let’s Encrypt n’a pas délivré de certificat. Sa raison : {reason}',
   'error.stillReferenced': 'C’est encore utilisé ailleurs, donc impossible de le supprimer.',
+  'error.referenceGone':
+    'Quelque chose que tu as choisi, comme un poste ou une recette, n’existe plus.',
   'error.invalidData': 'Cette valeur n’est pas autorisée ici.',
   'error.writeInProgress':
     'Cette modification est en cours d’enregistrement. Réessayez dans un instant.',
@@ -479,24 +485,11 @@ export const fr: Record<MessageKey, string> = {
   'picker.creating': 'Création',
 
   'ingredients.subtitle':
-    'Le rendement après parage, la densité et le poids à la pièce permettent à la liste de dire combien sortir de la chambre froide. Vous pouvez aussi ajouter des ingrédients depuis l’éditeur de recettes.',
+    'Ce qui entre dans vos recettes, et les allergènes qu’il contient. Vous pouvez aussi ajouter des ingrédients depuis l’éditeur de recettes.',
   'ingredients.search': 'Chercher des ingrédients',
   'ingredients.new': 'Nouvel ingrédient',
-  'ingredients.colYield': 'Rendement',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g pièce',
   'ingredients.noMatch': 'Aucun résultat.',
   'ingredients.empty': "Rien ici pour l'instant.",
-  'ingredients.explainTitle': 'À quoi servent les trois chiffres',
-  'ingredients.yieldTitle': 'Rendement.',
-  'ingredients.yieldBody':
-    'Ce qui reste après épluchage et parage, en part de ce qui est acheté : un kilo d’oignons donne environ 900 g utilisables.',
-  'ingredients.densityTitle': 'Grammes par millilitre.',
-  'ingredients.densityBody':
-    "Permet à une recette écrite en litres de donner un poids, et inversement. L'huile, c'est environ 0,92.",
-  'ingredients.eachTitle': 'Grammes la pièce.',
-  'ingredients.eachBody':
-    'Transforme un nombre en poids. Un oignon fait environ 170, un œuf environ 50.',
   'ingredients.byVolume': 'Mesuré au volume',
   'ingredients.counted': 'Compté',
   'ingredients.weighed': 'Pesé',
@@ -506,12 +499,6 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Au poids',
   'ingredients.optVolume': 'Au volume',
   'ingredients.optCount': 'À la pièce',
-  'ingredients.yieldLabel': 'Rendement, pour cent',
-  'ingredients.yieldHint': 'Ce qui reste après épluchage et parage. Les oignons, environ 90.',
-  'ingredients.densityLabel': 'Grammes par millilitre',
-  'ingredients.densityHint': "Seulement pour passer du poids au volume. L'huile, environ 0,92.",
-  'ingredients.eachLabel': 'Grammes la pièce',
-  'ingredients.eachHint': 'Seulement pour passer du nombre au poids. Un œuf, environ 50.',
   'ingredients.allergens': 'Allergènes',
 
   'settings.cookOnly':
@@ -528,6 +515,7 @@ export const fr: Record<MessageKey, string> = {
   'staff.pinTag': 'Code',
   'staff.passwordTag': 'Mot de passe',
   'staff.locked': 'Bloqué',
+  'staff.unlock': 'Lever le blocage',
   'staff.namePlaceholder': 'Comme la brigade l’appelle',
   'staff.role': 'Rôle',
   'staff.station': 'Poste habituel',
@@ -600,11 +588,6 @@ export const fr: Record<MessageKey, string> = {
   'version.howDocker': 'Docker seul',
   'version.howDockerSteps': 'Dans le dossier contenant compose.yaml, lancez :',
   'kitchen.title': 'Cette cuisine',
-  'kitchen.units': 'Unités',
-  'kitchen.metric': 'Métrique — grammes et litres',
-  'kitchen.imperial': 'Impérial — onces et tasses américaines',
-  'kitchen.unitsHint':
-    'Les unités par défaut des nouvelles recettes. Les recettes existantes gardent celles dans lesquelles elles ont été écrites.',
   'kitchen.language': 'Langue',
   'kitchen.languageHint':
     "La langue de l'application pour ceux qui n'en ont pas choisi une. Les recettes restent exactement telles qu'elles ont été saisies.",
@@ -641,6 +624,9 @@ export const fr: Record<MessageKey, string> = {
     'Chaque nuit, Mise enregistre toute la cuisine, photos comprises, dans un seul fichier chiffré. Gardez aussi une copie ailleurs que sur cette machine.',
   'backups.lastGood': 'Dernière sauvegarde : {time}',
   'backups.never': 'Pas encore de sauvegarde. La première aura lieu d’ici quelques minutes.',
+  'backups.diskLowTitle': 'Peu de place sur ce serveur',
+  'backups.diskLow':
+    'Il ne reste que {free} libres là où sont gardées les sauvegardes. Quand le disque est plein, les sauvegardes s’arrêtent. Libère de la place, ou garde moins de sauvegardes sur ce serveur.',
   'backups.failed': 'La dernière sauvegarde a échoué.',
   'backups.reason.bad_key':
     'Une clé de récupération compte 32 lettres et chiffres, par groupes de quatre.',
@@ -651,6 +637,8 @@ export const fr: Record<MessageKey, string> = {
     'Cette sauvegarde vient d’une version plus récente de Mise. Mettez d’abord ce serveur à jour.',
   'backups.reason.local':
     'Elle n’a pas pu être enregistrée sur cette machine. Le disque est peut-être plein.',
+  'backups.reason.test_failed':
+    'Le NAS est injoignable, ou le nom d’utilisateur, le mot de passe ou le dossier est incorrect. Tu peux aussi le régler plus tard dans Réglages → Sauvegardes.',
   'backups.reason.unreachable':
     'Mise n’a pas pu joindre le NAS. Vérifiez l’adresse et que le NAS est allumé.',
   'backups.reason.auth': 'Le NAS a refusé le nom d’utilisateur ou le mot de passe.',
@@ -684,8 +672,9 @@ export const fr: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Par WebDAV, que proposent Synology, QNAP et Nextcloud. Une copie reste aussi sur cette machine.',
   'backups.webdavUrl': 'Adresse du dossier',
-  'backups.webdavUrlHint':
-    'L’adresse WebDAV d’un dossier qui existe déjà. Un simple http:// suffit à l’intérieur du restaurant.',
+  'backups.plainHttp':
+    'Cette adresse commence par http://, donc le mot de passe du NAS passe en clair sur le réseau. Utilise https:// si ton NAS le propose.',
+  'backups.webdavUrlHint': 'L’adresse WebDAV d’un dossier qui existe déjà.',
   'backups.webdavUser': 'Nom d’utilisateur',
   'backups.webdavPassword': 'Mot de passe',
   'backups.webdavPasswordKept': 'Laissez vide pour garder le mot de passe enregistré.',
@@ -785,6 +774,8 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Non précisé',
   'ingredients.veganHint':
     'Une fiche plat ne dit jamais qu’un plat est végan tant qu’un de ses ingrédients n’est pas précisé.',
+  'ingredients.veganConflict':
+    'Il ne peut pas être vegan avec du lait, des œufs, du poisson ou des crustacés. Les fiches plat indiqueront non vegan.',
   'ingredients.whichCereals': 'Quelles céréales',
   'ingredients.whichNuts': 'Quels fruits à coque',
   'ingredients.cerealsPlaceholder': 'ex. blé, seigle',
@@ -1026,6 +1017,8 @@ export const fr: Record<MessageKey, string> = {
     'Aucun serveur web approuvé : tout ce qui passe par une autre machine compte comme extérieur.',
   'proxy.stop': 'Ne plus faire confiance',
   'proxy.seen': 'Les requêtes pour {host} arrivent par {address}. Est-ce votre serveur web ?',
+  'proxy.seenShared':
+    'Tant que tu ne lui fais pas confiance, tous ceux qui passent par lui comptent comme un seul visiteur : quelques mauvais mots de passe de n’importe qui bloquent tout le monde hors de la cuisine pendant un moment.',
   'proxy.trust': 'Faire confiance à {address}',
   'proxy.addressLabel': 'Ou saisissez l’adresse du serveur web',
   'proxy.trustTyped': 'Faire confiance',
@@ -1146,6 +1139,9 @@ export const fr: Record<MessageKey, string> = {
   'offline.yours': 'La vôtre',
   'offline.theirs': 'Actuellement dans Mise',
   'offline.keepMine': 'Garder la mienne',
+  'offline.later': 'Décider plus tard',
+  'offline.conflictWaiting': '{what} attend que tu choisisses quelle version garder.',
+  'offline.choose': 'Choisir',
   'offline.keepTheirs': 'Garder celle de Mise',
   'offline.items_one': '1 élément',
   'offline.items_other': '{count} éléments',

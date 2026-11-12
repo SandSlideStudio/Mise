@@ -1,6 +1,6 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useState, type FormEvent } from 'react';
 import type { BaseUnit, Ingredient } from '@mise/contracts';
-import { ALLERGENS, type Allergen } from '@mise/domain';
+import { ALLERGENS, hasAnimalAllergen, type Allergen } from '@mise/domain';
 import { useCurrentUser } from '../api/session.js';
 import {
   useCreateIngredient,
@@ -14,14 +14,11 @@ import { Plate } from '../components/Plate.js';
 import { allergenName, errorMessage, useT, type Translator } from '../i18n/index.js';
 
 /**
- * The raw material catalogue.
+ * The raw material catalogue: what goes into the recipes, and what is in it.
  *
- * Three numbers here do all the work and none of them are self-explanatory,
- * so they get their own columns and the foot of the page says what each is
- * for, rather than assuming a chef knows why software wants a density.
+ * Trim yield, density and weight per piece were asked for here until 2.2.4,
+ * though nothing used them; they come back with costing, where they count.
  */
-
-const COLUMNS = 'sm:grid-cols-[minmax(0,1fr)_96px_96px_96px]';
 
 export function Ingredients() {
   const { t } = useT();
@@ -68,13 +65,6 @@ export function Ingredients() {
           ) : null}
 
           <div className="bg-surface-raised">
-            <div className={`col-head hidden gap-2.5 px-6 py-[9px] sm:grid ${COLUMNS}`}>
-              <span>{t('common.name')}</span>
-              <span className="text-right">{t('ingredients.colYield')}</span>
-              <span className="text-right">{t('ingredients.colDensity')}</span>
-              <span className="text-right">{t('ingredients.colEach')}</span>
-            </div>
-
             {ingredients.isPending ? (
               <p className="text-ink-soft px-6 py-6">{t('common.loading')}</p>
             ) : null}
@@ -107,12 +97,9 @@ export function Ingredients() {
                         </span>
                       ) : null}
                     </span>
-                    <Figure value={`${ingredient.yieldPercent}%`} />
-                    <Figure value={ingredient.densityGPerMl} />
-                    <Figure value={ingredient.itemWeightG} />
                   </>
                 );
-                const rowClass = `grid grid-cols-1 items-baseline gap-2.5 px-4 py-3 text-left sm:px-6 ${COLUMNS}`;
+                const rowClass = 'block w-full px-4 py-3 text-left sm:px-6';
 
                 return (
                   <li key={ingredient.id} className="border-rule border-b">
@@ -143,51 +130,9 @@ export function Ingredients() {
               })}
             </ul>
           </div>
-
-          <div className="bg-surface-sunk border-line flex flex-col gap-3 border-t px-4 py-[18px] sm:px-6">
-            <span className="eyebrow">{t('ingredients.explainTitle')}</span>
-            <Explainer figure="90%" title={t('ingredients.yieldTitle')}>
-              {t('ingredients.yieldBody')}
-            </Explainer>
-            <Explainer figure="0.92" title={t('ingredients.densityTitle')}>
-              {t('ingredients.densityBody')}
-            </Explainer>
-            <Explainer figure="170" title={t('ingredients.eachTitle')}>
-              {t('ingredients.eachBody')}
-            </Explainer>
-          </div>
         </Plate>
       </main>
     </AppShell>
-  );
-}
-
-function Figure({ value }: { value: string | number | null }) {
-  return value === null ? (
-    <span className="text-ink-faint hidden text-right sm:block">—</span>
-  ) : (
-    <span className="qty hidden text-right text-[22px] sm:block">{value}</span>
-  );
-}
-
-function Explainer({
-  figure,
-  title,
-  children,
-}: {
-  figure: string;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="flex gap-3.5">
-      <span className="qty w-[64px] shrink-0 text-right text-[26px] sm:w-[74px] sm:text-[30px]">
-        {figure}
-      </span>
-      <span className="text-[15px] leading-[1.45] text-pretty">
-        <b className="font-semibold">{title}</b> {children}
-      </span>
-    </div>
   );
 }
 
@@ -233,13 +178,6 @@ function IngredientForm({
   const [allergens, setAllergens] = useState<Allergen[]>(
     (ingredient?.allergens ?? []) as Allergen[],
   );
-  const [density, setDensity] = useState(
-    ingredient?.densityGPerMl ? String(ingredient.densityGPerMl) : '',
-  );
-  const [itemWeight, setItemWeight] = useState(
-    ingredient?.itemWeightG ? String(ingredient.itemWeightG) : '',
-  );
-  const [yieldPercent, setYieldPercent] = useState(String(ingredient?.yieldPercent ?? 100));
   const [vegan, setVegan] = useState<boolean | null>(ingredient?.vegan ?? null);
   const [cereals, setCereals] = useState((ingredient?.allergenDetails.gluten ?? []).join(', '));
   const [nuts, setNuts] = useState((ingredient?.allergenDetails.nuts ?? []).join(', '));
@@ -255,9 +193,6 @@ function IngredientForm({
       category: category || null,
       baseUnit,
       allergens,
-      densityGPerMl: density ? Number(density) : null,
-      itemWeightG: itemWeight ? Number(itemWeight) : null,
-      yieldPercent: Number(yieldPercent),
       vegan,
       // Names only count for an allergen that is ticked.
       allergenDetails: {
@@ -265,7 +200,11 @@ function IngredientForm({
         nuts: allergens.includes('nuts') ? splitNames(nuts) : [],
       },
     };
-    if (ingredient) update.mutate({ id: ingredient.id, ...payload }, { onSuccess: onDone });
+    if (ingredient)
+      update.mutate(
+        { id: ingredient.id, base: ingredient.updatedAt, ...payload },
+        { onSuccess: onDone },
+      );
     else create.mutate(payload, { onSuccess: onDone });
   }
 
@@ -313,33 +252,6 @@ function IngredientForm({
           <option value="ml">{t('ingredients.optVolume')}</option>
           <option value="each">{t('ingredients.optCount')}</option>
         </select>
-      </div>
-
-      <div className="grid gap-4 sm:grid-cols-3">
-        <NumberField
-          id="yieldPercent"
-          label={t('ingredients.yieldLabel')}
-          value={yieldPercent}
-          onChange={setYieldPercent}
-          required
-          min={1}
-          max={100}
-          hint={t('ingredients.yieldHint')}
-        />
-        <NumberField
-          id="density"
-          label={t('ingredients.densityLabel')}
-          value={density}
-          onChange={setDensity}
-          hint={t('ingredients.densityHint')}
-        />
-        <NumberField
-          id="itemWeight"
-          label={t('ingredients.eachLabel')}
-          value={itemWeight}
-          onChange={setItemWeight}
-          hint={t('ingredients.eachHint')}
-        />
       </div>
 
       <fieldset>
@@ -421,6 +333,11 @@ function IngredientForm({
           ))}
         </div>
         <p className="text-ink-soft mt-1.5 text-sm">{t('ingredients.veganHint')}</p>
+        {vegan === true && hasAnimalAllergen(allergens) ? (
+          <p role="alert" className="text-danger mt-1.5 text-sm font-medium">
+            {t('ingredients.veganConflict')}
+          </p>
+        ) : null}
       </fieldset>
 
       {error ? (
@@ -450,46 +367,5 @@ function IngredientForm({
         ) : null}
       </div>
     </form>
-  );
-}
-
-function NumberField({
-  id,
-  label,
-  value,
-  onChange,
-  hint,
-  required,
-  min = 0,
-  max,
-}: {
-  id: string;
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  hint: string;
-  required?: boolean;
-  min?: number;
-  max?: number;
-}) {
-  return (
-    <div>
-      <label className="label" htmlFor={id}>
-        {label}
-      </label>
-      <input
-        id={id}
-        type="number"
-        inputMode="decimal"
-        step="any"
-        min={min}
-        max={max}
-        className="field qty text-xl"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        required={required}
-      />
-      <p className="text-ink-soft mt-1.5 text-sm">{hint}</p>
-    </div>
   );
 }

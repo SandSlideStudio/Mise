@@ -84,6 +84,33 @@ describe('when setup asks for a code', () => {
     expect(response.statusCode).toBe(200);
   });
 
+  it('asks for the code when the kitchen network reaches Mise under a website’s name', async () => {
+    const app = await plainKitchen();
+    const inside = { remoteAddress: '192.168.1.20' };
+    // A website can make a visitor's browser do this (DNS rebinding).
+    expect(await status(app, { ...inside, headers: { host: 'mise.evil.example' } })).toBe(true);
+    for (const host of ['192.168.1.5:3000', 'truenas:30080', 'mise.local', '[fd00::5]:3000']) {
+      expect(await status(app, { ...inside, headers: { host } }), host).toBe(false);
+    }
+  });
+
+  it('tests a NAS during setup without telling a stranger why it failed', async () => {
+    const app = await plainKitchen();
+    const test = (headers: Record<string, string> = {}) =>
+      app.inject({
+        method: 'POST',
+        url: '/api/setup/backups/test',
+        payload: { webdavUrl: 'http://127.0.0.1:1/backups' },
+        remoteAddress: '192.168.1.20',
+        headers,
+      });
+    expect((await test()).json().error.code).toBe('backup_test_failed');
+    // With the setup code, the precise reason.
+    expect((await test({ 'x-setup-token': app.setupToken! })).json().error.code).toBe(
+      'backup_unreachable',
+    );
+  });
+
   it('asks a request from the internet for the code Mise made up', async () => {
     const app = await plainKitchen();
     expect(await status(app, { remoteAddress: '203.0.113.9' })).toBe(true);

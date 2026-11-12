@@ -252,6 +252,10 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   validation_failed: 'error.validationFailed',
   already_exists: 'error.alreadyExists',
   still_referenced: 'error.stillReferenced',
+  bad_origin: 'error.badOrigin',
+  changed_meanwhile: 'error.changedMeanwhile',
+  certificate_failed: 'error.certificateFailed',
+  reference_gone: 'error.referenceGone',
   invalid_data: 'error.invalidData',
   write_in_progress: 'error.writeInProgress',
   backup_file_missing: 'error.backupFileMissing',
@@ -293,6 +297,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   backup_too_new: 'backups.reason.too_new',
   backup_local: 'backups.reason.local',
   backup_unreachable: 'backups.reason.unreachable',
+  backup_test_failed: 'backups.reason.test_failed',
   backup_auth: 'backups.reason.auth',
   backup_folder: 'backups.reason.folder',
   backup_remote: 'backups.reason.remote',
@@ -314,7 +319,9 @@ export function errorMessage(translator: Translator, error: unknown): string {
   if (!(error instanceof RequestFailed)) return translator.t('error.generic');
 
   if (error.code === 'account_locked') {
-    const until = (error.details as { until?: string } | undefined)?.until;
+    // Signing in says `until`; approving a device from outside says `lockedUntil`.
+    const details = error.details as { until?: string; lockedUntil?: string } | undefined;
+    const until = details?.until ?? details?.lockedUntil;
     return until
       ? translator.t('error.accountLockedUntil', { time: clockTime(translator.locale, until) })
       : translator.t('error.accountLocked');

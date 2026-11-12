@@ -4,8 +4,8 @@ import { ApiError } from './errors.js';
 /**
  * "Someone changed this while you were offline."
  *
- * An edit made offline is sent with the version it started from, in
- * X-Mise-Base: the thing's last-changed time, or "none" for something that
+ * An edit is sent with the version it started from, in X-Mise-Base: online
+ * from an open form as much as offline from the waiting list: the thing's last-changed time, or "none" for something that
  * wasn't there yet. If the thing has changed since, the edit is refused with
  * what is there now, and the device shows both and asks which to keep.
  * Without the header, the edit simply goes through, as always.
@@ -35,7 +35,7 @@ export async function ensureUnchanged(
   const same =
     base === 'none' ? current === null : current !== null && current.getTime() === base.getTime();
   if (same) return;
-  throw new ApiError(409, 'changed_meanwhile', 'Someone changed this while you were offline.', {
+  throw new ApiError(409, 'changed_meanwhile', 'Someone else changed this since you started.', {
     current: await describe(),
   });
 }

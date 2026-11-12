@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
+import { brotliCompressSync, constants as zlibConstants, gzipSync } from 'node:zlib';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
@@ -38,8 +40,42 @@ function serviceWorker(): Plugin {
   };
 }
 
+/**
+ * A gzip and a brotli copy next to every text file of the build. The server
+ * hands a tablet the smaller one it understands, without compressing anything
+ * itself on every request (which a Raspberry Pi would feel).
+ */
+function precompress(): Plugin {
+  const TEXT = /\.(js|css|html|svg|json|webmanifest|txt)$/;
+  let outDir = 'dist';
+  return {
+    name: 'mise-precompress',
+    apply: 'build',
+    configResolved(config) {
+      outDir = path.resolve(config.root, config.build.outDir);
+    },
+    writeBundle() {
+      const walk = (dir: string): string[] =>
+        readdirSync(dir, { withFileTypes: true }).flatMap((entry) =>
+          entry.isDirectory() ? walk(path.join(dir, entry.name)) : [path.join(dir, entry.name)],
+        );
+      for (const file of walk(outDir).filter((name) => TEXT.test(name))) {
+        const content = readFileSync(file);
+        if (content.length < 1024) continue;
+        writeFileSync(`${file}.gz`, gzipSync(content, { level: 9 }));
+        writeFileSync(
+          `${file}.br`,
+          brotliCompressSync(content, {
+            params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 11 },
+          }),
+        );
+      }
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [react(), tailwindcss(), serviceWorker()],
+  plugins: [react(), tailwindcss(), serviceWorker(), precompress()],
   define: {
     __MISE_VERSION__: JSON.stringify(root.version),
     __MISE_SOURCE__: JSON.stringify(root.homepage),
@@ -57,6 +93,7 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    // Source maps would be most of what a tablet downloads, for no one there.
+    sourcemap: false,
   },
 });

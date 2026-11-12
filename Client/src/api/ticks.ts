@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { PrepTask } from '@mise/contracts';
-import { api, RequestFailed } from './client.js';
+import { request, RequestFailed } from './client.js';
 import { useCurrentUser } from './session.js';
 import {
   claim,
@@ -9,9 +9,11 @@ import {
   queueVersion,
   release,
   remove,
+  removeForTask,
   subscribe,
   type PendingTick,
 } from '../lib/retryQueue.js';
+import { entriesFor, isWaiting, WAITING } from '../lib/outbox.js';
 
 /**
  * Sending saved ticks to the server.
@@ -81,7 +83,18 @@ export function sendTick(entry: PendingTick): Promise<PrepTask | null> {
       const stillQueued = pendingFor(entry.userId).some((other) => other.id === entry.id);
       if (!stillQueued || !claim(entry.id)) return null;
       try {
-        const task = await api.patch<PrepTask>(`/tasks/${entry.taskId}`, entry.patch);
+        const task = await request<PrepTask>(`/tasks/${entry.taskId}`, {
+          method: 'PATCH',
+          body: {
+            ...entry.patch,
+            // Done when it was tapped, not when it got through.
+            ...(entry.patch.status === 'done'
+              ? { doneMsAgo: Math.max(0, Date.now() - entry.queuedAt) }
+              : {}),
+          },
+          // Made once, even if the answer is lost and it is sent again.
+          headers: { 'x-mise-write': entry.id },
+        });
         remove(entry.id);
         return task;
       } catch (error) {
@@ -109,6 +122,15 @@ export async function sendPending(
   onSent: (entry: PendingTick) => void = () => undefined,
 ): Promise<void> {
   for (const entry of pendingFor(userId)) {
+    // A tick on a line added offline waits until that line is sent, and is
+    // forgotten if the line never makes it.
+    if (isWaiting(entry.taskId)) {
+      const lineId = entry.taskId.slice(WAITING.length);
+      if (!entriesFor(userId).some((waiting) => waiting.id === lineId)) {
+        removeForTask(entry.taskId);
+      }
+      continue;
+    }
     try {
       await sendTick(entry);
       onSent(entry);
@@ -143,10 +165,13 @@ export function useTickSender(): void {
     void drain();
     const timer = window.setInterval(() => void drain(), RETRY_INTERVAL_MS);
     const onWake = () => void drain();
+    // A line added offline was just sent: its ticks can go now.
+    const offQueue = subscribe(onWake);
     window.addEventListener('online', onWake);
     document.addEventListener('visibilitychange', onWake);
     return () => {
       window.clearInterval(timer);
+      offQueue();
       window.removeEventListener('online', onWake);
       document.removeEventListener('visibilitychange', onWake);
     };

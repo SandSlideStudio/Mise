@@ -101,6 +101,25 @@ const KITCHEN_RANGES = [
 ];
 
 /**
+ * Whether a name belongs to the kitchen network alone: a private address, or a
+ * name with a local ending. A public name or address, or a bare word such as
+ * "com" (which would cover every .com name), is never one.
+ */
+export function isKitchenName(name: string): boolean {
+  const version = isIP(name);
+  if (version) {
+    const ranges = new BlockList();
+    for (const range of KITCHEN_RANGES) {
+      const [address, prefix] = range.split('/') as [string, string];
+      ranges.addSubnet(address, Number(prefix), isIP(address) === 6 ? 'ipv6' : 'ipv4');
+    }
+    return ranges.check(name, version === 6 ? 'ipv6' : 'ipv4');
+  }
+  const lower = name.toLowerCase();
+  return KITCHEN_DOMAINS.some((domain) => lower === domain || lower.endsWith(`.${domain}`));
+}
+
+/**
  * What the authority may vouch for: the kitchen network's own names and
  * addresses, and the names it was first made for. A tablet that trusts it
  * then trusts it for nothing else: not a bank, not any website, even if the

@@ -162,7 +162,7 @@ describe('the allergen overview', () => {
     const overview = await ok('GET', `/api/menus/${menu.id}/overview`);
     expect(overview.menu.name).toBe('Herfst');
     expect(overview.dishes).toEqual([
-      expect.objectContaining({ name: 'Oester', contains: ['molluscs'], vegan: 'yes' }),
+      expect.objectContaining({ name: 'Oester', contains: ['molluscs'], vegan: 'no' }),
       expect.objectContaining({ name: 'Tarte tatin', contains: ['gluten', 'milk'] }),
     ]);
     expect(overview.settings).toMatchObject({ theme: 'day' });

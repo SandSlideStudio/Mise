@@ -23,26 +23,24 @@ function ingredient(id: string, name: string, overrides: Partial<Ingredient> = {
     name,
     baseUnit: 'g',
     allergens: [],
-    yieldPercent: 100,
     ...overrides,
   };
 }
 
 export const INGREDIENTS: Ingredient[] = [
   ingredient('i-bones', 'Chicken bones'),
-  ingredient('i-onion', 'Onion', { yieldPercent: 90 }),
-  ingredient('i-carrot', 'Carrot', { yieldPercent: 80 }),
+  ingredient('i-onion', 'Onion'),
+  ingredient('i-carrot', 'Carrot'),
   ingredient('i-butter', 'Butter', { allergens: ['milk'] }),
   ingredient('i-flour', 'Plain flour', { allergens: ['gluten'] }),
   ingredient('i-cream', 'Double cream', {
     baseUnit: 'ml',
     allergens: ['milk'],
-    densityGPerMl: 1.0,
   }),
-  ingredient('i-water', 'Water', { baseUnit: 'ml', densityGPerMl: 1.0 }),
+  ingredient('i-water', 'Water', { baseUnit: 'ml' }),
   ingredient('i-salt', 'Salt'),
-  ingredient('i-tarragon', 'Tarragon', {}),
-  ingredient('i-egg', 'Egg', { baseUnit: 'each', allergens: ['eggs'], itemWeightG: 50 }),
+  ingredient('i-tarragon', 'Tarragon'),
+  ingredient('i-egg', 'Egg', { baseUnit: 'each', allergens: ['eggs'] }),
 ];
 
 let componentCounter = 0;

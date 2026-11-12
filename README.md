@@ -261,12 +261,13 @@ Send the backups to a NAS, or download one now and then.
 
 TrueNAS SCALE 24.10 and newer run Mise as a custom app, without the installer.
 
-1. In the TrueNAS shell (**System → Shell**), run `openssl rand -hex 32` twice. The first is the
-   session secret, the second the database password.
+1. In the TrueNAS shell (**System → Shell**), run `openssl rand -hex 32` three times. The first is
+   the session secret, the second the database password, the third the setup code.
 2. Go to **Apps → Discover Apps → ⋮ → Install via YAML**.
 3. Name the app `mise`. TrueNAS only accepts lowercase letters, digits and hyphens.
-4. Paste the YAML below with your two values filled in. The database password goes in twice.
-5. Save, wait until the app shows as running, and open `http://<your TrueNAS address>:3000`.
+4. Paste the YAML below with your three values filled in. The database password goes in twice.
+5. Save, wait until the app shows as running, and open
+   `http://<your TrueNAS address>:3000/setup?token=<your setup code>`.
 
 ```yaml
 services:
@@ -297,6 +298,7 @@ services:
       NODE_ENV: production
       DATABASE_URL: postgres://mise:YOUR_DATABASE_PASSWORD@db:5432/mise
       SESSION_SECRET: YOUR_SESSION_SECRET
+      SETUP_TOKEN: YOUR_SETUP_CODE
       UPLOAD_DIR: /data/uploads
       BACKUP_DIR: /data/backups
     ports:
@@ -312,11 +314,9 @@ volumes:
   backups:
 ```
 
-From a computer on the kitchen network, setup asks for no code. From anywhere else, or through a
-proxy or tunnel, it asks for the code Mise prints in the app's log (**Apps → mise → Logs**). If
-Mise will be reachable from the internet, add `SETUP_TOKEN` with a third `openssl rand -hex 32`,
-along with the settings from [HTTPS](#https), and open `/setup?token=<that value>`. If port 3000 is
-taken, change the first number, as in `'3080:3000'`.
+The setup code means only you can set the kitchen up, even from a web page someone else made open on
+the same network; it is not needed once setup is done. Reachable from the internet as well? Add the
+settings from [HTTPS](#https). If port 3000 is taken, change the first number, as in `'3080:3000'`.
 
 Port 3443 is for HTTPS, once it's turned on under **Settings → Connection**; already installed
 without it? Add the line under `ports` and save. Websites in a VM on the same TrueNAS that should
@@ -365,21 +365,21 @@ free servers that sit mostly idle. Send backups somewhere else too.
 
 ## Settings in `.env`
 
-| Setting              | What it does                                                        |
-| -------------------- | ------------------------------------------------------------------- |
-| `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.      |
-| `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                           |
-| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version   |
-| `PORT`               | The port Mise answers on. Default `3000`.                           |
-| `HTTPS_PORT`         | The port HTTPS answers on, once turned on. Default `3443`.          |
-| `OUTSIDE_ACCESS`     | `approved` (default), or `open` as a way back in                    |
-| `SETUP_TOKEN`        | The setup code. Empty: made up, asked only from outside the network |
-| `MISE_DOMAIN`        | Your domain name, when Caddy from the compose file does HTTPS       |
-| `COMPOSE_PROFILES`   | `https` to start Caddy with Mise                                    |
-| `COOKIE_SECURE`      | `true` when Mise is only reached over HTTPS                         |
-| `TRUST_PROXY`        | `1` behind Caddy. Your own web server: name it in Settings instead  |
-| `MISE_BIND`          | `127.0.0.1` behind a proxy on the same machine                      |
-| `ONEDRIVE_CLIENT_ID` | Your own Microsoft app for OneDrive backups. Empty uses Mise's own  |
+| Setting              | What it does                                                                 |
+| -------------------- | ---------------------------------------------------------------------------- |
+| `SESSION_SECRET`     | Required: 32 or more random characters. Signs nothing yet; keep it secret    |
+| `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                                    |
+| `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version            |
+| `PORT`               | The port Mise answers on. Default `3000`.                                    |
+| `HTTPS_PORT`         | The port HTTPS answers on, once turned on. Default `3443`.                   |
+| `OUTSIDE_ACCESS`     | `approved` (default), or `open` as a way back in                             |
+| `SETUP_TOKEN`        | The setup code. Empty: made up, asked from outside or under a non-local name |
+| `MISE_DOMAIN`        | Your domain name, when Caddy from the compose file does HTTPS                |
+| `COMPOSE_PROFILES`   | `https` to start Caddy with Mise                                             |
+| `COOKIE_SECURE`      | `true` when Mise is only reached over HTTPS                                  |
+| `TRUST_PROXY`        | `1` behind Caddy. Your own web server: name it in Settings instead           |
+| `MISE_BIND`          | `127.0.0.1` behind a proxy on the same machine                               |
+| `ONEDRIVE_CLIENT_ID` | Your own Microsoft app for OneDrive backups. Empty uses Mise's own           |
 
 ## Development
 
@@ -387,6 +387,7 @@ Needs Node 24 or newer (or Node 22 with npm 11), and Docker for the development 
 
 ```bash
 npm install
+cp .env.example .env   # then set your own passwords in it
 npm run db:up
 npm run dev
 ```
@@ -395,7 +396,8 @@ The API runs on port 3000 and the web app on 5173, with `/api` passed through to
 production the server serves the built web app itself.
 
 `npm run db:up` starts only the database, on port 5433 so it doesn't clash with a Postgres already
-on the machine. `docker compose up -d` in this folder builds and runs the whole app from source on
+on the machine, and reachable from this machine only. The `docker-compose.yml` in this folder is for
+development; a kitchen installs with the one in `deploy/`. `docker compose up -d` in this folder builds and runs the whole app from source on
 port 3000, so don't run it at the same time as `npm run dev`.
 
 | Command               | What it does                                |

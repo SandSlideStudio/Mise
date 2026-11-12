@@ -386,3 +386,78 @@ describe('being made', () => {
     expect(refused.statusCode).toBe(403);
   });
 });
+
+describe('a tick sent late', () => {
+  async function tick(id: string, payload: Record<string, unknown>, headers = {}) {
+    return ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/tasks/${id}`,
+      payload,
+      headers,
+      cookies: as(admin),
+    });
+  }
+
+  it('keeps the time it was made, measured on the tablet', async () => {
+    const id = (await add({ description: 'Shallots, brunoise' })).json().task.id;
+    // The line is an hour old; it was ticked fifty minutes ago and only sent now.
+    await ctx.db
+      .update(prepTasks)
+      .set({ createdAt: new Date(Date.now() - 60 * 60_000) })
+      .where(eq(prepTasks.id, id));
+    const done = await tick(id, { status: 'done', doneMsAgo: 50 * 60_000 });
+    expect(done.statusCode).toBe(200);
+    const ago = Date.now() - Date.parse(done.json().completedAt);
+    expect(ago).toBeGreaterThan(49 * 60_000);
+    expect(ago).toBeLessThan(51 * 60_000);
+  });
+
+  it('never goes back before the line existed, or more than a day', async () => {
+    const fresh = (await add({ description: 'Chives' })).json().task;
+    const done = await tick(fresh.id, { status: 'done', doneMsAgo: 5 * 60 * 60_000 });
+    // The line is seconds old, so it was done no earlier than that.
+    expect(Date.now() - Date.parse(done.json().completedAt)).toBeLessThan(60_000);
+
+    const old = (await add({ description: 'Veal stock' })).json().task.id;
+    await ctx.db
+      .update(prepTasks)
+      .set({ createdAt: new Date(Date.now() - 10 * 24 * 60 * 60_000) })
+      .where(eq(prepTasks.id, old));
+    const late = await tick(old, { status: 'done', doneMsAgo: 9 * 24 * 60 * 60_000 });
+    const ago = Date.now() - Date.parse(late.json().completedAt);
+    expect(ago).toBeLessThanOrEqual(24 * 60 * 60_000 + 1_000);
+    expect(ago).toBeGreaterThan(23 * 60 * 60_000);
+  });
+
+  it('is made once, however often it is sent', async () => {
+    const id = (await add({ description: 'Herb oil' })).json().task.id;
+    const once = { 'x-mise-write': 'tick-000000000001' };
+    const first = await tick(id, { status: 'done' }, once);
+    const again = await tick(id, { status: 'done' }, once);
+    expect(again.headers['x-mise-replayed']).toBe('1');
+    expect(again.json().completedAt).toBe(first.json().completedAt);
+  });
+
+  it('may be sent by a cook', async () => {
+    const id = (await add({ description: 'Lemon, zested' })).json().task.id;
+    const cook = await signInCook();
+    const ticked = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/tasks/${id}`,
+      payload: { status: 'done', doneMsAgo: 1_000 },
+      cookies: as(cook),
+    });
+    expect(ticked.statusCode).toBe(200);
+  });
+});
+
+describe('a line for something deleted meanwhile', () => {
+  it('says what you chose no longer exists, not that something is still in use', async () => {
+    const response = await add({
+      description: 'Garnish',
+      stationId: '00000000-0000-4000-8000-000000000000',
+    });
+    expect(response.statusCode).toBe(409);
+    expect(response.json().error.code).toBe('reference_gone');
+  });
+});

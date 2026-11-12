@@ -23,7 +23,6 @@ function ingredient(id: string, overrides: Partial<Ingredient> = {}): Ingredient
     name: id,
     baseUnit: 'g',
     allergens: [],
-    yieldPercent: 100,
     vegan: true,
     ...overrides,
   };
@@ -96,6 +95,22 @@ describe('vegan', () => {
     const glazed = recipe('glazed', [sub('Mais Crème'), ing('gelatine')]);
     const dish = recipe('dish', [sub('glazed')]);
     expect(unwrap(rollUpVegan('dish', bookWith(dish, [glazed])))).toBe('no');
+  });
+
+  it('is never vegan with milk, eggs, fish or shellfish in it, whatever the tick says', () => {
+    const ticked = ingredient('cheese', { allergens: ['milk'], vegan: true });
+    const book = createRecipeBook(
+      [recipe('dish', [ing('corn'), ing('cheese')])],
+      [...INGREDIENTS, ticked],
+    );
+    expect(unwrap(rollUpVegan('dish', book))).toBe('no');
+  });
+
+  it('is not vegan when the recipe itself declares an animal allergen', () => {
+    const dish = recipe('dish', [sub('Mais Crème')], { declaredAllergens: ['eggs'] });
+    expect(unwrap(rollUpVegan('dish', bookWith(dish)))).toBe('no');
+    const card = unwrap(dishCardMatrix('dish', bookWith(dish)));
+    expect(card.dish.vegan).toBe('no');
   });
 
   it('says nothing about an empty recipe', () => {

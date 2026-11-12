@@ -42,6 +42,7 @@ import {
   type TurnDirection,
 } from './SetupFrame.js';
 import { SelfHostNote, WelcomeAside, WelcomePage } from './Welcome.js';
+import { isPlainHttp } from '../lib/nas.js';
 
 /**
  * First run.
@@ -181,7 +182,6 @@ export function Setup() {
   const [staff, setStaff] = useState<PersonDraft[]>([]);
   const [recipes, setRecipes] = useState<RecipeDraft[]>([]);
 
-  const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [enrolDevice, setEnrolDevice] = useState(false);
   // Every backup stays on this machine; these are where else it goes too.
@@ -326,7 +326,6 @@ export function Setup() {
       password,
       pin: pin || undefined,
       language,
-      unitSystem,
       tickedRetention,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       stations: stations.map((station) => station.name.trim()),
@@ -875,18 +874,6 @@ export function Setup() {
                   <p className="text-ink-soft text-sm text-pretty">{t('kitchen.retentionHint')}</p>
                 </fieldset>
 
-                <Field label={t('kitchen.units')} htmlFor="units" hint={t('kitchen.unitsHint')}>
-                  <select
-                    id="units"
-                    className="field"
-                    value={unitSystem}
-                    onChange={(e) => setUnitSystem(e.target.value as 'metric' | 'imperial')}
-                  >
-                    <option value="metric">{t('kitchen.metric')}</option>
-                    <option value="imperial">{t('kitchen.imperial')}</option>
-                  </select>
-                </Field>
-
                 <fieldset className="border-rule flex flex-col gap-2 border-t pt-6">
                   <legend className="sr-only">{t('setup.backupsTitle')}</legend>
                   <SectionTitle>{t('setup.backupsTitle')}</SectionTitle>
@@ -1015,9 +1002,6 @@ export function Setup() {
                           : 'kitchen.retentionKeep',
                       )}
                     </p>
-                    <p className="text-ink-soft text-sm">
-                      {t(unitSystem === 'metric' ? 'kitchen.metric' : 'kitchen.imperial')}
-                    </p>
                     <p className="text-ink-soft text-sm">{t('backups.whereLocal')}</p>
                     {toWebdav ? (
                       <p className="text-ink-soft text-sm">
@@ -1117,8 +1101,13 @@ function SetupNas({
           className="field"
           value={draft.url}
           onChange={(e) => change({ url: e.target.value })}
-          placeholder="http://nas.local:5005/backups/mise"
+          placeholder="https://nas.local:5006/backups/mise"
         />
+        {isPlainHttp(draft.url) ? (
+          <p role="status" className="text-accent mt-1.5 text-sm">
+            {t('backups.plainHttp')}
+          </p>
+        ) : null}
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('backups.webdavUser')} htmlFor="setupWebdavUser">

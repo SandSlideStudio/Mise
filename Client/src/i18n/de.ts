@@ -38,7 +38,13 @@ export const de: Record<MessageKey, string> = {
   'error.notFound': 'Das gibt es nicht mehr. Vielleicht hat es jemand entfernt.',
   'error.validationFailed': 'Etwas ist nicht richtig ausgefüllt. Prüfe es und versuche es erneut.',
   'error.alreadyExists': 'Das gibt es schon.',
+  'error.badOrigin':
+    'Änderungen können nur von Mises eigener Seite kommen. Öffne Mise selbst und versuch es noch einmal.',
+  'error.changedMeanwhile': 'Jemand anderes hat das geändert, seit du angefangen hast.',
+  'error.certificateFailed': 'Let’s Encrypt hat kein Zertifikat ausgestellt. Der Grund: {reason}',
   'error.stillReferenced': 'Das wird noch woanders verwendet und kann nicht entfernt werden.',
+  'error.referenceGone':
+    'Etwas, das du gewählt hast, etwa ein Posten oder ein Rezept, gibt es nicht mehr.',
   'error.invalidData': 'Dieser Wert ist hier nicht erlaubt.',
   'error.writeInProgress':
     'Diese Änderung wird gerade gespeichert. Versuche es gleich noch einmal.',
@@ -477,24 +483,11 @@ export const de: Record<MessageKey, string> = {
   'picker.creating': 'Wird angelegt',
 
   'ingredients.subtitle':
-    'Ausbeute nach dem Putzen, Dichte und Stückgewicht sagen der Liste, wie viel aus dem Kühlhaus geholt werden muss. Zutaten lassen sich auch direkt im Rezepteditor anlegen.',
+    'Was in deine Rezepte kommt, und die Allergene darin. Zutaten lassen sich auch direkt im Rezepteditor anlegen.',
   'ingredients.search': 'Zutaten suchen',
   'ingredients.new': 'Neue Zutat',
-  'ingredients.colYield': 'Ausbeute',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g pro Stück',
   'ingredients.noMatch': 'Nichts gefunden.',
   'ingredients.empty': 'Hier ist noch nichts.',
-  'ingredients.explainTitle': 'Wofür die drei Zahlen da sind',
-  'ingredients.yieldTitle': 'Ausbeute.',
-  'ingredients.yieldBody':
-    'Was nach dem Schälen und Putzen übrig bleibt, als Anteil des Eingekauften: ein Kilo Zwiebeln ergibt etwa 900 g Verwertbares.',
-  'ingredients.densityTitle': 'Gramm pro Milliliter.',
-  'ingredients.densityBody':
-    'Lässt ein Rezept in Litern ein Gewicht ergeben, und umgekehrt. Öl liegt bei etwa 0,92.',
-  'ingredients.eachTitle': 'Gramm pro Stück.',
-  'ingredients.eachBody':
-    'Macht aus einer Stückzahl ein Gewicht. Eine Zwiebel wiegt etwa 170, ein Ei etwa 50.',
   'ingredients.byVolume': 'Nach Volumen',
   'ingredients.counted': 'Gezählt',
   'ingredients.weighed': 'Gewogen',
@@ -504,12 +497,6 @@ export const de: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Nach Gewicht',
   'ingredients.optVolume': 'Nach Volumen',
   'ingredients.optCount': 'Nach Stück',
-  'ingredients.yieldLabel': 'Ausbeute, Prozent',
-  'ingredients.yieldHint': 'Was nach Schälen und Putzen übrig bleibt. Zwiebeln etwa 90.',
-  'ingredients.densityLabel': 'Gramm pro Milliliter',
-  'ingredients.densityHint': 'Nur zum Umrechnen zwischen Gewicht und Volumen. Öl etwa 0,92.',
-  'ingredients.eachLabel': 'Gramm pro Stück',
-  'ingredients.eachHint': 'Nur zum Umrechnen zwischen Stückzahl und Gewicht. Ein Ei etwa 50.',
   'ingredients.allergens': 'Allergene',
 
   'settings.cookOnly':
@@ -526,6 +513,7 @@ export const de: Record<MessageKey, string> = {
   'staff.pinTag': 'PIN',
   'staff.passwordTag': 'Passwort',
   'staff.locked': 'Gesperrt',
+  'staff.unlock': 'Sperre aufheben',
   'staff.namePlaceholder': 'Wie die Brigade diese Person kennt',
   'staff.role': 'Rolle',
   'staff.station': 'Üblicher Posten',
@@ -596,11 +584,6 @@ export const de: Record<MessageKey, string> = {
   'version.howDocker': 'Nur Docker',
   'version.howDockerSteps': 'Führe im Ordner mit compose.yaml aus:',
   'kitchen.title': 'Diese Küche',
-  'kitchen.units': 'Einheiten',
-  'kitchen.metric': 'Metrisch — Gramm und Liter',
-  'kitchen.imperial': 'Imperial — Unzen und US-Cups',
-  'kitchen.unitsHint':
-    'Mit welchen Einheiten neue Rezepte beginnen. Bestehende Rezepte behalten ihre.',
   'kitchen.language': 'Sprache',
   'kitchen.languageHint':
     'Die Sprache der App für alle, die keine eigene gewählt haben. Rezepte bleiben genau so, wie sie eingetippt wurden.',
@@ -637,6 +620,9 @@ export const de: Record<MessageKey, string> = {
     'Jede Nacht speichert Mise die ganze Küche samt Fotos in einer verschlüsselten Datei. Bewahre auch eine Kopie außerhalb dieses Geräts auf.',
   'backups.lastGood': 'Letzte Sicherung: {time}',
   'backups.never': 'Noch keine Sicherung. Die erste läuft in wenigen Minuten.',
+  'backups.diskLowTitle': 'Wenig Platz auf diesem Server',
+  'backups.diskLow':
+    'Wo die Sicherungen liegen, sind nur noch {free} frei. Ist der Speicher voll, hören die Sicherungen auf. Schaff Platz, oder behalte weniger Sicherungen auf diesem Server.',
   'backups.failed': 'Die letzte Sicherung ist fehlgeschlagen.',
   'backups.reason.bad_key':
     'Ein Wiederherstellungsschlüssel hat 32 Buchstaben und Ziffern in Vierergruppen.',
@@ -647,6 +633,8 @@ export const de: Record<MessageKey, string> = {
     'Diese Sicherung stammt aus einer neueren Mise-Version. Aktualisiere zuerst diesen Server.',
   'backups.reason.local':
     'Sie konnte auf diesem Gerät nicht gespeichert werden. Vielleicht ist der Speicher voll.',
+  'backups.reason.test_failed':
+    'Das NAS war nicht erreichbar, oder Benutzername, Passwort oder Ordner stimmen nicht. Du kannst das auch später unter Einstellungen → Sicherungen einrichten.',
   'backups.reason.unreachable':
     'Mise hat das NAS nicht erreicht. Prüfe die Adresse und ob das NAS eingeschaltet ist.',
   'backups.reason.auth': 'Das NAS hat Benutzername oder Passwort abgelehnt.',
@@ -680,8 +668,9 @@ export const de: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Per WebDAV, das Synology, QNAP und Nextcloud anbieten. Eine Kopie bleibt auch auf diesem Gerät.',
   'backups.webdavUrl': 'Adresse des Ordners',
-  'backups.webdavUrlHint':
-    'Die WebDAV-Adresse eines Ordners, den es schon gibt. Im Restaurant reicht einfaches http://.',
+  'backups.plainHttp':
+    'Diese Adresse beginnt mit http://, das NAS-Passwort geht also lesbar über das Netzwerk. Nimm https://, wenn dein NAS das kann.',
+  'backups.webdavUrlHint': 'Die WebDAV-Adresse eines Ordners, den es schon gibt.',
   'backups.webdavUser': 'Benutzername',
   'backups.webdavPassword': 'Passwort',
   'backups.webdavPasswordKept': 'Leer lassen, um das gespeicherte Passwort zu behalten.',
@@ -783,6 +772,8 @@ export const de: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Nicht angegeben',
   'ingredients.veganHint':
     'Eine Gerichtkarte nennt ein Gericht nie vegan, solange eine seiner Zutaten nicht angegeben ist.',
+  'ingredients.veganConflict':
+    'Mit Milch, Ei, Fisch oder Schalentieren kann es nicht vegan sein. Gerichtkarten zeigen dann nicht vegan.',
   'ingredients.whichCereals': 'Welches Getreide',
   'ingredients.whichNuts': 'Welche Nüsse',
   'ingredients.cerealsPlaceholder': 'z. B. Weizen, Roggen',
@@ -1028,6 +1019,8 @@ export const de: Record<MessageKey, string> = {
     'Kein Webserver vertraut: Alles, was über eine andere Maschine kommt, gilt als draußen.',
   'proxy.stop': 'Nicht mehr vertrauen',
   'proxy.seen': 'Anfragen für {host} kommen über {address}. Ist das dein Webserver?',
+  'proxy.seenShared':
+    'Bis du ihm vertraust, zählt jeder, der darüber kommt, als ein Besucher: ein paar falsche Passwörter von irgendwem sperren alle außerhalb der Küche eine Weile aus.',
   'proxy.trust': '{address} vertrauen',
   'proxy.addressLabel': 'Oder gib die Adresse des Webservers ein',
   'proxy.trustTyped': 'Vertrauen',
@@ -1147,6 +1140,9 @@ export const de: Record<MessageKey, string> = {
   'offline.yours': 'Deine',
   'offline.theirs': 'Jetzt in Mise',
   'offline.keepMine': 'Meine behalten',
+  'offline.later': 'Später entscheiden',
+  'offline.conflictWaiting': '{what} wartet, bis du wählst, welche Fassung bleibt.',
+  'offline.choose': 'Wählen',
   'offline.keepTheirs': 'Die in Mise behalten',
   'offline.items_one': '1 Eintrag',
   'offline.items_other': '{count} Einträge',

@@ -10,15 +10,16 @@ permissions:
   packages: write
 
 jobs:
-  checks:
+  version:
     runs-on: ubuntu-latest
+    outputs:
+      latest: ${{ steps.newest.outputs.latest }}
+      major: ${{ steps.newest.outputs.major }}
+      minor: ${{ steps.newest.outputs.minor }}
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
         with:
-          node-version: 24
-          cache: npm
-      - run: npm ci
+          fetch-depth: 0
       - name: Tag matches package.json
         run: |
           version="$(node -p "require('./package.json').version")"
@@ -26,12 +27,29 @@ jobs:
             echo "Tag $GITHUB_REF_NAME does not match package.json version $version" >&2
             exit 1
           fi
-      - run: npm run typecheck
-      - run: npm run lint
-      - run: npm test
+      # A fix for an older version (2.1.2 after 2.2.4) must not become "latest",
+      # or move "2" back: kitchens following those would go back a version.
+      - id: newest
+        name: Whether this is the newest version, overall and in its line
+        run: |
+          v="${GITHUB_REF_NAME#v}"
+          major="${v%%.*}"
+          minor="$(echo "$v" | cut -d. -f1-2)"
+          newest() { git tag -l "$1" | sed 's/^v//' | sort -V | tail -n 1; }
+          is() { [ "$v" = "$1" ] && echo true || echo false; }
+          {
+            echo "latest=$(is "$(newest 'v*.*.*')")"
+            echo "major=$(is "$(newest "v$major.*.*")")"
+            echo "minor=$(is "$(newest "v$minor.*")")"
+          } | tee -a "$GITHUB_OUTPUT"
+
+  # Exactly the checks every push to main gets, browser tests included.
+  checks:
+    needs: version
+    uses: ./.github/workflows/ci.yml
 
   image:
-    needs: checks
+    needs: [version, checks]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -49,12 +67,14 @@ jobs:
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ steps.owner.outputs.name }}/mise-kitchen
-          # 1.2.3, 1.2 and 1, so a kitchen can follow whichever it likes.
+          # 1.2.3, 1.2 and 1, so a kitchen can follow whichever it likes; the
+          # shorter ones only move forward.
+          flavor: latest=false
           tags: |
             type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=semver,pattern={{major}}
-            type=raw,value=latest
+            type=semver,pattern={{major}}.{{minor}},enable=${{ needs.version.outputs.minor }}
+            type=semver,pattern={{major}},enable=${{ needs.version.outputs.major }}
+            type=raw,value=latest,enable=${{ needs.version.outputs.latest }}
       # Normal PCs and mini PCs, plus ARM boxes such as a Raspberry Pi.
       - uses: docker/build-push-action@v6
         with:
@@ -67,7 +87,7 @@ jobs:
           cache-to: type=gha,mode=max
 
   release:
-    needs: image
+    needs: [version, image]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -98,4 +118,5 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "$GITHUB_REF_NAME" --title "Mise $GITHUB_REF_NAME" --notes-file notes.md \
+            --latest=${{ needs.version.outputs.latest }} \
             dist/install.sh dist/compose.yaml dist/Caddyfile dist/env.example dist/SHA256SUMS

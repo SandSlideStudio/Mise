@@ -20,7 +20,7 @@ import securityPlugin from './plugins/security.js';
 import writesPlugin from './plugins/writes.js';
 import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
-import { fromOwnNetwork, plainAddress } from './lib/network.js';
+import { addressedLocally, fromOwnNetwork, plainAddress } from './lib/network.js';
 import { emptyConnectionState, type ConnectionState } from './modules/connection/service.js';
 import { createHttpsListener, type HttpsListener } from './modules/connection/listener.js';
 import type { issueDomainCertificate } from './modules/connection/acme.js';
@@ -118,7 +118,11 @@ export async function buildApp(
     'setupCodeNeeded',
     (request: FastifyRequest) =>
       app.setupToken !== null &&
-      (always || !fromOwnNetwork(request) || app.relayedUnknown(request)),
+      (always ||
+        !fromOwnNetwork(request) ||
+        // From inside, but addressed by a name a website could control.
+        !addressedLocally(request) ||
+        app.relayedUnknown(request)),
   );
 
   app.setValidatorCompiler(validatorCompiler);
@@ -227,7 +231,12 @@ async function registerUploads(app: FastifyInstance, config: Config): Promise<vo
           .status(404)
           .send({ error: { code: 'not_found', message: 'That file is not here.' } });
       }
-      return reply.type(contentTypeFor(name)).send(createReadStream(absolute));
+      // A new photo always gets a new name, so one never changes: kept by the
+      // browser, and only by this person's (it's behind sign-in).
+      return reply
+        .type(contentTypeFor(name))
+        .header('cache-control', 'private, max-age=31536000, immutable')
+        .send(createReadStream(absolute));
     },
   );
 }
@@ -262,7 +271,24 @@ async function registerClient(app: FastifyInstance, config: Config): Promise<voi
     return;
   }
 
-  await app.register(fastifyStatic, { root: clientDir, wildcard: false });
+  await app.register(fastifyStatic, {
+    root: clientDir,
+    wildcard: false,
+    // The build leaves a .br and a .gz next to each file: sent to a browser
+    // that takes them, so nothing is compressed on the fly.
+    preCompressed: true,
+    cacheControl: false,
+    setHeaders(reply, file) {
+      // Built files carry a hash of their content in the name: they never
+      // change, so a tablet keeps them. Everything else is asked about anew.
+      reply.header(
+        'cache-control',
+        file.includes(`${path.sep}assets${path.sep}`)
+          ? 'public, max-age=31536000, immutable'
+          : 'no-cache',
+      );
+    },
+  });
 
   app.setNotFoundHandler((request, reply) => {
     if (request.url.startsWith('/api/')) {

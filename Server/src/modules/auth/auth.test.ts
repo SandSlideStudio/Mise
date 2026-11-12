@@ -109,6 +109,38 @@ describe('password sign-in', () => {
     expect(response.json().error.code).toBe('invalid_credentials');
   });
 
+  it('gives the same answer for a switched-off account, unless the password is right', async () => {
+    await ctx.db.update(users).set({ active: false }).where(eq(users.email, ADMIN.email));
+    const guess = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: 'not-the-password' },
+    });
+    expect(guess.statusCode).toBe(401);
+    expect(guess.json().error.code).toBe('invalid_credentials');
+
+    const owner = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(owner.json().error.code).toBe('account_inactive');
+  });
+
+  it('gives the same answer for an account that only has a PIN', async () => {
+    await ctx.db
+      .update(users)
+      .set({ passwordHash: null, pinHash: await hashSecret('4821') })
+      .where(eq(users.email, ADMIN.email));
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json().error.code).toBe('invalid_credentials');
+  });
+
   it('locks the address after five failed attempts', async () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       await ctx.app.inject({
@@ -128,18 +160,17 @@ describe('password sign-in', () => {
   });
 
   it('resets the failure count after a good sign-in', async () => {
-    await ctx.app.inject({
-      method: 'POST',
-      url: '/api/auth/login',
-      payload: { email: ADMIN.email, password: 'wrong' },
-    });
-    await ctx.app.inject({
-      method: 'POST',
-      url: '/api/auth/login',
-      payload: { email: ADMIN.email, password: ADMIN.password },
-    });
-    const [user] = await ctx.db.select().from(users).where(eq(users.email, ADMIN.email));
-    expect(user?.failedAttempts).toBe(0);
+    const login = (password: string) =>
+      ctx.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password },
+      });
+    for (let i = 0; i < 4; i += 1) await login('wrong');
+    expect((await login(ADMIN.password)).statusCode).toBe(200);
+    // Four more wrong ones would have made nine; after the good one they're four.
+    for (let i = 0; i < 4; i += 1) await login('wrong');
+    expect((await login(ADMIN.password)).statusCode).toBe(200);
   });
 });
 
@@ -320,6 +351,43 @@ describe('PIN sign-in on the line', () => {
       cookies: { mise_device: deviceCookie },
     });
     expect(after.statusCode).toBe(200);
+  });
+
+  it('lets a manager lift the lock without changing the PIN, and shows the lock until then', async () => {
+    const enrolled = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookies: { mise_session: adminCookie },
+    });
+    const deviceCookie = cookieFrom(enrolled, 'mise_device')!;
+    const pinLogin = (pin: string) =>
+      ctx.app.inject({
+        method: 'POST',
+        url: '/api/auth/pin-login',
+        payload: { userId: cookId, pin },
+        cookies: { mise_device: deviceCookie },
+      });
+    // A colleague tries wrong PINs on purpose.
+    for (let attempt = 0; attempt < 5; attempt += 1) await pinLogin('0000');
+    expect((await pinLogin('4821')).statusCode).toBe(429);
+
+    const staff = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/users',
+      cookies: { mise_session: adminCookie },
+    });
+    const cook = staff.json().find((u: { id: string }) => u.id === cookId);
+    expect(Date.parse(cook.lockedUntil)).toBeGreaterThan(Date.now());
+
+    const lifted = await ctx.app.inject({
+      method: 'POST',
+      url: `/api/users/${cookId}/unlock`,
+      cookies: { mise_session: adminCookie },
+    });
+    expect(lifted.statusCode).toBe(200);
+    expect(lifted.json().lockedUntil).toBeNull();
+    expect((await pinLogin('4821')).statusCode).toBe(200);
   });
 
   it('signs everyone out of a tablet when it is revoked', async () => {

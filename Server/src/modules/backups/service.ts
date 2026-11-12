@@ -1,5 +1,14 @@
 import { createHash, randomUUID } from 'node:crypto';
-import { mkdir, readdir, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  stat,
+  statfs,
+  unlink,
+  writeFile,
+} from 'node:fs/promises';
 import path from 'node:path';
 import { eq, sql } from 'drizzle-orm';
 import type { FastifyBaseLogger } from 'fastify';
@@ -11,7 +20,7 @@ import type {
   RestoreResult,
   UpdateBackupSettings,
 } from '@mise/contracts';
-import type { Database } from '../../db/client.js';
+import type { Database, Executor } from '../../db/client.js';
 import {
   backupSettings,
   dishCardSettings,
@@ -26,6 +35,9 @@ import { exportTables, restoreTables } from './data.js';
 import { BackupFailure, failureCode } from './failure.js';
 import type { DeviceCode, Onedrive } from './onedrive.js';
 import * as webdav from './webdav.js';
+
+/** Below this much free room, Settings → Backups warns. */
+const LOW_DISK_BYTES = 500 * 1024 * 1024;
 
 /**
  * Nightly backups, kept on this machine and optionally sent to a NAS.
@@ -146,12 +158,12 @@ export function createBackupService({
   let signIn: (DeviceCode & { timer?: NodeJS.Timeout }) | null = null;
   let signInError: 'declined' | 'expired' | 'failed' | null = null;
 
-  async function settings(): Promise<Settings> {
+  async function settings(exec: Executor = db): Promise<Settings> {
     const find = () =>
-      db.select().from(backupSettings).where(eq(backupSettings.id, SETTINGS_ID)).limit(1);
+      exec.select().from(backupSettings).where(eq(backupSettings.id, SETTINGS_ID)).limit(1);
     const [row] = await find();
     if (row) return row;
-    await db
+    await exec
       .insert(backupSettings)
       .values({ id: SETTINGS_ID, recoveryKey: generateRecoveryKey() })
       .onConflictDoNothing();
@@ -159,8 +171,8 @@ export function createBackupService({
     return created!;
   }
 
-  async function record(values: Partial<Settings>): Promise<void> {
-    await db.update(backupSettings).set(values).where(eq(backupSettings.id, SETTINGS_ID));
+  async function record(values: Partial<Settings>, exec: Executor = db): Promise<void> {
+    await exec.update(backupSettings).set(values).where(eq(backupSettings.id, SETTINGS_ID));
   }
 
   /** Backups kept on this machine, newest first. */
@@ -219,14 +231,32 @@ export function createBackupService({
       running: running !== null,
       problem: problemOf(current, kitchen?.createdAt ?? null, now),
       files: files.map((file) => ({ ...file, createdAt: file.createdAt.toISOString() })),
+      disk: await diskSpace(files[0]?.size ?? 0),
     };
   }
 
+  /**
+   * Room left on the disk backups are kept on. Low when it's under half a
+   * gigabyte, or under three backups the size of the newest: on a Raspberry
+   * Pi's SD card that runs out quietly otherwise.
+   */
+  async function diskSpace(newest: number): Promise<{ freeBytes: number; low: boolean } | null> {
+    try {
+      const disk = await statfs(backupDir);
+      const freeBytes = disk.bavail * disk.bsize;
+      return { freeBytes, low: freeBytes < Math.max(LOW_DISK_BYTES, newest * 3) };
+    } catch {
+      return null;
+    }
+  }
+
   /** Refuses a NAS without an address, or OneDrive before it's connected. */
+  /** In `exec` when given, such as setup's transaction. */
   async function update(
     input: UpdateBackupSettings,
+    exec: Executor = db,
   ): Promise<'ok' | 'needs_address' | 'needs_onedrive'> {
-    const current = await settings();
+    const current = await settings(exec);
     const { sendTo: asked, ...rest } = input;
     const sendTo = asked ?? sendToOf(current);
     const webdavUrl = input.webdavUrl !== undefined ? input.webdavUrl : current.webdavUrl;
@@ -244,14 +274,17 @@ export function createBackupService({
     // unless a new one comes with it, rather than sent to whoever is there.
     const elsewhere =
       input.webdavPassword === undefined && !sameServer(webdavUrl, current.webdavUrl);
-    await record({
-      ...rest,
-      ...(elsewhere ? { webdavPassword: null } : {}),
-      sendToWebdav,
-      sendToOnedrive,
-      ...(moved ? { lastFingerprint: null } : {}),
-      updatedAt: new Date(),
-    });
+    await record(
+      {
+        ...rest,
+        ...(elsewhere ? { webdavPassword: null } : {}),
+        sendToWebdav,
+        sendToOnedrive,
+        ...(moved ? { lastFingerprint: null } : {}),
+        updatedAt: new Date(),
+      },
+      exec,
+    );
     return 'ok';
   }
 
@@ -296,7 +329,7 @@ export function createBackupService({
       }
 
       const hash = createHash('sha256');
-      for (const table of tables) hash.update(table.name).update(table.json);
+      for (const table of tables) hash.update(table.name).update(table.fingerprint);
       for (const photo of photos) hash.update(`${photo.name}:${photo.size}:${photo.mtime}`);
       const fingerprint = hash.digest('hex');
 
@@ -540,7 +573,7 @@ export function createBackupService({
         if ((existing?.count ?? 0) > 0) throw new AlreadySetUpError();
         const restored = await restoreTables(tx, tables);
         // A lockout from before the backup shouldn't follow anyone here.
-        await tx.update(users).set({ failedAttempts: 0, lockedUntil: null });
+        await tx.update(users).set({ lockedUntil: null });
         return restored;
       });
 

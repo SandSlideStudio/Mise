@@ -40,6 +40,30 @@ fetch() {
   fi
 }
 
+sha256() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  fi
+}
+
+# Download a file of the release next to where it goes, and check it against
+# the checksums published with the release. Nothing is replaced until every
+# file has checked out.
+fetch_checked() {
+  fetch "$MISE_SOURCE/$1" "$2.download"
+  expected="$(awk -v f="$1" '$2 == f || $2 == "*" f { print $1 }' SHA256SUMS.download)"
+  [ -n "$expected" ] || { rm -f ./*.download; fail "$1 is not in the release's checksums. Nothing was changed."; }
+  actual="$(sha256 "$2.download")"
+  if [ -z "$actual" ]; then
+    say "No sha256sum or shasum on this machine, so $1 could not be checked."
+  elif [ "$actual" != "$expected" ]; then
+    rm -f ./*.download
+    fail "$1 is not the file this release published. Nothing was changed. Try again later."
+  fi
+}
+
 random_secret() {
   if command -v openssl >/dev/null 2>&1; then
     openssl rand -hex 32
@@ -52,14 +76,21 @@ mkdir -p "$MISE_DIR"
 cd "$MISE_DIR"
 
 say "Downloading the setup files into $(pwd)"
-fetch "$MISE_SOURCE/compose.yaml" compose.yaml
-fetch "$MISE_SOURCE/Caddyfile" Caddyfile
+# Published with every release since 2.1.1.
+fetch "$MISE_SOURCE/SHA256SUMS" SHA256SUMS.download ||
+  fail "Could not download the release's checksums. Releases before 2.1.1 can't be installed this way."
+fetch_checked compose.yaml compose.yaml
+fetch_checked Caddyfile Caddyfile
+# A release can't hold a file starting with a dot, so it's env.example there.
+[ -f .env ] || fetch_checked env.example .env.example
+mv compose.yaml.download compose.yaml
+mv Caddyfile.download Caddyfile
+if [ -f .env.example.download ]; then mv .env.example.download .env.example; fi
+rm -f SHA256SUMS.download
 
 if [ -f .env ]; then
   say "Keeping the existing .env and its secrets."
 else
-  # A release can't hold a file starting with a dot, so it's env.example there.
-  fetch "$MISE_SOURCE/env.example" .env.example 2>/dev/null || fetch "$MISE_SOURCE/.env.example" .env.example
   session_secret="$(random_secret)"
   db_password="$(random_secret)"
   setup_code="$(random_secret | cut -c1-24)"

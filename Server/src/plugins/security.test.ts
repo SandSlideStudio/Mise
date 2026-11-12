@@ -44,6 +44,20 @@ describe('changes from another page', () => {
     expect((await login({ 'sec-fetch-site': 'cross-site' })).statusCode).toBe(403);
   });
 
+  it('are refused however the address is spelled', async () => {
+    for (const url of ['/%61pi/auth/login', '/api//auth/login', '/api/auth/login?x=1']) {
+      const response = await ctx.app.inject({
+        method: 'POST',
+        url,
+        payload: { email: 'nobody@example.com', password: 'not-a-password' },
+        headers: { host: '192.168.1.5:3000', origin: 'https://evil.example' },
+      });
+      // Refused, or not a route at all; never let through to sign in.
+      expect(response.statusCode, url).not.toBe(401);
+      if (response.statusCode !== 404) expect(response.json().error.code, url).toBe('bad_origin');
+    }
+  });
+
   it('go through from Mise’s own page, or from outside a browser', async () => {
     expect((await login({ origin: 'http://192.168.1.5:3000' })).statusCode).toBe(401);
     expect((await login({})).statusCode).toBe(401);
