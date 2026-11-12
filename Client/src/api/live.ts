@@ -11,13 +11,27 @@ import { BASE_URL } from './client.js';
  * within a second.
  */
 
-type Topic = 'prep' | 'kitchen' | 'staff' | 'menus';
+type Topic = 'prep' | 'kitchen' | 'staff' | 'menus' | 'recipes';
 
 const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
   prep: [['tasks'], ['handover']],
   kitchen: [['kitchen'], ['stations'], ['me'], ['dish-card-settings'], ['dish-card'], ['dishes']],
   staff: [['users'], ['roster'], ['me'], ['remote-devices']],
   menus: [['menus'], ['menu'], ['menu-overview'], ['dish-card'], ['dishes']],
+  // Open editors keep what is being typed: their form is filled once.
+  recipes: [
+    ['recipes'],
+    ['recipe'],
+    ['recipe-expanded'],
+    ['recipe-allergens'],
+    ['recipe-used-by'],
+    ['ingredients'],
+    ['ingredient'],
+    ['dish-card'],
+    ['dishes'],
+    ['menu'],
+    ['menu-overview'],
+  ],
 };
 
 const TOPICS = Object.keys(KEYS_BY_TOPIC) as Topic[];

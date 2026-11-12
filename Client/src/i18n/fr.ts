@@ -785,6 +785,8 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Non précisé',
   'ingredients.veganHint':
     'Une fiche plat ne dit jamais qu’un plat est végan tant qu’un de ses ingrédients n’est pas précisé.',
+  'ingredients.veganConflict':
+    'Il ne peut pas être vegan avec du lait, des œufs, du poisson ou des crustacés. Les fiches plat indiqueront non vegan.',
   'ingredients.whichCereals': 'Quelles céréales',
   'ingredients.whichNuts': 'Quels fruits à coque',
   'ingredients.cerealsPlaceholder': 'ex. blé, seigle',

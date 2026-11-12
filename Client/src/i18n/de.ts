@@ -783,6 +783,8 @@ export const de: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Nicht angegeben',
   'ingredients.veganHint':
     'Eine Gerichtkarte nennt ein Gericht nie vegan, solange eine seiner Zutaten nicht angegeben ist.',
+  'ingredients.veganConflict':
+    'Mit Milch, Ei, Fisch oder Schalentieren kann es nicht vegan sein. Gerichtkarten zeigen dann nicht vegan.',
   'ingredients.whichCereals': 'Welches Getreide',
   'ingredients.whichNuts': 'Welche Nüsse',
   'ingredients.cerealsPlaceholder': 'z. B. Weizen, Roggen',

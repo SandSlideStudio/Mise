@@ -759,6 +759,8 @@ export const en = {
   'ingredients.veganUnknown': 'Not said',
   'ingredients.veganHint':
     'A dish card never calls a dish vegan while one of its ingredients is not said.',
+  'ingredients.veganConflict':
+    'It can’t be vegan with milk, eggs, fish or shellfish in it. Dish cards will say not vegan.',
   'ingredients.whichCereals': 'Which cereals',
   'ingredients.whichNuts': 'Which nuts',
   'ingredients.cerealsPlaceholder': 'e.g. wheat, rye',

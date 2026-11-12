@@ -772,6 +772,8 @@ export const es: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Sin indicar',
   'ingredients.veganHint':
     'Una ficha de plato nunca llama vegano a un plato mientras uno de sus ingredientes esté sin indicar.',
+  'ingredients.veganConflict':
+    'No puede ser vegano con leche, huevo, pescado o marisco. Las fichas de plato dirán que no es vegano.',
   'ingredients.whichCereals': 'Qué cereales',
   'ingredients.whichNuts': 'Qué frutos de cáscara',
   'ingredients.cerealsPlaceholder': 'p. ej. trigo, centeno',

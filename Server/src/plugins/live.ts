@@ -7,7 +7,7 @@ import { SESSION_COOKIE } from './auth.js';
  * Live updates: every open screen hears when the kitchen changes something.
  *
  * Deliberately a signal, not the data. The stream only says which part of the
- * kitchen moved ("prep", "kitchen", "staff"); the screen then asks for it again
+ * kitchen moved ("prep", "recipes", "staff"); the screen then asks for it again
  * over the ordinary API, through the same permission checks as always. So no
  * task, name or recipe ever travels down this connection, and a screen that
  * missed a signal loses nothing a refetch would not fix.
@@ -16,7 +16,7 @@ import { SESSION_COOKIE } from './auth.js';
  * plain HTTP, and it passes through a reverse proxy like Caddy untouched.
  */
 
-export type LiveTopic = 'prep' | 'kitchen' | 'staff' | 'menus';
+export type LiveTopic = 'prep' | 'kitchen' | 'staff' | 'menus' | 'recipes';
 
 type Listener = (topic: LiveTopic) => void;
 
@@ -38,6 +38,11 @@ const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
   ['/api/stations', 'kitchen'],
   ['/api/dish-cards', 'kitchen'],
   ['/api/menus', 'menus'],
+  // Recipes, ingredients and photos: allergens and dish cards follow from them,
+  // so an open card never shows yesterday's allergens.
+  ['/api/recipes', 'recipes'],
+  ['/api/ingredients', 'recipes'],
+  ['/api/photos', 'recipes'],
   ['/api/users', 'staff'],
   // A device asking for outside access, and the answer.
   ['/api/access', 'staff'],

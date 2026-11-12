@@ -1,6 +1,7 @@
 import {
   ALLERGENS,
   emptyAllergenProfile,
+  hasAnimalAllergen,
   mergeProfiles,
   type Allergen,
   type AllergenProfile,
@@ -72,7 +73,9 @@ export function combineVegan(statuses: readonly VeganStatus[]): VeganStatus {
   return 'yes';
 }
 
-function veganOf(value: boolean | null | undefined): VeganStatus {
+function veganOf(value: boolean | null | undefined, contains: readonly string[] = []): VeganStatus {
+  // Milk, eggs, fish or shellfish settle it, whatever the vegan tick says.
+  if (hasAnimalAllergen(contains)) return 'no';
   if (value === true) return 'yes';
   if (value === false) return 'no';
   return 'unknown';
@@ -104,7 +107,7 @@ export function rollUpVegan(recipeId: string, book: RecipeBook): Result<VeganSta
           onPath.delete(id);
           return err({ kind: 'missing_ingredient', ingredientId: component.ref.ingredientId });
         }
-        parts.push(veganOf(ingredient.vegan));
+        parts.push(veganOf(ingredient.vegan, ingredient.allergens));
       } else {
         const child = visit(component.ref.recipeId);
         if (!child.ok) {
@@ -116,6 +119,8 @@ export function rollUpVegan(recipeId: string, book: RecipeBook): Result<VeganSta
     }
     onPath.delete(id);
 
+    // Declared on the recipe itself, such as butter in a garnish nobody listed.
+    if (hasAnimalAllergen(recipe.declaredAllergens ?? [])) parts.push('no');
     const status = combineVegan(parts);
     memo.set(id, status);
     return ok(status);
@@ -258,6 +263,7 @@ export function dishCardMatrix(
     details: [],
   };
   let hasDirect = (dish.declaredAllergens?.length ?? 0) + (dish.mayContain?.length ?? 0) > 0;
+  if (hasAnimalAllergen(dish.declaredAllergens ?? [])) direct.vegan.push('no');
 
   const ordered = [...dish.components].sort((a, b) => a.sortOrder - b.sortOrder);
   for (const component of ordered) {
@@ -271,7 +277,7 @@ export function dishCardMatrix(
         contains: ingredient.allergens,
         mayContain: [],
       });
-      direct.vegan.push(veganOf(ingredient.vegan));
+      direct.vegan.push(veganOf(ingredient.vegan, ingredient.allergens));
       direct.details.push(mergeAllergenDetails(ingredient.allergenDetails));
       continue;
     }
@@ -303,7 +309,12 @@ export function dishCardMatrix(
   const dishDetails = rollUpAllergenDetails(dishId, book);
   if (!dishDetails.ok) return dishDetails;
   const everyVegan = [...rows.map((row) => row.vegan), ...direct.vegan];
-  const dishVegan = everyVegan.length > 0 ? combineVegan(everyVegan) : 'unknown';
+  // Never "vegan" next to milk or eggs on the same card, however it got there.
+  const dishVegan = hasAnimalAllergen(dishAllergens.value.contains)
+    ? 'no'
+    : everyVegan.length > 0
+      ? combineVegan(everyVegan)
+      : 'unknown';
 
   let other: DishCardMatrix['other'] = null;
   if (hasDirect) {

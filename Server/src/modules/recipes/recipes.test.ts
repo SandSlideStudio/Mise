@@ -522,6 +522,16 @@ describe('finding a recipe', () => {
     expect(response.json().map((r: { name: string }) => r.name)).toEqual(['Chicken stock']);
   });
 
+  it('leaves out what may contain the allergen too', async () => {
+    await addRecipe(ctx.app, admin, { name: 'Praline tart', mayContain: ['peanuts'] });
+    const response = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/recipes?excludeAllergen=peanuts',
+      cookies: as(admin),
+    });
+    expect(response.json().map((r: { name: string }) => r.name)).not.toContain('Praline tart');
+  });
+
   it('finds everything containing an allergen', async () => {
     const response = await ctx.app.inject({
       method: 'GET',

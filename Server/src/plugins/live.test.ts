@@ -51,6 +51,17 @@ describe('live updates', () => {
     await vi.waitFor(() => expect(heard).toContain('kitchen'));
   });
 
+  it('tells everyone when a recipe or ingredient changes, so open cards refresh', async () => {
+    const heard = listen();
+    await ctx.app.inject({
+      method: 'POST',
+      url: '/api/ingredients',
+      payload: { name: 'Sesame', baseUnit: 'g', allergens: ['sesame'] },
+      cookies: { mise_session: admin },
+    });
+    await vi.waitFor(() => expect(heard).toContain('recipes'));
+  });
+
   it('stays quiet about reads and refused writes', async () => {
     const id = await addLine('Chicken stock');
     const heard = listen();

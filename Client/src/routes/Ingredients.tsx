@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from 'react';
 import type { BaseUnit, Ingredient } from '@mise/contracts';
-import { ALLERGENS, type Allergen } from '@mise/domain';
+import { ALLERGENS, hasAnimalAllergen, type Allergen } from '@mise/domain';
 import { useCurrentUser } from '../api/session.js';
 import {
   useCreateIngredient,
@@ -421,6 +421,11 @@ function IngredientForm({
           ))}
         </div>
         <p className="text-ink-soft mt-1.5 text-sm">{t('ingredients.veganHint')}</p>
+        {vegan === true && hasAnimalAllergen(allergens) ? (
+          <p role="alert" className="text-danger mt-1.5 text-sm font-medium">
+            {t('ingredients.veganConflict')}
+          </p>
+        ) : null}
       </fieldset>
 
       {error ? (

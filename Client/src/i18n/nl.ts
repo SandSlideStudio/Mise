@@ -773,6 +773,8 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.veganUnknown': 'Niet gezegd',
   'ingredients.veganHint':
     'Een gerechtenkaart noemt een gerecht nooit vegan zolang een van de ingrediënten niet gezegd is.',
+  'ingredients.veganConflict':
+    'Het kan niet vegan zijn met melk, ei, vis of schaaldieren erin. Op gerechtenkaarten staat dan niet vegan.',
   'ingredients.whichCereals': 'Welke granen',
   'ingredients.whichNuts': 'Welke noten',
   'ingredients.cerealsPlaceholder': 'bijv. tarwe, rogge',

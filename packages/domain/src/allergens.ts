@@ -22,6 +22,19 @@ export const ALLERGENS = [
 
 export type Allergen = (typeof ALLERGENS)[number];
 
+/** Allergens that only come from animals: anything containing one is not vegan. */
+export const ANIMAL_ALLERGENS: readonly Allergen[] = [
+  'milk',
+  'eggs',
+  'fish',
+  'crustaceans',
+  'molluscs',
+];
+
+export function hasAnimalAllergen(contains: readonly string[]): boolean {
+  return contains.some((allergen) => (ANIMAL_ALLERGENS as readonly string[]).includes(allergen));
+}
+
 const LABELS: Record<Allergen, string> = {
   gluten: 'Cereals containing gluten',
   crustaceans: 'Crustaceans',
