@@ -1,5 +1,12 @@
 name: mise
 
+# For development and building from source only. A kitchen installs with the
+# compose file in deploy/, which the installer downloads.
+#
+# Needs a .env (copy .env.example) with your own POSTGRES_PASSWORD and
+# SESSION_SECRET. The database is published on this machine only, never on
+# the network.
+
 # Old logs are dropped instead of filling the disk.
 x-logging: &logging
   driver: local
@@ -13,11 +20,11 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-mise}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-mise}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
       POSTGRES_DB: ${POSTGRES_DB:-mise}
     ports:
-      # Published so local development can reach it. Remove this in production.
-      - '${POSTGRES_PORT:-5432}:5432'
+      # Reachable from this machine only, for `npm run dev`.
+      - '127.0.0.1:${POSTGRES_PORT:-5433}:5432'
     volumes:
       - db-data:/var/lib/postgresql/data
     # Sized for a small machine such as a Raspberry Pi; a kitchen's database is
@@ -54,7 +61,7 @@ services:
       PORT: 3000
       HTTPS_PORT: 3443
       HOST: 0.0.0.0
-      DATABASE_URL: postgres://${POSTGRES_USER:-mise}:${POSTGRES_PASSWORD:-mise}@db:5432/${POSTGRES_DB:-mise}
+      DATABASE_URL: postgres://${POSTGRES_USER:-mise}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}@db:5432/${POSTGRES_DB:-mise}
       SESSION_SECRET: ${SESSION_SECRET:?SESSION_SECRET must be set in .env}
       COOKIE_SECURE: ${COOKIE_SECURE:-false}
       UPLOAD_DIR: /data/uploads

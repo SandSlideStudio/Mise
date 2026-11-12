@@ -15,6 +15,7 @@ import {
 } from '../../api/backups.js';
 import { useKitchen } from '../../api/kitchen.js';
 import { errorMessage, useT } from '../../i18n/index.js';
+import { isPlainHttp } from '../../lib/nas.js';
 
 /**
  * Nightly backups: when the last one worked, where they go, and the recovery
@@ -284,10 +285,15 @@ function Destination({ status }: { status: BackupStatus }) {
                 type="url"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
-                placeholder="http://nas.local:5005/backups/mise"
+                placeholder="https://nas.local:5006/backups/mise"
                 required
               />
               <p className="text-ink-soft mt-1.5 text-sm">{t('backups.webdavUrlHint')}</p>
+              {isPlainHttp(url) ? (
+                <p role="status" className="text-accent mt-1.5 text-sm">
+                  {t('backups.plainHttp')}
+                </p>
+              ) : null}
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div>

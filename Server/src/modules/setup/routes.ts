@@ -15,6 +15,7 @@ import { safeEqual } from '../../lib/crypto.js';
 import { PASSWORD_SESSION_DAYS } from '../auth/service.js';
 import { describeAgent } from '../access/service.js';
 import { failed } from '../backups/routes.js';
+import { BackupFailure } from '../backups/failure.js';
 import { validTimeZone } from '../backups/service.js';
 
 /**
@@ -62,13 +63,28 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request, reply) => {
       await allowed(request, headerToken(request));
+      const withCode =
+        app.setupToken !== null && safeEqual(headerToken(request) ?? '', app.setupToken);
       await app.backups
         .testWebdav({
           url: request.body.webdavUrl,
           username: request.body.webdavUsername ?? null,
           password: request.body.webdavPassword ?? null,
         })
-        .catch((error: unknown) => failed(error, request.log));
+        .catch((error: unknown) => {
+          // Before anyone has an account, anyone on the network can ask: one
+          // answer for every way it failed, so it can't map what else is on
+          // the network. With the setup code, the precise reason.
+          if (!withCode && error instanceof BackupFailure) {
+            request.log.warn({ err: error }, 'backup test during setup failed');
+            throw new ApiError(
+              400,
+              'backup_test_failed',
+              'The NAS could not be reached, or the user name, password or folder is wrong.',
+            );
+          }
+          failed(error, request.log);
+        });
       return reply.status(204).send(null);
     },
   );

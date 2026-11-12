@@ -640,6 +640,8 @@ export const nl: Record<MessageKey, string> = {
     'Die back-up komt van een nieuwere versie van Mise. Werk deze server eerst bij.',
   'backups.reason.local':
     'Hij kon niet op deze machine worden opgeslagen. Misschien is de schijf vol.',
+  'backups.reason.test_failed':
+    'De NAS was niet bereikbaar, of de gebruikersnaam, het wachtwoord of de map klopt niet. Je kunt dit ook later instellen in Instellingen → Back-ups.',
   'backups.reason.unreachable':
     'Mise kon de NAS niet bereiken. Controleer het adres en of de NAS aan staat.',
   'backups.reason.auth': 'De NAS weigerde de gebruikersnaam of het wachtwoord.',
@@ -672,8 +674,9 @@ export const nl: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Via WebDAV, dat Synology, QNAP en Nextcloud allemaal bieden. Er blijft ook een kopie op deze machine.',
   'backups.webdavUrl': 'Adres van de map',
-  'backups.webdavUrlHint':
-    'Het WebDAV-adres van een map die al bestaat. Gewoon http:// is prima binnen het restaurant.',
+  'backups.plainHttp':
+    'Dit adres begint met http://, dus het NAS-wachtwoord gaat leesbaar over het netwerk. Gebruik https:// als je NAS dat heeft.',
+  'backups.webdavUrlHint': 'Het WebDAV-adres van een map die al bestaat.',
   'backups.webdavUser': 'Gebruikersnaam',
   'backups.webdavPassword': 'Wachtwoord',
   'backups.webdavPasswordKept': 'Laat leeg om het opgeslagen wachtwoord te houden.',
@@ -1017,6 +1020,8 @@ export const nl: Record<MessageKey, string> = {
     'Geen webserver vertrouwd: alles wat via een andere machine binnenkomt telt als buiten.',
   'proxy.stop': 'Niet meer vertrouwen',
   'proxy.seen': 'Verzoeken voor {host} komen binnen via {address}. Is dat je webserver?',
+  'proxy.seenShared':
+    'Tot je het vertrouwt, telt iedereen die erdoor komt als één bezoeker: een paar verkeerde wachtwoorden van wie dan ook sluiten iedereen buiten de keuken een tijdje uit.',
   'proxy.trust': 'Vertrouw {address}',
   'proxy.addressLabel': 'Of typ het adres van de webserver',
   'proxy.trustTyped': 'Vertrouwen',

@@ -638,6 +638,8 @@ export const es: Record<MessageKey, string> = {
   'backups.reason.too_new':
     'Esa copia viene de una versión más nueva de Mise. Actualiza primero este servidor.',
   'backups.reason.local': 'No se pudo guardar en esta máquina. Puede que el disco esté lleno.',
+  'backups.reason.test_failed':
+    'No se pudo llegar al NAS, o el usuario, la contraseña o la carpeta no son correctos. También puedes configurarlo más tarde en Ajustes → Copias de seguridad.',
   'backups.reason.unreachable':
     'Mise no pudo conectar con el NAS. Revisa la dirección y que el NAS esté encendido.',
   'backups.reason.auth': 'El NAS rechazó el usuario o la contraseña.',
@@ -671,8 +673,9 @@ export const es: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Por WebDAV, que ofrecen Synology, QNAP y Nextcloud. También queda una copia en esta máquina.',
   'backups.webdavUrl': 'Dirección de la carpeta',
-  'backups.webdavUrlHint':
-    'La dirección WebDAV de una carpeta que ya exista. Dentro del restaurante basta con http://.',
+  'backups.plainHttp':
+    'Esta dirección empieza por http://, así que la contraseña del NAS viaja legible por la red. Usa https:// si tu NAS lo permite.',
+  'backups.webdavUrlHint': 'La dirección WebDAV de una carpeta que ya exista.',
   'backups.webdavUser': 'Usuario',
   'backups.webdavPassword': 'Contraseña',
   'backups.webdavPasswordKept': 'Déjalo vacío para mantener la contraseña guardada.',
@@ -1013,6 +1016,8 @@ export const es: Record<MessageKey, string> = {
     'Ningún servidor web de confianza: todo lo que llega a través de otra máquina cuenta como de fuera.',
   'proxy.stop': 'Dejar de confiar',
   'proxy.seen': 'Las peticiones para {host} llegan a través de {address}. ¿Es tu servidor web?',
+  'proxy.seenShared':
+    'Hasta que confíes en él, todos los que llegan por ahí cuentan como un solo visitante: unas pocas contraseñas incorrectas de cualquiera bloquean a todos los de fuera durante un rato.',
   'proxy.trust': 'Confiar en {address}',
   'proxy.addressLabel': 'O escribe la dirección del servidor web',
   'proxy.trustTyped': 'Confiar',

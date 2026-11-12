@@ -294,6 +294,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   backup_too_new: 'backups.reason.too_new',
   backup_local: 'backups.reason.local',
   backup_unreachable: 'backups.reason.unreachable',
+  backup_test_failed: 'backups.reason.test_failed',
   backup_auth: 'backups.reason.auth',
   backup_folder: 'backups.reason.folder',
   backup_remote: 'backups.reason.remote',

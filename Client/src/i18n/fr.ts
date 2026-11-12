@@ -653,6 +653,8 @@ export const fr: Record<MessageKey, string> = {
     'Cette sauvegarde vient d’une version plus récente de Mise. Mettez d’abord ce serveur à jour.',
   'backups.reason.local':
     'Elle n’a pas pu être enregistrée sur cette machine. Le disque est peut-être plein.',
+  'backups.reason.test_failed':
+    'Le NAS est injoignable, ou le nom d’utilisateur, le mot de passe ou le dossier est incorrect. Tu peux aussi le régler plus tard dans Réglages → Sauvegardes.',
   'backups.reason.unreachable':
     'Mise n’a pas pu joindre le NAS. Vérifiez l’adresse et que le NAS est allumé.',
   'backups.reason.auth': 'Le NAS a refusé le nom d’utilisateur ou le mot de passe.',
@@ -686,8 +688,9 @@ export const fr: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Par WebDAV, que proposent Synology, QNAP et Nextcloud. Une copie reste aussi sur cette machine.',
   'backups.webdavUrl': 'Adresse du dossier',
-  'backups.webdavUrlHint':
-    'L’adresse WebDAV d’un dossier qui existe déjà. Un simple http:// suffit à l’intérieur du restaurant.',
+  'backups.plainHttp':
+    'Cette adresse commence par http://, donc le mot de passe du NAS passe en clair sur le réseau. Utilise https:// si ton NAS le propose.',
+  'backups.webdavUrlHint': 'L’adresse WebDAV d’un dossier qui existe déjà.',
   'backups.webdavUser': 'Nom d’utilisateur',
   'backups.webdavPassword': 'Mot de passe',
   'backups.webdavPasswordKept': 'Laissez vide pour garder le mot de passe enregistré.',
@@ -1030,6 +1033,8 @@ export const fr: Record<MessageKey, string> = {
     'Aucun serveur web approuvé : tout ce qui passe par une autre machine compte comme extérieur.',
   'proxy.stop': 'Ne plus faire confiance',
   'proxy.seen': 'Les requêtes pour {host} arrivent par {address}. Est-ce votre serveur web ?',
+  'proxy.seenShared':
+    'Tant que tu ne lui fais pas confiance, tous ceux qui passent par lui comptent comme un seul visiteur : quelques mauvais mots de passe de n’importe qui bloquent tout le monde hors de la cuisine pendant un moment.',
   'proxy.trust': 'Faire confiance à {address}',
   'proxy.addressLabel': 'Ou saisissez l’adresse du serveur web',
   'proxy.trustTyped': 'Faire confiance',

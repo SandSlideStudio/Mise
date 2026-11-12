@@ -649,6 +649,8 @@ export const de: Record<MessageKey, string> = {
     'Diese Sicherung stammt aus einer neueren Mise-Version. Aktualisiere zuerst diesen Server.',
   'backups.reason.local':
     'Sie konnte auf diesem Gerät nicht gespeichert werden. Vielleicht ist der Speicher voll.',
+  'backups.reason.test_failed':
+    'Das NAS war nicht erreichbar, oder Benutzername, Passwort oder Ordner stimmen nicht. Du kannst das auch später unter Einstellungen → Sicherungen einrichten.',
   'backups.reason.unreachable':
     'Mise hat das NAS nicht erreicht. Prüfe die Adresse und ob das NAS eingeschaltet ist.',
   'backups.reason.auth': 'Das NAS hat Benutzername oder Passwort abgelehnt.',
@@ -682,8 +684,9 @@ export const de: Record<MessageKey, string> = {
   'backups.whereWebdavHint':
     'Per WebDAV, das Synology, QNAP und Nextcloud anbieten. Eine Kopie bleibt auch auf diesem Gerät.',
   'backups.webdavUrl': 'Adresse des Ordners',
-  'backups.webdavUrlHint':
-    'Die WebDAV-Adresse eines Ordners, den es schon gibt. Im Restaurant reicht einfaches http://.',
+  'backups.plainHttp':
+    'Diese Adresse beginnt mit http://, das NAS-Passwort geht also lesbar über das Netzwerk. Nimm https://, wenn dein NAS das kann.',
+  'backups.webdavUrlHint': 'Die WebDAV-Adresse eines Ordners, den es schon gibt.',
   'backups.webdavUser': 'Benutzername',
   'backups.webdavPassword': 'Passwort',
   'backups.webdavPasswordKept': 'Leer lassen, um das gespeicherte Passwort zu behalten.',
@@ -1032,6 +1035,8 @@ export const de: Record<MessageKey, string> = {
     'Kein Webserver vertraut: Alles, was über eine andere Maschine kommt, gilt als draußen.',
   'proxy.stop': 'Nicht mehr vertrauen',
   'proxy.seen': 'Anfragen für {host} kommen über {address}. Ist das dein Webserver?',
+  'proxy.seenShared':
+    'Bis du ihm vertraust, zählt jeder, der darüber kommt, als ein Besucher: ein paar falsche Passwörter von irgendwem sperren alle außerhalb der Küche eine Weile aus.',
   'proxy.trust': '{address} vertrauen',
   'proxy.addressLabel': 'Oder gib die Adresse des Webservers ein',
   'proxy.trustTyped': 'Vertrauen',

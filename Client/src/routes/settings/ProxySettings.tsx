@@ -56,9 +56,11 @@ export function ProxySettings() {
 
       {offer ? (
         <div className="border-accent bg-surface-raised mb-5 flex flex-wrap items-center gap-4 border-2 p-4">
-          <p className="min-w-0 flex-1">
-            {t('proxy.seen', { host: offer.host, address: offer.address })}
-          </p>
+          <div className="min-w-0 flex-1">
+            <p>{t('proxy.seen', { host: offer.host, address: offer.address })}</p>
+            {/* Until it's trusted, everyone it passes on looks like one visitor. */}
+            <p className="text-ink-soft mt-1 text-sm">{t('proxy.seenShared')}</p>
+          </div>
           <button
             type="button"
             className="btn-primary min-h-11"

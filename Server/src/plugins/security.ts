@@ -79,7 +79,11 @@ function onOwnDomainOverHttps(request: FastifyRequest, domain: string | null): b
 
 const securityPlugin: FastifyPluginAsync = async (app) => {
   app.addHook('onRequest', async (request) => {
-    if (WRITES.has(request.method) && request.url.startsWith('/api/') && !fromOwnPage(request)) {
+    // By the route it reaches, not the address as typed: /api//x or an
+    // encoded path reach the same route without starting with /api/.
+    const route = request.routeOptions.url;
+    const api = route?.startsWith('/api/') || request.url.startsWith('/api/');
+    if (WRITES.has(request.method) && api && !fromOwnPage(request)) {
       throw new ApiError(403, 'bad_origin', 'Changes can only come from Mise’s own page.');
     }
   });

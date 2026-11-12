@@ -125,12 +125,13 @@ export function createAuthService(db: Database) {
       .where(sql`lower(${users.email}) = lower(${email})`)
       .limit(1);
 
-    if (!user) {
-      // Spend the same time we would on a real account.
+    // No such account, or one that signs in with a PIN only: the same answer,
+    // in the same time, as a wrong password, so sign-in never tells a
+    // stranger which emails are real.
+    if (!user?.passwordHash) {
       await dummyVerify();
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
-    if (!user.active) return { ok: false, error: { kind: 'inactive' } };
     const reserved = await reserveAttempt(user, address);
     if ('lockedUntil' in reserved) {
       return { ok: false, error: { kind: 'locked', until: reserved.lockedUntil } };
@@ -140,6 +141,8 @@ export function createAuthService(db: Database) {
       await failedAttempt(user.id, address, reserved.attempt);
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
+    // Only someone who knows the password learns the account was switched off.
+    if (!user.active) return { ok: false, error: { kind: 'inactive' } };
 
     lockout.succeeded(user.id, address);
     const session = await issueSession(user.id, {
@@ -161,11 +164,10 @@ export function createAuthService(db: Database) {
     userAgent?: string | null,
   ): Promise<{ ok: true; session: AuthenticatedSession } | { ok: false; error: AuthFailure }> {
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
-    if (!user) {
+    if (!user?.pinHash) {
       await dummyVerify();
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
-    if (!user.active) return { ok: false, error: { kind: 'inactive' } };
     // Locked across every tablet once enough wrong PINs have been tried anywhere.
     const pinLock = lockout.pinLocked(user.id);
     if (pinLock) return { ok: false, error: { kind: 'locked', until: pinLock } };
@@ -181,6 +183,7 @@ export function createAuthService(db: Database) {
       lockout.pinFailed(user.id);
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
+    if (!user.active) return { ok: false, error: { kind: 'inactive' } };
 
     lockout.succeeded(user.id, deviceId);
     lockout.pinSucceeded(user.id);

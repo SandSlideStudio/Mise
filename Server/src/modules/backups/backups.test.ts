@@ -503,7 +503,8 @@ describe('sending backups to a NAS', () => {
       payload: { webdavUrl: address, webdavUsername: 'chef', webdavPassword: 'wrong' },
     });
     expect(wrong.statusCode).toBe(400);
-    expect(wrong.json().error.code).toBe('backup_auth');
+    // Before setup, one answer for every way it failed (see setup/token.test.ts).
+    expect(wrong.json().error.code).toBe('backup_test_failed');
 
     const right = await app.inject({
       method: 'POST',

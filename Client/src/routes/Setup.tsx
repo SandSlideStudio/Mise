@@ -42,6 +42,7 @@ import {
   type TurnDirection,
 } from './SetupFrame.js';
 import { SelfHostNote, WelcomeAside, WelcomePage } from './Welcome.js';
+import { isPlainHttp } from '../lib/nas.js';
 
 /**
  * First run.
@@ -1117,8 +1118,13 @@ function SetupNas({
           className="field"
           value={draft.url}
           onChange={(e) => change({ url: e.target.value })}
-          placeholder="http://nas.local:5005/backups/mise"
+          placeholder="https://nas.local:5006/backups/mise"
         />
+        {isPlainHttp(draft.url) ? (
+          <p role="status" className="text-accent mt-1.5 text-sm">
+            {t('backups.plainHttp')}
+          </p>
+        ) : null}
       </Field>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={t('backups.webdavUser')} htmlFor="setupWebdavUser">

@@ -5,6 +5,7 @@ import { plainAddress } from '../../lib/network.js';
 import { acmeReason, issueDomainCertificate, type ChallengeAnswers } from './acme.js';
 import {
   authorityPermits,
+  isKitchenName,
   createAuthority,
   fingerprint,
   issueKitchenCertificate,
@@ -218,7 +219,11 @@ export function createConnectionService(options: {
     /** Names the kitchen's authority can't vouch for, made before or not. */
     namesOutsideAuthority(names: string[]): string[] {
       const authority = row?.kitchenCaCert;
-      return authority ? names.filter((name) => !authorityPermits(authority, name)) : [];
+      // Not made yet: it will be made for kitchen names only, so it can never
+      // vouch for a public one.
+      return authority
+        ? names.filter((name) => !authorityPermits(authority, name))
+        : names.filter((name) => !isKitchenName(name));
     },
 
     async enableKitchenHttps(names: string[], kitchenName: string): Promise<void> {

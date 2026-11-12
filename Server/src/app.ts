@@ -20,7 +20,7 @@ import securityPlugin from './plugins/security.js';
 import writesPlugin from './plugins/writes.js';
 import { VERSION } from './lib/version.js';
 import { generateToken } from './lib/crypto.js';
-import { fromOwnNetwork, plainAddress } from './lib/network.js';
+import { addressedLocally, fromOwnNetwork, plainAddress } from './lib/network.js';
 import { emptyConnectionState, type ConnectionState } from './modules/connection/service.js';
 import { createHttpsListener, type HttpsListener } from './modules/connection/listener.js';
 import type { issueDomainCertificate } from './modules/connection/acme.js';
@@ -118,7 +118,11 @@ export async function buildApp(
     'setupCodeNeeded',
     (request: FastifyRequest) =>
       app.setupToken !== null &&
-      (always || !fromOwnNetwork(request) || app.relayedUnknown(request)),
+      (always ||
+        !fromOwnNetwork(request) ||
+        // From inside, but addressed by a name a website could control.
+        !addressedLocally(request) ||
+        app.relayedUnknown(request)),
   );
 
   app.setValidatorCompiler(validatorCompiler);

@@ -629,6 +629,8 @@ export const en = {
   'backups.reason.too_new':
     'That backup comes from a newer version of Mise. Update this server first.',
   'backups.reason.local': "It couldn't be saved on this machine. The disk may be full.",
+  'backups.reason.test_failed':
+    'The NAS could not be reached, or the user name, password or folder is wrong. You can also set this up later in Settings → Backups.',
   'backups.reason.unreachable':
     "Mise couldn't reach the NAS. Check the address and that the NAS is switched on.",
   'backups.reason.auth': 'The NAS turned the username or password down.',
@@ -661,8 +663,9 @@ export const en = {
   'backups.whereWebdavHint':
     'Over WebDAV, which Synology, QNAP and Nextcloud all offer. A copy stays on this machine too.',
   'backups.webdavUrl': 'Folder address',
-  'backups.webdavUrlHint':
-    'The WebDAV address of a folder that already exists. Plain http:// is fine inside the restaurant.',
+  'backups.plainHttp':
+    'This address starts with http://, so the NAS password crosses the network readable. Use https:// if your NAS offers it.',
+  'backups.webdavUrlHint': 'The WebDAV address of a folder that already exists.',
   'backups.webdavUser': 'Username',
   'backups.webdavPassword': 'Password',
   'backups.webdavPasswordKept': 'Leave empty to keep the saved password.',
@@ -995,6 +998,8 @@ export const en = {
   'proxy.none': 'No web server trusted: anything passed on by another machine counts as outside.',
   'proxy.stop': 'Stop trusting',
   'proxy.seen': 'Requests for {host} are arriving through {address}. Is that your web server?',
+  'proxy.seenShared':
+    'Until you trust it, everyone coming through it counts as one visitor: a few wrong passwords from anyone there lock everyone outside out for a while.',
   'proxy.trust': 'Trust {address}',
   'proxy.addressLabel': 'Or type the web server’s address',
   'proxy.trustTyped': 'Trust',

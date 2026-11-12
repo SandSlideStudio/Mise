@@ -109,6 +109,38 @@ describe('password sign-in', () => {
     expect(response.json().error.code).toBe('invalid_credentials');
   });
 
+  it('gives the same answer for a switched-off account, unless the password is right', async () => {
+    await ctx.db.update(users).set({ active: false }).where(eq(users.email, ADMIN.email));
+    const guess = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: 'not-the-password' },
+    });
+    expect(guess.statusCode).toBe(401);
+    expect(guess.json().error.code).toBe('invalid_credentials');
+
+    const owner = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(owner.json().error.code).toBe('account_inactive');
+  });
+
+  it('gives the same answer for an account that only has a PIN', async () => {
+    await ctx.db
+      .update(users)
+      .set({ passwordHash: null, pinHash: await hashSecret('4821') })
+      .where(eq(users.email, ADMIN.email));
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(response.statusCode).toBe(401);
+    expect(response.json().error.code).toBe('invalid_credentials');
+  });
+
   it('locks the address after five failed attempts', async () => {
     for (let attempt = 0; attempt < 5; attempt += 1) {
       await ctx.app.inject({

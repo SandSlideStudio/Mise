@@ -53,6 +53,26 @@ export function fromOwnNetwork(request: FastifyRequest): boolean {
   return isPrivateAddress(request.socket.remoteAddress ?? '');
 }
 
+/** Name endings only a local network answers to. */
+const LOCAL_SUFFIXES = ['.local', '.lan', '.home.arpa', '.internal', '.localdomain'];
+
+/**
+ * Whether the address the browser used is one only the kitchen's own network
+ * could mean: an IP, localhost, a one-word name such as "truenas", or a local
+ * ending such as .local. A website can make a visitor's browser talk to Mise
+ * under the website's own name (DNS rebinding); that name is never one of these.
+ */
+export function addressedLocally(request: FastifyRequest): boolean {
+  const host = (request.headers.host ?? '').trim().toLowerCase();
+  // [::1]:3000, 192.168.1.5:3000, truenas:30080
+  const name = host.startsWith('[') ? host.slice(1, host.indexOf(']')) : host.replace(/:\d+$/, '');
+  if (!name) return false;
+  if (isIP(name)) return true;
+  if (name === 'localhost' || name.endsWith('.localhost')) return true;
+  if (!name.includes('.')) return true;
+  return LOCAL_SUFFIXES.some((suffix) => name.endsWith(suffix));
+}
+
 /** Headers that name the original client. Each must agree it is local. */
 const CLIENT_HEADERS = ['cf-connecting-ip', 'true-client-ip', 'fly-client-ip', 'x-real-ip'];
 
