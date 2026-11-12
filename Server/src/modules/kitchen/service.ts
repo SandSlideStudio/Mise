@@ -230,9 +230,7 @@ export function createKitchenService(db: Database) {
         ...(input.pin !== undefined ? { pinLength: input.pin?.length ?? null } : {}),
         // Any credential change also clears a standing lockout, which is what
         // an administrator resetting a forgotten PIN actually wants.
-        ...(input.password || input.pin !== undefined
-          ? { failedAttempts: 0, lockedUntil: null }
-          : {}),
+        ...(input.password || input.pin !== undefined ? { lockedUntil: null } : {}),
         updatedAt: new Date(),
       })
       .where(eq(users.id, id))
@@ -288,6 +286,8 @@ export function createKitchenService(db: Database) {
   async function updateKitchen(input: UpdateKitchen) {
     const existing = await getKitchen();
     if (!existing) return null;
+    // Nothing to change, such as a setting from an older app that is gone now.
+    if (Object.values(input).every((value) => value === undefined)) return existing;
     const [updated] = await db
       .update(kitchens)
       .set(input)

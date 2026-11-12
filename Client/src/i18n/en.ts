@@ -467,23 +467,11 @@ export const en = {
   'picker.creating': 'Creating',
 
   'ingredients.subtitle':
-    'Trim yield, density and weight per piece let the prep list say how much to pull from the walk-in. You can also add ingredients straight from the recipe editor.',
+    'What goes into your recipes, and the allergens in it. You can also add ingredients straight from the recipe editor.',
   'ingredients.search': 'Search ingredients',
   'ingredients.new': 'New ingredient',
-  'ingredients.colYield': 'Trim yield',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g each',
   'ingredients.noMatch': 'Nothing matches.',
   'ingredients.empty': 'Nothing here yet.',
-  'ingredients.explainTitle': 'What the three numbers are for',
-  'ingredients.yieldTitle': 'Trim yield.',
-  'ingredients.yieldBody':
-    'What’s left after peeling and trimming, as a share of what was bought: a kilo of onions gives about 900 g you can use.',
-  'ingredients.densityTitle': 'Grams per millilitre.',
-  'ingredients.densityBody':
-    'Lets a recipe written in litres pull a weight, and the other way round. Oil is about 0.92.',
-  'ingredients.eachTitle': 'Grams each.',
-  'ingredients.eachBody': 'Turns a count into a weight. An onion is about 170, an egg about 50.',
   'ingredients.byVolume': 'Measured by volume',
   'ingredients.counted': 'Counted',
   'ingredients.weighed': 'Weighed',
@@ -493,12 +481,6 @@ export const en = {
   'ingredients.optWeight': 'By weight',
   'ingredients.optVolume': 'By volume',
   'ingredients.optCount': 'By count',
-  'ingredients.yieldLabel': 'Trim yield, per cent',
-  'ingredients.yieldHint': 'What is left after peeling and trimming. Onions are about 90.',
-  'ingredients.densityLabel': 'Grams per millilitre',
-  'ingredients.densityHint': 'Only to convert between weight and volume. Oil is about 0.92.',
-  'ingredients.eachLabel': 'Grams each',
-  'ingredients.eachHint': 'Only to convert between count and weight. An egg is about 50.',
   'ingredients.allergens': 'Allergens',
 
   'settings.cookOnly': 'Only chefs and administrators can change how the kitchen is set up.',
@@ -581,11 +563,6 @@ export const en = {
   'version.howDocker': 'Plain Docker',
   'version.howDockerSteps': 'In the folder with compose.yaml, run:',
   'kitchen.title': 'This kitchen',
-  'kitchen.units': 'Units',
-  'kitchen.metric': 'Metric — grams and litres',
-  'kitchen.imperial': 'Imperial — ounces and US cups',
-  'kitchen.unitsHint':
-    'Which units new recipes default to. Existing recipes keep whatever they were written in.',
   'kitchen.language': 'Language',
   'kitchen.languageHint':
     'What the interface speaks for anyone who has not chosen their own. Recipes stay exactly as they were typed.',

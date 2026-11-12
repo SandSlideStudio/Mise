@@ -7,7 +7,6 @@ const ctx = useTestContext();
 const FULL_SETUP = {
   ...ADMIN,
   language: 'nl',
-  unitSystem: 'metric',
   tickedRetention: 'delete',
   stations: ['Koude keuken', 'Sauzen', 'Patisserie'],
   staff: [

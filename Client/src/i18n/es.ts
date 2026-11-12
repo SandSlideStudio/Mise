@@ -469,24 +469,11 @@ export const es: Record<MessageKey, string> = {
   'picker.creating': 'Creando',
 
   'ingredients.subtitle':
-    'El rendimiento tras limpiar, la densidad y el peso por pieza permiten que la lista diga cuánto sacar de la cámara. También puedes añadir ingredientes desde el editor de recetas.',
+    'Lo que va en tus recetas, y los alérgenos que lleva. También puedes añadir ingredientes desde el editor de recetas.',
   'ingredients.search': 'Buscar ingredientes',
   'ingredients.new': 'Nuevo ingrediente',
-  'ingredients.colYield': 'Rendimiento',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g por unidad',
   'ingredients.noMatch': 'No hay resultados.',
   'ingredients.empty': 'Todavía no hay nada.',
-  'ingredients.explainTitle': 'Para qué sirven los tres números',
-  'ingredients.yieldTitle': 'Rendimiento.',
-  'ingredients.yieldBody':
-    'Lo que queda después de pelar y limpiar, como parte de lo que se compra: un kilo de cebollas da unos 900 g aprovechables.',
-  'ingredients.densityTitle': 'Gramos por mililitro.',
-  'ingredients.densityBody':
-    'Permite que una receta escrita en litros dé un peso, y al revés. El aceite ronda 0,92.',
-  'ingredients.eachTitle': 'Gramos por unidad.',
-  'ingredients.eachBody':
-    'Convierte un número de piezas en un peso. Una cebolla ronda 170, un huevo unos 50.',
   'ingredients.byVolume': 'Se mide por volumen',
   'ingredients.counted': 'Se cuenta',
   'ingredients.weighed': 'Se pesa',
@@ -496,12 +483,6 @@ export const es: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Por peso',
   'ingredients.optVolume': 'Por volumen',
   'ingredients.optCount': 'Por unidades',
-  'ingredients.yieldLabel': 'Rendimiento, por ciento',
-  'ingredients.yieldHint': 'Lo que queda después de pelar y limpiar. La cebolla ronda 90.',
-  'ingredients.densityLabel': 'Gramos por mililitro',
-  'ingredients.densityHint': 'Solo para pasar de peso a volumen. El aceite ronda 0,92.',
-  'ingredients.eachLabel': 'Gramos por unidad',
-  'ingredients.eachHint': 'Solo para pasar de unidades a peso. Un huevo ronda 50.',
   'ingredients.allergens': 'Alérgenos',
 
   'settings.cookOnly':
@@ -588,11 +569,6 @@ export const es: Record<MessageKey, string> = {
   'version.howDocker': 'Docker solo',
   'version.howDockerSteps': 'En la carpeta con compose.yaml, ejecuta:',
   'kitchen.title': 'Esta cocina',
-  'kitchen.units': 'Unidades',
-  'kitchen.metric': 'Métrico — gramos y litros',
-  'kitchen.imperial': 'Imperial — onzas y tazas estadounidenses',
-  'kitchen.unitsHint':
-    'Las unidades con las que empiezan las recetas nuevas. Las existentes conservan las suyas.',
   'kitchen.language': 'Idioma',
   'kitchen.languageHint':
     'El idioma de la aplicación para quien no haya elegido el suyo. Las recetas se quedan tal como se escribieron.',

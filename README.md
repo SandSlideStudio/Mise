@@ -367,7 +367,7 @@ free servers that sit mostly idle. Send backups somewhere else too.
 
 | Setting              | What it does                                                                 |
 | -------------------- | ---------------------------------------------------------------------------- |
-| `SESSION_SECRET`     | Signs sign-in cookies. At least 32 characters. Keep it secret.               |
+| `SESSION_SECRET`     | Required: 32 or more random characters. Signs nothing yet; keep it secret    |
 | `POSTGRES_PASSWORD`  | The database password. Only Mise uses it.                                    |
 | `MISE_VERSION`       | Which release to run: `2` for the newest 2.x, or an exact version            |
 | `PORT`               | The port Mise answers on. Default `3000`.                                    |

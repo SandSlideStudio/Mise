@@ -67,7 +67,6 @@ export const setupRequestSchema = z
     pin: pinSchema.optional(),
     /** Becomes the kitchen's default language. */
     language: languageSchema.optional(),
-    unitSystem: z.enum(['metric', 'imperial']).optional(),
     tickedRetention: tickedRetentionSchema.optional(),
     /** The browser's time zone, so the nightly backup runs at night where the kitchen is. */
     timeZone: z.string().max(64).optional(),

@@ -597,15 +597,16 @@ describe('kitchen settings', () => {
     expect(me.json().user.kitchenName).toBe('The Ship Inn');
   });
 
-  it('switches the kitchen to imperial', async () => {
+  it('no longer has a metric or imperial setting', async () => {
     const response = await ctx.app.inject({
       method: 'PATCH',
       url: '/api/kitchen',
       payload: { unitSystem: 'imperial' },
       cookies: as(admin),
     });
+    // Sent by an app from before 2.2.4: ignored, not an error.
     expect(response.statusCode).toBe(200);
-    expect(response.json().unitSystem).toBe('imperial');
+    expect(response.json()).not.toHaveProperty('unitSystem');
   });
 });
 

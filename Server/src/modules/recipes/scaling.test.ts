@@ -31,12 +31,7 @@ async function post(
 beforeEach(async () => {
   admin = await setUpKitchen(ctx.app);
 
-  const onion = await post(
-    ctx.app,
-    '/api/ingredients',
-    { name: 'Onion', baseUnit: 'g', yieldPercent: 90 },
-    admin,
-  );
+  const onion = await post(ctx.app, '/api/ingredients', { name: 'Onion', baseUnit: 'g' }, admin);
 
   const stock = await post(
     ctx.app,

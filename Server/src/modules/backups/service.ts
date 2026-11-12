@@ -540,7 +540,7 @@ export function createBackupService({
         if ((existing?.count ?? 0) > 0) throw new AlreadySetUpError();
         const restored = await restoreTables(tx, tables);
         // A lockout from before the backup shouldn't follow anyone here.
-        await tx.update(users).set({ failedAttempts: 0, lockedUntil: null });
+        await tx.update(users).set({ lockedUntil: null });
         return restored;
       });
 

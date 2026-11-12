@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
-import { sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
+import { ingredients } from '../../db/schema.js';
 import { setUpKitchen, useTestContext } from '../../test/harness.js';
 
 const ctx = useTestContext();
@@ -49,39 +50,31 @@ async function addRecipe(app: FastifyInstance, cookie: string, payload: Record<s
 }
 
 describe('the ingredient catalogue', () => {
-  it('stores the three fields that make conversion possible', async () => {
-    const egg = await addIngredient(ctx.app, admin, {
-      name: 'Egg',
-      baseUnit: 'each',
-      itemWeightG: 50,
-      allergens: ['eggs'],
-    });
-    expect(egg).toMatchObject({ itemWeightG: 50, allergens: ['eggs'] });
-
-    const oil = await addIngredient(ctx.app, admin, {
-      name: 'Rapeseed oil',
-      baseUnit: 'ml',
-      densityGPerMl: 0.92,
-    });
-    expect(oil.densityGPerMl).toBeCloseTo(0.92);
-  });
-
-  it('records trim yield: how much of what is bought is left once trimmed', async () => {
+  it('no longer asks for trim yield, density or weight per piece, and keeps what was entered', async () => {
+    // Sent by an app from before 2.2.4: ignored, not an error.
     const onion = await addIngredient(ctx.app, admin, {
       name: 'Onion',
       yieldPercent: 90,
+      densityGPerMl: 1.1,
+      itemWeightG: 150,
     });
-    expect(onion).toMatchObject({ yieldPercent: 90 });
-  });
+    expect(onion).not.toHaveProperty('yieldPercent');
+    expect(onion).not.toHaveProperty('densityGPerMl');
+    expect(onion).not.toHaveProperty('itemWeightG');
 
-  it('refuses a trim yield over 100 per cent', async () => {
-    const response = await ctx.app.inject({
-      method: 'POST',
-      url: '/api/ingredients',
-      payload: { name: 'Magic onion', baseUnit: 'g', yieldPercent: 150 },
+    // Entered before 2.2.4: still in the database after an edit.
+    await ctx.db
+      .update(ingredients)
+      .set({ yieldPercent: 90, itemWeightG: 150 })
+      .where(eq(ingredients.id, onion.id));
+    await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/ingredients/${onion.id}`,
+      payload: { notes: 'Red ones' },
       cookies: as(admin),
     });
-    expect(response.statusCode).toBe(400);
+    const [row] = await ctx.db.select().from(ingredients).where(eq(ingredients.id, onion.id));
+    expect(row).toMatchObject({ yieldPercent: 90, itemWeightG: 150, notes: 'Red ones' });
   });
 
   it('refuses two ingredients with the same name, whatever the case', async () => {
@@ -587,7 +580,7 @@ describe('saving part of a record', () => {
     const shallot = await addIngredient(ctx.app, admin, {
       name: 'Shallot',
       allergens: ['sulphites'],
-      yieldPercent: 85,
+      category: 'Veg',
     });
     await ctx.app.inject({
       method: 'PATCH',
@@ -602,7 +595,7 @@ describe('saving part of a record', () => {
     });
     expect(after.json()).toMatchObject({
       allergens: ['sulphites'],
-      yieldPercent: 85,
+      category: 'Veg',
       notes: 'Banana shallots only',
     });
   });

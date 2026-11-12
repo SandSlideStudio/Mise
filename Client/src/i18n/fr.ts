@@ -481,24 +481,11 @@ export const fr: Record<MessageKey, string> = {
   'picker.creating': 'Création',
 
   'ingredients.subtitle':
-    'Le rendement après parage, la densité et le poids à la pièce permettent à la liste de dire combien sortir de la chambre froide. Vous pouvez aussi ajouter des ingrédients depuis l’éditeur de recettes.',
+    'Ce qui entre dans vos recettes, et les allergènes qu’il contient. Vous pouvez aussi ajouter des ingrédients depuis l’éditeur de recettes.',
   'ingredients.search': 'Chercher des ingrédients',
   'ingredients.new': 'Nouvel ingrédient',
-  'ingredients.colYield': 'Rendement',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g pièce',
   'ingredients.noMatch': 'Aucun résultat.',
   'ingredients.empty': "Rien ici pour l'instant.",
-  'ingredients.explainTitle': 'À quoi servent les trois chiffres',
-  'ingredients.yieldTitle': 'Rendement.',
-  'ingredients.yieldBody':
-    'Ce qui reste après épluchage et parage, en part de ce qui est acheté : un kilo d’oignons donne environ 900 g utilisables.',
-  'ingredients.densityTitle': 'Grammes par millilitre.',
-  'ingredients.densityBody':
-    "Permet à une recette écrite en litres de donner un poids, et inversement. L'huile, c'est environ 0,92.",
-  'ingredients.eachTitle': 'Grammes la pièce.',
-  'ingredients.eachBody':
-    'Transforme un nombre en poids. Un oignon fait environ 170, un œuf environ 50.',
   'ingredients.byVolume': 'Mesuré au volume',
   'ingredients.counted': 'Compté',
   'ingredients.weighed': 'Pesé',
@@ -508,12 +495,6 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Au poids',
   'ingredients.optVolume': 'Au volume',
   'ingredients.optCount': 'À la pièce',
-  'ingredients.yieldLabel': 'Rendement, pour cent',
-  'ingredients.yieldHint': 'Ce qui reste après épluchage et parage. Les oignons, environ 90.',
-  'ingredients.densityLabel': 'Grammes par millilitre',
-  'ingredients.densityHint': "Seulement pour passer du poids au volume. L'huile, environ 0,92.",
-  'ingredients.eachLabel': 'Grammes la pièce',
-  'ingredients.eachHint': 'Seulement pour passer du nombre au poids. Un œuf, environ 50.',
   'ingredients.allergens': 'Allergènes',
 
   'settings.cookOnly':
@@ -602,11 +583,6 @@ export const fr: Record<MessageKey, string> = {
   'version.howDocker': 'Docker seul',
   'version.howDockerSteps': 'Dans le dossier contenant compose.yaml, lancez :',
   'kitchen.title': 'Cette cuisine',
-  'kitchen.units': 'Unités',
-  'kitchen.metric': 'Métrique — grammes et litres',
-  'kitchen.imperial': 'Impérial — onces et tasses américaines',
-  'kitchen.unitsHint':
-    'Les unités par défaut des nouvelles recettes. Les recettes existantes gardent celles dans lesquelles elles ont été écrites.',
   'kitchen.language': 'Langue',
   'kitchen.languageHint':
     "La langue de l'application pour ceux qui n'en ont pas choisi une. Les recettes restent exactement telles qu'elles ont été saisies.",

@@ -250,11 +250,6 @@ export function createAuthService(db: Database) {
     await db.delete(sessions).where(eq(sessions.tokenHash, hashToken(token)));
   }
 
-  /** Sign someone out everywhere. Used when a role changes or staff leave. */
-  async function revokeAllForUser(userId: string): Promise<void> {
-    await db.delete(sessions).where(eq(sessions.userId, userId));
-  }
-
   async function purgeExpiredSessions(): Promise<void> {
     await db.delete(sessions).where(lt(sessions.expiresAt, new Date()));
   }
@@ -367,7 +362,6 @@ export function createAuthService(db: Database) {
       await tx.insert(kitchens).values({
         name: input.kitchenName,
         language: input.language ?? 'en',
-        ...(input.unitSystem ? { unitSystem: input.unitSystem } : {}),
         ...(input.tickedRetention ? { tickedRetention: input.tickedRetention } : {}),
       });
 
@@ -446,7 +440,6 @@ export function createAuthService(db: Database) {
     markTourSeen,
     resolveSession,
     revokeSession,
-    revokeAllForUser,
     purgeExpiredSessions,
     setLanguage,
     enrollDevice,

@@ -19,9 +19,6 @@ export const ingredientSchema = z.object({
   category: z.string().nullable(),
   baseUnit: baseUnitSchema,
   allergens: z.array(allergenSchema),
-  densityGPerMl: z.number().positive().nullable(),
-  itemWeightG: z.number().positive().nullable(),
-  yieldPercent: z.number().positive().max(100),
   /** Null until somebody says, and null is never shown as vegan. */
   vegan: z.boolean().nullable(),
   allergenDetails: allergenDetailsSchema,
@@ -35,9 +32,6 @@ const ingredientFields = z.object({
   category: z.string().max(80).nullable().optional(),
   baseUnit: baseUnitSchema,
   allergens: z.array(allergenSchema),
-  densityGPerMl: z.number().positive().nullable().optional(),
-  itemWeightG: z.number().positive().nullable().optional(),
-  yieldPercent: z.number().positive().max(100),
   vegan: z.boolean().nullable().optional(),
   allergenDetails: allergenDetailsSchema.optional(),
   notes: z.string().max(2000).nullable().optional(),
@@ -45,7 +39,6 @@ const ingredientFields = z.object({
 
 export const createIngredientSchema = ingredientFields.extend({
   allergens: z.array(allergenSchema).default([]),
-  yieldPercent: z.number().positive().max(100).default(100),
 });
 
 // Built from the fields without defaults: a field left out of an update stays as it is.

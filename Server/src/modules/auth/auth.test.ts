@@ -160,18 +160,17 @@ describe('password sign-in', () => {
   });
 
   it('resets the failure count after a good sign-in', async () => {
-    await ctx.app.inject({
-      method: 'POST',
-      url: '/api/auth/login',
-      payload: { email: ADMIN.email, password: 'wrong' },
-    });
-    await ctx.app.inject({
-      method: 'POST',
-      url: '/api/auth/login',
-      payload: { email: ADMIN.email, password: ADMIN.password },
-    });
-    const [user] = await ctx.db.select().from(users).where(eq(users.email, ADMIN.email));
-    expect(user?.failedAttempts).toBe(0);
+    const login = (password: string) =>
+      ctx.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password },
+      });
+    for (let i = 0; i < 4; i += 1) await login('wrong');
+    expect((await login(ADMIN.password)).statusCode).toBe(200);
+    // Four more wrong ones would have made nine; after the good one they're four.
+    for (let i = 0; i < 4; i += 1) await login('wrong');
+    expect((await login(ADMIN.password)).statusCode).toBe(200);
   });
 });
 

@@ -240,7 +240,6 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       return {
         id: row.id,
         name: row.name,
-        unitSystem: row.unitSystem,
         language: row.language,
         tickedRetention: row.tickedRetention,
       };
@@ -262,7 +261,6 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       return {
         id: row.id,
         name: row.name,
-        unitSystem: row.unitSystem,
         language: row.language,
         tickedRetention: row.tickedRetention,
       };

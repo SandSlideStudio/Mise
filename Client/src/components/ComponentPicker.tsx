@@ -90,7 +90,7 @@ export function ComponentPicker({
 
   function createAndChoose() {
     createIngredient.mutate(
-      { name: trimmed, baseUnit: 'g', allergens: [], yieldPercent: 100 },
+      { name: trimmed, baseUnit: 'g', allergens: [] },
       {
         onSuccess: (created) => {
           onChange({ kind: 'ingredient', ingredientId: created.id }, created.name);

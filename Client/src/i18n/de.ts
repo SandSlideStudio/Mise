@@ -479,24 +479,11 @@ export const de: Record<MessageKey, string> = {
   'picker.creating': 'Wird angelegt',
 
   'ingredients.subtitle':
-    'Ausbeute nach dem Putzen, Dichte und Stückgewicht sagen der Liste, wie viel aus dem Kühlhaus geholt werden muss. Zutaten lassen sich auch direkt im Rezepteditor anlegen.',
+    'Was in deine Rezepte kommt, und die Allergene darin. Zutaten lassen sich auch direkt im Rezepteditor anlegen.',
   'ingredients.search': 'Zutaten suchen',
   'ingredients.new': 'Neue Zutat',
-  'ingredients.colYield': 'Ausbeute',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g pro Stück',
   'ingredients.noMatch': 'Nichts gefunden.',
   'ingredients.empty': 'Hier ist noch nichts.',
-  'ingredients.explainTitle': 'Wofür die drei Zahlen da sind',
-  'ingredients.yieldTitle': 'Ausbeute.',
-  'ingredients.yieldBody':
-    'Was nach dem Schälen und Putzen übrig bleibt, als Anteil des Eingekauften: ein Kilo Zwiebeln ergibt etwa 900 g Verwertbares.',
-  'ingredients.densityTitle': 'Gramm pro Milliliter.',
-  'ingredients.densityBody':
-    'Lässt ein Rezept in Litern ein Gewicht ergeben, und umgekehrt. Öl liegt bei etwa 0,92.',
-  'ingredients.eachTitle': 'Gramm pro Stück.',
-  'ingredients.eachBody':
-    'Macht aus einer Stückzahl ein Gewicht. Eine Zwiebel wiegt etwa 170, ein Ei etwa 50.',
   'ingredients.byVolume': 'Nach Volumen',
   'ingredients.counted': 'Gezählt',
   'ingredients.weighed': 'Gewogen',
@@ -506,12 +493,6 @@ export const de: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Nach Gewicht',
   'ingredients.optVolume': 'Nach Volumen',
   'ingredients.optCount': 'Nach Stück',
-  'ingredients.yieldLabel': 'Ausbeute, Prozent',
-  'ingredients.yieldHint': 'Was nach Schälen und Putzen übrig bleibt. Zwiebeln etwa 90.',
-  'ingredients.densityLabel': 'Gramm pro Milliliter',
-  'ingredients.densityHint': 'Nur zum Umrechnen zwischen Gewicht und Volumen. Öl etwa 0,92.',
-  'ingredients.eachLabel': 'Gramm pro Stück',
-  'ingredients.eachHint': 'Nur zum Umrechnen zwischen Stückzahl und Gewicht. Ein Ei etwa 50.',
   'ingredients.allergens': 'Allergene',
 
   'settings.cookOnly':
@@ -598,11 +579,6 @@ export const de: Record<MessageKey, string> = {
   'version.howDocker': 'Nur Docker',
   'version.howDockerSteps': 'Führe im Ordner mit compose.yaml aus:',
   'kitchen.title': 'Diese Küche',
-  'kitchen.units': 'Einheiten',
-  'kitchen.metric': 'Metrisch — Gramm und Liter',
-  'kitchen.imperial': 'Imperial — Unzen und US-Cups',
-  'kitchen.unitsHint':
-    'Mit welchen Einheiten neue Rezepte beginnen. Bestehende Rezepte behalten ihre.',
   'kitchen.language': 'Sprache',
   'kitchen.languageHint':
     'Die Sprache der App für alle, die keine eigene gewählt haben. Rezepte bleiben genau so, wie sie eingetippt wurden.',

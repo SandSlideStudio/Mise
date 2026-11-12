@@ -470,24 +470,11 @@ export const nl: Record<MessageKey, string> = {
   'picker.creating': 'Aanmaken',
 
   'ingredients.subtitle':
-    'Opbrengst na schoonmaken, dichtheid en gewicht per stuk zorgen dat de lijst zegt hoeveel je uit de koelcel pakt. Je kunt ingrediënten ook direct in de recepteditor toevoegen.',
+    'Wat er in je recepten gaat, en de allergenen erin. Je kunt ingrediënten ook direct in de recepteditor toevoegen.',
   'ingredients.search': 'Zoek ingrediënten',
   'ingredients.new': 'Nieuw ingrediënt',
-  'ingredients.colYield': 'Rendement',
-  'ingredients.colDensity': 'g / ml',
-  'ingredients.colEach': 'g per stuk',
   'ingredients.noMatch': 'Niets gevonden.',
   'ingredients.empty': 'Hier staat nog niets.',
-  'ingredients.explainTitle': 'Waar de drie getallen voor zijn',
-  'ingredients.yieldTitle': 'Rendement.',
-  'ingredients.yieldBody':
-    'Wat er overblijft na schillen en schoonmaken, als deel van wat je inkoopt: een kilo uien geeft ongeveer 900 g bruikbaar.',
-  'ingredients.densityTitle': 'Gram per milliliter.',
-  'ingredients.densityBody':
-    'Laat een recept in liters een gewicht opleveren, en andersom. Olie is ongeveer 0,92.',
-  'ingredients.eachTitle': 'Gram per stuk.',
-  'ingredients.eachBody':
-    'Maakt van een aantal een gewicht. Een ui is ongeveer 170, een ei ongeveer 50.',
   'ingredients.byVolume': 'Op volume',
   'ingredients.counted': 'Geteld',
   'ingredients.weighed': 'Gewogen',
@@ -497,14 +484,6 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.optWeight': 'Op gewicht',
   'ingredients.optVolume': 'Op volume',
   'ingredients.optCount': 'Per stuk',
-  'ingredients.yieldLabel': 'Rendement, procent',
-  'ingredients.yieldHint': 'Wat er overblijft na schillen en schoonmaken. Uien zijn ongeveer 90.',
-  'ingredients.densityLabel': 'Gram per milliliter',
-  'ingredients.densityHint':
-    'Alleen om tussen gewicht en volume om te rekenen. Olie is ongeveer 0,92.',
-  'ingredients.eachLabel': 'Gram per stuk',
-  'ingredients.eachHint':
-    'Alleen om tussen aantal en gewicht om te rekenen. Een ei is ongeveer 50.',
   'ingredients.allergens': 'Allergenen',
 
   'settings.cookOnly': 'Alleen chefs en beheerders kunnen de inrichting van de keuken wijzigen.',
@@ -590,11 +569,6 @@ export const nl: Record<MessageKey, string> = {
   'version.howDocker': 'Gewoon Docker',
   'version.howDockerSteps': 'Voer in de map met compose.yaml uit:',
   'kitchen.title': 'Deze keuken',
-  'kitchen.units': 'Eenheden',
-  'kitchen.metric': 'Metrisch — grammen en liters',
-  'kitchen.imperial': 'Imperiaal — ounces en Amerikaanse cups',
-  'kitchen.unitsHint':
-    'In welke eenheden nieuwe recepten beginnen. Bestaande recepten houden waarin ze geschreven zijn.',
   'kitchen.language': 'Taal',
   'kitchen.languageHint':
     'De taal van de app voor iedereen die zelf geen taal heeft gekozen. Recepten blijven precies zoals ze zijn ingetypt.',

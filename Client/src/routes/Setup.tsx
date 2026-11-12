@@ -182,7 +182,6 @@ export function Setup() {
   const [staff, setStaff] = useState<PersonDraft[]>([]);
   const [recipes, setRecipes] = useState<RecipeDraft[]>([]);
 
-  const [unitSystem, setUnitSystem] = useState<'metric' | 'imperial'>('metric');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [enrolDevice, setEnrolDevice] = useState(false);
   // Every backup stays on this machine; these are where else it goes too.
@@ -327,7 +326,6 @@ export function Setup() {
       password,
       pin: pin || undefined,
       language,
-      unitSystem,
       tickedRetention,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       stations: stations.map((station) => station.name.trim()),
@@ -876,18 +874,6 @@ export function Setup() {
                   <p className="text-ink-soft text-sm text-pretty">{t('kitchen.retentionHint')}</p>
                 </fieldset>
 
-                <Field label={t('kitchen.units')} htmlFor="units" hint={t('kitchen.unitsHint')}>
-                  <select
-                    id="units"
-                    className="field"
-                    value={unitSystem}
-                    onChange={(e) => setUnitSystem(e.target.value as 'metric' | 'imperial')}
-                  >
-                    <option value="metric">{t('kitchen.metric')}</option>
-                    <option value="imperial">{t('kitchen.imperial')}</option>
-                  </select>
-                </Field>
-
                 <fieldset className="border-rule flex flex-col gap-2 border-t pt-6">
                   <legend className="sr-only">{t('setup.backupsTitle')}</legend>
                   <SectionTitle>{t('setup.backupsTitle')}</SectionTitle>
@@ -1015,9 +1001,6 @@ export function Setup() {
                           ? 'kitchen.retentionDelete'
                           : 'kitchen.retentionKeep',
                       )}
-                    </p>
-                    <p className="text-ink-soft text-sm">
-                      {t(unitSystem === 'metric' ? 'kitchen.metric' : 'kitchen.imperial')}
                     </p>
                     <p className="text-ink-soft text-sm">{t('backups.whereLocal')}</p>
                     {toWebdav ? (

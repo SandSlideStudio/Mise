@@ -73,6 +73,7 @@ export const dishCardAccessEnum = pgEnum('dish_card_access', ['everyone', 'manag
 export const kitchens = pgTable('kitchen', {
   id: uuid('id').primaryKey().defaultRandom(),
   name: text('name').notNull(),
+  // No longer used since 2.2.4: amounts are metric. Kept so older backups restore.
   unitSystem: unitSystemEnum('unit_system').notNull().default('metric'),
   language: languageEnum('language').notNull().default('en'),
   tickedRetention: tickedRetentionEnum('ticked_retention').notNull().default('keep'),
@@ -116,6 +117,7 @@ export const users = pgTable(
     language: languageEnum('language'),
     /** When they were offered the tour of the app. Null until they have been. */
     tourSeenAt: timestamp('tour_seen_at', { withTimezone: true }),
+    /** Never counted: failures are kept in memory (lockout.ts). Kept for older backups. */
     failedAttempts: integer('failed_attempts').notNull().default(0),
     lockedUntil: timestamp('locked_until', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
@@ -218,6 +220,8 @@ export const ingredients = pgTable(
     baseUnit: baseUnitEnum('base_unit').notNull().default('g'),
     allergens: jsonb('allergens').$type<string[]>().notNull().default([]),
     /** Grams per millilitre. Needed to convert between weight and volume. */
+    // Density, weight per piece and trim yield: not asked for since 2.2.4, until
+    // something uses them (costing). Kept, with what was entered, for then.
     densityGPerMl: real('density_g_per_ml'),
     /** Grams for one item. Needed to convert between count and weight. */
     itemWeightG: real('item_weight_g'),
