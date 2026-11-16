@@ -272,6 +272,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   photo_too_large: 'error.photoTooLarge',
   task_not_yours: 'error.taskNotYours',
   task_chef_only: 'error.taskChefOnly',
+  checklist_off: 'error.checklistOff',
   staff_rank: 'error.staffRank',
   admin_needs_password: 'error.adminNeedsPassword',
   password_needs_email: 'error.passwordNeedsEmail',

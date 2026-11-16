@@ -1,6 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import type {
+  AddFromChecklist,
   AddRunningTaskResponse,
+  Checklist,
+  ChecklistItem,
   CreatePrepTask,
   HandoverNote,
   PrepTask,
@@ -13,8 +16,10 @@ import { isRefusal, sendTick, usePendingOverlay } from './ticks.js';
 import { useCurrentUser } from './session.js';
 import { enqueue } from '../lib/retryQueue.js';
 import {
+  entriesFor,
   isWaiting,
   remove as removeFromOutbox,
+  update as updateOutbox,
   useOutbox,
   WAITING,
   type OutboxEntry,
@@ -41,22 +46,51 @@ export { WAITING, isWaiting } from '../lib/outbox.js';
  * showing as waiting once it's in.
  */
 function useWaitingOverlay(): (tasks: PrepTask[]) => PrepTask[] {
+  const queryClient = useQueryClient();
   const { data: user } = useCurrentUser();
   const entries = useOutbox(user?.id);
   const key = entries.map((entry) => entry.id).join(',');
+  const me = user?.displayName ?? null;
   return useCallback(
     (tasks: PrepTask[]) => {
       if (entries.length === 0) return tasks;
+      // What the checklist said when it was last loaded: the names behind the ids ticked offline.
+      const items = queryClient.getQueryData<Checklist>(['checklist'])?.items ?? [];
       let list = tasks;
-      for (const entry of entries) list = applyWaiting(list, entry);
+      for (const entry of entries) list = applyWaiting(list, entry, { me, items });
       return list;
     },
     // The entries live outside React; their ids say when to redraw.
-    [key],
+    [key, me, queryClient],
   );
 }
 
-function applyWaiting(tasks: PrepTask[], entry: OutboxEntry): PrepTask[] {
+/** What a waiting change needs to know that isn't in the change itself. */
+export interface WaitingContext {
+  /** The signed-in person's name, for "added by". */
+  me: string | null;
+  /** The checklist as last loaded, to turn ticked ids into lines. */
+  items: ChecklistItem[];
+}
+
+/** The same job when the name matches, trimmed and ignoring capitals. */
+const sameJob = (a: string, b: string) => a.trim().toLowerCase() === b.trim().toLowerCase();
+
+/**
+ * A line from the checklist, while it waits, carries the change's id and the
+ * item's: the item is how it is told apart from the others ticked in the same tap.
+ */
+const waitingChecklistLine = (entryId: string, itemId: string) => `${WAITING}${entryId}:${itemId}`;
+
+/** Whether a waiting line came from the checklist: it has no id of its own to tick or edit yet. */
+export const isWaitingChecklistLine = (id: string) =>
+  isWaiting(id) && id.includes(':', WAITING.length);
+
+export function applyWaiting(
+  tasks: PrepTask[],
+  entry: OutboxEntry,
+  context: WaitingContext = { me: null, items: [] },
+): PrepTask[] {
   if (entry.method === 'POST' && entry.path === '/running/tasks') {
     const body = entry.body as CreatePrepTask;
     return [
@@ -73,8 +107,44 @@ function applyWaiting(tasks: PrepTask[], entry: OutboxEntry): PrepTask[] {
         completedByName: null,
         completedAt: null,
         sortOrder: Number.MAX_SAFE_INTEGER,
+        createdByName: context.me,
+        fromChecklist: false,
       },
     ];
+  }
+  if (entry.method === 'POST' && entry.path === '/checklist/add') {
+    // The server's rule: what is already open on that station isn't added again.
+    const wanted = new Set((entry.body as AddFromChecklist).ids);
+    let list = tasks;
+    for (const item of context.items) {
+      if (!wanted.has(item.id)) continue;
+      const there = list.some(
+        (line) =>
+          (line.status === 'open' || line.status === 'in_progress') &&
+          line.stationId === item.stationId &&
+          sameJob(line.description, item.name),
+      );
+      if (there) continue;
+      list = [
+        ...list,
+        {
+          id: waitingChecklistLine(entry.id, item.id),
+          stationId: item.stationId,
+          recipeId: null,
+          description: item.name,
+          quantity: null,
+          status: 'open',
+          assignedUserId: null,
+          assignedUserName: null,
+          completedByName: null,
+          completedAt: null,
+          sortOrder: Number.MAX_SAFE_INTEGER,
+          createdByName: context.me,
+          fromChecklist: true,
+        },
+      ];
+    }
+    return list;
   }
   const task = /^\/tasks\/([^/]+)$/.exec(entry.path)?.[1];
   if (!task) return tasks;
@@ -186,6 +256,7 @@ export function useUpdatePrepTask() {
       const { id, ...change } = input;
       const user = queryClient.getQueryData<SessionUser | null>(['me']);
       // Not on the server yet: only a tick can wait for it, and goes out right after it.
+      if (isWaitingChecklistLine(id)) return null;
       if (isWaiting(id) && (!isTick(input) || !user)) return null;
       if (!isTick(input) || !user) {
         const result = await sendOrQueue<PrepTask>('PATCH', `/tasks/${id}`, change, {
@@ -240,7 +311,7 @@ export function useDeletePrepTask() {
     mutationFn: async (id: string) => {
       // A line that was itself still waiting to be added is simply never sent.
       if (isWaiting(id)) {
-        removeFromOutbox(id.slice(WAITING.length));
+        dropWaitingLine(id, queryClient);
         return;
       }
       await sendOrQueue<void>('DELETE', `/tasks/${id}`, undefined, {
@@ -249,6 +320,25 @@ export function useDeletePrepTask() {
     },
     onSuccess: () => invalidateTasks(queryClient),
   });
+}
+
+/**
+ * Take a line that hasn't been sent off the list. One typed in is a change of
+ * its own; one from the checklist is one of the items ticked in a change, so
+ * only that item is left out, and the change goes if it was the last.
+ */
+function dropWaitingLine(id: string, queryClient: QueryClient): void {
+  const [entryId = '', itemId] = id.slice(WAITING.length).split(':');
+  if (itemId === undefined) {
+    removeFromOutbox(entryId);
+    return;
+  }
+  const userId = queryClient.getQueryData<SessionUser | null>(['me'])?.id;
+  const entry = userId ? entriesFor(userId).find((other) => other.id === entryId) : undefined;
+  if (!entry) return;
+  const rest = (entry.body as AddFromChecklist).ids.filter((other) => other !== itemId);
+  if (rest.length === 0) removeFromOutbox(entryId);
+  else updateOutbox(entryId, { body: { ids: rest } });
 }
 
 function invalidateTasks(queryClient: ReturnType<typeof useQueryClient>): void {

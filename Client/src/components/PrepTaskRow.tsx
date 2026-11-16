@@ -52,6 +52,7 @@ export function PrepTaskRow({
   const making = task.status === 'in_progress';
   const quantity = formatTaskQuantity(task);
   const soft = done ? 'text-ink-faint' : 'text-ink-soft';
+  const added = addedNote(t, task);
 
   return (
     <li className="border-rule flex items-stretch border-b">
@@ -90,6 +91,7 @@ export function PrepTaskRow({
             {task.description}
           </span>
           {note ? <span className={`text-lg md:text-xl ${soft}`}>{note}</span> : null}
+          {added ? <span className={`text-[15px] md:text-base ${soft}`}>{added}</span> : null}
         </span>
 
         <span
@@ -275,4 +277,14 @@ export function byStation(
   const unassigned = tasks.filter((task) => !stations.some((s) => s.id === task.stationId));
   if (unassigned.length > 0) groups.push({ station: null, tasks: unassigned });
   return groups;
+}
+
+/** Who put the line on the list, said quietly. Nothing for a line whose author isn't known. */
+export function addedNote(t: Translator['t'], task: PrepTask): string | null {
+  if (task.createdByName) {
+    return task.fromChecklist
+      ? t('task.fromChecklistBy', { name: task.createdByName })
+      : t('task.addedBy', { name: task.createdByName });
+  }
+  return task.fromChecklist ? t('task.fromChecklist') : null;
 }

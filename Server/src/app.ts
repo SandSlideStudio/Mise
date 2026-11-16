@@ -30,6 +30,7 @@ import accessRoutes from './modules/access/routes.js';
 import connectionRoutes, { acmeChallengeRoute } from './modules/connection/routes.js';
 import kitchenRoutes from './modules/kitchen/routes.js';
 import prepRoutes from './modules/prep/routes.js';
+import checklistRoutes from './modules/prep/checklist.js';
 import ingredientRoutes from './modules/ingredients/routes.js';
 import recipeRoutes from './modules/recipes/routes.js';
 import photoRoutes from './modules/recipes/photos.js';
@@ -187,6 +188,7 @@ export async function buildApp(
   await app.register(accessRoutes, { prefix: '/api/access' });
   await app.register(kitchenRoutes, { prefix: '/api' });
   await app.register(prepRoutes, { prefix: '/api' });
+  await app.register(checklistRoutes, { prefix: '/api' });
   await app.register(ingredientRoutes, { prefix: '/api' });
   await app.register(multipart);
   await app.register(recipeRoutes, { prefix: '/api' });

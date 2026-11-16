@@ -34,6 +34,7 @@ declare module 'fastify' {
 const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
   ['/api/tasks', 'prep'],
   ['/api/running', 'prep'],
+  ['/api/checklist', 'prep'],
   ['/api/kitchen', 'kitchen'],
   ['/api/stations', 'kitchen'],
   ['/api/dish-cards', 'kitchen'],

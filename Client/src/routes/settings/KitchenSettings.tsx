@@ -26,6 +26,7 @@ export function KitchenSettings() {
   const [language, setLanguage] = useState<Language>('en');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [idleMinutes, setIdleMinutes] = useState<number | null>(null);
+  const [prepChecklist, setPrepChecklist] = useState(false);
 
   // Seed the form once the current settings arrive.
   useEffect(() => {
@@ -34,6 +35,7 @@ export function KitchenSettings() {
       setLanguage(kitchen.data.language);
       setTickedRetention(kitchen.data.tickedRetention);
       setIdleMinutes(kitchen.data.idleSignOutMinutes);
+      setPrepChecklist(kitchen.data.prepChecklist);
     }
   }, [kitchen.data]);
 
@@ -43,7 +45,13 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    update.mutate({ name, language, tickedRetention, idleSignOutMinutes: idleMinutes });
+    update.mutate({
+      name,
+      language,
+      tickedRetention,
+      idleSignOutMinutes: idleMinutes,
+      prepChecklist,
+    });
   }
 
   return (
@@ -79,6 +87,20 @@ export function KitchenSettings() {
           </select>
           <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.retentionHint')}</p>
         </div>
+
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            role="switch"
+            className="accent-accent mt-1 h-5 w-5 shrink-0"
+            checked={prepChecklist}
+            onChange={(e) => setPrepChecklist(e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">{t('kitchen.prepChecklist')}</span>
+            <span className="text-ink-soft block text-sm">{t('kitchen.prepChecklistHint')}</span>
+          </span>
+        </label>
 
         <div>
           <label className="label" htmlFor="idleSignOut">

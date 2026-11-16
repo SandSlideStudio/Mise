@@ -6,6 +6,7 @@ import { useStations } from '../api/kitchen.js';
 import {
   GONE_AFTER_MS,
   isWaiting,
+  isWaitingChecklistLine,
   useAddRunningTask,
   useDeletePrepTask,
   useHandoverNote,
@@ -17,6 +18,7 @@ import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { PrepListPrint } from '../components/PrepListPrint.js';
+import { PrepChecklist } from '../components/PrepChecklist.js';
 import { useWaitingAccess } from '../api/access.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
@@ -206,6 +208,7 @@ function RunningPrep() {
       header={
         <>
           <Handover />
+          <PrepChecklist />
           {canManage ? <AddRunningLine /> : null}
         </>
       }
@@ -648,6 +651,7 @@ function Board({
                     key={task.id}
                     task={task}
                     note={noteFor?.(task)}
+                    disabled={isWaitingChecklistLine(task.id)}
                     onToggle={(next) => onToggle(task.id, next)}
                     onProgress={(next) => onToggle(task.id, next)}
                     onRemove={onRemove ? () => onRemove(task.id) : undefined}
