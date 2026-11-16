@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import { and, asc, desc, eq, inArray, isNull, lt, or, sql } from 'drizzle-orm';
+import { and, asc, eq, isNull, lt, or, sql } from 'drizzle-orm';
 import type { Database, Executor } from '../../db/client.js';
 import { remoteDevices, users } from '../../db/schema.js';
 import { generateToken, hashToken } from '../../lib/crypto.js';
@@ -21,8 +21,17 @@ export const ACCESS_COOKIE = 'mise_access';
 export const IDLE_DAYS = 90;
 /** A request nobody answers within this long is dropped. */
 export const PENDING_HOURS = 24;
-/** At most this many requests wait at once, so nobody can flood the list. */
+/**
+ * At most this many requests wait at once. A full list turns new requests
+ * away; it never drops a waiting one, so a flood can't push a real request out.
+ */
 export const MAX_PENDING = 20;
+/**
+ * New requests accepted in an hour, from everyone together. Behind a tunnel
+ * that isn't trusted every visitor shares one address, so the per-address
+ * limits can't tell a flood from a kitchen; this one needs no address.
+ */
+export const MAX_NEW_PER_HOUR = 10;
 /** Requests waiting from one address at a time. */
 export const MAX_PENDING_PER_ADDRESS = 3;
 /** Browsers keep a cookie at most about this long; it is renewed as the device is used. */
@@ -87,6 +96,9 @@ export interface ApprovedDevice {
 }
 
 export function createAccessService(db: Database) {
+  /** When each recent new request was accepted, for the limit on all of them. */
+  let recent: number[] = [];
+
   /** Drop requests nobody answered and approvals nobody used. */
   async function sweep(): Promise<void> {
     const idle = idleSince();
@@ -130,8 +142,8 @@ export function createAccessService(db: Database) {
     /** A new request. Returns the cookie's token and the code to read out. */
     async ask(input: { name: string; userAgent: string | null; address: string }) {
       await sweep();
-      // One address can't fill the list; and a full list makes room by
-      // dropping the oldest request, so nobody can lock real ones out.
+      // One address can't fill the list. Behind a tunnel that isn't trusted
+      // there is no address to go by, so the checks below don't depend on one.
       const shown = shownAddress(input.address);
       if (shown) {
         const [{ fromHere } = { fromHere: 0 }] = await db
@@ -146,20 +158,32 @@ export function createAccessService(db: Database) {
           );
         }
       }
-      const oldest = await db
-        .select({ id: remoteDevices.id })
-        .from(remoteDevices)
-        .where(eq(remoteDevices.status, 'pending'))
-        .orderBy(desc(remoteDevices.requestedAt))
-        .offset(MAX_PENDING - 1);
-      if (oldest.length > 0) {
-        await db.delete(remoteDevices).where(
-          inArray(
-            remoteDevices.id,
-            oldest.map((row) => row.id),
-          ),
+      // Only requests that got in count, so turned-away ones can't keep the
+      // door shut after a flood stops.
+      const hourAgo = Date.now() - 3_600_000;
+      recent = recent.filter((at) => at > hourAgo);
+      if (recent.length >= MAX_NEW_PER_HOUR) {
+        throw new ApiError(
+          429,
+          'too_many_requests',
+          'Too many devices are waiting to be approved. Try again later.',
         );
       }
+      // Never make room by dropping a waiting request: whoever is waiting
+      // keeps their place, and the list empties as requests are answered or
+      // run out.
+      const [{ waiting } = { waiting: 0 }] = await db
+        .select({ waiting: sql<number>`count(*)::int` })
+        .from(remoteDevices)
+        .where(eq(remoteDevices.status, 'pending'));
+      if (waiting >= MAX_PENDING) {
+        throw new ApiError(
+          429,
+          'access_list_full',
+          'Too many devices are waiting to be let in; ask a manager.',
+        );
+      }
+      recent.push(Date.now());
       const token = generateToken();
       const code = newCode();
       await db.insert(remoteDevices).values({

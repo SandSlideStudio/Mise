@@ -51,7 +51,8 @@ export const es: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Ese archivo es demasiado grande.',
   'error.unknownTimeZone': 'Este servidor no conoce esa zona horaria.',
   'error.alreadySetUp': 'Este servidor ya está configurado.',
-  'error.imageType': 'Usa una imagen JPEG, PNG o WebP.',
+  'error.imageType':
+    'Ese archivo no es una foto que Mise pueda mostrar. Usa JPEG, PNG, WebP o AVIF.',
   'error.imageMissing': 'No se ha adjuntado ninguna imagen.',
   'error.notADish': 'Solo un plato tiene ficha de plato.',
   'error.logoTooLarge': 'Ese logotipo ocupa más de 2 MB.',
@@ -1207,4 +1208,6 @@ export const es: Record<MessageKey, string> = {
   'idle.warningSr': 'Nadie ha tocado esta tableta desde hace un rato. La sesión se cerrará pronto.',
   'idle.stay': 'Seguir con la sesión',
   'idle.signingOut': 'Cerrando sesión…',
+  'error.accessListFull':
+    'Hay demasiados dispositivos esperando entrar. Pregunta a un responsable.',
 };

@@ -54,7 +54,8 @@ export const de: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Diese Datei ist zu groß.',
   'error.unknownTimeZone': 'Diese Zeitzone kennt der Server nicht.',
   'error.alreadySetUp': 'Dieser Server ist bereits eingerichtet.',
-  'error.imageType': 'Verwende ein JPEG-, PNG- oder WebP-Bild.',
+  'error.imageType':
+    'Diese Datei ist kein Foto, das Mise anzeigen kann. Verwende JPEG, PNG, WebP oder AVIF.',
   'error.imageMissing': 'Es wurde kein Bild angehängt.',
   'error.notADish': 'Nur ein Gericht hat eine Gerichtkarte.',
   'error.logoTooLarge': 'Dieses Logo ist größer als 2 MB.',
@@ -1226,4 +1227,5 @@ export const de: Record<MessageKey, string> = {
   'idle.warningSr': 'Dieses Tablet wurde eine Weile nicht berührt. Du wirst gleich abgemeldet.',
   'idle.stay': 'Angemeldet bleiben',
   'idle.signingOut': 'Abmelden…',
+  'error.accessListFull': 'Zu viele Geräte warten auf Einlass. Frag eine Leitung.',
 };

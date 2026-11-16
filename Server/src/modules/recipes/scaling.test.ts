@@ -211,6 +211,23 @@ describe('reading a recipe at another size', () => {
   });
 });
 
+const HEADERS: Record<string, Uint8Array> = {
+  jpeg: new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]),
+  png: new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]),
+  webp: Buffer.from('RIFF\0\0\0\0WEBPVP8 ', 'latin1'),
+  avif: Buffer.concat([
+    Buffer.from([0, 0, 0, 0x1c]),
+    Buffer.from('ftypavif\0\0\0\0avifmif1miaf', 'latin1'),
+  ]),
+};
+const EXTENSIONS: Record<string, string> = {
+  jpeg: '.jpg',
+  png: '.png',
+  webp: '.webp',
+  avif: '.avif',
+};
+const PNG_HEAD = new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 0]);
+
 describe('plating photographs', () => {
   it('refuses anything that is not an image we can store', async () => {
     const form = new FormData();
@@ -223,12 +240,12 @@ describe('plating photographs', () => {
       cookies: as(admin),
     });
     expect(response.statusCode).toBe(400);
-    expect(response.json().error.message).toContain('not an image');
+    expect(response.json().error.code).toBe('image_type');
   });
 
   it('refuses a photograph on a recipe that does not exist', async () => {
     const form = new FormData();
-    form.append('file', new Blob([new Uint8Array([1, 2, 3])], { type: 'image/png' }), 'plate.png');
+    form.append('file', new Blob([PNG_HEAD], { type: 'image/png' }), 'plate.png');
 
     const response = await ctx.app.inject({
       method: 'POST',
@@ -241,7 +258,7 @@ describe('plating photographs', () => {
 
   it('stores an image and makes the first one represent the recipe', async () => {
     const form = new FormData();
-    form.append('file', new Blob([new Uint8Array([137, 80, 78, 71])], { type: 'image/png' }), 'x');
+    form.append('file', new Blob([PNG_HEAD], { type: 'image/png' }), 'x');
 
     const response = await ctx.app.inject({
       method: 'POST',
@@ -256,9 +273,60 @@ describe('plating photographs', () => {
     expect(response.json().url).toMatch(/^\/api\/uploads\/[0-9a-f-]+\.png$/);
   });
 
+  it('stores each kind of photo by what its bytes prove, whatever it claims to be', async () => {
+    for (const [kind, extension] of Object.entries(EXTENSIONS)) {
+      const form = new FormData();
+      // Claimed as a PNG every time: the content decides.
+      form.append('file', new Blob([HEADERS[kind]!], { type: 'image/png' }), 'plate.png');
+      const response = await ctx.app.inject({
+        method: 'POST',
+        url: `/api/recipes/${ids.pie}/photos`,
+        payload: form,
+        cookies: as(admin),
+      });
+      expect(response.statusCode, kind).toBe(200);
+      expect(response.json().url, kind).toMatch(new RegExp(`\\${extension}$`));
+      const served = await ctx.app.inject({
+        method: 'GET',
+        url: response.json().url,
+        cookies: as(admin),
+      });
+      expect(served.headers['content-type'], kind).toBe(`image/${kind === 'jpeg' ? 'jpeg' : kind}`);
+    }
+  });
+
+  it('refuses text, HTML and SVG renamed to look like a photo', async () => {
+    const disguises: [string, string, string][] = [
+      ['notes', 'text/plain', 'image/jpeg'],
+      ['<!doctype html><script>alert(1)</script>', 'text/html', 'image/png'],
+      ['<svg xmlns="http://www.w3.org/2000/svg"><script/></svg>', 'image/svg+xml', 'image/webp'],
+    ];
+    for (const [content, , claimed] of disguises) {
+      const form = new FormData();
+      form.append('file', new Blob([content], { type: claimed }), 'plate.jpg');
+      const response = await ctx.app.inject({
+        method: 'POST',
+        url: `/api/recipes/${ids.pie}/photos`,
+        payload: form,
+        cookies: as(admin),
+      });
+      expect(response.statusCode, content).toBe(400);
+      expect(response.json().error.code).toBe('image_type');
+    }
+    const empty = new FormData();
+    empty.append('file', new Blob([], { type: 'image/png' }), 'plate.png');
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: `/api/recipes/${ids.pie}/photos`,
+      payload: empty,
+      cookies: as(admin),
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
   it('refuses an upload from a cook', async () => {
     const form = new FormData();
-    form.append('file', new Blob([new Uint8Array([1])], { type: 'image/png' }), 'x');
+    form.append('file', new Blob([PNG_HEAD], { type: 'image/png' }), 'x');
 
     const response = await ctx.app.inject({
       method: 'POST',

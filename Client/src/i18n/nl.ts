@@ -52,7 +52,8 @@ export const nl: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Dat bestand is te groot.',
   'error.unknownTimeZone': 'Die tijdzone kent deze server niet.',
   'error.alreadySetUp': 'Deze server is al ingesteld.',
-  'error.imageType': 'Gebruik een JPEG-, PNG- of WebP-afbeelding.',
+  'error.imageType':
+    'Dat bestand is geen foto die Mise kan tonen. Gebruik een JPEG, PNG, WebP of AVIF.',
   'error.imageMissing': 'Er is geen afbeelding toegevoegd.',
   'error.notADish': 'Alleen een gerecht heeft een gerechtenkaart.',
   'error.logoTooLarge': 'Dat logo is groter dan 2 MB.',
@@ -1210,4 +1211,6 @@ export const nl: Record<MessageKey, string> = {
   'idle.warningSr': 'Niemand heeft deze tablet een tijdje aangeraakt. Je wordt zo uitgelogd.',
   'idle.stay': 'Ingelogd blijven',
   'idle.signingOut': 'Uitloggen…',
+  'error.accessListFull':
+    'Er wachten te veel apparaten om binnengelaten te worden. Vraag het aan een manager.',
 };

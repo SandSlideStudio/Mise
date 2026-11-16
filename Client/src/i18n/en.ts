@@ -53,7 +53,7 @@ export const en = {
   'error.fileTooLarge': 'That file is too large.',
   'error.unknownTimeZone': 'That time zone isn’t one this server knows.',
   'error.alreadySetUp': 'This server has already been set up.',
-  'error.imageType': 'Use a JPEG, PNG or WebP image.',
+  'error.imageType': 'That file isn’t a photo Mise can show. Use a JPEG, PNG, WebP or AVIF.',
   'error.imageMissing': 'No image was attached.',
   'error.notADish': 'Only a dish has a dish card.',
   'error.logoTooLarge': 'That logo is larger than 2 MB.',
@@ -1184,6 +1184,7 @@ export const en = {
   'idle.warningSr': 'Nobody has touched this tablet for a while. Signing out soon.',
   'idle.stay': 'Stay signed in',
   'idle.signingOut': 'Signing out…',
+  'error.accessListFull': 'Too many devices are waiting to be let in. Ask a manager.',
 } as const;
 
 export type MessageKey = keyof typeof en;
