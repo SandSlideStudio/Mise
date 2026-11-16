@@ -1,7 +1,7 @@
 /**
  * The Mise mark: a knife and herbs standing in a stack of prep bowls.
  *
- * The artwork lives in `Client/public/logo.png` rather than being inlined
+ * The artwork lives in `Client/public/logo.svg` rather than being inlined
  * here, so it can be replaced without touching code. On a dark ground it is
  * lifted by a filter token rather than recoloured, and the wordmark shifts to
  * sage with the brand token.
@@ -18,7 +18,7 @@ export function Logo({
   return (
     <span className="inline-flex items-center gap-3">
       <img
-        src="/logo.png"
+        src="/logo.svg"
         alt={showWordmark ? '' : 'Mise'}
         width={size}
         height={size}
