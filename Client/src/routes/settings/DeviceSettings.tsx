@@ -1,7 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { LoadError } from '../../components/LoadError.js';
-import { useDevices, useEnrollDevice, useRevokeDevice } from '../../api/kitchen.js';
-import { errorMessage, useT } from '../../i18n/index.js';
+import {
+  useDevices,
+  useEnrollDevice,
+  useRevokeDevice,
+  useUnlockDevice,
+} from '../../api/kitchen.js';
+import { useCurrentUser } from '../../api/session.js';
+import { clockTime, errorMessage, useT } from '../../i18n/index.js';
 
 /**
  * Kitchen tablets.
@@ -17,6 +23,10 @@ export function DeviceSettings() {
   const devices = useDevices();
   const enroll = useEnrollDevice();
   const revoke = useRevokeDevice();
+  const unlock = useUnlockDevice();
+  const { data: me } = useCurrentUser();
+  // The same people who may lift a person's lock.
+  const mayLift = me?.role === 'admin' || me?.role === 'head_chef';
   const [name, setName] = useState('');
 
   function onEnroll(event: FormEvent) {
@@ -40,26 +50,53 @@ export function DeviceSettings() {
 
       {active.length > 0 ? (
         <ul className="divide-line border-line bg-surface-raised divide-y border">
-          {active.map((device) => (
-            <li key={device.id} className="flex flex-wrap items-center gap-3 p-4">
-              <div className="min-w-0 flex-1">
-                <p className="font-medium">{device.name}</p>
-                <p className="text-ink-soft mt-0.5 text-sm">
-                  {t('devices.enrolled', { date: day(device.enrolledAt) })}
-                  {' · '}
-                  {device.lastSeenAt
-                    ? t('devices.lastUsed', { date: day(device.lastSeenAt) })
-                    : t('devices.neverUsed')}
-                </p>
-              </div>
-              <RevokeButton
-                onRevoke={() => revoke.mutate(device.id)}
-                pending={revoke.isPending}
-                name={device.name}
-              />
-            </li>
-          ))}
+          {active.map((device) => {
+            const locked = device.lockedUntil !== null && new Date(device.lockedUntil) > new Date();
+            return (
+              <li key={device.id} className="flex flex-wrap items-center gap-3 p-4">
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium">{device.name}</p>
+                  <p className="text-ink-soft mt-0.5 text-sm">
+                    {t('devices.enrolled', { date: day(device.enrolledAt) })}
+                    {' · '}
+                    {device.lastSeenAt
+                      ? t('devices.lastUsed', { date: day(device.lastSeenAt) })
+                      : t('devices.neverUsed')}
+                  </p>
+                  {locked ? (
+                    <p className="text-danger mt-0.5 text-sm">
+                      {t('devices.lockedUntil', { time: clockTime(locale, device.lockedUntil!) })}
+                    </p>
+                  ) : null}
+                </div>
+                {locked ? (
+                  <span className="tag border-danger text-danger">{t('staff.locked')}</span>
+                ) : null}
+                {locked && mayLift ? (
+                  <button
+                    type="button"
+                    className="btn-small"
+                    disabled={unlock.isPending}
+                    onClick={() => unlock.mutate(device.id)}
+                  >
+                    {t('staff.unlock')}
+                  </button>
+                ) : null}
+                <RevokeButton
+                  onRevoke={() => revoke.mutate(device.id)}
+                  pending={revoke.isPending}
+                  name={device.name}
+                />
+              </li>
+            );
+          })}
         </ul>
+      ) : null}
+
+      {unlock.error ? (
+        <p role="alert" className="text-danger mt-3 text-sm">
+          {errorMessage(translator, unlock.error)}
+        </p>
       ) : null}
 
       {devices.isSuccess && active.length === 0 ? (

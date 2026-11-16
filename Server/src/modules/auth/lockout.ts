@@ -45,6 +45,29 @@ export function createLockout(now: () => number = Date.now) {
    */
   const pins = new Map<string, { failures: number; strikes: number; lockedUntil: number | null }>();
 
+  /**
+   * Tablets that sign in by PIN alone. A wrong PIN there belongs to nobody,
+   * so it counts against the tablet: five wrong and it waits 15 minutes, then
+   * twice as long each time (30, an hour, up to a day). The right PIN starts
+   * the count of wrong ones again, but not the doubling, or someone could try
+   * four, wait for a cook to sign in, and try four more all day long. That
+   * goes once a day has passed without a lock, so a few honest slips a month
+   * don't add up to day-long waits.
+   */
+  const tablets = new Map<
+    string,
+    { attempts: number; strikes: number; lockedUntil: number | null }
+  >();
+
+  function lockTablet(state: { strikes: number; lockedUntil: number | null }): number {
+    if (state.lockedUntil !== null && now() - state.lockedUntil > PIN_LOCK_CAP_MS) {
+      state.strikes = 0;
+    }
+    state.strikes += 1;
+    state.lockedUntil = now() + Math.min(WINDOW_MS * 2 ** (state.strikes - 1), PIN_LOCK_CAP_MS);
+    return state.lockedUntil;
+  }
+
   const key = (userId: string, address: string) => `${userId}\u0000${address}`;
 
   function prune(): void {
@@ -136,6 +159,54 @@ export function createLockout(now: () => number = Date.now) {
     /** The right PIN: the count starts again. */
     pinSucceeded(userId: string): void {
       pins.delete(userId);
+    },
+
+    /** Whether this tablet is locked for PIN-only sign-in, and until when. */
+    tabletLocked(deviceId: string): Date | null {
+      const state = tablets.get(deviceId);
+      return state?.lockedUntil && state.lockedUntil > now() ? new Date(state.lockedUntil) : null;
+    },
+
+    /**
+     * Count a PIN-only attempt before the slow check, the way `reserve` does,
+     * so PINs sent at the same moment can't all slip past the fifth.
+     */
+    tabletReserve(deviceId: string): { attempt: number } | { lockedUntil: Date } {
+      let state = tablets.get(deviceId);
+      if (state?.lockedUntil && state.lockedUntil > now()) {
+        return { lockedUntil: new Date(state.lockedUntil) };
+      }
+      if (!state) {
+        state = { attempts: 0, strikes: 0, lockedUntil: null };
+        tablets.set(deviceId, state);
+      }
+      // A lock that has run out: a fresh five, but the strikes stay.
+      if (state.lockedUntil !== null && state.attempts >= MAX_FAILED_ATTEMPTS) state.attempts = 0;
+      state.attempts += 1;
+      if (state.attempts > MAX_FAILED_ATTEMPTS) {
+        return { lockedUntil: new Date(lockTablet(state)) };
+      }
+      return { attempt: state.attempts };
+    },
+
+    /** A wrong PIN on this tablet. Returns when it is now locked until, if it is. */
+    tabletFailed(deviceId: string, attempt: number): Date | null {
+      const state = tablets.get(deviceId);
+      if (!state) return null;
+      const locked = state.lockedUntil !== null && state.lockedUntil > now();
+      if (!locked && attempt >= MAX_FAILED_ATTEMPTS) lockTablet(state);
+      return state.lockedUntil && state.lockedUntil > now() ? new Date(state.lockedUntil) : null;
+    },
+
+    /** The right PIN on this tablet: the wrong ones before it no longer count. */
+    tabletSucceeded(deviceId: string): void {
+      const state = tablets.get(deviceId);
+      if (state) state.attempts = 0;
+    },
+
+    /** A manager lifted the tablet's lock, or took the tablet away: start clean. */
+    forgetTablet(deviceId: string): void {
+      tablets.delete(deviceId);
     },
 
     /** For tests: how many pairs are being tracked. */

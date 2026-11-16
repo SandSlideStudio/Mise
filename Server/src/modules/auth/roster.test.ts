@@ -22,7 +22,7 @@ async function roster(): Promise<{ id: string; displayName: string; pinLength: n
     url: '/api/auth/roster',
     cookies: { mise_device: device },
   });
-  return response.json();
+  return response.json().people;
 }
 
 describe('the sign-in screens', () => {

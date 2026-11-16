@@ -1,5 +1,6 @@
-import { and, asc, eq, isNotNull, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { mayManage } from '@mise/contracts';
+import { isCommonPin } from '@mise/domain';
 import type {
   CreateStation,
   CreateUser,
@@ -11,7 +12,7 @@ import type {
 } from '@mise/contracts';
 import type { Database } from '../../db/client.js';
 import { kitchens, sessions, stations, users } from '../../db/schema.js';
-import { hashSecret } from '../../lib/crypto.js';
+import { hashSecret, verifySecret } from '../../lib/crypto.js';
 
 /**
  * Staff, stations and kitchen settings.
@@ -28,12 +29,28 @@ export type KitchenFailure =
   | { kind: 'password_needs_email' }
   | { kind: 'outranked' }
   | { kind: 'admin_needs_password' }
-  | { kind: 'email_taken' };
+  | { kind: 'email_taken' }
+  | { kind: 'pin_taken' }
+  | { kind: 'pin_too_common' };
 
 /** Who is making a change to the staff list. */
 export interface Actor {
   id: string;
   role: Role;
+}
+
+/**
+ * PINs are set one at a time while PIN-only sign-in is chosen. Checking that
+ * nobody else has a PIN and then saving it are two steps; two head chefs
+ * giving two cooks the same PIN at the same moment would otherwise both pass
+ * the check. One Mise is one process, so waiting in line here is enough.
+ */
+let pinChanges: Promise<unknown> = Promise.resolve();
+
+function oneAtATime<T>(task: () => Promise<T>): Promise<T> {
+  const result = pinChanges.then(task, task);
+  pinChanges = result.catch(() => undefined);
+  return result;
 }
 
 export function createKitchenService(db: Database) {
@@ -131,6 +148,16 @@ export function createKitchenService(db: Database) {
     | { ok: true; user: NonNullable<Awaited<ReturnType<typeof getUser>>> }
     | { ok: false; error: KitchenFailure }
   > {
+    return input.pin ? oneAtATime(() => insertUser(input, actor)) : insertUser(input, actor);
+  }
+
+  async function insertUser(
+    input: CreateUser,
+    actor: Actor,
+  ): Promise<
+    | { ok: true; user: NonNullable<Awaited<ReturnType<typeof getUser>>> }
+    | { ok: false; error: KitchenFailure }
+  > {
     if (!mayManage(actor.role, input.role)) return { ok: false, error: { kind: 'outranked' } };
     if (input.role === 'admin' && !input.password) {
       return { ok: false, error: { kind: 'admin_needs_password' } };
@@ -138,6 +165,8 @@ export function createKitchenService(db: Database) {
     if (input.email && (await emailTaken(input.email, null))) {
       return { ok: false, error: { kind: 'email_taken' } };
     }
+    const refused = input.pin ? await refusePin(input.pin, null) : null;
+    if (refused) return { ok: false, error: refused };
 
     const [user] = await db
       .insert(users)
@@ -184,6 +213,21 @@ export function createKitchenService(db: Database) {
   }
 
   async function updateUser(
+    id: string,
+    input: UpdateUser,
+    actor: Actor,
+  ): Promise<
+    | { ok: true; user: NonNullable<Awaited<ReturnType<typeof getUser>>> }
+    | { ok: false; error: KitchenFailure }
+  > {
+    // Coming back counts too: their PIN could be someone else's by now.
+    const touchesPins = Boolean(input.pin) || input.active === true;
+    return touchesPins
+      ? oneAtATime(() => applyUserEdit(id, input, actor))
+      : applyUserEdit(id, input, actor);
+  }
+
+  async function applyUserEdit(
     id: string,
     input: UpdateUser,
     actor: Actor,
@@ -238,6 +282,20 @@ export function createKitchenService(db: Database) {
     if ((input.role ?? current.role) === 'admin' && !nextPasswordHash) {
       return { ok: false, error: { kind: 'admin_needs_password' } };
     }
+    const refused = input.pin ? await refusePin(input.pin, id) : null;
+    if (refused) return { ok: false, error: refused };
+
+    // Someone switched back on while PIN-only sign-in is chosen may have the
+    // same PIN as somebody given one while they were away, and the PIN itself
+    // can't be read back to check. So theirs counts as old: they need a new
+    // one, and tablets show the names until they have it.
+    const kitchen = input.active === true && !current.active ? await getKitchen() : null;
+    const pinNowOld =
+      input.pin === undefined &&
+      current.pinHash !== null &&
+      kitchen?.pinOnlySince != null &&
+      current.pinSetAt !== null &&
+      current.pinSetAt >= kitchen.pinOnlySince;
 
     const [updated] = await db
       .update(users)
@@ -254,6 +312,7 @@ export function createKitchenService(db: Database) {
         ...(input.pin !== undefined
           ? { pinLength: input.pin?.length ?? null, pinSetAt: input.pin ? new Date() : null }
           : {}),
+        ...(pinNowOld ? { pinSetAt: null } : {}),
         // Any credential change also clears a standing lockout, which is what
         // an administrator resetting a forgotten PIN actually wants.
         ...(input.password || input.pin !== undefined ? { lockedUntil: null } : {}),
@@ -345,6 +404,32 @@ export function createKitchenService(db: Database) {
       .orderBy(asc(users.displayName));
   }
 
+  /**
+   * The PINs PIN-only sign-in goes by: everyone active whose PIN was set
+   * since it was chosen. Only hashes; nothing here can tell what a PIN is.
+   */
+  async function pinsSetSince(since: Date) {
+    return db
+      .select({ id: users.id, pinHash: users.pinHash, pinLength: users.pinLength })
+      .from(users)
+      .where(and(eq(users.active, true), isNotNull(users.pinHash), gte(users.pinSetAt, since)));
+  }
+
+  /**
+   * While PIN-only sign-in is chosen, a PIN has to find exactly one person, and
+   * must not be one a stranger at the tablet would try first. A PIN that is
+   * taken is refused without saying whose it is.
+   */
+  async function refusePin(pin: string, userId: string | null): Promise<KitchenFailure | null> {
+    const kitchen = await getKitchen();
+    if (!kitchen?.pinOnlySince) return null;
+    if (isCommonPin(pin)) return { kind: 'pin_too_common' };
+    const others = (await pinsSetSince(kitchen.pinOnlySince)).filter((p) => p.id !== userId);
+    // Each check is slow on purpose, so they run side by side, not one by one.
+    const matches = await Promise.all(others.map((other) => verifySecret(other.pinHash, pin)));
+    return matches.some(Boolean) ? { kind: 'pin_taken' } : null;
+  }
+
   /** Off, chosen but waiting for new PINs, or on. */
   async function pinOnlyState(kitchen: { pinOnlySince: Date | null }): Promise<PinOnlyState> {
     if (!kitchen.pinOnlySince) return 'off';
@@ -366,6 +451,7 @@ export function createKitchenService(db: Database) {
     getKitchen,
     updateKitchen,
     waitingForNewPin,
+    pinsSetSince,
     pinOnlyState,
   };
 }

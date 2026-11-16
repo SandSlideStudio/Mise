@@ -7,6 +7,7 @@ import {
   errorSchema,
   idSchema,
   kitchenSchema,
+  pinOnlyStatusSchema,
   reorderStationsSchema,
   stationSchema,
   updateKitchenSchema,
@@ -51,6 +52,11 @@ function failureToError(failure: KitchenFailure): ApiError {
       );
     case 'email_taken':
       return new ApiError(409, 'email_taken', 'Someone already has that email address.');
+    case 'pin_taken':
+      // Never whose: that would hand out someone's PIN.
+      return new ApiError(409, 'pin_taken', 'Choose another PIN.');
+    case 'pin_too_common':
+      return new ApiError(400, 'pin_too_common', 'Pick a less obvious PIN.');
     case 'admin_needs_password':
       return new ApiError(
         400,
@@ -276,6 +282,27 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       const row = await kitchen.getKitchen();
       if (!row) throw ApiError.notFound('This kitchen');
       return describeKitchen(row);
+    },
+  );
+
+  /**
+   * Where PIN-only sign-in stands, and who still needs a new PIN: for the
+   * administrator who chose it and the head chefs who hand the PINs out.
+   */
+  r.get(
+    '/kitchen/pin-only',
+    {
+      onRequest: [app.requireRole('admin', 'head_chef')],
+      schema: { response: { 200: pinOnlyStatusSchema, 403: errorSchema, 404: errorSchema } },
+    },
+    async () => {
+      const row = await kitchen.getKitchen();
+      if (!row) throw ApiError.notFound('This kitchen');
+      const waiting = row.pinOnlySince ? await kitchen.waitingForNewPin(row.pinOnlySince) : [];
+      return {
+        state: !row.pinOnlySince ? 'off' : waiting.length > 0 ? 'waiting' : 'on',
+        waiting,
+      } as const;
     },
   );
 

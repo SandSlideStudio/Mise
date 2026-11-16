@@ -1246,4 +1246,29 @@ export const es: Record<MessageKey, string> = {
   'offline.label.checklistAdd': 'elementos de la lista',
   'error.checklistOff':
     'La lista de prep está desactivada. Un administrador puede activarla en los ajustes.',
+  // Entrar solo con PIN
+  'line.pinOnlyLead': 'Escribe tu PIN.',
+  'line.pinOnlyLeadOk': 'Escribe tu PIN y pulsa OK.',
+  'line.noPinYet': '¿Aún sin PIN, o estás en un portátil?',
+  'devices.lockedUntil': 'Demasiados PIN incorrectos. Bloqueada hasta las {time}.',
+  'pinOnly.title': 'Entrar en las tablets',
+  'pinOnly.label': 'Entrar solo con un PIN',
+  'pinOnly.hint':
+    'Las tablets muestran un teclado en lugar de los nombres, y el PIN encuentra a la persona. Cada PIN tiene que ser distinto y no ser obvio, así que primero todos los que tienen PIN reciben uno nuevo.',
+  'pinOnly.on':
+    'Activado. Las tablets solo muestran el teclado. Desactívalo para que vuelvan los nombres; los PIN siguen funcionando.',
+  'pinOnly.waiting':
+    'Esperando PIN nuevos. Las tablets siguen mostrando los nombres hasta que todos tengan uno.',
+  'pinOnly.waitingHow':
+    'Un jefe de cocina o un administrador le pone un PIN nuevo a cada uno en Ajustes → Equipo.',
+  'pinOnly.waitingFor': 'Aún necesita un PIN nuevo',
+  'pinOnly.needsNewPin': 'Necesita un PIN nuevo',
+  'pinOnly.pinHint':
+    'Para entrar en una tablet de cocina. Tiene que ser distinto del de los demás, y no uno obvio como 1234.',
+  'error.pinTaken': 'Elige otro PIN.',
+  'error.pinTooCommon': 'Elige un PIN menos obvio.',
+  'error.pinOnlyOff': 'Esta tablet vuelve a mostrar los nombres. Toca tu nombre y luego tu PIN.',
+  'error.pinOnlyOn': 'En esta tablet ahora se entra solo con un PIN.',
+  'error.tabletLockedUntil':
+    'Demasiados PIN incorrectos en esta tablet. Vuelve a intentarlo después de las {time}, o pide a un jefe de cocina que quite el bloqueo.',
 };

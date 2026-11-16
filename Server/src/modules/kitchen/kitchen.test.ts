@@ -274,7 +274,7 @@ describe('editing staff', () => {
       url: '/api/auth/roster',
       cookies: { mise_device: device },
     });
-    expect(roster.json()).toEqual([]);
+    expect(roster.json().people).toEqual([]);
   });
 
   it('refuses an edit that would leave somebody unable to sign in', async () => {
