@@ -48,6 +48,8 @@ function serialiseTask(task: TaskRow) {
     completedByName: task.completedByName,
     completedAt: task.completedAt?.toISOString() ?? null,
     sortOrder: task.sortOrder,
+    createdByName: task.createdByName,
+    fromChecklist: task.fromChecklist,
   };
 }
 
@@ -91,7 +93,7 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
           .limit(1);
         if (!recipe) throw new ApiError(400, 'recipe_gone', 'That recipe no longer exists.');
       }
-      const result = await svc.addTask(request.body);
+      const result = await svc.addTask(request.body, request.user!.id);
       if (!result.task) throw new ApiError(500, 'internal_error', 'Could not add that line.');
       return { task: serialiseTask(result.task), merged: result.merged };
     },

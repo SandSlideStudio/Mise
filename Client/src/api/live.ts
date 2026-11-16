@@ -14,7 +14,7 @@ import { BASE_URL } from './client.js';
 type Topic = 'prep' | 'kitchen' | 'staff' | 'menus' | 'recipes';
 
 const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
-  prep: [['tasks'], ['handover']],
+  prep: [['tasks'], ['handover'], ['checklist']],
   kitchen: [['kitchen'], ['stations'], ['me'], ['dish-card-settings'], ['dish-card'], ['dishes']],
   staff: [['users'], ['roster'], ['me'], ['remote-devices']],
   menus: [['menus'], ['menu'], ['menu-overview'], ['dish-card'], ['dishes']],
