@@ -1200,4 +1200,14 @@ export const nl: Record<MessageKey, string> = {
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
   'error.passwordRequired':
     'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
+  'kitchen.idle': 'Uitloggen op gedeelde tablets als ze met rust gelaten worden',
+  'kitchen.idleNever': 'Nooit',
+  'kitchen.idleMinutes': 'Na {minutes} minuten zonder aanraking',
+  'kitchen.idleHint':
+    'Geldt alleen voor tablets die zijn aangemeld voor inloggen met een pincode. Eerst verschijnt een korte waarschuwing. Wijzigingen die nog op verzending wachten, blijven bewaard voor de volgende keer dat die persoon inlogt.',
+  'idle.warning':
+    'Niemand heeft deze tablet een tijdje aangeraakt. Uitloggen over {seconds} seconden.',
+  'idle.warningSr': 'Niemand heeft deze tablet een tijdje aangeraakt. Je wordt zo uitgelogd.',
+  'idle.stay': 'Ingelogd blijven',
+  'idle.signingOut': 'Uitloggen…',
 };

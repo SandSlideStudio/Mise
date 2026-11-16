@@ -1197,4 +1197,14 @@ export const es: Record<MessageKey, string> = {
     'Has iniciado sesión con tu PIN. Para gestionar las copias o ver la clave de recuperación, inicia sesión con tu contraseña.',
   'error.passwordRequired':
     'Inicia sesión con tu contraseña para hacer esto. Con un PIN puedes hacer todo lo demás.',
+  'kitchen.idle': 'Cerrar sesión en las tabletas compartidas si nadie las toca',
+  'kitchen.idleNever': 'Nunca',
+  'kitchen.idleMinutes': 'Tras {minutes} minutos sin tocarla',
+  'kitchen.idleHint':
+    'Solo se aplica a las tabletas registradas para entrar con PIN. Antes aparece un aviso breve. Los cambios que aún esperan para enviarse se conservan para la próxima vez que esa persona inicie sesión.',
+  'idle.warning':
+    'Nadie ha tocado esta tableta desde hace un rato. Se cerrará la sesión en {seconds} segundos.',
+  'idle.warningSr': 'Nadie ha tocado esta tableta desde hace un rato. La sesión se cerrará pronto.',
+  'idle.stay': 'Seguir con la sesión',
+  'idle.signingOut': 'Cerrando sesión…',
 };

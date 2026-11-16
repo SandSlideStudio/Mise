@@ -4,6 +4,15 @@ import { useKitchen, useUpdateKitchen } from '../../api/kitchen.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 import { VersionSettings } from './VersionSettings.js';
 
+const IDLE_CHOICES = [2, 5, 10, 15, 30];
+
+/** The usual choices, plus whatever is set already if it was set some other way. */
+function idleChoices(current: number | null): number[] {
+  return current === null || IDLE_CHOICES.includes(current)
+    ? IDLE_CHOICES
+    : [...IDLE_CHOICES, current].sort((a, b) => a - b);
+}
+
 /**
  * What this kitchen is called, which units it works in, what it speaks, and
  * what happens to prep lines once they have been ticked off.
@@ -16,6 +25,7 @@ export function KitchenSettings() {
   const [name, setName] = useState('');
   const [language, setLanguage] = useState<Language>('en');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
+  const [idleMinutes, setIdleMinutes] = useState<number | null>(null);
 
   // Seed the form once the current settings arrive.
   useEffect(() => {
@@ -23,6 +33,7 @@ export function KitchenSettings() {
       setName(kitchen.data.name);
       setLanguage(kitchen.data.language);
       setTickedRetention(kitchen.data.tickedRetention);
+      setIdleMinutes(kitchen.data.idleSignOutMinutes);
     }
   }, [kitchen.data]);
 
@@ -32,7 +43,7 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    update.mutate({ name, language, tickedRetention });
+    update.mutate({ name, language, tickedRetention, idleSignOutMinutes: idleMinutes });
   }
 
   return (
@@ -67,6 +78,26 @@ export function KitchenSettings() {
             <option value="delete">{t('kitchen.retentionDelete')}</option>
           </select>
           <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.retentionHint')}</p>
+        </div>
+
+        <div>
+          <label className="label" htmlFor="idleSignOut">
+            {t('kitchen.idle')}
+          </label>
+          <select
+            id="idleSignOut"
+            className="field"
+            value={idleMinutes ?? ''}
+            onChange={(e) => setIdleMinutes(e.target.value === '' ? null : Number(e.target.value))}
+          >
+            <option value="">{t('kitchen.idleNever')}</option>
+            {idleChoices(idleMinutes).map((minutes) => (
+              <option key={minutes} value={minutes}>
+                {t('kitchen.idleMinutes', { minutes: String(minutes) })}
+              </option>
+            ))}
+          </select>
+          <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.idleHint')}</p>
         </div>
 
         <div>
