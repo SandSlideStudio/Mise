@@ -53,7 +53,8 @@ export const fr: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Ce fichier est trop volumineux.',
   'error.unknownTimeZone': 'Ce serveur ne connaît pas ce fuseau horaire.',
   'error.alreadySetUp': 'Ce serveur est déjà configuré.',
-  'error.imageType': 'Utilisez une image JPEG, PNG ou WebP.',
+  'error.imageType':
+    'Ce fichier n’est pas une photo que Mise peut afficher. Utilisez un JPEG, PNG, WebP ou AVIF.',
   'error.imageMissing': 'Aucune image n’a été jointe.',
   'error.notADish': 'Seul un plat a une fiche plat.',
   'error.logoTooLarge': 'Ce logo dépasse 2 Mo.',
@@ -1218,4 +1219,5 @@ export const fr: Record<MessageKey, string> = {
     'Vous êtes connecté avec votre code PIN. Pour gérer les sauvegardes ou voir la clé de récupération, connectez-vous avec votre mot de passe.',
   'error.passwordRequired':
     'Connectez-vous avec votre mot de passe pour cela. Un code PIN suffit pour tout le reste.',
+  'error.accessListFull': 'Trop d’appareils attendent d’être admis. Demandez à un responsable.',
 };

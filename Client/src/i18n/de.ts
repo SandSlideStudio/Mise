@@ -54,7 +54,8 @@ export const de: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Diese Datei ist zu groß.',
   'error.unknownTimeZone': 'Diese Zeitzone kennt der Server nicht.',
   'error.alreadySetUp': 'Dieser Server ist bereits eingerichtet.',
-  'error.imageType': 'Verwende ein JPEG-, PNG- oder WebP-Bild.',
+  'error.imageType':
+    'Diese Datei ist kein Foto, das Mise anzeigen kann. Verwende JPEG, PNG, WebP oder AVIF.',
   'error.imageMissing': 'Es wurde kein Bild angehängt.',
   'error.notADish': 'Nur ein Gericht hat eine Gerichtkarte.',
   'error.logoTooLarge': 'Dieses Logo ist größer als 2 MB.',
@@ -1217,4 +1218,5 @@ export const de: Record<MessageKey, string> = {
     'Du bist mit deiner PIN angemeldet. Um Backups zu verwalten oder den Wiederherstellungsschlüssel zu sehen, melde dich mit deinem Passwort an.',
   'error.passwordRequired':
     'Melde dich dafür mit deinem Passwort an. Mit einer PIN geht alles andere.',
+  'error.accessListFull': 'Zu viele Geräte warten auf Einlass. Frag eine Leitung.',
 };

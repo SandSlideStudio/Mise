@@ -53,7 +53,7 @@ export const en = {
   'error.fileTooLarge': 'That file is too large.',
   'error.unknownTimeZone': 'That time zone isn’t one this server knows.',
   'error.alreadySetUp': 'This server has already been set up.',
-  'error.imageType': 'Use a JPEG, PNG or WebP image.',
+  'error.imageType': 'That file isn’t a photo Mise can show. Use a JPEG, PNG, WebP or AVIF.',
   'error.imageMissing': 'No image was attached.',
   'error.notADish': 'Only a dish has a dish card.',
   'error.logoTooLarge': 'That logo is larger than 2 MB.',
@@ -1175,6 +1175,7 @@ export const en = {
   'passwordOnly.backups':
     'You’re signed in with your PIN. To manage backups or see the recovery key, sign in with your password.',
   'error.passwordRequired': 'Sign in with your password to do this. A PIN can do everything else.',
+  'error.accessListFull': 'Too many devices are waiting to be let in. Ask a manager.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -52,7 +52,8 @@ export const nl: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Dat bestand is te groot.',
   'error.unknownTimeZone': 'Die tijdzone kent deze server niet.',
   'error.alreadySetUp': 'Deze server is al ingesteld.',
-  'error.imageType': 'Gebruik een JPEG-, PNG- of WebP-afbeelding.',
+  'error.imageType':
+    'Dat bestand is geen foto die Mise kan tonen. Gebruik een JPEG, PNG, WebP of AVIF.',
   'error.imageMissing': 'Er is geen afbeelding toegevoegd.',
   'error.notADish': 'Alleen een gerecht heeft een gerechtenkaart.',
   'error.logoTooLarge': 'Dat logo is groter dan 2 MB.',
@@ -1200,4 +1201,6 @@ export const nl: Record<MessageKey, string> = {
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
   'error.passwordRequired':
     'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
+  'error.accessListFull':
+    'Er wachten te veel apparaten om binnengelaten te worden. Vraag het aan een manager.',
 };

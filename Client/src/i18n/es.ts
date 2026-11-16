@@ -51,7 +51,8 @@ export const es: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Ese archivo es demasiado grande.',
   'error.unknownTimeZone': 'Este servidor no conoce esa zona horaria.',
   'error.alreadySetUp': 'Este servidor ya está configurado.',
-  'error.imageType': 'Usa una imagen JPEG, PNG o WebP.',
+  'error.imageType':
+    'Ese archivo no es una foto que Mise pueda mostrar. Usa JPEG, PNG, WebP o AVIF.',
   'error.imageMissing': 'No se ha adjuntado ninguna imagen.',
   'error.notADish': 'Solo un plato tiene ficha de plato.',
   'error.logoTooLarge': 'Ese logotipo ocupa más de 2 MB.',
@@ -1197,4 +1198,6 @@ export const es: Record<MessageKey, string> = {
     'Has iniciado sesión con tu PIN. Para gestionar las copias o ver la clave de recuperación, inicia sesión con tu contraseña.',
   'error.passwordRequired':
     'Inicia sesión con tu contraseña para hacer esto. Con un PIN puedes hacer todo lo demás.',
+  'error.accessListFull':
+    'Hay demasiados dispositivos esperando entrar. Pregunta a un responsable.',
 };

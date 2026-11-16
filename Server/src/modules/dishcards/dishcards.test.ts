@@ -376,6 +376,48 @@ describe('dish card settings', () => {
     });
     expect(response.statusCode).toBe(400);
   });
+
+  it('store a logo by what its bytes prove, whatever it claims to be', async () => {
+    const logos: [string, Buffer][] = [
+      ['.jpg', Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46])],
+      ['.png', Buffer.from('89504e470d0a1a0a00000000', 'hex')],
+      ['.webp', Buffer.from('RIFF\0\0\0\0WEBPVP8 ', 'latin1')],
+    ];
+    for (const [extension, bytes] of logos) {
+      const response = await ctx.app.inject({
+        method: 'POST',
+        url: '/api/dish-cards/logo',
+        cookies: admin,
+        ...multipart('image/gif', bytes),
+      });
+      expect(response.statusCode, extension).toBe(200);
+      expect(response.json().logoUrl, extension).toMatch(new RegExp(`\\${extension}$`));
+    }
+  });
+
+  it('refuse text, HTML and SVG renamed to look like a logo, and an AVIF it never took', async () => {
+    const avif = Buffer.concat([
+      Buffer.from([0, 0, 0, 0x1c]),
+      Buffer.from('ftypavif\0\0\0\0avifmif1'),
+    ]);
+    const disguises: [string, Buffer][] = [
+      ['image/png', Buffer.from('just some notes')],
+      ['image/jpeg', Buffer.from('<!doctype html><script>alert(1)</script>')],
+      ['image/webp', Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"><script/></svg>')],
+      ['image/avif', avif],
+      ['image/png', Buffer.alloc(0)],
+    ];
+    for (const [type, bytes] of disguises) {
+      const response = await ctx.app.inject({
+        method: 'POST',
+        url: '/api/dish-cards/logo',
+        cookies: admin,
+        ...multipart(type, bytes),
+      });
+      expect(response.statusCode, bytes.toString().slice(0, 20)).toBe(400);
+      expect(response.json().error.code).toBe('image_type');
+    }
+  });
 });
 
 function multipart(type: string, data: Buffer) {

@@ -265,6 +265,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   unknown_time_zone: 'error.unknownTimeZone',
   already_set_up: 'error.alreadySetUp',
   image_type: 'error.imageType',
+  access_list_full: 'error.accessListFull',
   image_missing: 'error.imageMissing',
   not_a_dish: 'error.notADish',
   logo_too_large: 'error.logoTooLarge',
@@ -338,7 +339,11 @@ export function errorMessage(translator: Translator, error: unknown): string {
     }
   }
 
-  if (error.status === 429) return translator.t('error.tooManyRequests');
+  // Any rate limit reads as "too many tries", except a full waiting list, which
+  // has its own words: nothing to retry, someone has to answer the requests.
+  if (error.status === 429 && error.code !== 'access_list_full') {
+    return translator.t('error.tooManyRequests');
+  }
 
   const key = TRANSLATED_ERRORS[error.code];
   if (!key) return error.message;
