@@ -1218,4 +1218,14 @@ export const fr: Record<MessageKey, string> = {
     'Vous êtes connecté avec votre code PIN. Pour gérer les sauvegardes ou voir la clé de récupération, connectez-vous avec votre mot de passe.',
   'error.passwordRequired':
     'Connectez-vous avec votre mot de passe pour cela. Un code PIN suffit pour tout le reste.',
+  'kitchen.idle': 'Déconnecter les tablettes partagées quand on n’y touche plus',
+  'kitchen.idleNever': 'Jamais',
+  'kitchen.idleMinutes': 'Après {minutes} minutes sans toucher',
+  'kitchen.idleHint':
+    'Ne concerne que les tablettes enregistrées pour la connexion par code PIN. Un court avertissement s’affiche d’abord. Les modifications encore en attente d’envoi sont conservées pour la prochaine connexion de la personne.',
+  'idle.warning':
+    'Personne n’a touché cette tablette depuis un moment. Déconnexion dans {seconds} secondes.',
+  'idle.warningSr': 'Personne n’a touché cette tablette depuis un moment. Déconnexion imminente.',
+  'idle.stay': 'Rester connecté',
+  'idle.signingOut': 'Déconnexion…',
 };

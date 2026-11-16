@@ -13,6 +13,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { api, noAnswer, RequestFailed } from './client.js';
 import { sendPending } from './ticks.js';
 import { forgetKept } from './offline.js';
+import { clearActivity } from '../lib/idle.js';
 
 /**
  * A sign-out Mise didn't hear yet.
@@ -161,6 +162,8 @@ export function useLogout() {
       return user;
     },
     onSuccess: async (user) => {
+      // Whoever signs in next starts counting from their own first touch.
+      clearActivity();
       await navigate({ to: user?.onTablet ? '/line' : '/login' });
       queryClient.getMutationCache().clear();
       queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'setup-status' });

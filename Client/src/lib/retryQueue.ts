@@ -1,4 +1,5 @@
 import type { PrepTaskStatus } from '@mise/contracts';
+import { createEntryStore } from './entryStore.js';
 
 /**
  * Ticks waiting to reach the server, kept in localStorage so a reload or a dead
@@ -8,9 +9,13 @@ import type { PrepTaskStatus } from '@mise/contracts';
  * server has answered: accepted, or refused for a real reason. Each entry
  * belongs to the person who tapped it, so on a shared tablet the next cook
  * never sends someone else's work under their own name.
+ *
+ * Each tick sits under its own key, so two tabs ticking at the same moment
+ * can't overwrite each other (see entryStore.ts).
  */
 
-const STORAGE_KEY = 'mise.pendingTicks';
+/** Where versions before 2.3 kept the whole queue under one key. */
+const LEGACY_KEY = 'mise.pendingTicks';
 
 export interface TickPatch {
   status: PrepTaskStatus;
@@ -37,47 +42,54 @@ const newId = () =>
 /** Entries being sent right now, so the background sender doesn't send them twice. */
 const inFlight = new Set<string>();
 
-function read(): PendingTick[] {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    // Entries from before ticks carried a person can't be sent safely.
-    return Array.isArray(parsed)
-      ? (parsed as PendingTick[]).filter((entry) => entry.id && entry.userId && entry.patch)
-      : [];
-  } catch {
-    return [];
-  }
+const store = createEntryStore<PendingTick>({
+  prefix: 'mise.pendingTicks.',
+  legacyKey: LEGACY_KEY,
+  // Entries from before ticks carried a person can't be sent safely.
+  isEntry: (value): value is PendingTick =>
+    typeof value === 'object' &&
+    value !== null &&
+    Boolean((value as PendingTick).id) &&
+    Boolean((value as PendingTick).userId) &&
+    Boolean((value as PendingTick).patch),
+});
+
+function changed(): void {
+  version += 1;
+  for (const listener of listeners) listener();
 }
 
-function write(queue: PendingTick[]): void {
+function save(entry: PendingTick): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
+    store.put(entry);
   } catch {
     // Storage blocked: the tick is still sent, it just won't survive a reload.
   }
-  version += 1;
-  for (const listener of listeners) listener();
 }
 
 /**
  * Save a tick before sending it. An older tick on the same line that hasn't
  * gone out yet is replaced, since only the newest one matters.
  */
+/** Ticks made within the same millisecond still keep the order they were made in. */
+let lastQueuedAt = 0;
+
 export function enqueue(tick: Omit<PendingTick, 'id' | 'queuedAt'>): PendingTick {
-  const entry: PendingTick = { ...tick, id: newId(), queuedAt: Date.now() };
-  const queue = read().filter(
-    (other) =>
-      !(other.taskId === tick.taskId && other.userId === tick.userId && !inFlight.has(other.id)),
-  );
-  queue.push(entry);
-  write(queue);
+  lastQueuedAt = Math.max(Date.now(), lastQueuedAt + 1);
+  const entry: PendingTick = { ...tick, id: newId(), queuedAt: lastQueuedAt };
+  for (const other of store.all()) {
+    if (other.taskId === tick.taskId && other.userId === tick.userId && !inFlight.has(other.id)) {
+      store.delete(other.id);
+    }
+  }
+  save(entry);
+  changed();
   return entry;
 }
 
 export function remove(entryId: string): void {
-  write(read().filter((entry) => entry.id !== entryId));
+  store.delete(entryId);
+  changed();
 }
 
 /**
@@ -85,22 +97,22 @@ export function remove(entryId: string): void {
  * meanwhile go to that line now.
  */
 export function retarget(fromTaskId: string, toTaskId: string): void {
-  const queue = read();
-  if (!queue.some((entry) => entry.taskId === fromTaskId)) return;
-  write(
-    queue.map((entry) => (entry.taskId === fromTaskId ? { ...entry, taskId: toTaskId } : entry)),
-  );
+  const moving = store.all().filter((entry) => entry.taskId === fromTaskId);
+  if (moving.length === 0) return;
+  for (const entry of moving) save({ ...entry, taskId: toTaskId });
+  changed();
 }
 
 /** Forget the ticks on a line, such as one added offline that was never accepted. */
 export function removeForTask(taskId: string): void {
-  const queue = read();
-  if (!queue.some((entry) => entry.taskId === taskId)) return;
-  write(queue.filter((entry) => entry.taskId !== taskId));
+  const going = store.all().filter((entry) => entry.taskId === taskId);
+  if (going.length === 0) return;
+  for (const entry of going) store.delete(entry.id);
+  changed();
 }
 
 export function pendingFor(userId: string | undefined): PendingTick[] {
-  return userId ? read().filter((entry) => entry.userId === userId) : [];
+  return userId ? store.all().filter((entry) => entry.userId === userId) : [];
 }
 
 export function claim(entryId: string): boolean {
@@ -131,8 +143,6 @@ export function queueVersion(): number {
 // Another tab on the same tablet changed the queue.
 if (typeof window !== 'undefined') {
   window.addEventListener('storage', (event) => {
-    if (event.key !== STORAGE_KEY) return;
-    version += 1;
-    for (const listener of listeners) listener();
+    if (store.owns(event.key)) changed();
   });
 }

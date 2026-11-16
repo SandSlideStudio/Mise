@@ -41,6 +41,7 @@ import { VERSION } from './version.js';
 import { useVersionWatch } from './lib/freshness.js';
 import { RouteError } from './components/UpdatedNotice.js';
 import { TourHost } from './components/Tour.js';
+import { IdleSignOut } from './components/IdleSignOut.js';
 // Self-hosted, so a kitchen server with no internet still draws its own type.
 import '@fontsource/barlow/400.css';
 import '@fontsource/barlow/500.css';
@@ -198,6 +199,7 @@ function Shell() {
     <>
       <Outlet />
       {inApp ? <TourHost key={currentUser.data!.id} /> : null}
+      {inApp ? <IdleSignOut key={currentUser.data!.id} user={currentUser.data!} /> : null}
     </>
   );
 }

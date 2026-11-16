@@ -1217,4 +1217,13 @@ export const de: Record<MessageKey, string> = {
     'Du bist mit deiner PIN angemeldet. Um Backups zu verwalten oder den Wiederherstellungsschlüssel zu sehen, melde dich mit deinem Passwort an.',
   'error.passwordRequired':
     'Melde dich dafür mit deinem Passwort an. Mit einer PIN geht alles andere.',
+  'kitchen.idle': 'Auf geteilten Tablets abmelden, wenn sie unberührt bleiben',
+  'kitchen.idleNever': 'Nie',
+  'kitchen.idleMinutes': 'Nach {minutes} Minuten ohne Berührung',
+  'kitchen.idleHint':
+    'Gilt nur für Tablets, die für die Anmeldung mit PIN eingerichtet sind. Zuerst erscheint ein kurzer Hinweis. Änderungen, die noch auf das Senden warten, bleiben für die nächste Anmeldung dieser Person gespeichert.',
+  'idle.warning': 'Dieses Tablet wurde eine Weile nicht berührt. Abmeldung in {seconds} Sekunden.',
+  'idle.warningSr': 'Dieses Tablet wurde eine Weile nicht berührt. Du wirst gleich abgemeldet.',
+  'idle.stay': 'Angemeldet bleiben',
+  'idle.signingOut': 'Abmelden…',
 };

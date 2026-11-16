@@ -1175,6 +1175,15 @@ export const en = {
   'passwordOnly.backups':
     'You’re signed in with your PIN. To manage backups or see the recovery key, sign in with your password.',
   'error.passwordRequired': 'Sign in with your password to do this. A PIN can do everything else.',
+  'kitchen.idle': 'Sign out of shared tablets when left alone',
+  'kitchen.idleNever': 'Never',
+  'kitchen.idleMinutes': 'After {minutes} minutes without a touch',
+  'kitchen.idleHint':
+    'Only applies to tablets enrolled for PIN sign-in. The person sees a short warning first. Changes still waiting to be sent are kept for their next sign-in.',
+  'idle.warning': 'Nobody has touched this tablet for a while. Signing out in {seconds} seconds.',
+  'idle.warningSr': 'Nobody has touched this tablet for a while. Signing out soon.',
+  'idle.stay': 'Stay signed in',
+  'idle.signingOut': 'Signing out…',
 } as const;
 
 export type MessageKey = keyof typeof en;
