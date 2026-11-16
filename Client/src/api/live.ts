@@ -15,8 +15,17 @@ type Topic = 'prep' | 'kitchen' | 'staff' | 'menus' | 'recipes';
 
 const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
   prep: [['tasks'], ['handover']],
-  kitchen: [['kitchen'], ['stations'], ['me'], ['dish-card-settings'], ['dish-card'], ['dishes']],
-  staff: [['users'], ['roster'], ['me'], ['remote-devices']],
+  kitchen: [
+    ['kitchen'],
+    ['stations'],
+    ['me'],
+    ['dish-card-settings'],
+    ['dish-card'],
+    ['dishes'],
+    ['pin-only'],
+  ],
+  // A new PIN can take someone off the list of who still needs one.
+  staff: [['users'], ['roster'], ['me'], ['remote-devices'], ['pin-only']],
   menus: [['menus'], ['menu'], ['menu-overview'], ['dish-card'], ['dishes']],
   // Open editors keep what is being typed: their form is filled once.
   recipes: [

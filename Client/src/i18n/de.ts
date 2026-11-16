@@ -1217,4 +1217,28 @@ export const de: Record<MessageKey, string> = {
     'Du bist mit deiner PIN angemeldet. Um Backups zu verwalten oder den Wiederherstellungsschlüssel zu sehen, melde dich mit deinem Passwort an.',
   'error.passwordRequired':
     'Melde dich dafür mit deinem Passwort an. Mit einer PIN geht alles andere.',
+  // Anmelden nur mit PIN
+  'line.pinOnlyLead': 'Gib deine PIN ein.',
+  'line.pinOnlyLeadOk': 'Gib deine PIN ein und tippe auf OK.',
+  'line.noPinYet': 'Noch keine PIN, oder am Laptop?',
+  'devices.lockedUntil': 'Zu viele falsche PINs. Gesperrt bis {time}.',
+  'pinOnly.title': 'Anmelden an Tablets',
+  'pinOnly.label': 'Nur mit PIN anmelden',
+  'pinOnly.hint':
+    'Tablets zeigen ein Tastenfeld statt der Namen, und die PIN findet die Person. Jede PIN muss anders sein und darf nicht naheliegen, darum bekommt erst jeder mit PIN eine neue.',
+  'pinOnly.on':
+    'An. Tablets zeigen nur das Tastenfeld. Schalte es aus, um die Namen zurückzuholen; die PINs funktionieren weiter.',
+  'pinOnly.waiting': 'Wartet auf neue PINs. Tablets zeigen die Namen, bis jeder eine hat.',
+  'pinOnly.waitingHow':
+    'Ein Küchenchef oder Administrator gibt jedem von ihnen unter Einstellungen → Team eine neue PIN.',
+  'pinOnly.waitingFor': 'Braucht noch eine neue PIN',
+  'pinOnly.needsNewPin': 'Braucht eine neue PIN',
+  'pinOnly.pinHint':
+    'Zum Anmelden an einem Küchentablet. Sie muss sich von allen anderen unterscheiden und darf nicht naheliegen wie 1234.',
+  'error.pinTaken': 'Wähle eine andere PIN.',
+  'error.pinTooCommon': 'Wähle eine weniger naheliegende PIN.',
+  'error.pinOnlyOff': 'Dieses Tablet zeigt wieder die Namen. Tippe auf deinen Namen, dann die PIN.',
+  'error.pinOnlyOn': 'An diesem Tablet meldest du dich jetzt nur mit der PIN an.',
+  'error.tabletLockedUntil':
+    'Zu viele falsche PINs an diesem Tablet. Versuche es nach {time} erneut, oder bitte einen Küchenchef, die Sperre aufzuheben.',
 };

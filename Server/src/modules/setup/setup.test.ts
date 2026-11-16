@@ -81,7 +81,9 @@ describe('setting a kitchen up in one go', () => {
       url: '/api/auth/roster',
       cookies: { mise_device: device },
     });
-    const marco = roster.json().find((p: { displayName: string }) => p.displayName === 'Marco');
+    const marco = roster
+      .json()
+      .people.find((p: { displayName: string }) => p.displayName === 'Marco');
     // The tablet's pad knows to sign in on the fourth digit.
     expect(marco.pinLength).toBe(4);
 
@@ -111,7 +113,7 @@ describe('setting a kitchen up in one go', () => {
     });
     const me = roster
       .json()
-      .find((p: { displayName: string }) => p.displayName === ADMIN.displayName);
+      .people.find((p: { displayName: string }) => p.displayName === ADMIN.displayName);
     expect(me.pinLength).toBe(4);
 
     const signedIn = await ctx.app.inject({

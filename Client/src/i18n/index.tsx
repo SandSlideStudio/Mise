@@ -276,6 +276,10 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   password_needs_email: 'error.passwordNeedsEmail',
   no_way_to_sign_in: 'error.noWayToSignIn',
   email_taken: 'error.emailTaken',
+  pin_taken: 'error.pinTaken',
+  pin_too_common: 'error.pinTooCommon',
+  pin_only_off: 'error.pinOnlyOff',
+  pin_only_on: 'error.pinOnlyOn',
   last_admin: 'error.lastAdmin',
   cannot_remove_self: 'error.cannotRemoveSelf',
   only_dishes: 'error.onlyDishes',
@@ -325,6 +329,15 @@ export function errorMessage(translator: Translator, error: unknown): string {
     return until
       ? translator.t('error.accountLockedUntil', { time: clockTime(translator.locale, until) })
       : translator.t('error.accountLocked');
+  }
+
+  if (error.code === 'tablet_locked') {
+    const until = (error.details as { until?: string } | undefined)?.until;
+    if (until) {
+      return translator.t('error.tabletLockedUntil', {
+        time: clockTime(translator.locale, until),
+      });
+    }
   }
 
   if (error.code === 'incompatible_units') {

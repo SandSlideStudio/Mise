@@ -284,9 +284,11 @@ describe('PIN sign-in on the line', () => {
     });
     expect(response.statusCode).toBe(200);
     // The admin signs in with a password, so they are not on the tablet roster.
-    expect(response.json()).toEqual([
-      expect.objectContaining({ displayName: 'Marco', role: 'cook', stationName: null }),
-    ]);
+    expect(response.json()).toEqual({
+      mode: 'names',
+      pinLength: null,
+      people: [expect.objectContaining({ displayName: 'Marco', role: 'cook', stationName: null })],
+    });
   });
 
   it('names the station under each cook, because nobody is signed in to look it up', async () => {
@@ -305,7 +307,7 @@ describe('PIN sign-in on the line', () => {
       cookies: { mise_device: cookieFrom(enrolled, 'mise_device')! },
     });
 
-    expect(response.json()).toEqual([
+    expect(response.json().people).toEqual([
       expect.objectContaining({ displayName: 'Marco', stationName: station!.name }),
     ]);
   });

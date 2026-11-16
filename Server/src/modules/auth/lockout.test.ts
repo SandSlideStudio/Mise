@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { ACCOUNT_BRAKE, createLockout, LOCKOUT_MINUTES, MAX_FAILED_ATTEMPTS } from './lockout.js';
+import {
+  ACCOUNT_BRAKE,
+  createLockout,
+  LOCKOUT_MINUTES,
+  MAX_FAILED_ATTEMPTS,
+  PIN_LOCK_CAP_MS,
+} from './lockout.js';
 
 function clock() {
   let now = 1_000_000;
@@ -92,5 +98,68 @@ describe('PINs, across every tablet', () => {
     lockout.pinFailed('cook');
     lockout.forget('cook');
     expect(lockout.pinLocked('cook')).toBeNull();
+  });
+});
+
+describe('the tablet lock for PIN-only sign-in', () => {
+  /** Five wrong PINs on one tablet, the way PIN-only sign-in counts them. */
+  function fiveWrong(lockout: ReturnType<typeof createLockout>, tablet: string) {
+    for (let i = 0; i < MAX_FAILED_ATTEMPTS; i += 1) {
+      const reserved = lockout.tabletReserve(tablet);
+      if ('attempt' in reserved) lockout.tabletFailed(tablet, reserved.attempt);
+    }
+  }
+
+  it('waits 15 minutes, then twice as long each time, up to a day', () => {
+    let clock = 0;
+    const lockout = createLockout(() => clock);
+    const locks: number[] = [];
+    for (let round = 0; round < 9; round += 1) {
+      fiveWrong(lockout, 'pass');
+      const until = lockout.tabletLocked('pass')!.getTime();
+      locks.push((until - clock) / 60_000);
+      clock = until; // wait it out
+      expect(lockout.tabletLocked('pass')).toBeNull();
+    }
+    expect(locks).toEqual([15, 30, 60, 120, 240, 480, 960, 1440, 1440]);
+    expect(PIN_LOCK_CAP_MS).toBe(1440 * 60_000);
+  });
+
+  it('starts the count again after the right PIN, but keeps the doubling for a day', () => {
+    let clock = 0;
+    const lockout = createLockout(() => clock);
+    fiveWrong(lockout, 'pass');
+    clock = lockout.tabletLocked('pass')!.getTime();
+    lockout.tabletSucceeded('pass');
+    for (let i = 0; i < MAX_FAILED_ATTEMPTS - 1; i += 1) {
+      const reserved = lockout.tabletReserve('pass');
+      if ('attempt' in reserved) lockout.tabletFailed('pass', reserved.attempt);
+    }
+    expect(lockout.tabletLocked('pass')).toBeNull();
+    lockout.tabletSucceeded('pass');
+    fiveWrong(lockout, 'pass');
+    expect((lockout.tabletLocked('pass')!.getTime() - clock) / 60_000).toBe(30);
+
+    // A day after that lock ran out, a slip counts as a first one again.
+    clock = lockout.tabletLocked('pass')!.getTime() + PIN_LOCK_CAP_MS + 1;
+    fiveWrong(lockout, 'pass');
+    expect((lockout.tabletLocked('pass')!.getTime() - clock) / 60_000).toBe(15);
+  });
+
+  it('refuses a sixth PIN sent while five are still being checked', () => {
+    const lockout = createLockout(() => 0);
+    for (let i = 0; i < MAX_FAILED_ATTEMPTS; i += 1) {
+      expect(lockout.tabletReserve('pass')).toEqual({ attempt: i + 1 });
+    }
+    expect(lockout.tabletReserve('pass')).toHaveProperty('lockedUntil');
+  });
+
+  it('keeps each tablet to itself, and forgets one when told', () => {
+    const lockout = createLockout(() => 0);
+    fiveWrong(lockout, 'pass');
+    expect(lockout.tabletLocked('pass')).not.toBeNull();
+    expect(lockout.tabletLocked('pastry')).toBeNull();
+    lockout.forgetTablet('pass');
+    expect(lockout.tabletLocked('pass')).toBeNull();
   });
 });

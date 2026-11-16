@@ -103,6 +103,27 @@ export const rosterEntrySchema = z.object({
   pinLength: z.number().int().nullable(),
 });
 
+/**
+ * What an enrolled tablet shows before anyone signs in: the names to tap, or,
+ * once the kitchen signs in by PIN alone, only the keypad and no names at all.
+ */
+export const rosterSchema = z.object({
+  mode: z.enum(['names', 'pin']),
+  /** Empty in PIN mode: the tablet has no business knowing who works here. */
+  people: z.array(rosterEntrySchema),
+  /**
+   * PIN mode: how many digits every PIN has, when they all have the same, so
+   * the pad can sign in the moment it is complete. Null when they differ:
+   * the pad then waits for OK, or a 4-digit PIN would go before a 6-digit
+   * one was finished.
+   */
+  pinLength: z.number().int().nullable(),
+});
+
+export const pinOnlyLoginRequestSchema = z.object({
+  pin: z.string().min(1).max(20),
+});
+
 export const enrollDeviceRequestSchema = z.object({
   name: z.string().min(1).max(120),
 });
@@ -120,6 +141,11 @@ export const deviceSchema = z.object({
   enrolledAt: z.string(),
   lastSeenAt: z.string().nullable(),
   revokedAt: z.string().nullable(),
+  /**
+   * Locked after too many wrong PINs in PIN-only sign-in, until when. Kept in
+   * memory, so a restart lifts it.
+   */
+  lockedUntil: z.string().nullable(),
 });
 
 export type LoginRequest = z.infer<typeof loginRequestSchema>;
@@ -127,6 +153,8 @@ export type PinLoginRequest = z.infer<typeof pinLoginRequestSchema>;
 export type SessionUser = z.infer<typeof sessionUserSchema>;
 export type UpdateMe = z.infer<typeof updateMeSchema>;
 export type RosterEntry = z.infer<typeof rosterEntrySchema>;
+export type Roster = z.infer<typeof rosterSchema>;
+export type PinOnlyLoginRequest = z.infer<typeof pinOnlyLoginRequestSchema>;
 export type Device = z.infer<typeof deviceSchema>;
 
 export type SetupStatus = z.infer<typeof setupStatusSchema>;

@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { Link, useNavigate } from '@tanstack/react-router';
 import type { RosterEntry } from '@mise/contracts';
-import { usePinLogin, useRoster, useSetupStatus } from '../api/session.js';
+import { usePinLogin, usePinOnlyLogin, useRoster, useSetupStatus } from '../api/session.js';
 import { LoadError } from '../components/LoadError.js';
 import { Logo } from '../components/Logo.js';
 import { Plate } from '../components/Plate.js';
@@ -19,6 +19,12 @@ import { errorMessage, roleName, useT } from '../i18n/index.js';
  * of the larder, each carrying the station so the right Marco taps the right
  * Marco. The PIN pad signs in the moment the last digit lands, the way a card
  * machine does, and shakes its head at a wrong one.
+ *
+ * A kitchen can sign in by PIN alone instead: then there are no names, only
+ * the pad, and the PIN finds the person. PINs are 4 to 8 digits, so the pad
+ * only signs in by itself when every PIN in the kitchen has the same length
+ * (the server says which); otherwise a 4-digit PIN would go before somebody
+ * with 6 had finished, so it waits for OK.
  */
 
 const MIN_PIN = 4;
@@ -34,7 +40,7 @@ export function Line() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const roster = useRoster(true);
   // Read from the latest list, so a PIN changed meanwhile is seen at its new length.
-  const selected = roster.data?.find((person) => person.id === selectedId) ?? null;
+  const selected = roster.data?.people.find((person) => person.id === selectedId) ?? null;
 
   let body: ReactNode;
   if (roster.isPending) {
@@ -52,13 +58,22 @@ export function Line() {
   } else if (roster.data === null) {
     // The endpoint answers with null when this is not an enrolled tablet.
     body = <NotEnrolled key="not-enrolled" />;
+  } else if (roster.data.mode === 'pin') {
+    body = <PinPad key="pin-only" person={null} length={roster.data.pinLength} />;
   } else if (selected) {
-    body = <PinPad key={selected.id} person={selected} onCancel={() => setSelectedId(null)} />;
+    body = (
+      <PinPad
+        key={selected.id}
+        person={selected}
+        length={selected.pinLength}
+        onCancel={() => setSelectedId(null)}
+      />
+    );
   } else {
     body = (
       <Roster
         key="roster"
-        people={roster.data ?? []}
+        people={roster.data.people}
         onPick={(person) => setSelectedId(person.id)}
       />
     );
@@ -204,37 +219,51 @@ function NotEnrolled() {
   );
 }
 
-function PinPad({ person, onCancel }: { person: RosterEntry; onCancel: () => void }) {
+/**
+ * The pad, for the person whose name was tapped, or with no person at all
+ * when the kitchen signs in by PIN alone.
+ */
+function PinPad({
+  person,
+  length,
+  onCancel,
+}: {
+  person: RosterEntry | null;
+  /** Digits to expect, to sign in the moment they are in. Null: wait for OK. */
+  length: number | null;
+  onCancel?: () => void;
+}) {
   const translator = useT();
   const { t, plural } = translator;
   const navigate = useNavigate();
-  const pinLogin = usePinLogin();
+  const byName = usePinLogin();
+  const byPinOnly = usePinOnlyLogin();
+  const pinLogin = person ? byName : byPinOnly;
   const queryClient = useQueryClient();
   const [pin, setPin] = useState('');
   // Each miss remounts the slots, so a second wrong PIN shakes again.
   const [misses, setMisses] = useState(0);
-  const [welcomed, setWelcomed] = useState(false);
+  const [welcomed, setWelcomed] = useState<string | null>(null);
 
-  const length = person.pinLength;
   const slots = length ?? Math.max(MIN_PIN, pin.length);
-  const busy = pinLogin.isPending || welcomed;
+  const busy = pinLogin.isPending || welcomed !== null;
 
   function submit(value: string) {
-    pinLogin.mutate(
-      { userId: person.id, pin: value },
-      {
-        onSuccess: () => {
-          setWelcomed(true);
-          window.setTimeout(() => void navigate({ to: '/' }), WELCOME_MS);
-        },
-        onError: () => {
-          setPin('');
-          setMisses((count) => count + 1);
-          // In case their PIN was changed since the list was loaded.
-          void queryClient.invalidateQueries({ queryKey: ['roster'] });
-        },
+    const handlers = {
+      onSuccess: ({ user }: { user: { displayName: string } }) => {
+        setWelcomed(user.displayName);
+        window.setTimeout(() => void navigate({ to: '/' }), WELCOME_MS);
       },
-    );
+      onError: () => {
+        setPin('');
+        setMisses((count) => count + 1);
+        // In case their PIN was changed since the list was loaded, or the
+        // kitchen went over to PIN-only sign-in, or back.
+        void queryClient.invalidateQueries({ queryKey: ['roster'] });
+      },
+    };
+    if (person) byName.mutate({ userId: person.id, pin: value }, handlers);
+    else byPinOnly.mutate({ pin: value }, handlers);
   }
 
   function press(digit: string) {
@@ -264,14 +293,14 @@ function PinPad({ person, onCancel }: { person: RosterEntry; onCancel: () => voi
       if (/^\d$/.test(event.key)) press(event.key);
       else if (event.key === 'Backspace') back();
       else if (event.key === 'Enter') confirm();
-      else if (event.key === 'Escape' && !busy) onCancel();
+      else if (event.key === 'Escape' && !busy) onCancel?.();
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
   const note = welcomed
-    ? { text: t('line.welcome', { name: person.displayName }), tone: 'text-accent' }
+    ? { text: t('line.welcome', { name: welcomed }), tone: 'text-accent' }
     : pinLogin.error
       ? { text: errorMessage(translator, pinLogin.error), tone: 'text-danger' }
       : pinLogin.isPending
@@ -283,28 +312,43 @@ function PinPad({ person, onCancel }: { person: RosterEntry; onCancel: () => voi
   return (
     <main className="fade-swap flex flex-1 flex-col md:flex-row">
       <section className="bg-surface-sunk border-rule flex flex-col border-b-2 px-6 py-6 sm:px-10 sm:py-8 md:w-[46%] md:max-w-[580px] md:shrink-0 md:border-r-2 md:border-b-0 md:px-12 md:py-12">
-        <button
-          type="button"
-          onClick={onCancel}
-          disabled={busy}
-          className="text-ink-soft hover:text-ink font-display flex items-center gap-3 self-start text-lg font-semibold transition-colors disabled:opacity-50 sm:text-xl"
-        >
-          <Arrow className="h-6 w-6 rotate-180" />
-          {t('line.notMe')}
-        </button>
+        {person ? (
+          <>
+            <button
+              type="button"
+              onClick={onCancel}
+              disabled={busy}
+              className="text-ink-soft hover:text-ink font-display flex items-center gap-3 self-start text-lg font-semibold transition-colors disabled:opacity-50 sm:text-xl"
+            >
+              <Arrow className="h-6 w-6 rotate-180" />
+              {t('line.notMe')}
+            </button>
 
-        <div className="mt-6 flex items-center gap-5 md:mt-12">
-          <Monogram name={person.displayName} large />
-          <div className="min-w-0">
-            <p className="text-brand font-display text-base sm:text-lg">{t('line.signingIn')}</p>
-            <h1 className="mt-1 truncate text-[44px] leading-none sm:text-[56px] md:text-[64px]">
-              {person.displayName}
+            <div className="mt-6 flex items-center gap-5 md:mt-12">
+              <Monogram name={person.displayName} large />
+              <div className="min-w-0">
+                <p className="text-brand font-display text-base sm:text-lg">
+                  {t('line.signingIn')}
+                </p>
+                <h1 className="mt-1 truncate text-[44px] leading-none sm:text-[56px] md:text-[64px]">
+                  {person.displayName}
+                </h1>
+                <p className="text-ink-soft mt-2 truncate text-lg">
+                  {person.stationName ?? roleName(t, person.role)}
+                </p>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div>
+            <h1 className="text-[44px] leading-none sm:text-[56px] md:text-[64px]">
+              {t('line.whoIsOn')}
             </h1>
-            <p className="text-ink-soft mt-2 truncate text-lg">
-              {person.stationName ?? roleName(t, person.role)}
+            <p className="text-ink-soft mt-3 text-xl sm:text-[22px]">
+              {length === null ? t('line.pinOnlyLeadOk') : t('line.pinOnlyLead')}
             </p>
           </div>
-        </div>
+        )}
 
         <div
           key={misses}
@@ -342,6 +386,15 @@ function PinPad({ person, onCancel }: { person: RosterEntry; onCancel: () => voi
         >
           {note.text}
         </p>
+
+        {person ? null : (
+          <p className="text-ink-faint mt-6 text-lg">
+            {t('line.noPinYet')}{' '}
+            <Link to="/login" className="text-accent underline underline-offset-4">
+              {t('line.signInEmail')}
+            </Link>
+          </p>
+        )}
       </section>
 
       <div className="bg-rule grid min-h-[52dvh] flex-1 grid-cols-3 grid-rows-4 gap-px md:min-h-0">

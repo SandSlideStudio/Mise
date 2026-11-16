@@ -99,7 +99,17 @@ export const updateKitchenSchema = z.object({
   idleSignOutMinutes: z.number().int().min(1).max(240).nullable().optional(),
 });
 
+/**
+ * Where PIN-only sign-in stands, for Settings: who still needs a new PIN
+ * before tablets stop showing the names. Names only, never anything about a PIN.
+ */
+export const pinOnlyStatusSchema = z.object({
+  state: pinOnlyStateSchema,
+  waiting: z.array(z.object({ id: idSchema, displayName: z.string() })),
+});
+
 export type PinOnlyState = z.infer<typeof pinOnlyStateSchema>;
+export type PinOnlyStatus = z.infer<typeof pinOnlyStatusSchema>;
 export type Station = z.infer<typeof stationSchema>;
 export type CreateStation = z.infer<typeof createStationSchema>;
 export type UpdateStation = z.infer<typeof updateStationSchema>;

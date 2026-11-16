@@ -1200,4 +1200,28 @@ export const nl: Record<MessageKey, string> = {
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
   'error.passwordRequired':
     'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
+  // Inloggen met alleen een pincode
+  'line.pinOnlyLead': 'Typ je pincode.',
+  'line.pinOnlyLeadOk': 'Typ je pincode en druk op OK.',
+  'line.noPinYet': 'Nog geen pincode, of zit je op een laptop?',
+  'devices.lockedUntil': 'Te veel verkeerde pincodes. Geblokkeerd tot {time}.',
+  'pinOnly.title': 'Inloggen op tablets',
+  'pinOnly.label': 'Inloggen met alleen een pincode',
+  'pinOnly.hint':
+    'Tablets tonen een toetsenblok in plaats van de namen, en de pincode vindt de persoon. Elke pincode moet anders zijn en niet voor de hand liggen, dus iedereen met een pincode krijgt eerst een nieuwe.',
+  'pinOnly.on':
+    'Aan. Tablets tonen alleen het toetsenblok. Zet het uit om de namen terug te halen; pincodes blijven werken.',
+  'pinOnly.waiting': 'Wacht op nieuwe pincodes. Tablets tonen de namen tot iedereen er een heeft.',
+  'pinOnly.waitingHow':
+    'Een chef-kok of beheerder geeft ieder van hen een nieuwe pincode onder Instellingen → Personeel.',
+  'pinOnly.waitingFor': 'Heeft nog een nieuwe pincode nodig',
+  'pinOnly.needsNewPin': 'Nieuwe pincode nodig',
+  'pinOnly.pinHint':
+    'Om in te loggen op een keukentablet. Hij moet anders zijn dan die van ieder ander, en niet voor de hand liggen zoals 1234.',
+  'error.pinTaken': 'Kies een andere pincode.',
+  'error.pinTooCommon': 'Kies een pincode die minder voor de hand ligt.',
+  'error.pinOnlyOff': 'Deze tablet toont de namen weer. Tik op je naam en dan je pincode.',
+  'error.pinOnlyOn': 'Op deze tablet log je nu in met alleen een pincode.',
+  'error.tabletLockedUntil':
+    'Te veel verkeerde pincodes op deze tablet. Probeer het na {time} opnieuw, of vraag een chef-kok de blokkade op te heffen.',
 };

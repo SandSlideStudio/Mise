@@ -1218,4 +1218,30 @@ export const fr: Record<MessageKey, string> = {
     'Vous êtes connecté avec votre code PIN. Pour gérer les sauvegardes ou voir la clé de récupération, connectez-vous avec votre mot de passe.',
   'error.passwordRequired':
     'Connectez-vous avec votre mot de passe pour cela. Un code PIN suffit pour tout le reste.',
+  // Connexion avec un code seul
+  'line.pinOnlyLead': 'Saisissez votre code.',
+  'line.pinOnlyLeadOk': 'Saisissez votre code, puis appuyez sur OK.',
+  'line.noPinYet': 'Pas encore de code, ou sur un ordinateur portable ?',
+  'devices.lockedUntil': 'Trop de codes erronés. Bloquée jusqu’à {time}.',
+  'pinOnly.title': 'Connexion sur les tablettes',
+  'pinOnly.label': 'Se connecter avec un code seul',
+  'pinOnly.hint':
+    'Les tablettes affichent un clavier au lieu des noms, et le code retrouve la personne. Chaque code doit être différent et pas trop évident, donc chaque personne qui a un code en reçoit d’abord un nouveau.',
+  'pinOnly.on':
+    'Activé. Les tablettes n’affichent que le clavier. Désactivez-le pour retrouver les noms ; les codes continuent de marcher.',
+  'pinOnly.waiting':
+    'En attente de nouveaux codes. Les tablettes affichent les noms tant que tout le monde n’en a pas un.',
+  'pinOnly.waitingHow':
+    'Un chef de cuisine ou un administrateur donne un nouveau code à chacun dans Réglages → Équipe.',
+  'pinOnly.waitingFor': 'Attend encore un nouveau code',
+  'pinOnly.needsNewPin': 'Nouveau code requis',
+  'pinOnly.pinHint':
+    'Pour se connecter sur une tablette de cuisine. Il doit être différent de celui des autres, et pas évident comme 1234.',
+  'error.pinTaken': 'Choisissez un autre code.',
+  'error.pinTooCommon': 'Choisissez un code moins évident.',
+  'error.pinOnlyOff':
+    'Cette tablette affiche de nouveau les noms. Touchez votre nom, puis saisissez votre code.',
+  'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code seul.',
+  'error.tabletLockedUntil':
+    'Trop de codes erronés sur cette tablette. Réessayez après {time}, ou demandez à un chef de cuisine de lever le blocage.',
 };

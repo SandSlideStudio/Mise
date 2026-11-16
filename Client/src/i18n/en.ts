@@ -1175,6 +1175,30 @@ export const en = {
   'passwordOnly.backups':
     'You’re signed in with your PIN. To manage backups or see the recovery key, sign in with your password.',
   'error.passwordRequired': 'Sign in with your password to do this. A PIN can do everything else.',
+  // PIN-only sign-in
+  'line.pinOnlyLead': 'Type your PIN.',
+  'line.pinOnlyLeadOk': 'Type your PIN, then press OK.',
+  'line.noPinYet': 'No PIN yet, or on a laptop?',
+  'devices.lockedUntil': 'Too many wrong PINs. Locked until {time}.',
+  'pinOnly.title': 'Signing in on tablets',
+  'pinOnly.label': 'Sign in with a PIN only',
+  'pinOnly.hint':
+    'Tablets show a keypad instead of the names, and the PIN finds the person. Every PIN has to be different and not an obvious one, so everyone with a PIN gets a new one first.',
+  'pinOnly.on':
+    'On. Tablets show only the keypad. Turn it off to bring the names back; PINs keep working.',
+  'pinOnly.waiting': 'Waiting for new PINs. Tablets keep showing the names until everyone has one.',
+  'pinOnly.waitingHow':
+    'A head chef or administrator sets a new PIN for each of them under Settings → Staff.',
+  'pinOnly.waitingFor': 'Still needs a new PIN',
+  'pinOnly.needsNewPin': 'Needs a new PIN',
+  'pinOnly.pinHint':
+    'For signing in on a kitchen tablet. It has to be different from everyone else’s, and not an obvious one like 1234.',
+  'error.pinTaken': 'Choose another PIN.',
+  'error.pinTooCommon': 'Pick a less obvious PIN.',
+  'error.pinOnlyOff': 'This tablet shows the names again. Tap your name, then your PIN.',
+  'error.pinOnlyOn': 'This tablet now signs in with a PIN only.',
+  'error.tabletLockedUntil':
+    'Too many wrong PINs on this tablet. Try again after {time}, or ask a head chef to lift the lock.',
 } as const;
 
 export type MessageKey = keyof typeof en;
