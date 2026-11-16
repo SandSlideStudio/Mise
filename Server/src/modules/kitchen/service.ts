@@ -1,8 +1,9 @@
-import { and, asc, eq, ne, sql } from 'drizzle-orm';
+import { and, asc, eq, isNotNull, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import { mayManage } from '@mise/contracts';
 import type {
   CreateStation,
   CreateUser,
+  PinOnlyState,
   Role,
   UpdateKitchen,
   UpdateStation,
@@ -148,6 +149,7 @@ export function createKitchenService(db: Database) {
         passwordHash: input.password ? await hashSecret(input.password) : null,
         pinHash: input.pin ? await hashSecret(input.pin) : null,
         pinLength: input.pin ? input.pin.length : null,
+        pinSetAt: input.pin ? new Date() : null,
       })
       .returning(userColumns);
     if (!user) throw new Error('Insert returned no user');
@@ -249,7 +251,9 @@ export function createKitchenService(db: Database) {
         ...(input.active !== undefined ? { active: input.active } : {}),
         passwordHash: nextPasswordHash,
         pinHash: nextPinHash,
-        ...(input.pin !== undefined ? { pinLength: input.pin?.length ?? null } : {}),
+        ...(input.pin !== undefined
+          ? { pinLength: input.pin?.length ?? null, pinSetAt: input.pin ? new Date() : null }
+          : {}),
         // Any credential change also clears a standing lockout, which is what
         // an administrator resetting a forgotten PIN actually wants.
         ...(input.password || input.pin !== undefined ? { lockedUntil: null } : {}),
@@ -310,12 +314,41 @@ export function createKitchenService(db: Database) {
     if (!existing) return null;
     // Nothing to change, such as a setting from an older app that is gone now.
     if (Object.values(input).every((value) => value === undefined)) return existing;
+    const { pinOnly, ...rest } = input;
     const [updated] = await db
       .update(kitchens)
-      .set(input)
+      .set({
+        ...rest,
+        // Chosen now, or kept from when it was first chosen, so the new PINs
+        // already given still count.
+        ...(pinOnly !== undefined
+          ? { pinOnlySince: pinOnly ? (existing.pinOnlySince ?? new Date()) : null }
+          : {}),
+      })
       .where(eq(kitchens.id, existing.id))
       .returning();
     return updated ?? null;
+  }
+
+  /** People with a PIN who haven't been given a new one since PIN-only sign-in was chosen. */
+  async function waitingForNewPin(since: Date) {
+    return db
+      .select({ id: users.id, displayName: users.displayName })
+      .from(users)
+      .where(
+        and(
+          eq(users.active, true),
+          isNotNull(users.pinHash),
+          or(isNull(users.pinSetAt), lt(users.pinSetAt, since)),
+        ),
+      )
+      .orderBy(asc(users.displayName));
+  }
+
+  /** Off, chosen but waiting for new PINs, or on. */
+  async function pinOnlyState(kitchen: { pinOnlySince: Date | null }): Promise<PinOnlyState> {
+    if (!kitchen.pinOnlySince) return 'off';
+    return (await waitingForNewPin(kitchen.pinOnlySince)).length > 0 ? 'waiting' : 'on';
   }
 
   return {
@@ -332,6 +365,8 @@ export function createKitchenService(db: Database) {
     deleteUser,
     getKitchen,
     updateKitchen,
+    waitingForNewPin,
+    pinOnlyState,
   };
 }
 

@@ -396,6 +396,7 @@ export function createAuthService(db: Database) {
           passwordHash,
           pinHash,
           pinLength: input.pin?.length ?? null,
+          pinSetAt: pinHash ? new Date() : null,
           role: 'admin',
         })
         .returning({ id: users.id });
@@ -409,6 +410,7 @@ export function createAuthService(db: Database) {
             role: person.role,
             pinHash: person.pinHash,
             pinLength: person.pin.length,
+            pinSetAt: new Date(),
             defaultStationId: stationId(person.station),
           })),
         );

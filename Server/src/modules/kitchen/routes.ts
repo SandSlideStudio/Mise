@@ -79,6 +79,18 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const kitchen = createKitchenService(app.db);
 
+  async function describeKitchen(row: NonNullable<Awaited<ReturnType<typeof kitchen.getKitchen>>>) {
+    return {
+      id: row.id,
+      name: row.name,
+      language: row.language,
+      tickedRetention: row.tickedRetention,
+      prepChecklist: row.prepChecklist,
+      pinOnly: await kitchen.pinOnlyState(row),
+      idleSignOutMinutes: row.idleSignOutMinutes,
+    };
+  }
+
   /** A PIN lock is kept in memory, not with the account: shown as the lock it is. */
   function withLock(user: Parameters<typeof serialiseUser>[0]) {
     const pin = app.auth.pinLockedUntil(user.id);
@@ -263,12 +275,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async () => {
       const row = await kitchen.getKitchen();
       if (!row) throw ApiError.notFound('This kitchen');
-      return {
-        id: row.id,
-        name: row.name,
-        language: row.language,
-        tickedRetention: row.tickedRetention,
-      };
+      return describeKitchen(row);
     },
   );
 
@@ -284,12 +291,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const row = await kitchen.updateKitchen(request.body);
       if (!row) throw ApiError.notFound('This kitchen');
-      return {
-        id: row.id,
-        name: row.name,
-        language: row.language,
-        tickedRetention: row.tickedRetention,
-      };
+      return describeKitchen(row);
     },
   );
 };
