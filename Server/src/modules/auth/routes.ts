@@ -10,6 +10,7 @@ import {
   loginRequestSchema,
   pinLoginRequestSchema,
   pinOnlyLoginRequestSchema,
+  rosterEntrySchema,
   rosterSchema,
   sessionUserSchema,
   updateMeSchema,
@@ -141,12 +142,23 @@ const authRoutes: FastifyPluginAsync = async (app) => {
    * this is not a staff directory anyone on the network can read.
    */
   r.get(
-    '/roster',
+    '/sign-in-options',
     {
       onRequest: [app.requireDevice],
       schema: { response: { 200: rosterSchema, 403: errorSchema } },
     },
     async () => app.auth.roster(),
+  );
+
+  // Before 2.3 the tablet asked here for the names alone. Kept for a tablet
+  // still running the older app until it reloads; empty in PIN-only mode.
+  r.get(
+    '/roster',
+    {
+      onRequest: [app.requireDevice],
+      schema: { response: { 200: z.array(rosterEntrySchema), 403: errorSchema } },
+    },
+    async () => (await app.auth.roster()).people,
   );
 
   r.post(

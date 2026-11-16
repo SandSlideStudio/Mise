@@ -28,7 +28,7 @@ beforeEach(() => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
-      if (url.endsWith('/auth/roster')) return json(200, roster);
+      if (url.endsWith('/auth/sign-in-options')) return json(200, roster);
       if (url.endsWith('/setup/status')) {
         return json(200, { needsSetup: false, language: 'en', kitchenName: 'Test' });
       }

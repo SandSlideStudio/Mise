@@ -3,6 +3,54 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.3.0
+
+A checklist so a cook can make an accurate prep list without remembering everything, sign-in by
+PIN alone, and tablets that sign out by themselves.
+
+**Before updating**
+
+- Nothing changes until you choose it: the prep checklist, PIN-only sign-in and signing out
+  untouched tablets are all off until switched on under **Settings → Kitchen**.
+
+**The prep checklist**
+
+- The chef keeps a list of what the kitchen makes, by station, and edits it any time from the prep
+  list.
+- Anyone, cooks included, ticks what's needed and taps **Add to prep list**. What's already on the
+  list is skipped, and Mise says how many went on and how many were already there.
+- It works offline: the lines show as waiting and go on once Mise answers, once.
+
+**Who added a line**
+
+- Every prep line says who put it there, and whether it came from the checklist.
+
+**Sign in with a PIN only**
+
+- Chosen under **Settings → Kitchen**: the tablet shows just a keypad, and the PIN finds the person.
+- Every PIN must be different, and obvious ones (1234, 0000, 2580, 1122…) are refused. A head chef
+  or administrator gives everyone with a PIN a new one; Settings lists who is still waiting, and
+  tablets keep showing names until everyone is done.
+- Five wrong PINs on a tablet lock that tablet for 15 minutes, then longer each time, up to a day.
+  **Settings → Devices** shows the lock, with **Lift the lock**.
+- Turning it off brings the names back.
+
+**Shared tablets sign out by themselves**
+
+- Choose under **Settings → Kitchen** how long a shared tablet may be left untouched, from 2 to 30
+  minutes. A notice with **Stay signed in** comes 30 seconds before. Changes still waiting to be
+  sent are kept for that person.
+
+**Safer and sturdier**
+
+- A photo or logo is checked by what the file is, not what it claims to be.
+- A flood of access requests can no longer push a real one off the list: when 20 devices are
+  waiting, new requests are turned away until a manager answers some.
+- Two tabs saving a change offline at the same moment no longer lose one of them.
+- The database itself now refuses two accounts with the same email in different capitals.
+- The logo is drawn as SVG: sharp on every screen.
+- The upgrade test covers 2.2.4.
+
 ## 2.2.4
 
 Every fix from a second full review of the code: allergens shown right everywhere, no edit or tick

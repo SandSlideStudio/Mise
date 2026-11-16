@@ -243,7 +243,7 @@ describe('PIN sign-in on the line', () => {
   });
 
   it('hides the staff roster from an unenrolled tablet', async () => {
-    const response = await ctx.app.inject({ method: 'GET', url: '/api/auth/roster' });
+    const response = await ctx.app.inject({ method: 'GET', url: '/api/auth/sign-in-options' });
     expect(response.statusCode).toBe(403);
   });
 
@@ -279,7 +279,7 @@ describe('PIN sign-in on the line', () => {
 
     const response = await ctx.app.inject({
       method: 'GET',
-      url: '/api/auth/roster',
+      url: '/api/auth/sign-in-options',
       cookies: { mise_device: deviceCookie },
     });
     expect(response.statusCode).toBe(200);
@@ -303,7 +303,7 @@ describe('PIN sign-in on the line', () => {
     });
     const response = await ctx.app.inject({
       method: 'GET',
-      url: '/api/auth/roster',
+      url: '/api/auth/sign-in-options',
       cookies: { mise_device: cookieFrom(enrolled, 'mise_device')! },
     });
 

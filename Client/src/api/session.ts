@@ -198,7 +198,7 @@ export function useRoster(enabled: boolean) {
     retry: false,
     queryFn: async () => {
       try {
-        return await api.get<Roster>('/auth/roster');
+        return await api.get<Roster>('/auth/sign-in-options');
       } catch (error) {
         if (error instanceof RequestFailed && error.status === 403) return null;
         throw error;

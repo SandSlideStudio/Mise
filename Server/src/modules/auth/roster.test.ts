@@ -19,13 +19,30 @@ beforeEach(async () => {
 async function roster(): Promise<{ id: string; displayName: string; pinLength: number | null }[]> {
   const response = await ctx.app.inject({
     method: 'GET',
-    url: '/api/auth/roster',
+    url: '/api/auth/sign-in-options',
     cookies: { mise_device: device },
   });
   return response.json().people;
 }
 
 describe('the sign-in screens', () => {
+  it('still answer a tablet running the app from before 2.3 with the names alone', async () => {
+    await ctx.app.inject({
+      method: 'POST',
+      url: '/api/users',
+      payload: { displayName: 'Marco', role: 'cook', pin: '4821' },
+      cookies: { mise_session: admin },
+    });
+    const old = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/auth/roster',
+      cookies: { mise_device: device },
+    });
+    expect(old.statusCode).toBe(200);
+    expect(Array.isArray(old.json())).toBe(true);
+    expect(old.json().map((p: { displayName: string }) => p.displayName)).toContain('Marco');
+  });
+
   it('know which kitchen this is before anyone signs in', async () => {
     const status = await ctx.app.inject({ method: 'GET', url: '/api/setup/status' });
     expect(status.json()).toEqual({

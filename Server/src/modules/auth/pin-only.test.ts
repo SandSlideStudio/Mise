@@ -47,7 +47,7 @@ async function status(cookie = admin) {
 }
 
 async function roster() {
-  return (await onTablet('GET', '/api/auth/roster')).json();
+  return (await onTablet('GET', '/api/auth/sign-in-options')).json();
 }
 
 /** Switch it on and give both cooks a new PIN, so it is fully on. */
