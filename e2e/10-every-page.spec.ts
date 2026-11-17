@@ -829,17 +829,12 @@ for (const { label, viewport } of WIDTHS) {
 }
 
 /**
- * Mise 2.3.0 bug, found by this file. Opening the dish card or the menu
- * overview in several browser tabs at once, again and again, ends with every
- * tab on "This page didn't open" (console: "TypeError: r.font.hasGlyphForCodePoint
- * is not a function"), and it stays that way. The card fonts are a react-query
- * query (['card-fonts'], Client/src/routes/DishCard.tsx and MenuOverview.tsx)
- * that is not in NOT_KEPT in Client/src/api/offline.ts, so it is saved to
- * IndexedDB as JSON (2.3 MB) and read back as plain objects without the
- * font methods, and staleTime is Infinity so it is never loaded again.
- * Turn this on (test.fixme to test) when that is fixed.
+ * Found by this file in 2.3.0: the fonts dish cards are drawn with were saved
+ * with the rest of the offline cache and came back unusable, so after a few
+ * reloads in several tabs every card and menu overview failed to open, until
+ * the browser's data was cleared. They are never saved now.
  */
-test.fixme('the dish card and the menu overview open again after reloads in several tabs', async ({
+test('the dish card and the menu overview open again after reloads in several tabs', async ({
   page,
 }) => {
   await signIn(page);

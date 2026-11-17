@@ -30,6 +30,10 @@ const NOT_KEPT = new Set([
   'access-status',
   'trust',
   'version',
+  // The fonts dish cards are drawn with: objects that can't be stored as
+  // text. Saved, they came back without their workings and every card failed
+  // to open until the browser's data was cleared. They load in a moment.
+  'card-fonts',
 ]);
 
 const STORE_KEY = 'mise.cache';

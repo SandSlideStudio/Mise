@@ -10,6 +10,10 @@ a change in the first number means you should read these notes before updating.
 - After opening a recipe or a dish's recipe, the top bar and "← The book" did nothing: every
   click landed back on the recipe. They work again.
 - The dish card had the same flaw for older links; it can no longer pull you back either.
+- On a tablet that reloaded the dish card or the menu's allergen overview a few times, especially in
+  several tabs, they could stop opening at all ("This page didn't open") until the browser's data
+  was cleared. The fonts cards are drawn with were saved with the offline data and came back
+  unusable; they're no longer saved, and updating clears a broken copy.
 - A browser test now leaves every page every way (the top bar, back links, the browser's back
   button, the Settings tabs), as a chef and as a cook on a tablet, on a computer and a phone, and
   fails on any error in the browser. This kind of bug can't reach a release unnoticed again.
