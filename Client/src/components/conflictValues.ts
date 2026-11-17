@@ -65,6 +65,7 @@ const FIELD_NAMES: Record<string, MessageKey> = {
   course: 'editor.course',
   drinkPairings: 'editor.drinks',
   cutlery: 'editor.cutlery',
+  items: 'checklist.title',
 };
 
 export function fieldName(translator: Translator, key: string): string {

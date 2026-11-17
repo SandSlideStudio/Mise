@@ -3,8 +3,8 @@
 Recipes and prep lists for professional kitchens, running on your own server.
 
 Recipes in Mise are written like specs: weights, yields, sub-recipes and allergens. The kitchen
-keeps one running prep list. Add lines by hand or straight from a recipe, leave a note for the
-next shift, and tick lines off on a tablet by the pass. Every screen in the kitchen updates as you
+keeps one running prep list. Add lines by hand, straight from a recipe or from the chef's
+checklist, leave a note for the next shift, and tick lines off on a tablet by the pass. Every screen in the kitchen updates as you
 do. Menus group your dishes, with an allergen overview and every dish card in one PDF.
 
 One server is one kitchen. Your recipes stay on a machine you own, and there's no account or
@@ -59,10 +59,37 @@ cards), but staff, devices, the connection and backups need a password sign-in. 
 those sections greyed out, with a note to sign in with the password.
 
 Five wrong PINs lock that person out for 15 minutes, on every tablet. Each lock after that lasts
-twice as long, up to a day, until they sign in. An administrator setting a new PIN lifts it.
+twice as long, up to a day, until they sign in. A head chef or administrator lifts it under
+**Settings → Staff**, with **Lift the lock** or by setting a new PIN.
 
 Signing out works offline too: the tablet is signed out at once, and Mise hears about it as soon
-as it answers again, so the next cook never carries on as the last one.
+as it answers again, so the next cook never carries on as the last one. Under **Settings →
+Kitchen** you can also have a shared tablet sign out by itself after a few minutes untouched, with
+a short warning first.
+
+### A PIN without a name
+
+Under **Settings → Kitchen**, an administrator can choose **Sign in with a PIN only**: the tablet
+shows just a keypad, and the PIN finds the person. Since anyone at the tablet can then try PINs
+for everyone at once:
+
+- Every PIN must be different, and obvious ones such as 1234, 0000 or 2580 are refused. A head
+  chef or administrator sets a new PIN for everyone who has one; Settings lists who is still
+  waiting, and tablets keep showing names until everyone is done.
+- Only head chefs and administrators set PINs.
+- Five wrong PINs on a tablet lock that tablet for 15 minutes, then longer each time, up to a day.
+  **Settings → Devices** shows it, with **Lift the lock**.
+
+Turning it off brings the names back; the PINs keep working.
+
+## The prep checklist
+
+Cooks don't always remember everything the kitchen needs. Turn on **Prep checklist** under
+**Settings → Kitchen**, and the chef keeps a list of what the kitchen makes, by station, under
+**Edit checklist** on the prep list. Anyone opens the checklist, ticks what's needed and taps
+**Add to prep list**: what isn't on the list yet goes on, and what already is gets skipped. Each line
+says who put it there, and whether it came from the checklist. Like everything else, it works
+offline.
 
 ## From outside the kitchen
 

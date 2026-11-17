@@ -265,17 +265,23 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   unknown_time_zone: 'error.unknownTimeZone',
   already_set_up: 'error.alreadySetUp',
   image_type: 'error.imageType',
+  access_list_full: 'error.accessListFull',
   image_missing: 'error.imageMissing',
   not_a_dish: 'error.notADish',
   logo_too_large: 'error.logoTooLarge',
   photo_too_large: 'error.photoTooLarge',
   task_not_yours: 'error.taskNotYours',
   task_chef_only: 'error.taskChefOnly',
+  checklist_off: 'error.checklistOff',
   staff_rank: 'error.staffRank',
   admin_needs_password: 'error.adminNeedsPassword',
   password_needs_email: 'error.passwordNeedsEmail',
   no_way_to_sign_in: 'error.noWayToSignIn',
   email_taken: 'error.emailTaken',
+  pin_taken: 'error.pinTaken',
+  pin_too_common: 'error.pinTooCommon',
+  pin_only_off: 'error.pinOnlyOff',
+  pin_only_on: 'error.pinOnlyOn',
   last_admin: 'error.lastAdmin',
   cannot_remove_self: 'error.cannotRemoveSelf',
   only_dishes: 'error.onlyDishes',
@@ -327,6 +333,15 @@ export function errorMessage(translator: Translator, error: unknown): string {
       : translator.t('error.accountLocked');
   }
 
+  if (error.code === 'tablet_locked') {
+    const until = (error.details as { until?: string } | undefined)?.until;
+    if (until) {
+      return translator.t('error.tabletLockedUntil', {
+        time: clockTime(translator.locale, until),
+      });
+    }
+  }
+
   if (error.code === 'incompatible_units') {
     const details = error.details as
       { child?: string; unit?: string; makes?: string; usedIn?: string | null } | undefined;
@@ -338,7 +353,11 @@ export function errorMessage(translator: Translator, error: unknown): string {
     }
   }
 
-  if (error.status === 429) return translator.t('error.tooManyRequests');
+  // Any rate limit reads as "too many tries", except a full waiting list, which
+  // has its own words: nothing to retry, someone has to answer the requests.
+  if (error.status === 429 && error.code !== 'access_list_full') {
+    return translator.t('error.tooManyRequests');
+  }
 
   const key = TRANSLATED_ERRORS[error.code];
   if (!key) return error.message;

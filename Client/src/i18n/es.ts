@@ -51,7 +51,8 @@ export const es: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Ese archivo es demasiado grande.',
   'error.unknownTimeZone': 'Este servidor no conoce esa zona horaria.',
   'error.alreadySetUp': 'Este servidor ya está configurado.',
-  'error.imageType': 'Usa una imagen JPEG, PNG o WebP.',
+  'error.imageType':
+    'Ese archivo no es una foto que Mise pueda mostrar. Usa JPEG, PNG, WebP o AVIF.',
   'error.imageMissing': 'No se ha adjuntado ninguna imagen.',
   'error.notADish': 'Solo un plato tiene ficha de plato.',
   'error.logoTooLarge': 'Ese logotipo ocupa más de 2 MB.',
@@ -1197,4 +1198,77 @@ export const es: Record<MessageKey, string> = {
     'Has iniciado sesión con tu PIN. Para gestionar las copias o ver la clave de recuperación, inicia sesión con tu contraseña.',
   'error.passwordRequired':
     'Inicia sesión con tu contraseña para hacer esto. Con un PIN puedes hacer todo lo demás.',
+  'kitchen.idle': 'Cerrar sesión en las tabletas compartidas si nadie las toca',
+  'kitchen.idleNever': 'Nunca',
+  'kitchen.idleMinutes': 'Tras {minutes} minutos sin tocarla',
+  'kitchen.idleHint':
+    'Solo se aplica a las tabletas registradas para entrar con PIN. Antes aparece un aviso breve. Los cambios que aún esperan para enviarse se conservan para la próxima vez que esa persona inicie sesión.',
+  'idle.warning':
+    'Nadie ha tocado esta tableta desde hace un rato. Se cerrará la sesión en {seconds} segundos.',
+  'idle.warningSr': 'Nadie ha tocado esta tableta desde hace un rato. La sesión se cerrará pronto.',
+  'idle.stay': 'Seguir con la sesión',
+  'idle.signingOut': 'Cerrando sesión…',
+  'error.accessListFull':
+    'Hay demasiados dispositivos esperando entrar. Pregunta a un responsable.',
+  'kitchen.prepChecklist': 'Lista de comprobación de prep',
+  'kitchen.prepChecklistHint':
+    'Los chefs mantienen una lista de lo que hace la cocina, por partida. Cualquiera puede marcar lo que hace falta y añadirlo a la lista de prep con un toque.',
+  'checklist.title': 'Lista de prep',
+  'checklist.hint': 'Marca lo que hace falta y añádelo a la lista.',
+  'checklist.empty': 'La lista está vacía. Un chef puede rellenarla.',
+  'checklist.emptyChef': 'La lista está vacía. Añade lo que hace tu cocina.',
+  'checklist.loadError': 'No se pudo cargar la lista.',
+  'checklist.add': 'Añadir a la lista de prep',
+  'checklist.addCount': 'Añadir a la lista de prep ({count})',
+  'checklist.added_one': '1 línea añadida a la lista de prep.',
+  'checklist.added_other': '{count} líneas añadidas a la lista de prep.',
+  'checklist.addedNone': 'Nada nuevo que añadir.',
+  'checklist.alreadyThere_one': '1 ya estaba en la lista.',
+  'checklist.alreadyThere_other': '{count} ya estaban en la lista.',
+  'checklist.queued':
+    'Guardado en esta tablet. Las líneas irán a la lista en cuanto se pueda llegar a Mise.',
+  'checklist.edit': 'Editar la lista',
+  'checklist.editTitle': 'Editar la lista',
+  'checklist.editHint':
+    'Solo nombres, por partida. Cualquiera puede marcarlos hacia la lista de prep.',
+  'checklist.itemName': 'Nombre',
+  'checklist.newItem': 'Nuevo elemento',
+  'checklist.addItem': 'Añadir',
+  'checklist.stationFor': 'Partida de {name}',
+  'checklist.moveUp': 'Subir {name}',
+  'checklist.moveDown': 'Bajar {name}',
+  'checklist.remove': 'Quitar {name}',
+  'checklist.save': 'Guardar la lista',
+  'task.addedBy': 'Añadido por {name}',
+  'task.fromChecklistBy': 'De la lista, por {name}',
+  'task.fromChecklist': 'De la lista',
+  'offline.label.checklist': 'la lista de prep',
+  'offline.label.checklistAdd': 'elementos de la lista',
+  'error.checklistOff':
+    'La lista de prep está desactivada. Un administrador puede activarla en los ajustes.',
+  // Entrar solo con PIN
+  'line.pinOnlyLead': 'Escribe tu PIN.',
+  'line.pinOnlyLeadOk': 'Escribe tu PIN y pulsa OK.',
+  'line.noPinYet': '¿Aún sin PIN, o estás en un portátil?',
+  'devices.lockedUntil': 'Demasiados PIN incorrectos. Bloqueada hasta las {time}.',
+  'pinOnly.title': 'Entrar en las tablets',
+  'pinOnly.label': 'Entrar solo con un PIN',
+  'pinOnly.hint':
+    'Las tablets muestran un teclado en lugar de los nombres, y el PIN encuentra a la persona. Cada PIN tiene que ser distinto y no ser obvio, así que primero todos los que tienen PIN reciben uno nuevo.',
+  'pinOnly.on':
+    'Activado. Las tablets solo muestran el teclado. Desactívalo para que vuelvan los nombres; los PIN siguen funcionando.',
+  'pinOnly.waiting':
+    'Esperando PIN nuevos. Las tablets siguen mostrando los nombres hasta que todos tengan uno.',
+  'pinOnly.waitingHow':
+    'Un jefe de cocina o un administrador le pone un PIN nuevo a cada uno en Ajustes → Equipo.',
+  'pinOnly.waitingFor': 'Aún necesita un PIN nuevo',
+  'pinOnly.needsNewPin': 'Necesita un PIN nuevo',
+  'pinOnly.pinHint':
+    'Para entrar en una tablet de cocina. Tiene que ser distinto del de los demás, y no uno obvio como 1234.',
+  'error.pinTaken': 'Elige otro PIN.',
+  'error.pinTooCommon': 'Elige un PIN menos obvio.',
+  'error.pinOnlyOff': 'Esta tablet vuelve a mostrar los nombres. Toca tu nombre y luego tu PIN.',
+  'error.pinOnlyOn': 'En esta tablet ahora se entra solo con un PIN.',
+  'error.tabletLockedUntil':
+    'Demasiados PIN incorrectos en esta tablet. Vuelve a intentarlo después de las {time}, o pide a un jefe de cocina que quite el bloqueo.',
 };

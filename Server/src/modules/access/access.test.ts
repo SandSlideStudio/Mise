@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyRequest, InjectOptions } from 'fastify';
 import { eq } from 'drizzle-orm';
 import { remoteDevices } from '../../db/schema.js';
@@ -12,7 +12,12 @@ import {
   setUpKitchen,
   useTestContext,
 } from '../../test/harness.js';
-import { MAX_PENDING, MAX_PENDING_PER_ADDRESS, describeAgent } from './service.js';
+import {
+  MAX_NEW_PER_HOUR,
+  MAX_PENDING,
+  MAX_PENDING_PER_ADDRESS,
+  describeAgent,
+} from './service.js';
 
 const ctx = useTestContext();
 
@@ -373,18 +378,107 @@ describe('running out', () => {
     expect(status.json().status).toBe('none');
   });
 
-  it(`keeps at most ${MAX_PENDING} requests waiting, dropping the oldest for a new one`, async () => {
-    await setUpKitchen(ctx.app);
+  /** Ask without the helper's success check. */
+  const askRaw = (name: string, address: string) =>
+    from(address, { method: 'POST', url: '/api/access/request', payload: { name } });
+
+  /** Fill the waiting list straight in the database, as a flood would. */
+  async function fillWaiting(count: number, prefix = 'Flood') {
+    await ctx.db.insert(remoteDevices).values(
+      Array.from({ length: count }, (_, i) => ({
+        name: `${prefix} ${i}`,
+        code: `AAA-${String(i).padStart(3, '0')}`,
+        tokenHash: `${prefix}-${i}`,
+        requestedAt: new Date(Date.now() - (count - i) * 1000),
+      })),
+    );
+  }
+
+  it(`keeps at most ${MAX_PENDING} requests waiting, and turns new ones away rather than dropping one`, async () => {
+    const admin = await setUpKitchen(ctx.app);
     const first = await ask('Phone 0', '198.51.100.1');
-    for (let i = 1; i < MAX_PENDING; i += 1) await ask(`Phone ${i}`, `198.51.100.${i + 1}`);
-    // A full list never locks a real request out.
-    await ask('One more', '198.51.100.200');
+    await fillWaiting(MAX_PENDING - 1);
+
+    const more = await askRaw('One more', '198.51.100.200');
+    expect(more.statusCode).toBe(429);
+    expect(more.json().error.code).toBe('access_list_full');
+
+    // Everyone already waiting keeps their place, and the list stays readable.
     const status = await from('198.51.100.1', {
       method: 'GET',
       url: '/api/access/status',
       cookie: first.cookie,
     });
-    expect(status.json().status).toBe('none');
+    expect(status.json().status).toBe('pending');
+    expect((await list(admin)).devices).toHaveLength(MAX_PENDING);
+  });
+
+  it('keeps a real request in the list through a flood behind an untrusted tunnel', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    // Every visitor arrives from the tunnel's own private address, so the
+    // list shows no address for any of them and no per-address limit applies.
+    const viaTunnel = (name: string) =>
+      from('172.18.0.1', {
+        method: 'POST',
+        url: '/api/access/request',
+        payload: { name },
+        headers: { 'x-forwarded-for': '198.51.100.4' },
+      });
+    const realResponse = await viaTunnel('Real phone');
+    expect(realResponse.statusCode).toBe(200);
+    const real = `mise_access=${cookieFrom(realResponse, 'mise_access')}`;
+    for (let i = 0; i < MAX_PENDING * 3; i += 1) await viaTunnel(`Bot ${i}`);
+
+    const devices = (await list(admin)).devices;
+    expect(devices.length).toBeLessThanOrEqual(MAX_PENDING);
+    expect(devices.map((d) => d.name)).toContain('Real phone');
+    const status = await from('172.18.0.1', {
+      method: 'GET',
+      url: '/api/access/status',
+      cookie: real,
+      headers: { 'x-forwarded-for': '198.51.100.4' },
+    });
+    expect(status.json().status).toBe('pending');
+  });
+
+  describe('after a flood', () => {
+    afterEach(() => vi.useRealTimers());
+
+    it(`takes at most ${MAX_NEW_PER_HOUR} new requests an hour from everyone together`, async () => {
+      await setUpKitchen(ctx.app);
+      for (let i = 0; i < MAX_NEW_PER_HOUR; i += 1) await ask(`Phone ${i}`, `198.51.100.${i + 1}`);
+      const blocked = await askRaw('Too soon', '198.51.100.100');
+      expect(blocked.statusCode).toBe(429);
+      expect(blocked.json().error.code).toBe('too_many_requests');
+
+      // Turned-away tries don't keep the door shut: an hour on, it opens again.
+      vi.useFakeTimers({ toFake: ['Date'], now: Date.now() + 61 * 60_000 });
+      expect((await askRaw('Later', '198.51.100.101')).statusCode).toBe(200);
+    });
+
+    it('lets a device ask again once the flood is answered or has run out', async () => {
+      const admin = await setUpKitchen(ctx.app);
+      await fillWaiting(MAX_PENDING);
+      expect((await askRaw('Blocked', '198.51.100.7')).statusCode).toBe(429);
+
+      // A manager turns one down: there is room again.
+      const [first] = (await list(admin)).devices;
+      const removed = await from(INSIDE, {
+        method: 'DELETE',
+        url: `/api/access/devices/${first!.id}`,
+        cookie: `mise_session=${admin}`,
+      });
+      expect(removed.statusCode).toBe(204);
+      expect((await askRaw('Room now', '198.51.100.8')).statusCode).toBe(200);
+
+      // The rest run out on their own after a day.
+      await ctx.db
+        .update(remoteDevices)
+        .set({ requestedAt: new Date(Date.now() - 25 * 3_600_000) })
+        .where(eq(remoteDevices.tokenHash, 'Flood-3'));
+      const names = (await list(admin)).devices.map((d) => d.name);
+      expect(names).not.toContain('Flood 3');
+    });
   });
 
   it(`lets one address keep only ${MAX_PENDING_PER_ADDRESS} requests waiting`, async () => {

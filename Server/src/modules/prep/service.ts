@@ -39,6 +39,12 @@ const DONE_AT_MAX_BACK_MS = 24 * 60 * 60 * 1000;
 /** Station order is how the kitchen is laid out, which is how a prep list should read. */
 const TASK_ORDER = [asc(stations.sortOrder), asc(prepTasks.sortOrder), asc(prepTasks.description)];
 
+/** Who put a line on the list, and whether the chef's checklist did. */
+interface Origin {
+  createdBy: string;
+  fromChecklist?: boolean;
+}
+
 export function createPrepService(db: Database) {
   /**
    * Joined against staff twice, so the list can say who it is for and who
@@ -46,6 +52,7 @@ export function createPrepService(db: Database) {
    */
   const assignee = db.select().from(users).as('assignee');
   const completer = db.select().from(users).as('completer');
+  const creator = db.select().from(users).as('creator');
 
   function selectTasks() {
     return db
@@ -62,10 +69,13 @@ export function createPrepService(db: Database) {
         completedByName: completer.displayName,
         completedAt: prepTasks.completedAt,
         sortOrder: prepTasks.sortOrder,
+        createdByName: creator.displayName,
+        fromChecklist: prepTasks.fromChecklist,
       })
       .from(prepTasks)
       .leftJoin(assignee, eq(assignee.id, prepTasks.assignedUserId))
       .leftJoin(completer, eq(completer.id, prepTasks.completedBy))
+      .leftJoin(creator, eq(creator.id, prepTasks.createdBy))
       .leftJoin(stations, eq(stations.id, prepTasks.stationId));
   }
 
@@ -104,7 +114,11 @@ export function createPrepService(db: Database) {
     return (row?.value ?? -1) + 1;
   }
 
-  async function insertTask(input: CreatePrepTask, exec: Executor): Promise<string | null> {
+  async function insertTask(
+    input: CreatePrepTask,
+    exec: Executor,
+    origin: Origin,
+  ): Promise<string | null> {
     const [row] = await exec
       .insert(prepTasks)
       .values({
@@ -115,6 +129,8 @@ export function createPrepService(db: Database) {
         status: 'open',
         assignedUserId: input.assignedUserId ?? null,
         sortOrder: await nextSortOrder(exec),
+        createdBy: origin.createdBy,
+        fromChecklist: origin.fromChecklist ?? false,
       })
       .returning({ id: prepTasks.id });
     return row?.id ?? null;
@@ -204,9 +220,10 @@ export function createPrepService(db: Database) {
   /**
    * Put a line on the list. When the same thing is already waiting on the
    * same station, in a unit that adds up, the amount goes onto that line:
-   * "2 kg onions" and later "500 g onions" become one line for 2.5 kg.
+   * "2 kg onions" and later "500 g onions" become one line for 2.5 kg. The
+   * line keeps the person who first put it there.
    */
-  async function addTask(input: CreatePrepTask) {
+  async function addTask(input: CreatePrepTask, createdBy: string) {
     const added = toBaseQuantity(input.quantity);
 
     // One at a time: two cooks adding the same line at once both count.
@@ -232,7 +249,7 @@ export function createPrepService(db: Database) {
           task.quantityUnit === null ||
           task.quantityUnit === added.quantityUnit,
       );
-      if (!match) return { id: await insertTask(input, tx), merged: false };
+      if (!match) return { id: await insertTask(input, tx, { createdBy }), merged: false };
 
       const linksRecipe = !match.recipeId && input.recipeId;
       if (added.quantityBase !== null || linksRecipe) {
@@ -258,7 +275,52 @@ export function createPrepService(db: Database) {
     return { task: outcome.id ? await getTaskForApi(outcome.id) : null, merged: outcome.merged };
   }
 
+  /**
+   * Put the ticked checklist items on the list. An item whose name (trimmed,
+   * capitals ignored) is already an open or in-progress line on the same
+   * station is skipped, so ticking "Chicken stock" twice in a day, or two
+   * cooks ticking it at once, makes one line. Unlike a typed line, nothing is
+   * merged: the checklist has no amounts to add up.
+   */
+  async function addFromChecklist(
+    items: { name: string; stationId: string | null }[],
+    createdBy: string,
+  ) {
+    return db.transaction(async (tx) => {
+      // The same lock as a typed line, so the two can't both add the same thing.
+      await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-prep-add'))`);
+      let added = 0;
+      let alreadyThere = 0;
+      for (const item of items) {
+        const [existing] = await tx
+          .select({ id: prepTasks.id })
+          .from(prepTasks)
+          .where(
+            and(
+              inArray(prepTasks.status, ['open', 'in_progress']),
+              sql`lower(trim(${prepTasks.description})) = lower(trim(${item.name}))`,
+              item.stationId
+                ? eq(prepTasks.stationId, item.stationId)
+                : isNull(prepTasks.stationId),
+            ),
+          )
+          .limit(1);
+        if (existing) {
+          alreadyThere += 1;
+          continue;
+        }
+        await insertTask({ description: item.name, stationId: item.stationId }, tx, {
+          createdBy,
+          fromChecklist: true,
+        });
+        added += 1;
+      }
+      return { added, alreadyThere };
+    });
+  }
+
   return {
+    addFromChecklist,
     listTasks,
     getTask,
     getTaskForApi,

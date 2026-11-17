@@ -10,6 +10,7 @@ import * as schema from '../../db/schema.js';
 export const BACKED_UP: PgTable[] = [
   schema.kitchens,
   schema.stations,
+  schema.prepChecklistItems,
   schema.users,
   schema.devices,
   schema.ingredients,

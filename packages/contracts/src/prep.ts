@@ -27,6 +27,10 @@ export const prepTaskSchema = z.object({
   completedByName: z.string().nullable(),
   completedAt: z.string().nullable(),
   sortOrder: z.number().int(),
+  /** Who put the line on the list. Null for lines from before this was kept, or someone since removed. */
+  createdByName: z.string().nullable(),
+  /** Whether it came from the chef's checklist rather than being typed in. */
+  fromChecklist: z.boolean(),
 });
 
 export const createPrepTaskSchema = z.object({

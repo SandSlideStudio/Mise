@@ -53,7 +53,8 @@ export const fr: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Ce fichier est trop volumineux.',
   'error.unknownTimeZone': 'Ce serveur ne connaît pas ce fuseau horaire.',
   'error.alreadySetUp': 'Ce serveur est déjà configuré.',
-  'error.imageType': 'Utilisez une image JPEG, PNG ou WebP.',
+  'error.imageType':
+    'Ce fichier n’est pas une photo que Mise peut afficher. Utilisez un JPEG, PNG, WebP ou AVIF.',
   'error.imageMissing': 'Aucune image n’a été jointe.',
   'error.notADish': 'Seul un plat a une fiche plat.',
   'error.logoTooLarge': 'Ce logo dépasse 2 Mo.',
@@ -1218,4 +1219,76 @@ export const fr: Record<MessageKey, string> = {
     'Vous êtes connecté avec votre code PIN. Pour gérer les sauvegardes ou voir la clé de récupération, connectez-vous avec votre mot de passe.',
   'error.passwordRequired':
     'Connectez-vous avec votre mot de passe pour cela. Un code PIN suffit pour tout le reste.',
+  'kitchen.idle': 'Déconnecter les tablettes partagées quand on n’y touche plus',
+  'kitchen.idleNever': 'Jamais',
+  'kitchen.idleMinutes': 'Après {minutes} minutes sans toucher',
+  'kitchen.idleHint':
+    'Ne concerne que les tablettes enregistrées pour la connexion par code PIN. Un court avertissement s’affiche d’abord. Les modifications encore en attente d’envoi sont conservées pour la prochaine connexion de la personne.',
+  'idle.warning':
+    'Personne n’a touché cette tablette depuis un moment. Déconnexion dans {seconds} secondes.',
+  'idle.warningSr': 'Personne n’a touché cette tablette depuis un moment. Déconnexion imminente.',
+  'idle.stay': 'Rester connecté',
+  'idle.signingOut': 'Déconnexion…',
+  'error.accessListFull': 'Trop d’appareils attendent d’être admis. Demandez à un responsable.',
+  'kitchen.prepChecklist': 'Checklist de prep',
+  'kitchen.prepChecklistHint':
+    'Les chefs tiennent une checklist de ce que la cuisine fait, par poste. Chacun peut cocher ce qui est nécessaire et l’ajouter à la liste de prep d’un seul geste.',
+  'checklist.title': 'Checklist de prep',
+  'checklist.hint': 'Cochez ce qu’il faut et ajoutez-le à la liste.',
+  'checklist.empty': 'La checklist est vide. Un chef peut la remplir.',
+  'checklist.emptyChef': 'La checklist est vide. Ajoutez ce que fait votre cuisine.',
+  'checklist.loadError': 'Impossible de charger la checklist.',
+  'checklist.add': 'Ajouter à la liste de prep',
+  'checklist.addCount': 'Ajouter à la liste de prep ({count})',
+  'checklist.added_one': '1 ligne ajoutée à la liste de prep.',
+  'checklist.added_other': '{count} lignes ajoutées à la liste de prep.',
+  'checklist.addedNone': 'Rien de nouveau à ajouter.',
+  'checklist.alreadyThere_one': '1 était déjà sur la liste.',
+  'checklist.alreadyThere_other': '{count} étaient déjà sur la liste.',
+  'checklist.queued':
+    'Enregistré sur cette tablette. Les lignes iront sur la liste dès que Mise sera joignable.',
+  'checklist.edit': 'Modifier la checklist',
+  'checklist.editTitle': 'Modifier la checklist',
+  'checklist.editHint': 'Juste des noms, par poste. Chacun peut les cocher vers la liste de prep.',
+  'checklist.itemName': 'Nom',
+  'checklist.newItem': 'Nouvel élément',
+  'checklist.addItem': 'Ajouter',
+  'checklist.stationFor': 'Poste pour {name}',
+  'checklist.moveUp': 'Monter {name}',
+  'checklist.moveDown': 'Descendre {name}',
+  'checklist.remove': 'Retirer {name}',
+  'checklist.save': 'Enregistrer la checklist',
+  'task.addedBy': 'Ajouté par {name}',
+  'task.fromChecklistBy': 'De la checklist, par {name}',
+  'task.fromChecklist': 'De la checklist',
+  'offline.label.checklist': 'la checklist de prep',
+  'offline.label.checklistAdd': 'des éléments de la checklist',
+  'error.checklistOff':
+    'La checklist de prep est désactivée. Un administrateur peut l’activer dans les réglages.',
+  // Connexion avec un code seul
+  'line.pinOnlyLead': 'Saisissez votre code.',
+  'line.pinOnlyLeadOk': 'Saisissez votre code, puis appuyez sur OK.',
+  'line.noPinYet': 'Pas encore de code, ou sur un ordinateur portable ?',
+  'devices.lockedUntil': 'Trop de codes erronés. Bloquée jusqu’à {time}.',
+  'pinOnly.title': 'Connexion sur les tablettes',
+  'pinOnly.label': 'Se connecter avec un code seul',
+  'pinOnly.hint':
+    'Les tablettes affichent un clavier au lieu des noms, et le code retrouve la personne. Chaque code doit être différent et pas trop évident, donc chaque personne qui a un code en reçoit d’abord un nouveau.',
+  'pinOnly.on':
+    'Activé. Les tablettes n’affichent que le clavier. Désactivez-le pour retrouver les noms ; les codes continuent de marcher.',
+  'pinOnly.waiting':
+    'En attente de nouveaux codes. Les tablettes affichent les noms tant que tout le monde n’en a pas un.',
+  'pinOnly.waitingHow':
+    'Un chef de cuisine ou un administrateur donne un nouveau code à chacun dans Réglages → Équipe.',
+  'pinOnly.waitingFor': 'Attend encore un nouveau code',
+  'pinOnly.needsNewPin': 'Nouveau code requis',
+  'pinOnly.pinHint':
+    'Pour se connecter sur une tablette de cuisine. Il doit être différent de celui des autres, et pas évident comme 1234.',
+  'error.pinTaken': 'Choisissez un autre code.',
+  'error.pinTooCommon': 'Choisissez un code moins évident.',
+  'error.pinOnlyOff':
+    'Cette tablette affiche de nouveau les noms. Touchez votre nom, puis saisissez votre code.',
+  'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code seul.',
+  'error.tabletLockedUntil':
+    'Trop de codes erronés sur cette tablette. Réessayez après {time}, ou demandez à un chef de cuisine de lever le blocage.',
 };

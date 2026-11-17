@@ -271,10 +271,10 @@ describe('editing staff', () => {
     const device = cookieFrom(enrolled, 'mise_device')!;
     const roster = await ctx.app.inject({
       method: 'GET',
-      url: '/api/auth/roster',
+      url: '/api/auth/sign-in-options',
       cookies: { mise_device: device },
     });
-    expect(roster.json()).toEqual([]);
+    expect(roster.json().people).toEqual([]);
   });
 
   it('refuses an edit that would leave somebody unable to sign in', async () => {

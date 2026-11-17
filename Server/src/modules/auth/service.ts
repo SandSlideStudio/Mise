@@ -10,6 +10,7 @@ import {
   hashToken,
   verifySecret,
 } from '../../lib/crypto.js';
+import { createKitchenService } from '../kitchen/service.js';
 import { createLockout, LOCKOUT_MINUTES, type Lockout } from './lockout.js';
 
 /**
@@ -27,7 +28,10 @@ export type AuthFailure =
   | { kind: 'invalid_credentials' }
   | { kind: 'locked'; until: Date }
   | { kind: 'inactive' }
-  | { kind: 'device_not_enrolled' };
+  | { kind: 'device_not_enrolled' }
+  | { kind: 'tablet_locked'; until: Date }
+  | { kind: 'pin_only_off' }
+  | { kind: 'pin_only_on' };
 
 export interface AuthenticatedSession {
   token: string;
@@ -53,6 +57,15 @@ function daysFromNow(days: number): Date {
 export function createAuthService(db: Database) {
   /** Wrong guesses per account and address; see lockout.ts. */
   const lockout: Lockout = createLockout();
+  /** Only to read where PIN-only sign-in stands and whose PINs it goes by. */
+  const kitchenService = createKitchenService(db);
+
+  /** When PIN-only sign-in is on (not only chosen), since when; otherwise null. */
+  async function pinOnlySince(): Promise<Date | null> {
+    const row = await kitchenService.getKitchen();
+    if (!row?.pinOnlySince) return null;
+    return (await kitchenService.pinOnlyState(row)) === 'on' ? row.pinOnlySince : null;
+  }
 
   /**
    * Before the slow check: is the account locked as a whole (the brake, or an
@@ -164,6 +177,9 @@ export function createAuthService(db: Database) {
     deviceId: string,
     userAgent?: string | null,
   ): Promise<{ ok: true; session: AuthenticatedSession } | { ok: false; error: AuthFailure }> {
+    // Once tablets sign in by PIN alone they show no names, so this way in is
+    // closed: it would be a second door, with its own count of wrong guesses.
+    if (await pinOnlySince()) return { ok: false, error: { kind: 'pin_only_on' } };
     const [user] = await db.select().from(users).where(eq(users.id, userId)).limit(1);
     if (!user?.pinHash) {
       await dummyVerify();
@@ -189,6 +205,61 @@ export function createAuthService(db: Database) {
     lockout.succeeded(user.id, deviceId);
     lockout.pinSucceeded(user.id);
     const session = await issueSession(user.id, {
+      deviceId,
+      expiresAt: new Date(Date.now() + PIN_SESSION_HOURS * 3_600_000),
+      userAgent,
+    });
+    return { ok: true, session };
+  }
+
+  /**
+   * A PIN alone, on an enrolled tablet, once every PIN in the kitchen has
+   * been set since PIN-only sign-in was chosen (each one unique, and none of
+   * the obvious ones).
+   *
+   * Nobody is named, so a wrong PIN counts against the tablet. The PIN is
+   * checked against every PIN there is, all of them, every time, and only
+   * then is the answer looked at: stopping at the first match would make a
+   * PIN near the front of the list answer sooner than one near the end.
+   */
+  async function loginWithPinOnly(
+    pin: string,
+    deviceId: string,
+    userAgent?: string | null,
+  ): Promise<{ ok: true; session: AuthenticatedSession } | { ok: false; error: AuthFailure }> {
+    const since = await pinOnlySince();
+    if (!since) return { ok: false, error: { kind: 'pin_only_off' } };
+
+    const reserved = lockout.tabletReserve(deviceId);
+    if ('lockedUntil' in reserved) {
+      return { ok: false, error: { kind: 'tablet_locked', until: reserved.lockedUntil } };
+    }
+
+    const candidates = await kitchenService.pinsSetSince(since);
+    const [matches] = await Promise.all([
+      Promise.all(candidates.map((person) => verifySecret(person.pinHash, pin))),
+      // A kitchen with nobody to check against still takes as long as one check.
+      candidates.length === 0 ? dummyVerify() : Promise.resolve(),
+    ]);
+    const found = candidates.filter((_, index) => matches[index]);
+
+    // Exactly one, or it isn't a sign-in. Two can't happen while PINs are
+    // checked as they are set; if it ever does, nobody gets in as the other.
+    if (found.length !== 1) {
+      const until = lockout.tabletFailed(deviceId, reserved.attempt);
+      return {
+        ok: false,
+        error: until ? { kind: 'tablet_locked', until } : { kind: 'invalid_credentials' },
+      };
+    }
+    const person = found[0]!;
+    // Their PIN was locked by wrong guesses at their name before: it stays locked.
+    const pinLock = lockout.pinLocked(person.id);
+    if (pinLock) return { ok: false, error: { kind: 'locked', until: pinLock } };
+
+    lockout.tabletSucceeded(deviceId);
+    lockout.pinSucceeded(person.id);
+    const session = await issueSession(person.id, {
       deviceId,
       expiresAt: new Date(Date.now() + PIN_SESSION_HOURS * 3_600_000),
       userAgent,
@@ -303,12 +374,30 @@ export function createAuthService(db: Database) {
 
   async function revokeDevice(deviceId: string): Promise<void> {
     await db.update(devices).set({ revokedAt: new Date() }).where(eq(devices.id, deviceId));
+    lockout.forgetTablet(deviceId);
     // Anyone signed in on that tablet is signed out immediately.
     await db.delete(sessions).where(eq(sessions.deviceId, deviceId));
   }
 
-  /** The names a shared tablet offers before anyone has signed in. */
+  /**
+   * What a shared tablet offers before anyone has signed in: the names, or
+   * once the kitchen signs in by PIN alone, only the keypad.
+   */
   async function roster() {
+    const since = await pinOnlySince();
+    if (since) {
+      const lengths = new Set((await kitchenService.pinsSetSince(since)).map((p) => p.pinLength));
+      const [only] = lengths;
+      return {
+        mode: 'pin' as const,
+        people: [],
+        pinLength: lengths.size === 1 && only != null ? only : null,
+      };
+    }
+    return { mode: 'names' as const, people: await names(), pinLength: null };
+  }
+
+  async function names() {
     return db
       .select({
         id: users.id,
@@ -396,6 +485,7 @@ export function createAuthService(db: Database) {
           passwordHash,
           pinHash,
           pinLength: input.pin?.length ?? null,
+          pinSetAt: pinHash ? new Date() : null,
           role: 'admin',
         })
         .returning({ id: users.id });
@@ -409,6 +499,7 @@ export function createAuthService(db: Database) {
             role: person.role,
             pinHash: person.pinHash,
             pinLength: person.pin.length,
+            pinSetAt: new Date(),
             defaultStationId: stationId(person.station),
           })),
         );
@@ -444,6 +535,11 @@ export function createAuthService(db: Database) {
   return {
     loginWithPassword,
     loginWithPin,
+    loginWithPinOnly,
+    /** When this tablet is locked for PIN-only sign-in until; kept in memory. */
+    tabletLockedUntil: (deviceId: string) => lockout.tabletLocked(deviceId),
+    /** A manager lifted the tablet's lock. */
+    forgetTabletFailures: (deviceId: string) => lockout.forgetTablet(deviceId),
     /** Start a person's count over everywhere, after an administrator resets them. */
     forgetFailures: (userId: string) => lockout.forget(userId),
     /** When this person's PIN is locked until, across all tablets: kept in memory, not the database. */

@@ -71,20 +71,45 @@ export const updateUserSchema = z.object({
   pin: pinSchema.nullable().optional(),
 });
 
+export const pinOnlyStateSchema = z.enum(['off', 'waiting', 'on']);
+
 export const kitchenSchema = z.object({
   id: idSchema,
   name: z.string(),
   /** What the interface speaks for anyone who has not chosen for themselves. */
   language: languageSchema,
   tickedRetention: tickedRetentionSchema,
+  /** The chef's checklist on the prep list. */
+  prepChecklist: z.boolean(),
+  /**
+   * Sign-in by PIN alone. "waiting": chosen, but not everyone with a PIN has
+   * been given a new one yet, so tablets still show the names.
+   */
+  pinOnly: pinOnlyStateSchema,
+  /** Sign out of a shared tablet after this many minutes untouched. Null: never. */
+  idleSignOutMinutes: z.number().int().nullable(),
 });
 
 export const updateKitchenSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   language: languageSchema.optional(),
   tickedRetention: tickedRetentionSchema.optional(),
+  prepChecklist: z.boolean().optional(),
+  pinOnly: z.boolean().optional(),
+  idleSignOutMinutes: z.number().int().min(1).max(240).nullable().optional(),
 });
 
+/**
+ * Where PIN-only sign-in stands, for Settings: who still needs a new PIN
+ * before tablets stop showing the names. Names only, never anything about a PIN.
+ */
+export const pinOnlyStatusSchema = z.object({
+  state: pinOnlyStateSchema,
+  waiting: z.array(z.object({ id: idSchema, displayName: z.string() })),
+});
+
+export type PinOnlyState = z.infer<typeof pinOnlyStateSchema>;
+export type PinOnlyStatus = z.infer<typeof pinOnlyStatusSchema>;
 export type Station = z.infer<typeof stationSchema>;
 export type CreateStation = z.infer<typeof createStationSchema>;
 export type UpdateStation = z.infer<typeof updateStationSchema>;

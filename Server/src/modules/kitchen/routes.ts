@@ -7,6 +7,7 @@ import {
   errorSchema,
   idSchema,
   kitchenSchema,
+  pinOnlyStatusSchema,
   reorderStationsSchema,
   stationSchema,
   updateKitchenSchema,
@@ -51,6 +52,11 @@ function failureToError(failure: KitchenFailure): ApiError {
       );
     case 'email_taken':
       return new ApiError(409, 'email_taken', 'Someone already has that email address.');
+    case 'pin_taken':
+      // Never whose: that would hand out someone's PIN.
+      return new ApiError(409, 'pin_taken', 'Choose another PIN.');
+    case 'pin_too_common':
+      return new ApiError(400, 'pin_too_common', 'Pick a less obvious PIN.');
     case 'admin_needs_password':
       return new ApiError(
         400,
@@ -78,6 +84,18 @@ function serialiseUser(user: {
 const kitchenRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const kitchen = createKitchenService(app.db);
+
+  async function describeKitchen(row: NonNullable<Awaited<ReturnType<typeof kitchen.getKitchen>>>) {
+    return {
+      id: row.id,
+      name: row.name,
+      language: row.language,
+      tickedRetention: row.tickedRetention,
+      prepChecklist: row.prepChecklist,
+      pinOnly: await kitchen.pinOnlyState(row),
+      idleSignOutMinutes: row.idleSignOutMinutes,
+    };
+  }
 
   /** A PIN lock is kept in memory, not with the account: shown as the lock it is. */
   function withLock(user: Parameters<typeof serialiseUser>[0]) {
@@ -263,12 +281,28 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async () => {
       const row = await kitchen.getKitchen();
       if (!row) throw ApiError.notFound('This kitchen');
+      return describeKitchen(row);
+    },
+  );
+
+  /**
+   * Where PIN-only sign-in stands, and who still needs a new PIN: for the
+   * administrator who chose it and the head chefs who hand the PINs out.
+   */
+  r.get(
+    '/kitchen/pin-only',
+    {
+      onRequest: [app.requireRole('admin', 'head_chef')],
+      schema: { response: { 200: pinOnlyStatusSchema, 403: errorSchema, 404: errorSchema } },
+    },
+    async () => {
+      const row = await kitchen.getKitchen();
+      if (!row) throw ApiError.notFound('This kitchen');
+      const waiting = row.pinOnlySince ? await kitchen.waitingForNewPin(row.pinOnlySince) : [];
       return {
-        id: row.id,
-        name: row.name,
-        language: row.language,
-        tickedRetention: row.tickedRetention,
-      };
+        state: !row.pinOnlySince ? 'off' : waiting.length > 0 ? 'waiting' : 'on',
+        waiting,
+      } as const;
     },
   );
 
@@ -284,12 +318,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const row = await kitchen.updateKitchen(request.body);
       if (!row) throw ApiError.notFound('This kitchen');
-      return {
-        id: row.id,
-        name: row.name,
-        language: row.language,
-        tickedRetention: row.tickedRetention,
-      };
+      return describeKitchen(row);
     },
   );
 };

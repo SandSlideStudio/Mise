@@ -87,6 +87,20 @@ export const kitchens = pgTable('kitchen', {
   handoverNoteAt: timestamp('handover_note_at', { withTimezone: true }),
   /** Ask GitHub once a day whether a newer Mise is out. An administrator can switch it off. */
   updateCheck: boolean('update_check').notNull().default(true),
+  /** The chef's checklist on the prep list, for anyone to tick what's needed. Off unless chosen. */
+  prepChecklist: boolean('prep_checklist').notNull().default(false),
+  /** When the checklist last changed: the version an edit starts from. */
+  prepChecklistUpdatedAt: timestamp('prep_checklist_updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  /**
+   * When an administrator chose sign-in by PIN alone, with no name to pick.
+   * It takes effect once everyone with a PIN has been given a new one since.
+   * Null: tablets show the names, as before.
+   */
+  pinOnlySince: timestamp('pin_only_since', { withTimezone: true }),
+  /** Sign out of a shared tablet after this many minutes untouched. Null: never. */
+  idleSignOutMinutes: integer('idle_sign_out_minutes'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -96,6 +110,23 @@ export const stations = pgTable('station', {
   sortOrder: integer('sort_order').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * The chef's checklist for the prep list: what this kitchen makes, by station.
+ * Anyone ticks what's needed and it goes on the list; nothing is kept here
+ * about what was ticked.
+ */
+export const prepChecklistItems = pgTable(
+  'prep_checklist_item',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    stationId: uuid('station_id').references(() => stations.id, { onDelete: 'set null' }),
+    name: text('name').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('prep_checklist_item_station_idx').on(t.stationId)],
+);
 
 export const users = pgTable(
   'app_user',
@@ -108,6 +139,8 @@ export const users = pgTable(
     pinHash: text('pin_hash'),
     /** Digits in their PIN, so the tablet's pad can sign in the moment it is complete. */
     pinLength: integer('pin_length'),
+    /** When the PIN was last set: PIN-only sign-in needs one set after it was chosen. */
+    pinSetAt: timestamp('pin_set_at', { withTimezone: true }),
     role: roleEnum('role').notNull().default('cook'),
     defaultStationId: uuid('default_station_id').references(() => stations.id, {
       onDelete: 'set null',
@@ -125,6 +158,9 @@ export const users = pgTable(
   },
   (t) => [
     uniqueIndex('app_user_email_key').on(t.email),
+    // The app checks emails without caring about capitals; so does the database
+    // since 2.3, so two people signing up at once can't both get one.
+    uniqueIndex('app_user_email_lower_key').on(sql`lower(${t.email})`),
     // Someone with no way to sign in is a data-entry mistake, not a staff member.
     check(
       'app_user_has_a_credential',
@@ -364,11 +400,15 @@ export const prepTasks = pgTable(
     completedBy: uuid('completed_by').references(() => users.id, { onDelete: 'set null' }),
     completedAt: timestamp('completed_at', { withTimezone: true }),
     sortOrder: integer('sort_order').notNull().default(0),
+    /** Who put it on the list, and whether it came from the chef's checklist. */
+    createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
+    fromChecklist: boolean('from_checklist').notNull().default(false),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     index('prep_task_station_idx').on(t.stationId),
+    index('prep_task_created_by_idx').on(t.createdBy),
     index('prep_task_recipe_idx').on(t.recipeId),
     index('prep_task_assignee_idx').on(t.assignedUserId),
     index('prep_task_completed_by_idx').on(t.completedBy),

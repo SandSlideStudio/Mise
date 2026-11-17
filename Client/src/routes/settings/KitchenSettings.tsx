@@ -1,8 +1,18 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { LANGUAGES, type Language, type TickedRetention } from '@mise/contracts';
-import { useKitchen, useUpdateKitchen } from '../../api/kitchen.js';
+import { useKitchen, usePinOnlyStatus, useUpdateKitchen } from '../../api/kitchen.js';
+import { useCurrentUser } from '../../api/session.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 import { VersionSettings } from './VersionSettings.js';
+
+const IDLE_CHOICES = [2, 5, 10, 15, 30];
+
+/** The usual choices, plus whatever is set already if it was set some other way. */
+function idleChoices(current: number | null): number[] {
+  return current === null || IDLE_CHOICES.includes(current)
+    ? IDLE_CHOICES
+    : [...IDLE_CHOICES, current].sort((a, b) => a - b);
+}
 
 /**
  * What this kitchen is called, which units it works in, what it speaks, and
@@ -16,6 +26,8 @@ export function KitchenSettings() {
   const [name, setName] = useState('');
   const [language, setLanguage] = useState<Language>('en');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
+  const [idleMinutes, setIdleMinutes] = useState<number | null>(null);
+  const [prepChecklist, setPrepChecklist] = useState(false);
 
   // Seed the form once the current settings arrive.
   useEffect(() => {
@@ -23,6 +35,8 @@ export function KitchenSettings() {
       setName(kitchen.data.name);
       setLanguage(kitchen.data.language);
       setTickedRetention(kitchen.data.tickedRetention);
+      setIdleMinutes(kitchen.data.idleSignOutMinutes);
+      setPrepChecklist(kitchen.data.prepChecklist);
     }
   }, [kitchen.data]);
 
@@ -32,7 +46,13 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
-    update.mutate({ name, language, tickedRetention });
+    update.mutate({
+      name,
+      language,
+      tickedRetention,
+      idleSignOutMinutes: idleMinutes,
+      prepChecklist,
+    });
   }
 
   return (
@@ -69,6 +89,40 @@ export function KitchenSettings() {
           <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.retentionHint')}</p>
         </div>
 
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            role="switch"
+            className="accent-accent mt-1 h-5 w-5 shrink-0"
+            checked={prepChecklist}
+            onChange={(e) => setPrepChecklist(e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">{t('kitchen.prepChecklist')}</span>
+            <span className="text-ink-soft block text-sm">{t('kitchen.prepChecklistHint')}</span>
+          </span>
+        </label>
+
+        <div>
+          <label className="label" htmlFor="idleSignOut">
+            {t('kitchen.idle')}
+          </label>
+          <select
+            id="idleSignOut"
+            className="field"
+            value={idleMinutes ?? ''}
+            onChange={(e) => setIdleMinutes(e.target.value === '' ? null : Number(e.target.value))}
+          >
+            <option value="">{t('kitchen.idleNever')}</option>
+            {idleChoices(idleMinutes).map((minutes) => (
+              <option key={minutes} value={minutes}>
+                {t('kitchen.idleMinutes', { minutes: String(minutes) })}
+              </option>
+            ))}
+          </select>
+          <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.idleHint')}</p>
+        </div>
+
         <div>
           <label className="label" htmlFor="kitchenLanguage">
             {t('kitchen.language')}
@@ -101,7 +155,78 @@ export function KitchenSettings() {
           </button>
         </div>
       </form>
+      <PinOnlySettings />
       <VersionSettings />
+    </section>
+  );
+}
+
+/**
+ * Sign-in by PIN alone. Choosing it doesn't change the tablets yet: everyone
+ * with a PIN first needs a new one, checked to be unique and not obvious, so
+ * the list of who is still waiting is the heart of this.
+ */
+function PinOnlySettings() {
+  const translator = useT();
+  const { t } = translator;
+  const { data: me } = useCurrentUser();
+  const kitchen = useKitchen();
+  const update = useUpdateKitchen();
+  const isAdmin = me?.role === 'admin';
+  // Head chefs hand the new PINs out, so they see who is waiting too.
+  const status = usePinOnlyStatus(isAdmin || me?.role === 'head_chef');
+
+  const state = status.data?.state ?? kitchen.data?.pinOnly;
+  if (!state) return null;
+  const waiting = status.data?.waiting ?? [];
+
+  return (
+    <section className="border-rule mt-10 border-t pt-8">
+      <h2 className="mb-2 text-2xl">{t('pinOnly.title')}</h2>
+      <div className="flex max-w-2xl flex-col gap-5">
+        <label className={`flex items-start gap-3 ${isAdmin ? 'cursor-pointer' : ''}`}>
+          <input
+            type="checkbox"
+            role="switch"
+            className="accent-accent mt-1 h-5 w-5 shrink-0"
+            checked={state !== 'off'}
+            disabled={!isAdmin || update.isPending}
+            onChange={(e) => update.mutate({ pinOnly: e.target.checked })}
+          />
+          <span>
+            <span className="font-medium">{t('pinOnly.label')}</span>
+            <span className="text-ink-soft block text-sm">{t('pinOnly.hint')}</span>
+          </span>
+        </label>
+        {update.error ? (
+          <p role="alert" className="text-danger text-sm">
+            {errorMessage(translator, update.error)}
+          </p>
+        ) : null}
+
+        {state === 'on' ? (
+          <p className="bg-accent-wash border-accent border-l-[6px] px-5 py-4">{t('pinOnly.on')}</p>
+        ) : null}
+
+        {state === 'waiting' ? (
+          <div className="bg-surface-raised border-line border px-5 py-4">
+            <p className="font-medium">{t('pinOnly.waiting')}</p>
+            <p className="text-ink-soft mt-1 text-sm">{t('pinOnly.waitingHow')}</p>
+            {waiting.length > 0 ? (
+              <>
+                <h3 className="eyebrow mt-4 mb-2">{t('pinOnly.waitingFor')}</h3>
+                <ul className="flex flex-wrap gap-2">
+                  {waiting.map((person) => (
+                    <li key={person.id} className="tag">
+                      {person.displayName}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            ) : null}
+          </div>
+        ) : null}
+      </div>
     </section>
   );
 }

@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { createWriteStream } from 'node:fs';
 import { unlink } from 'node:fs/promises';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -15,6 +13,7 @@ import {
   updateDishCardSettingsSchema,
 } from '@mise/contracts';
 import { ApiError } from '../../lib/errors.js';
+import { storeImage } from '../../lib/images.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService, serialiseSettings } from './service.js';
 
@@ -25,12 +24,6 @@ import { createDishCardService, serialiseSettings } from './service.js';
  * kitchen's choice: by default everyone signed in, since the card is what the
  * floor staff are meant to read.
  */
-
-const LOGO_TYPES: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-};
 
 const LOGO_MAX_BYTES = 2 * 1024 * 1024;
 
@@ -82,19 +75,14 @@ const dishCardRoutes: FastifyPluginAsync = async (app) => {
       const file = await request.file({ limits: { fileSize: LOGO_MAX_BYTES, files: 1 } });
       if (!file) throw new ApiError(400, 'image_missing', 'No image was attached.');
 
-      const extension = LOGO_TYPES[file.mimetype];
-      if (!extension) {
-        throw new ApiError(400, 'image_type', 'A logo has to be a JPEG, PNG or WebP image.');
-      }
-
-      // Generated, never derived from what the browser sent.
-      const storedName = `logo-${randomUUID()}${extension}`;
-      const absolute = path.join(uploadDir, storedName);
-      await pipeline(file.file, createWriteStream(absolute));
-      if (file.file.truncated) {
-        await unlink(absolute).catch(() => {});
-        throw new ApiError(400, 'logo_too_large', 'That logo is larger than 2 MB.');
-      }
+      // Generated, never derived from what the browser sent; the extension is
+      // what the file's first bytes prove it is.
+      const storedName = await storeImage(file.file, {
+        dir: uploadDir,
+        name: (extension) => `logo-${randomUUID()}${extension}`,
+        allowed: ['jpeg', 'png', 'webp'],
+        tooLarge: new ApiError(400, 'logo_too_large', 'That logo is larger than 2 MB.'),
+      });
 
       const previous = await svc.setLogo(storedName);
       if (previous) await unlink(path.join(uploadDir, path.basename(previous))).catch(() => {});

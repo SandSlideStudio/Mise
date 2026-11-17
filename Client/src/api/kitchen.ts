@@ -3,6 +3,7 @@ import type {
   CreateStation,
   CreateUser,
   Kitchen,
+  PinOnlyStatus,
   Station,
   UpdateKitchen,
   UpdateStation,
@@ -67,7 +68,10 @@ export function useCreateStaff() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: CreateUser) => api.post<User>('/users', input),
-    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['users'] }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['users'] });
+      void queryClient.invalidateQueries({ queryKey: ['pin-only'] });
+    },
   });
 }
 
@@ -78,6 +82,7 @@ export function useUpdateStaff() {
       api.patch<User>(`/users/${id}`, input),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['users'] });
+      void queryClient.invalidateQueries({ queryKey: ['pin-only'] });
       // Editing yourself can change your own role or name in the header.
       void queryClient.invalidateQueries({ queryKey: ['me'] });
     },
@@ -121,7 +126,17 @@ export function useUpdateKitchen() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['kitchen'] });
       void queryClient.invalidateQueries({ queryKey: ['me'] });
+      void queryClient.invalidateQueries({ queryKey: ['pin-only'] });
     },
+  });
+}
+
+/** Where PIN-only sign-in stands, and who still needs a new PIN. Admins and head chefs. */
+export function usePinOnlyStatus(enabled: boolean) {
+  return useQuery({
+    queryKey: ['pin-only'],
+    enabled,
+    queryFn: () => api.get<PinOnlyStatus>('/kitchen/pin-only'),
   });
 }
 
@@ -131,6 +146,8 @@ export interface Device {
   enrolledAt: string;
   lastSeenAt: string | null;
   revokedAt: string | null;
+  /** Locked after too many wrong PINs in PIN-only sign-in, until when. */
+  lockedUntil: string | null;
 }
 
 export function useDevices() {
@@ -157,6 +174,15 @@ export function useRevokeDevice() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => api.delete<void>(`/auth/devices/${id}`),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['devices'] }),
+  });
+}
+
+/** Lift a tablet's lock after too many wrong PINs. */
+export function useUnlockDevice() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.post<void>(`/auth/devices/${id}/unlock`),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['devices'] }),
   });
 }

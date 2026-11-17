@@ -1,8 +1,6 @@
 import { randomUUID } from 'node:crypto';
-import { createWriteStream } from 'node:fs';
 import { mkdir, unlink } from 'node:fs/promises';
 import path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import { and, eq, ne } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
@@ -10,6 +8,7 @@ import { z } from 'zod';
 import { errorSchema, idSchema, recipePhotoSchema } from '@mise/contracts';
 import { recipePhotos, recipes } from '../../db/schema.js';
 import { ApiError } from '../../lib/errors.js';
+import { storeImage } from '../../lib/images.js';
 import { MANAGERS } from '../../plugins/auth.js';
 
 /**
@@ -18,16 +17,9 @@ import { MANAGERS } from '../../plugins/auth.js';
  * In a fine dining kitchen the photograph *is* the spec for how a plate should
  * look, so this is not decoration. Files land on a mounted volume rather than
  * in the database, and nothing the browser sends is trusted: the stored name
- * is generated here and the extension comes from the content type we accepted,
- * never from the uploaded filename.
+ * is generated here and the extension comes from what the file's first bytes
+ * prove it is, never from the uploaded filename or the type it claimed.
  */
-
-const ALLOWED: Record<string, string> = {
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/avif': '.avif',
-};
 
 const MAX_BYTES = 8 * 1024 * 1024;
 
@@ -66,24 +58,13 @@ const photoRoutes: FastifyPluginAsync = async (app) => {
       const file = await request.file({ limits: { fileSize: MAX_BYTES, files: 1 } });
       if (!file) throw new ApiError(400, 'image_missing', 'No image was attached.');
 
-      const extension = ALLOWED[file.mimetype];
-      if (!extension) {
-        throw new ApiError(
-          400,
-          'image_type',
-          'That file is not an image we can store. Use JPEG, PNG or WebP.',
-        );
-      }
-
       // Generated, never derived from what the browser sent.
-      const storedName = `${randomUUID()}${extension}`;
-      const absolute = path.join(uploadDir, storedName);
-      await pipeline(file.file, createWriteStream(absolute));
-
-      if (file.file.truncated) {
-        await unlink(absolute).catch(() => {});
-        throw new ApiError(400, 'photo_too_large', 'That image is larger than 8 MB.');
-      }
+      const storedName = await storeImage(file.file, {
+        dir: uploadDir,
+        name: (extension) => `${randomUUID()}${extension}`,
+        allowed: ['jpeg', 'png', 'webp', 'avif'],
+        tooLarge: new ApiError(400, 'photo_too_large', 'That image is larger than 8 MB.'),
+      });
 
       // The first photograph on a recipe is the one that represents it.
       const existing = await app.db

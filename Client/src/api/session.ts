@@ -3,7 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { onReachable } from '../lib/connectivity.js';
 import type {
   LoginRequest,
-  RosterEntry,
+  Roster,
   SessionUser,
   SetupRequest,
   SetupStatus,
@@ -13,6 +13,7 @@ import { useNavigate } from '@tanstack/react-router';
 import { api, noAnswer, RequestFailed } from './client.js';
 import { sendPending } from './ticks.js';
 import { forgetKept } from './offline.js';
+import { clearActivity } from '../lib/idle.js';
 
 /**
  * A sign-out Mise didn't hear yet.
@@ -161,6 +162,8 @@ export function useLogout() {
       return user;
     },
     onSuccess: async (user) => {
+      // Whoever signs in next starts counting from their own first touch.
+      clearActivity();
       await navigate({ to: user?.onTablet ? '/line' : '/login' });
       queryClient.getMutationCache().clear();
       queryClient.removeQueries({ predicate: (query) => query.queryKey[0] !== 'setup-status' });
@@ -184,9 +187,9 @@ export function useSetup() {
 }
 
 /**
- * The staff list a shared tablet shows. Only reachable from an enrolled
- * device, so a 403 here means "this is not a kitchen tablet" rather than a
- * failure worth showing as an error.
+ * The staff list a shared tablet shows, or that it shows only the keypad.
+ * Only reachable from an enrolled device, so a 403 here means "this is not a
+ * kitchen tablet" rather than a failure worth showing as an error.
  */
 export function useRoster(enabled: boolean) {
   return useQuery({
@@ -195,7 +198,7 @@ export function useRoster(enabled: boolean) {
     retry: false,
     queryFn: async () => {
       try {
-        return await api.get<RosterEntry[]>('/auth/roster');
+        return await api.get<Roster>('/auth/sign-in-options');
       } catch (error) {
         if (error instanceof RequestFailed && error.status === 403) return null;
         throw error;
@@ -210,6 +213,21 @@ export function usePinLogin() {
     mutationFn: async (input: { userId: string; pin: string }) => {
       await finishSignOut();
       return api.post<{ user: SessionUser }>('/auth/pin-login', input);
+    },
+    onSuccess: ({ user }) => {
+      setSignOutPending(false);
+      queryClient.setQueryData(['me'], user);
+    },
+  });
+}
+
+/** A PIN and nothing else, once the kitchen signs in that way. */
+export function usePinOnlyLogin() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (input: { pin: string }) => {
+      await finishSignOut();
+      return api.post<{ user: SessionUser }>('/auth/pin-only-login', input);
     },
     onSuccess: ({ user }) => {
       setSignOutPending(false);

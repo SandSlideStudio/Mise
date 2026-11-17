@@ -52,7 +52,8 @@ export const nl: Record<MessageKey, string> = {
   'error.fileTooLarge': 'Dat bestand is te groot.',
   'error.unknownTimeZone': 'Die tijdzone kent deze server niet.',
   'error.alreadySetUp': 'Deze server is al ingesteld.',
-  'error.imageType': 'Gebruik een JPEG-, PNG- of WebP-afbeelding.',
+  'error.imageType':
+    'Dat bestand is geen foto die Mise kan tonen. Gebruik een JPEG, PNG, WebP of AVIF.',
   'error.imageMissing': 'Er is geen afbeelding toegevoegd.',
   'error.notADish': 'Alleen een gerecht heeft een gerechtenkaart.',
   'error.logoTooLarge': 'Dat logo is groter dan 2 MB.',
@@ -1200,4 +1201,75 @@ export const nl: Record<MessageKey, string> = {
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
   'error.passwordRequired':
     'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
+  'kitchen.idle': 'Uitloggen op gedeelde tablets als ze met rust gelaten worden',
+  'kitchen.idleNever': 'Nooit',
+  'kitchen.idleMinutes': 'Na {minutes} minuten zonder aanraking',
+  'kitchen.idleHint':
+    'Geldt alleen voor tablets die zijn aangemeld voor inloggen met een pincode. Eerst verschijnt een korte waarschuwing. Wijzigingen die nog op verzending wachten, blijven bewaard voor de volgende keer dat die persoon inlogt.',
+  'idle.warning':
+    'Niemand heeft deze tablet een tijdje aangeraakt. Uitloggen over {seconds} seconden.',
+  'idle.warningSr': 'Niemand heeft deze tablet een tijdje aangeraakt. Je wordt zo uitgelogd.',
+  'idle.stay': 'Ingelogd blijven',
+  'idle.signingOut': 'Uitloggen…',
+  'error.accessListFull':
+    'Er wachten te veel apparaten om binnengelaten te worden. Vraag het aan een manager.',
+  'kitchen.prepChecklist': 'Prepchecklist',
+  'kitchen.prepChecklistHint':
+    'Chefs houden een checklist bij van wat de keuken maakt, per post. Iedereen kan aanvinken wat nodig is en dat met één tik op de preplijst zetten.',
+  'checklist.title': 'Prepchecklist',
+  'checklist.hint': 'Vink aan wat nodig is en zet het op de lijst.',
+  'checklist.empty': 'De checklist is leeg. Een chef kan hem invullen.',
+  'checklist.emptyChef': 'De checklist is leeg. Voeg toe wat jullie keuken maakt.',
+  'checklist.loadError': 'De checklist kon niet worden geladen.',
+  'checklist.add': 'Op de preplijst zetten',
+  'checklist.addCount': 'Op de preplijst zetten ({count})',
+  'checklist.added_one': '1 regel op de preplijst gezet.',
+  'checklist.added_other': '{count} regels op de preplijst gezet.',
+  'checklist.addedNone': 'Niets nieuws om toe te voegen.',
+  'checklist.alreadyThere_one': '1 stond er al op.',
+  'checklist.alreadyThere_other': '{count} stonden er al op.',
+  'checklist.queued':
+    'Opgeslagen op deze tablet. De regels komen op de lijst zodra Mise weer bereikbaar is.',
+  'checklist.edit': 'Checklist bewerken',
+  'checklist.editTitle': 'De checklist bewerken',
+  'checklist.editHint': 'Alleen namen, per post. Iedereen kan ze op de preplijst aanvinken.',
+  'checklist.itemName': 'Naam',
+  'checklist.newItem': 'Nieuw item',
+  'checklist.addItem': 'Toevoegen',
+  'checklist.stationFor': 'Post voor {name}',
+  'checklist.moveUp': '{name} omhoog',
+  'checklist.moveDown': '{name} omlaag',
+  'checklist.remove': '{name} verwijderen',
+  'checklist.save': 'Checklist opslaan',
+  'task.addedBy': 'Toegevoegd door {name}',
+  'task.fromChecklistBy': 'Van de checklist, door {name}',
+  'task.fromChecklist': 'Van de checklist',
+  'offline.label.checklist': 'de prepchecklist',
+  'offline.label.checklistAdd': 'items van de checklist',
+  'error.checklistOff':
+    'De prepchecklist staat uit. Een beheerder kan hem aanzetten bij Instellingen.',
+  // Inloggen met alleen een pincode
+  'line.pinOnlyLead': 'Typ je pincode.',
+  'line.pinOnlyLeadOk': 'Typ je pincode en druk op OK.',
+  'line.noPinYet': 'Nog geen pincode, of zit je op een laptop?',
+  'devices.lockedUntil': 'Te veel verkeerde pincodes. Geblokkeerd tot {time}.',
+  'pinOnly.title': 'Inloggen op tablets',
+  'pinOnly.label': 'Inloggen met alleen een pincode',
+  'pinOnly.hint':
+    'Tablets tonen een toetsenblok in plaats van de namen, en de pincode vindt de persoon. Elke pincode moet anders zijn en niet voor de hand liggen, dus iedereen met een pincode krijgt eerst een nieuwe.',
+  'pinOnly.on':
+    'Aan. Tablets tonen alleen het toetsenblok. Zet het uit om de namen terug te halen; pincodes blijven werken.',
+  'pinOnly.waiting': 'Wacht op nieuwe pincodes. Tablets tonen de namen tot iedereen er een heeft.',
+  'pinOnly.waitingHow':
+    'Een chef-kok of beheerder geeft ieder van hen een nieuwe pincode onder Instellingen → Personeel.',
+  'pinOnly.waitingFor': 'Heeft nog een nieuwe pincode nodig',
+  'pinOnly.needsNewPin': 'Nieuwe pincode nodig',
+  'pinOnly.pinHint':
+    'Om in te loggen op een keukentablet. Hij moet anders zijn dan die van ieder ander, en niet voor de hand liggen zoals 1234.',
+  'error.pinTaken': 'Kies een andere pincode.',
+  'error.pinTooCommon': 'Kies een pincode die minder voor de hand ligt.',
+  'error.pinOnlyOff': 'Deze tablet toont de namen weer. Tik op je naam en dan je pincode.',
+  'error.pinOnlyOn': 'Op deze tablet log je nu in met alleen een pincode.',
+  'error.tabletLockedUntil':
+    'Te veel verkeerde pincodes op deze tablet. Probeer het na {time} opnieuw, of vraag een chef-kok de blokkade op te heffen.',
 };

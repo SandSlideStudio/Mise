@@ -4,6 +4,7 @@ export * from './kitchen.js';
 export * from './ingredients.js';
 export * from './recipes.js';
 export * from './prep.js';
+export * from './checklist.js';
 export * from './setup.js';
 export * from './backups.js';
 export * from './dishcards.js';

@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from 'react';
+import { createEntryStore } from './entryStore.js';
 
 /**
  * Changes made while Mise couldn't be reached, waiting to be sent.
@@ -9,10 +10,14 @@ import { useSyncExternalStore } from 'react';
  * Every entry belongs to the person who made it: on a shared tablet, the next
  * cook never sends someone else's changes under their own name.
  *
+ * Each change sits under its own key, so two tabs adding at the same moment
+ * can't overwrite each other (see entryStore.ts).
+ *
  * Ticks have their own, older queue (retryQueue.ts); this is everything else.
  */
 
-const STORAGE_KEY = 'mise.outbox';
+/** Where versions before 2.3 kept the whole list under one key. */
+const LEGACY_KEY = 'mise.outbox';
 
 /** A line added while Mise couldn't be reached carries this in front of its id until it's sent. */
 export const WAITING = 'waiting:';
@@ -52,34 +57,46 @@ export function newWriteId(): string {
 let version = 0;
 const listeners = new Set<() => void>();
 
-function read(): OutboxEntry[] {
-  try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '[]');
-    return Array.isArray(parsed) ? (parsed as OutboxEntry[]).filter((e) => e.id && e.userId) : [];
-  } catch {
-    return [];
-  }
-}
+const store = createEntryStore<OutboxEntry>({
+  prefix: 'mise.outbox.',
+  legacyKey: LEGACY_KEY,
+  isEntry: (value): value is OutboxEntry =>
+    typeof value === 'object' &&
+    value !== null &&
+    Boolean((value as OutboxEntry).id) &&
+    Boolean((value as OutboxEntry).userId),
+});
 
-function write(entries: OutboxEntry[]): void {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  } catch {
-    // Storage blocked or full: the change can't wait here, and the caller says so.
-    throw new Error('outbox_unavailable');
-  }
+function changed(): void {
   version += 1;
   for (const listener of listeners) listener();
 }
 
+function save(entry: OutboxEntry): void {
+  try {
+    store.put(entry);
+  } catch {
+    // Storage blocked or full: the change can't wait here, and the caller says so.
+    throw new Error('outbox_unavailable');
+  }
+  changed();
+}
+
+/**
+ * Changes made within the same millisecond still go out in the order they
+ * were made: the ids are random, so the time has to tell them apart.
+ */
+let lastQueuedAt = 0;
+
 export function add(entry: Omit<OutboxEntry, 'queuedAt'>): OutboxEntry {
-  const full: OutboxEntry = { ...entry, queuedAt: Date.now() };
-  write([...read(), full]);
+  lastQueuedAt = Math.max(Date.now(), lastQueuedAt + 1);
+  const full: OutboxEntry = { ...entry, queuedAt: lastQueuedAt };
+  save(full);
   return full;
 }
 
 export function entriesFor(userId: string): OutboxEntry[] {
-  return read().filter((entry) => entry.userId === userId);
+  return store.all().filter((entry) => entry.userId === userId);
 }
 
 /**
@@ -92,11 +109,14 @@ export function goingOut(entries: OutboxEntry[]): OutboxEntry[] {
 }
 
 export function remove(id: string): void {
-  write(read().filter((entry) => entry.id !== id));
+  store.delete(id);
+  changed();
 }
 
 export function update(id: string, change: Partial<OutboxEntry>): void {
-  write(read().map((entry) => (entry.id === id ? { ...entry, ...change } : entry)));
+  // Read it afresh: if another tab sent it meanwhile, it stays gone.
+  const current = store.get(id);
+  if (current) save({ ...current, ...change });
 }
 
 export function subscribe(listener: () => void): () => void {
@@ -108,4 +128,11 @@ export function subscribe(listener: () => void): () => void {
 export function useOutbox(userId: string | null | undefined): OutboxEntry[] {
   useSyncExternalStore(subscribe, () => version);
   return userId ? entriesFor(userId) : [];
+}
+
+// Another tab on the same tablet changed the list.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (store.owns(event.key)) changed();
+  });
 }

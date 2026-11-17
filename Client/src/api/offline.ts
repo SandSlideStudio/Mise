@@ -96,6 +96,7 @@ async function loadAhead(queryClient: QueryClient): Promise<void> {
   await inTurn([
     () => load(queryClient, ['tasks', 'running'], '/running/tasks'),
     () => load(queryClient, ['handover'], '/running/note'),
+    () => load(queryClient, ['checklist'], '/checklist'),
     () => load(queryClient, ['stations'], '/stations'),
     () => load(queryClient, ['recipes', {}], '/recipes'),
     () => load(queryClient, ['dishes'], '/dishes'),

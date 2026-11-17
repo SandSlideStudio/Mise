@@ -9,7 +9,9 @@ import {
   idSchema,
   loginRequestSchema,
   pinLoginRequestSchema,
+  pinOnlyLoginRequestSchema,
   rosterEntrySchema,
+  rosterSchema,
   sessionUserSchema,
   updateMeSchema,
   type Language,
@@ -36,6 +38,17 @@ function failureToError(failure: AuthFailure): ApiError {
         `Too many failed attempts. Try again after ${failure.until.toLocaleTimeString()}.`,
         { until: failure.until.toISOString() },
       );
+    case 'tablet_locked':
+      return new ApiError(
+        429,
+        'tablet_locked',
+        `Too many wrong PINs on this tablet. Try again after ${failure.until.toLocaleTimeString()}, or ask a head chef to lift the lock.`,
+        { until: failure.until.toISOString() },
+      );
+    case 'pin_only_off':
+      return new ApiError(409, 'pin_only_off', 'Tap your name first, then your PIN.');
+    case 'pin_only_on':
+      return new ApiError(409, 'pin_only_on', 'This tablet signs in with a PIN only.');
     case 'inactive':
       return new ApiError(403, 'account_inactive', 'That account is no longer active.');
     case 'device_not_enrolled':
@@ -124,17 +137,28 @@ const authRoutes: FastifyPluginAsync = async (app) => {
   );
 
   /**
-   * The names a shared tablet offers. Only staff who actually have a PIN
-   * appear, and only on an enrolled device, so this is not a staff directory
-   * anyone on the network can read.
+   * The names a shared tablet offers, or that it signs in by PIN alone. Only
+   * staff who actually have a PIN appear, and only on an enrolled device, so
+   * this is not a staff directory anyone on the network can read.
    */
+  r.get(
+    '/sign-in-options',
+    {
+      onRequest: [app.requireDevice],
+      schema: { response: { 200: rosterSchema, 403: errorSchema } },
+    },
+    async () => app.auth.roster(),
+  );
+
+  // Before 2.3 the tablet asked here for the names alone. Kept for a tablet
+  // still running the older app until it reloads; empty in PIN-only mode.
   r.get(
     '/roster',
     {
       onRequest: [app.requireDevice],
       schema: { response: { 200: z.array(rosterEntrySchema), 403: errorSchema } },
     },
-    async () => app.auth.roster(),
+    async () => (await app.auth.roster()).people,
   );
 
   r.post(
@@ -148,6 +172,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
           200: z.object({ user: sessionUserSchema }),
           401: errorSchema,
           403: errorSchema,
+          409: errorSchema,
           429: errorSchema,
         },
       },
@@ -158,6 +183,41 @@ const authRoutes: FastifyPluginAsync = async (app) => {
 
       const result = await app.auth.loginWithPin(
         request.body.userId,
+        request.body.pin,
+        deviceId,
+        request.headers['user-agent'] ?? null,
+      );
+      if (!result.ok) throw failureToError(result.error);
+      return completeSignIn(reply, result.session);
+    },
+  );
+
+  /**
+   * A PIN and nothing else, on an enrolled tablet, once the kitchen signs in
+   * that way. The same limit per address as tapping a name; past that the
+   * tablet's own lock (lockout.ts) does the real work.
+   */
+  r.post(
+    '/pin-only-login',
+    {
+      onRequest: [app.requireDevice],
+      config: { rateLimit: { max: 20, timeWindow: '5 minutes' } },
+      schema: {
+        body: pinOnlyLoginRequestSchema,
+        response: {
+          200: z.object({ user: sessionUserSchema }),
+          401: errorSchema,
+          403: errorSchema,
+          409: errorSchema,
+          429: errorSchema,
+        },
+      },
+    },
+    async (request, reply) => {
+      const deviceId = request.deviceId;
+      if (!deviceId) throw failureToError({ kind: 'device_not_enrolled' });
+
+      const result = await app.auth.loginWithPinOnly(
         request.body.pin,
         deviceId,
         request.headers['user-agent'] ?? null,
@@ -259,7 +319,24 @@ const authRoutes: FastifyPluginAsync = async (app) => {
         enrolledAt: d.enrolledAt.toISOString(),
         lastSeenAt: d.lastSeenAt?.toISOString() ?? null,
         revokedAt: d.revokedAt?.toISOString() ?? null,
+        lockedUntil: app.auth.tabletLockedUntil(d.id)?.toISOString() ?? null,
       }));
+    },
+  );
+
+  /**
+   * Lift a tablet's lock after too many wrong PINs, the way a person's lock
+   * is lifted: the same people may, and with a password, not a PIN.
+   */
+  r.post(
+    '/devices/:id/unlock',
+    {
+      onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
+      schema: { params: z.object({ id: idSchema }), response: { 204: z.null(), 403: errorSchema } },
+    },
+    async (request, reply) => {
+      app.auth.forgetTabletFailures(request.params.id);
+      return reply.status(204).send(null);
     },
   );
 

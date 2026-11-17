@@ -2,6 +2,8 @@ import { useState, type FormEvent } from 'react';
 import { mayManage, ROLES, type Role, type Station, type User } from '@mise/contracts';
 import {
   useCreateStaff,
+  useKitchen,
+  usePinOnlyStatus,
   useRemoveStaff,
   useUnlockStaff,
   useStaff,
@@ -25,6 +27,11 @@ export function StaffSettings() {
   const { data: me } = useCurrentUser();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
+  // While PIN-only sign-in waits, whoever still needs a new PIN is marked.
+  const pinOnly = usePinOnlyStatus(me?.role === 'admin' || me?.role === 'head_chef');
+  const waiting = new Set(
+    pinOnly.data?.state === 'waiting' ? pinOnly.data.waiting.map((p) => p.id) : [],
+  );
 
   if (staff.isPending) return <p className="text-ink-soft">{t('line.loading')}</p>;
   if (staff.isError && staff.data === undefined)
@@ -56,6 +63,7 @@ export function StaffSettings() {
             person={person}
             stations={stations.data ?? []}
             isSelf={person.id === me?.id}
+            needsNewPin={waiting.has(person.id)}
             canManage={me != null && (person.id === me.id || mayManage(me.role, person.role))}
             editing={editing?.id === person.id}
             onEdit={() => setEditing(editing?.id === person.id ? null : person)}
@@ -71,6 +79,7 @@ function StaffRow({
   person,
   stations,
   isSelf,
+  needsNewPin,
   canManage,
   editing,
   onEdit,
@@ -79,6 +88,8 @@ function StaffRow({
   person: User;
   stations: Station[];
   isSelf: boolean;
+  /** PIN-only sign-in waits for them to be given a new PIN. */
+  needsNewPin: boolean;
   /** Whether you may edit or remove them. */
   canManage: boolean;
   editing: boolean;
@@ -111,6 +122,9 @@ function StaffRow({
 
         <div className="flex flex-wrap items-center gap-2">
           {person.hasPin ? <span className="tag">{t('staff.pinTag')}</span> : null}
+          {needsNewPin ? (
+            <span className="tag border-accent text-accent">{t('pinOnly.needsNewPin')}</span>
+          ) : null}
           {person.hasPassword ? <span className="tag">{t('staff.passwordTag')}</span> : null}
           {locked ? (
             <span className="tag border-danger text-danger">{t('staff.locked')}</span>
@@ -184,6 +198,7 @@ function StaffForm({
   const create = useCreateStaff();
   const update = useUpdateStaff();
   const { data: me } = useCurrentUser();
+  const kitchen = useKitchen();
   const editing = person !== undefined;
   // Only the roles you may give out, plus the one this person already has.
   const roles = [...ROLES]
@@ -296,7 +311,11 @@ function StaffForm({
             maxLength={8}
             placeholder={editing && person.hasPin ? t('staff.keepIt') : t('staff.pinPlaceholder')}
           />
-          <p className="text-ink-soft mt-1.5 text-sm">{t('staff.pinHint')}</p>
+          <p className="text-ink-soft mt-1.5 text-sm">
+            {kitchen.data && kitchen.data.pinOnly !== 'off'
+              ? t('pinOnly.pinHint')
+              : t('staff.pinHint')}
+          </p>
         </div>
       </div>
 
