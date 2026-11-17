@@ -3,6 +3,18 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.3.1
+
+**Fix**
+
+- After opening a recipe or a dish's recipe, the top bar and "← The book" did nothing: every
+  click landed back on the recipe. They work again.
+- The dish card had the same flaw for older links; it can no longer pull you back either.
+- A browser test now leaves every page every way (the top bar, back links, the browser's back
+  button, the Settings tabs), as a chef and as a cook on a tablet, on a computer and a phone, and
+  fails on any error in the browser. This kind of bug can't reach a release unnoticed again.
+- The upgrade test covers 2.3.0.
+
 ## 2.3.0
 
 A checklist so a cook can make an accurate prep list without remembering everything, sign-in by

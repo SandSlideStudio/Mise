@@ -28,8 +28,10 @@ export function DishCardPage() {
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   // Cards are for dishes, and dishes live under Dishes: an older link moves there.
+  // Only while the address is still this card's own: leaving the page changes
+  // the address first, and that must never be turned back into the card.
   useEffect(() => {
-    if (pathname.startsWith('/recipes/')) {
+    if (pathname.startsWith('/recipes/') && pathname.split('/').includes(recipeId)) {
       void navigate({ to: '/dishes/$dishId/card', params: { dishId: recipeId }, replace: true });
     }
   }, [pathname, recipeId, navigate]);
