@@ -3,6 +3,56 @@
 Every release of Mise, newest first. Versions follow [semantic versioning](https://semver.org):
 a change in the first number means you should read these notes before updating.
 
+## 2.4.0
+
+Setup that knows about the checklist and PIN-only sign-in, a checklist that links to recipes and
+prints, privacy controls for staff data, and a stack of smaller fixes.
+
+**Before updating**
+
+- Kept prep lines are now removed after a year by default. To keep them longer, or for good, choose
+  under **Settings → Kitchen → Keep them for** after updating. Kitchens that delete ticked lines see
+  no change.
+
+**Setup**
+
+- Setup asks whether to use the prep checklist, sign-in with a PIN only, and how long a shared
+  tablet may be left alone. With the checklist chosen, the next step lets you fill it in by
+  station. With PIN-only chosen, it's on straight away, and setup refuses PINs that are the same
+  or too easy to guess.
+- The sign-in page and the tour follow the kitchen's choices: no "tap your name" in PIN-only mode,
+  and the tour shows the checklist when it's on.
+
+**The prep checklist**
+
+- A checklist line can be linked to a recipe; the line it puts on the prep list then has the
+  Recipe link, like one added from the book.
+- **Print checklist** gives a sheet by station with a box per line, for kitchens that tick on paper.
+- Ticking no longer makes the page jump: the "not sent yet" notice only shows once a tick has
+  waited a second, at the bottom of the screen.
+
+**Privacy**
+
+- **Settings → Privacy** lists what Mise keeps about people, for how long, where backups go, and
+  every outside connection it can make. The README has the same, under "What Mise stores and
+  sends".
+- **Settings → Staff → Their data** downloads everything Mise holds about one person, to read or
+  as JSON. Removing someone now also clears their name from the handover note, and says plainly
+  how long older backups keep their data.
+- Kept prep lines are removed after a year (or what you choose). Outside devices unused for 90 days
+  are forgotten, with their address and browser, and old sessions lose their browser name. This
+  now runs every hour, not only when someone opens the list.
+
+**Smaller things**
+
+- Passwords show and hide with an eye icon, in every password field.
+- Settings remembers its tab in the address: a reload stays put and Back steps between tabs.
+- A cook who opens a recipe or dish editor by its address sees that it's for chefs, instead of a
+  form that can't be saved.
+- **Turn down all waiting** clears every outside device waiting to be let in, in one go.
+- The footer links to "GitHub".
+- The upgrade test covers 2.3.1.
+
 ## 2.3.1
 
 **Fix**
