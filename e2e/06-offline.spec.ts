@@ -165,3 +165,15 @@ test('signing out offline signs out at once, and on Mise as soon as it answers',
   await expect(tablet).toHaveURL(/\/login$/);
   await context.close();
 });
+
+test('the licence notices open offline too', async ({ browser }) => {
+  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
+  const tablet = await context.newPage();
+  await signIn(tablet);
+  await tablet.evaluate(() => navigator.serviceWorker.ready);
+
+  await context.setOffline(true);
+  await tablet.goto('/THIRD-PARTY-NOTICES.txt').catch(() => undefined);
+  await expect(tablet.locator('body')).toContainText('Third-party notices');
+  await context.close();
+});

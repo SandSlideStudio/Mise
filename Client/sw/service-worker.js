@@ -112,9 +112,11 @@ self.addEventListener('fetch', (event) => {
   // The data and Let's Encrypt's check are never answered from here.
   if (url.pathname.startsWith('/api/') || url.pathname.startsWith('/.well-known/')) return;
 
-  // Opening a page: the app as the server has it now, or as kept.
+  // Opening a page: the app as the server has it now, or as kept. A file of
+  // the app opened on its own (the licence notices) falls back to itself.
   if (request.mode === 'navigate') {
-    event.respondWith(serverFirst(request, '/'));
+    const own = FILES.includes(url.pathname.slice(1)) ? url.pathname : '/';
+    event.respondWith(serverFirst(request, own));
     return;
   }
 
