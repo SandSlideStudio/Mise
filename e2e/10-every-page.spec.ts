@@ -597,7 +597,16 @@ for (const { label, viewport } of WIDTHS) {
       expect(names, 'the administrator sees all eight tabs').toHaveLength(8);
       const seen = new Set<string>();
       // The tabs in the order Settings lists them, which is the name each puts in the address.
-      const ids = ['staff', 'stations', 'devices', 'kitchen', 'dishCards', 'connection', 'backups'];
+      const ids = [
+        'staff',
+        'stations',
+        'devices',
+        'kitchen',
+        'dishCards',
+        'connection',
+        'backups',
+        'privacy',
+      ];
       const tabOf = (p: Page) => new URL(p.url()).searchParams.get('tab');
       for (const [position, name] of names.entries()) {
         await tabs.getByText(name, { exact: true }).click();
@@ -624,17 +633,18 @@ for (const { label, viewport } of WIDTHS) {
       expect(seen.size, 'every tab shows different content').toBe(names.length);
 
       // A reload stays on the tab, and Back steps from tab to tab.
+      // The last tab clicked was the last in the list.
       await page.reload();
-      await expect(tabs.getByText(names[6]!, { exact: true })).toHaveAttribute(
+      await expect(tabs.getByText(names[7]!, { exact: true })).toHaveAttribute(
         'aria-selected',
         'true',
       );
       await page.goBack();
-      await expect(tabs.getByText(names[5]!, { exact: true })).toHaveAttribute(
+      await expect(tabs.getByText(names[6]!, { exact: true })).toHaveAttribute(
         'aria-selected',
         'true',
       );
-      expect(tabOf(page)).toBe('connection');
+      expect(tabOf(page)).toBe('backups');
 
       // A link such as the backup warning's opens a tab directly.
       for (const [id, name] of [
@@ -837,13 +847,8 @@ for (const { label, viewport } of WIDTHS) {
         await nav(page).getByRole('link', { name: 'Menus', exact: true }).click();
         await expectStaysAt(page, '/menus', `${asked} then Menus`);
       }
-      // The two refused saves above are logged by the browser as 403s: expected,
-      // and the only console errors ignored in this test.
-      const refusals = problems.filter((line) =>
-        /status of 403.*\/api\/recipes\/[0-9a-f-]{36}\)$/.test(line),
-      );
-      expect(refusals, 'one logged refusal for each refused save').toHaveLength(2);
-      expect(problems.filter((line) => !refusals.includes(line))).toEqual([]);
+      // A cook gets no editor to save from, so nothing is refused: no console errors at all.
+      expect(problems).toEqual([]);
       await context.close();
     });
   });
