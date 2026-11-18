@@ -44,8 +44,12 @@ import { BackupFailure, failureCode } from './failure.js';
 import type { DeviceCode, Onedrive } from './onedrive.js';
 import * as webdav from './webdav.js';
 
-/** Photos of a restore wait in a folder of this name, beside the upload folder. */
-const stagingPrefix = (uploadDir: string) => `.${path.basename(uploadDir)}-restore-`;
+/**
+ * Photos of a restore wait in a hidden folder inside the upload folder: the
+ * one place Mise is sure it may write (in Docker, the folder above may belong
+ * to another user), and on the same disk, so moving them in is a rename.
+ */
+const STAGING_PREFIX = '.restore-';
 
 const remove = (target: string) => rm(target, { recursive: true, force: true }).catch(() => {});
 
@@ -591,7 +595,7 @@ export function createBackupService({
    * The seal is checked first, by reading the whole file and keeping nothing;
    * only then is it read again, in memory, entry by entry. No plain copy of
    * the backup is ever written, so there is nothing to find on the disk after
-   * a crash. Photos go into a staging folder next to the upload folder, and
+   * a crash. Photos go into a staging folder inside the upload folder, and
    * move into place as the last step before the database commits: if
    * anything fails they are taken out again and the database rolls back, so
    * the kitchen stays as it was. A crash can at worst leave photos nothing
@@ -601,10 +605,7 @@ export function createBackupService({
     const key = formatRecoveryKey(typedKey);
     await verifySeal(upload, key);
 
-    const staging = path.join(
-      path.dirname(uploadDir),
-      `${stagingPrefix(uploadDir)}${randomUUID()}`,
-    );
+    const staging = path.join(uploadDir, `${STAGING_PREFIX}${randomUUID()}`);
     const placed: string[] = [];
     try {
       let manifest: Manifest | null = null;
@@ -676,9 +677,9 @@ export function createBackupService({
           await remove(path.join(backupDir, name));
         }
       }
-      const prefix = stagingPrefix(uploadDir);
-      for (const name of await readdir(path.dirname(uploadDir))) {
-        if (name.startsWith(prefix)) await remove(path.join(path.dirname(uploadDir), name));
+      await mkdir(uploadDir, { recursive: true });
+      for (const name of await readdir(uploadDir)) {
+        if (name.startsWith(STAGING_PREFIX)) await remove(path.join(uploadDir, name));
       }
     } catch (error) {
       log.warn({ err: error }, 'could not clear leftovers of an interrupted restore');

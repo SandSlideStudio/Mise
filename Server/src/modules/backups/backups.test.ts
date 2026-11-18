@@ -785,11 +785,10 @@ describe('restoring safely', () => {
     const name = `crashed-${randomUUID()}`;
     const root = path.join(dir, name);
     await mkdir(path.join(root, 'backups'), { recursive: true });
-    await mkdir(path.join(root, '.uploads-restore-abc'), { recursive: true });
-    await mkdir(path.join(root, 'uploads'), { recursive: true });
+    await mkdir(path.join(root, 'uploads', '.restore-abc'), { recursive: true });
     await writeFile(path.join(root, 'backups', '.restore-abc'), 'plain');
     await writeFile(path.join(root, 'backups', '.upload-abc'), 'sealed');
-    await writeFile(path.join(root, '.uploads-restore-abc', 'photo.png'), 'photo');
+    await writeFile(path.join(root, 'uploads', '.restore-abc', 'photo.png'), 'photo');
     await writeFile(path.join(root, 'uploads', 'kept.png'), 'kept');
 
     const second = await createTestDatabase();
