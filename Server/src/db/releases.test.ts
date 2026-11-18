@@ -128,6 +128,10 @@ async function fill(db: Database, last: string) {
                ('Beurre blanc maken', 'open'${at('0011') ? `, '${SAUCE}'` : ''}),
                ('Sjalotten snijden', 'open'${at('0011') ? ', null' : ''})`);
   }
+  // A line ticked off well over a year ago, on a kitchen that keeps them:
+  // before 2.4 that meant for good, and an update must not change it.
+  await run(`insert into prep_task (description, status, completed_at)
+             values ('Kalfsfond trekken', 'done', now() - interval '400 days')`);
   if (at('0009')) {
     if (!at('0014')) await run(`update recipe set seasons = '["autumn"]' where id = '${DISH}'`);
     await run(
@@ -217,9 +221,18 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
         // A hidden season on 1.1 and 2.0 is a hidden menu now.
         if (last >= '0009') expect(card.settings.hidden).toEqual(['menu']);
 
-        const tasks = (await get('/api/running/tasks')).map(
-          (t: { description: string }) => t.description,
+        // What the server does at every start, before anyone can sign in to choose.
+        await app.privacy.forgetOld();
+        expect((await get('/api/kitchen')).tickedKeepDays).toBeNull();
+        const [old] = await rows<{ n: number }>(
+          db,
+          sql`select count(*)::int as n from prep_task where description = 'Kalfsfond trekken'`,
         );
+        expect(old!.n).toBe(1);
+
+        const tasks = (await get('/api/running/tasks'))
+          .filter((t: { status: string }) => t.status !== 'done')
+          .map((t: { description: string }) => t.description);
         // Tonight's open service line joined the one list on the way to 2.0.
         expect(tasks.sort()).toEqual(['Beurre blanc maken', 'Sjalotten snijden']);
 
@@ -248,6 +261,12 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
           settings!.recovery_key,
         );
         expect(restored).toMatchObject({ kitchenName: 'De Proefkeuken', staff: 2, recipes: 2 });
+        // Restored onto this version, the older kitchen still keeps its lines for good.
+        const [kitchen] = await rows<{ days: number | null }>(
+          empty.db,
+          sql`select ticked_keep_days as days from kitchen`,
+        );
+        expect(kitchen!.days).toBeNull();
       } finally {
         await target.close();
         await empty.client.close();

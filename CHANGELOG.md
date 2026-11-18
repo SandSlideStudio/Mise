@@ -8,12 +8,6 @@ a change in the first number means you should read these notes before updating.
 Setup that knows about the checklist and PIN-only sign-in, a checklist that links to recipes and
 prints, privacy controls for staff data, and a stack of smaller fixes.
 
-**Before updating**
-
-- Kept prep lines are now removed after a year by default. To keep them longer, or for good, choose
-  under **Settings → Kitchen → Keep them for** after updating. Kitchens that delete ticked lines see
-  no change.
-
 **Setup**
 
 - Setup asks whether to use the prep checklist, sign-in with a PIN only, and how long a shared
@@ -39,9 +33,11 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
 - **Settings → Staff → Their data** downloads everything Mise holds about one person, to read or
   as JSON. Removing someone now also clears their name from the handover note, and says plainly
   how long older backups keep their data.
-- Kept prep lines are removed after a year (or what you choose). Outside devices unused for 90 days
-  are forgotten, with their address and browser, and old sessions lose their browser name. This
-  now runs every hour, not only when someone opens the list.
+- **Settings → Kitchen → Keep them for** sets how long kept prep lines stay. A kitchen set up on
+  2.4 starts at a year; a kitchen that updates keeps them for good, as before, until a chef chooses.
+- Outside devices unused for 90 days are forgotten, with their address and browser, and old
+  sessions lose their browser name. This clean-up now runs every hour, not only when someone opens
+  the list.
 
 **Smaller things**
 

@@ -87,6 +87,15 @@ export async function exportTables(db: Database): Promise<TableDump[]> {
 }
 
 /**
+ * Columns whose default is for new kitchens, not for data from before they
+ * existed: a 2.3 kitchen kept its ticked lines for good, and restoring its
+ * backup must not turn that into a year.
+ */
+const AS_IN_OLDER_BACKUPS: Record<string, Record<string, unknown>> = {
+  kitchen: { ticked_keep_days: null },
+};
+
+/**
  * Put the tables back, replacing whatever is there. Columns are matched by
  * name: a column this version no longer has is skipped, and one it added since
  * the backup gets its default. Run inside a transaction.
@@ -107,6 +116,12 @@ export async function restoreTables(
     counts.set(name, rows.length);
     if (rows.length === 0) continue;
 
+    // A column added since, whose default is wrong for older data, gets the
+    // value the older version behaved as.
+    const older = AS_IN_OLDER_BACKUPS[name] ?? {};
+    for (const row of rows) {
+      for (const [column, value] of Object.entries(older)) if (!(column in row)) row[column] = value;
+    }
     const inBackup = new Set(Object.keys(rows[0]!));
     const shared = columns.map((column) => column.name).filter((column) => inBackup.has(column));
     const list = sql.join(
