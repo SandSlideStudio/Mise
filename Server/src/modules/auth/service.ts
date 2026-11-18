@@ -387,15 +387,15 @@ export function createAuthService(db: Database) {
     await db.delete(sessions).where(eq(sessions.deviceId, deviceId));
   }
 
-  /**
-   * What a shared tablet offers before anyone has signed in: the names, or
-   * once the kitchen signs in by PIN alone, only the keypad.
-   */
   /** Whether tablets sign in by PIN alone right now. */
   async function pinOnly(): Promise<boolean> {
     return (await pinOnlySince()) !== null;
   }
 
+  /**
+   * What a shared tablet offers before anyone has signed in: the names, or
+   * once the kitchen signs in by PIN alone, only the keypad.
+   */
   async function roster() {
     const since = await pinOnlySince();
     if (since) {
