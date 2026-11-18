@@ -158,6 +158,26 @@ describe('downloading one person’s data', () => {
     expect((await dataOf(me!.id, headChef)).statusCode).toBe(403);
     expect((await dataOf(cook.id, headChef)).statusCode).toBe(200);
   });
+
+  it('lets a sous chef download their own, and nobody else’s', async () => {
+    const cook = await signInCook();
+    const sous = await addStaff({
+      displayName: 'Ana',
+      role: 'sous_chef',
+      email: 'ana@example.com',
+      password: 'a-long-sous-chef-password',
+    });
+    const signedIn = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'ana@example.com', password: 'a-long-sous-chef-password' },
+    });
+    const cookie = cookieFrom(signedIn, 'mise_session')!;
+    const own = await dataOf(sous, cookie);
+    expect(own.statusCode).toBe(200);
+    expect(own.json().person.id).toBe(sous);
+    expect((await dataOf(cook.id, cookie)).statusCode).toBe(403);
+  });
 });
 
 describe('removing someone for good', () => {

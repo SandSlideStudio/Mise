@@ -34,17 +34,21 @@ const privacyRoutes: FastifyPluginAsync = async (app) => {
   r.get(
     '/users/:id/data',
     {
-      onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
+      onRequest: [app.requirePassword],
       schema: {
         params: z.object({ id: idSchema }),
         response: { 200: personDataSchema, 403: errorSchema, 404: errorSchema },
       },
     },
     async (request) => {
+      const actor = request.user!;
+      const own = request.params.id === actor.id;
+      if (!own && actor.role !== 'admin' && actor.role !== 'head_chef') {
+        throw new ApiError(403, 'forbidden', 'Your role does not allow that.');
+      }
       const data = await app.privacy.personData(request.params.id);
       if (!data) throw ApiError.notFound('That person');
-      const actor = request.user!;
-      if (data.person.id !== actor.id && !mayManage(actor.role, data.person.role)) {
+      if (!own && !mayManage(actor.role, data.person.role)) {
         throw new ApiError(
           403,
           'staff_rank',

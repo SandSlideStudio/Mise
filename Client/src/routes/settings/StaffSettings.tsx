@@ -31,8 +31,11 @@ export function StaffSettings() {
   const { data: me } = useCurrentUser();
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
+  // Changing the brigade is for head chefs and administrators; a sous chef
+  // sees who is on it, and can download their own data.
+  const mayChange = me?.role === 'admin' || me?.role === 'head_chef';
   // While PIN-only sign-in waits, whoever still needs a new PIN is marked.
-  const pinOnly = usePinOnlyStatus(me?.role === 'admin' || me?.role === 'head_chef');
+  const pinOnly = usePinOnlyStatus(mayChange);
   const waiting = new Set(
     pinOnly.data?.state === 'waiting' ? pinOnly.data.waiting.map((p) => p.id) : [],
   );
@@ -45,12 +48,14 @@ export function StaffSettings() {
     <section>
       <div className="mb-5 flex items-center justify-between gap-4">
         <h2 className="text-2xl">{t('staff.title')}</h2>
-        <button type="button" className="btn-small" onClick={() => setAdding(true)}>
-          {t('staff.add')}
-        </button>
+        {mayChange ? (
+          <button type="button" className="btn-small" onClick={() => setAdding(true)}>
+            {t('staff.add')}
+          </button>
+        ) : null}
       </div>
 
-      {adding ? (
+      {adding && mayChange ? (
         <div className="mb-5">
           <StaffForm
             stations={stations.data ?? []}
@@ -68,7 +73,9 @@ export function StaffSettings() {
             stations={stations.data ?? []}
             isSelf={person.id === me?.id}
             needsNewPin={waiting.has(person.id)}
-            canManage={me != null && (person.id === me.id || mayManage(me.role, person.role))}
+            canManage={
+              me != null && mayChange && (person.id === me.id || mayManage(me.role, person.role))
+            }
             editing={editing?.id === person.id}
             onEdit={() => setEditing(editing?.id === person.id ? null : person)}
             onDone={() => setEditing(null)}
@@ -153,7 +160,7 @@ function StaffRow({
               {editing ? t('common.cancel') : t('common.edit')}
             </button>
           ) : null}
-          {canManage ? (
+          {canManage || isSelf ? (
             <button
               type="button"
               className="btn-small"
