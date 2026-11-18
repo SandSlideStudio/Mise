@@ -283,7 +283,7 @@ export function createPrepService(db: Database) {
    * merged: the checklist has no amounts to add up.
    */
   async function addFromChecklist(
-    items: { name: string; stationId: string | null }[],
+    items: { name: string; stationId: string | null; recipeId?: string | null }[],
     createdBy: string,
   ) {
     return db.transaction(async (tx) => {
@@ -309,10 +309,14 @@ export function createPrepService(db: Database) {
           alreadyThere += 1;
           continue;
         }
-        await insertTask({ description: item.name, stationId: item.stationId }, tx, {
-          createdBy,
-          fromChecklist: true,
-        });
+        await insertTask(
+          { description: item.name, stationId: item.stationId, recipeId: item.recipeId ?? null },
+          tx,
+          {
+            createdBy,
+            fromChecklist: true,
+          },
+        );
         added += 1;
       }
       return { added, alreadyThere };

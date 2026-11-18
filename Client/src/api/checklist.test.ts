@@ -11,9 +11,9 @@ import { addedNote } from '../components/PrepTaskRow.js';
 
 const HOT = 'hot';
 const items: ChecklistItem[] = [
-  { id: 'i-stock', stationId: HOT, name: 'Chicken stock' },
-  { id: 'i-slaw', stationId: 'cold', name: 'Slaw' },
-  { id: 'i-mop', stationId: null, name: 'Chicken stock' },
+  { id: 'i-stock', stationId: HOT, name: 'Chicken stock', recipeId: 'r-stock' },
+  { id: 'i-slaw', stationId: 'cold', name: 'Slaw', recipeId: null },
+  { id: 'i-mop', stationId: null, name: 'Chicken stock', recipeId: null },
 ];
 
 const entry = (ids: string[]): OutboxEntry => ({

@@ -3,7 +3,7 @@ import { idSchema } from './common.js';
 
 /**
  * The chef's checklist for the prep list: names, organised by station, that
- * anyone can tick to put on the list. Just names: no amounts, no recipes.
+ * anyone can tick to put on the list. Names, with an optional recipe from the book: no amounts.
  */
 
 export const checklistItemSchema = z.object({
@@ -11,6 +11,8 @@ export const checklistItemSchema = z.object({
   /** Null: no station, shown in a group of its own at the end. */
   stationId: idSchema.nullable(),
   name: z.string(),
+  /** The recipe the line is made from: the prep line it adds links to it. Null: none. */
+  recipeId: idSchema.nullable(),
 });
 
 export const checklistSchema = z.object({
@@ -34,6 +36,7 @@ export const updateChecklistSchema = z.object({
         id: idSchema.optional(),
         stationId: idSchema.nullable(),
         name: z.string().trim().min(1).max(120),
+        recipeId: idSchema.nullable().optional(),
       }),
     )
     .max(500),

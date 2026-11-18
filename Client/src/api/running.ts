@@ -130,7 +130,7 @@ export function applyWaiting(
         {
           id: waitingChecklistLine(entry.id, item.id),
           stationId: item.stationId,
-          recipeId: null,
+          recipeId: item.recipeId,
           description: item.name,
           quantity: null,
           status: 'open',

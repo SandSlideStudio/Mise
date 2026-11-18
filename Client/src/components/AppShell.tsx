@@ -1,9 +1,10 @@
 import { Link, useRouterState } from '@tanstack/react-router';
-import type { ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { LANGUAGES, type Language } from '@mise/contracts';
 import { useBackupStatus } from '../api/backups.js';
 import { useCurrentUser, useLogout, useUpdateMe } from '../api/session.js';
 import { dismissRefusal, useLastRefusal, usePendingTickCount } from '../api/ticks.js';
+import { useSettled } from '../lib/useSettled.js';
 import { OfflineStatus } from './OfflineStatus.js';
 import { UpdatedBanner } from './UpdatedNotice.js';
 import { useWaitingAccess } from '../api/access.js';
@@ -124,27 +125,35 @@ export function AppShell({ children }: { children: ReactNode }) {
 function TickStatus() {
   const translator = useT();
   const { t, plural } = translator;
-  const waiting = usePendingTickCount();
+  const pending = usePendingTickCount();
   const refused = useLastRefusal();
+  // Every tick is pending for a moment before it is sent: only a tick that is
+  // really stuck is worth a notice, and the count shown is the last real one.
+  const lastCount = useRef(0);
+  if (pending > 0) lastCount.current = pending;
+  const waiting = useSettled(pending > 0) ? lastCount.current : 0;
   if (waiting === 0 && !refused) return null;
 
   return (
-    <div className="no-print mx-4 mt-4 flex flex-col gap-3 sm:mx-7">
+    <>
       {waiting > 0 ? (
-        <p
-          role="status"
-          className="border-accent bg-accent-wash border-2 px-4 py-3 text-lg sm:px-5"
-        >
-          <span className="font-display font-semibold tracking-[0.04em]">
-            {plural('today.pending', waiting)}
-          </span>{' '}
-          {t('today.pendingStill')}
-        </p>
+        // Over the page, not in it, so it never pushes the list down.
+        <div className="no-print pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
+          <p
+            role="status"
+            className="border-accent bg-accent-wash pointer-events-auto max-w-2xl border-2 px-4 py-3 text-lg sm:px-5"
+          >
+            <span className="font-display font-semibold tracking-[0.04em]">
+              {plural('today.pending', waiting)}
+            </span>{' '}
+            {t('today.pendingStill')}
+          </p>
+        </div>
       ) : null}
       {refused ? (
         <div
           role="alert"
-          className="border-danger flex flex-wrap items-center justify-between gap-3 border-2 px-4 py-3 sm:px-5"
+          className="no-print border-danger mx-4 mt-4 flex flex-wrap items-center justify-between gap-3 border-2 px-4 py-3 sm:mx-7 sm:px-5"
         >
           <p className="text-danger text-lg">
             {t('today.tickRefused', { reason: errorMessage(translator, refused) })}
@@ -154,7 +163,7 @@ function TickStatus() {
           </button>
         </div>
       ) : null}
-    </div>
+    </>
   );
 }
 

@@ -1199,7 +1199,8 @@ export const en = {
   'checklist.queued': 'Saved on this tablet. The lines go on the list once Mise can be reached.',
   'checklist.edit': 'Edit checklist',
   'checklist.editTitle': 'Edit the checklist',
-  'checklist.editHint': 'Just names, by station. Anyone can tick them onto the prep list.',
+  'checklist.editHint':
+    'What the kitchen makes, by station, with its recipe if there is one. Anyone can tick them onto the prep list.',
   'checklist.itemName': 'Name',
   'checklist.newItem': 'New item',
   'checklist.addItem': 'Add',
@@ -1245,6 +1246,17 @@ export const en = {
   'outside.turnDownAll': 'Turn down all waiting',
   'outside.reallyTurnDownAll_one': 'Turn down {count} waiting request?',
   'outside.reallyTurnDownAll_other': 'Turn down all {count} waiting requests?',
+  'checklist.recipe': 'Recipe',
+  'checklist.recipeLinked': 'A recipe in the book',
+  'checklist.unlinkRecipe': 'Unlink the recipe from {name}',
+  'checklist.unlink': 'Unlink',
+  'checklist.linkRecipe': 'Link a recipe',
+  'checklist.linkRecipeFor': 'Link a recipe to {name}',
+  'checklist.searchRecipe': 'Search the book for a recipe for {name}',
+  'checklist.searchRecipePlaceholder': 'Search the book',
+  'checklistPrint.title': 'Prep checklist',
+  'checklistPrint.print': 'Print checklist',
+  'checklistPrint.empty': 'The checklist is empty.',
 } as const;
 
 export type MessageKey = keyof typeof en;

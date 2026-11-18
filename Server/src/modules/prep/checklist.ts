@@ -41,6 +41,7 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
         id: prepChecklistItems.id,
         stationId: prepChecklistItems.stationId,
         name: prepChecklistItems.name,
+        recipeId: prepChecklistItems.recipeId,
       })
       .from(prepChecklistItems)
       .leftJoin(stations, eq(stations.id, prepChecklistItems.stationId))
@@ -112,7 +113,12 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
             : [],
         );
         for (const [index, item] of request.body.items.entries()) {
-          const values = { stationId: item.stationId, name: item.name, sortOrder: index };
+          const values = {
+            stationId: item.stationId,
+            name: item.name,
+            recipeId: item.recipeId ?? null,
+            sortOrder: index,
+          };
           if (item.id && known.has(item.id)) {
             await tx
               .update(prepChecklistItems)
