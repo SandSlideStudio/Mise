@@ -51,6 +51,7 @@ const RELEASES = [
   { version: '2.2.2', last: '0021' },
   { version: '2.2.3', last: '0021' },
   { version: '2.2.4', last: '0021' },
+  { version: '2.3.0', last: '0022' },
 ] as const;
 
 const DRIZZLE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../drizzle');

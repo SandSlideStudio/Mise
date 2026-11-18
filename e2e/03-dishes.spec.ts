@@ -126,3 +126,70 @@ test('a recipe prints as a card, as written, whatever size is on screen', async 
   await expect(card).toContainText('Bring the milk to a simmer.');
   await expect(card).not.toContainText('3 l');
 });
+
+/** Leaving a recipe, by the top bar or the way back, must never land on the recipe again. */
+test('the top bar and the way back work from a recipe and from a dish', async ({
+  page,
+  request,
+}) => {
+  const api = await signedInApi(request);
+  const prep = unique('Beurre blanc');
+  const dish = unique('Plaice, beurre blanc');
+  for (const [name, type] of [
+    [prep, 'prep'],
+    [dish, 'dish'],
+  ] as const) {
+    const created = await api.post('/api/recipes', {
+      data: {
+        name,
+        type,
+        yield: { value: 1, unit: 'l' },
+        ...(type === 'dish' ? { portions: 4 } : {}),
+      },
+    });
+    expect(created.ok(), await created.text()).toBe(true);
+  }
+  await signIn(page);
+  const nav = page.getByRole('navigation');
+
+  // A recipe from the book: the top bar, then back to the book.
+  for (const [tab, path] of [
+    ['Today', '/'],
+    ['Dishes', '/dishes'],
+    ['Recipes', '/recipes'],
+  ] as const) {
+    await page.goto('/recipes');
+    await page
+      .getByRole('link', { name: new RegExp(prep) })
+      .first()
+      .click();
+    await expect(page.getByRole('heading', { name: prep }).first()).toBeVisible();
+    await nav.getByRole('link', { name: tab, exact: true }).click();
+    await expect(page).toHaveURL((url) => url.pathname === path);
+    await page.waitForTimeout(500);
+    await expect(page).toHaveURL((url) => url.pathname === path);
+  }
+  await page.goto('/recipes');
+  await page
+    .getByRole('link', { name: new RegExp(prep) })
+    .first()
+    .click();
+  await page
+    .getByRole('link', { name: /The book/ })
+    .first()
+    .click();
+  await expect(page).toHaveURL((url) => url.pathname === '/recipes');
+
+  // A dish's recipe, opened from its card, and then the top bar.
+  await page.goto('/dishes');
+  await page
+    .getByRole('link', { name: new RegExp(dish) })
+    .first()
+    .click();
+  await page.getByRole('link', { name: 'Recipe', exact: true }).first().click();
+  await expect(page).toHaveURL(/\/dishes\/.+\/recipe/);
+  await nav.getByRole('link', { name: 'Today', exact: true }).click();
+  await expect(page).toHaveURL((url) => url.pathname === '/');
+  await page.waitForTimeout(500);
+  await expect(page).toHaveURL((url) => url.pathname === '/');
+});

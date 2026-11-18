@@ -30,6 +30,10 @@ export function useRightSection(
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   useEffect(() => {
     if (!recipe) return;
+    // Only while the address is still this recipe's own page. Leaving it (a
+    // tab in the top bar, back to the book) changes the address before this
+    // page has gone, and must never be turned back into the recipe.
+    if (!pathname.split('/').includes(recipe.id)) return;
     const home = recipe.type === 'dish' ? '/dishes/' : '/recipes/';
     if (pathname.startsWith(home)) return;
     void navigate({
