@@ -39,7 +39,7 @@ export const nl: Record<MessageKey, string> = {
   'error.validationFailed': 'Er is iets niet goed ingevuld. Kijk het na en probeer het opnieuw.',
   'error.alreadyExists': 'Dat bestaat al.',
   'error.badOrigin':
-    'Wijzigingen kunnen alleen van Mise’s eigen pagina komen. Open Mise zelf en probeer het opnieuw.',
+    'Wijzigingen kunnen alleen vanaf de eigen pagina van Mise komen. Open Mise zelf en probeer het opnieuw.',
   'error.changedMeanwhile': 'Iemand anders heeft dit veranderd sinds je begon.',
   'error.certificateFailed': 'Let’s Encrypt gaf geen certificaat. De reden: {reason}',
   'error.stillReferenced': 'Dat wordt nog ergens anders gebruikt, dus het kan niet weg.',
@@ -76,7 +76,7 @@ export const nl: Record<MessageKey, string> = {
     'De allergenen van {names} zijn niet te bepalen, omdat het verwijst naar een recept of ingrediënt dat niet meer bestaat. Herstel eerst het recept.',
   'error.recipeGone': 'Dat recept bestaat niet meer.',
   'error.recipeLoop':
-    '{parent} kan {child} niet bevatten, want {child} bevat {parent} al. Dat zou een kringloop zijn.',
+    '{parent} kan {child} niet bevatten, want {child} bevat {parent} al. Dat zou een cirkelverwijzing zijn.',
   'error.scaleFailed': 'Dat recept kon niet op die hoeveelheid worden uitgerekend.',
   'error.scaleUnits': 'Die hoeveelheid is in een ander soort eenheid dan wat dit recept oplevert.',
   'error.scaleLoop': 'Dit recept bevat zichzelf, dus het kan niet worden omgerekend.',
@@ -113,7 +113,7 @@ export const nl: Record<MessageKey, string> = {
   'nav.dishes': 'Gerechten',
   'nav.ingredients': 'Ingrediënten',
   'nav.settings': 'Instellingen',
-  'nav.updateAvailable': 'Er is een nieuwere Mise',
+  'nav.updateAvailable': 'Er is een nieuwere versie van Mise',
 
   'role.admin': 'Beheerder',
   'role.head_chef': 'Chef-kok',
@@ -132,7 +132,7 @@ export const nl: Record<MessageKey, string> = {
   'allergen.crustaceans': 'Schaaldieren',
   'allergen.eggs': 'Eieren',
   'allergen.fish': 'Vis',
-  'allergen.peanuts': "Pinda's",
+  'allergen.peanuts': 'Pinda’s',
   'allergen.soybeans': 'Soja',
   'allergen.milk': 'Melk',
   'allergen.nuts': 'Noten',
@@ -229,7 +229,7 @@ export const nl: Record<MessageKey, string> = {
   'setup.passwordMatch': 'De wachtwoorden komen overeen.',
   'setup.brigadeTitle': 'Posten en personeel',
   'setup.brigadeBody':
-    'Posten verdelen elke mise-en-placelijst. Begin met de posten die je hebt; je kunt ze later hernoemen of aanvullen.',
+    'Met posten deel je elke preplijst in. Begin met de posten die je hebt; je kunt ze later hernoemen of aanvullen.',
   'setup.stationsHeading': 'Posten',
   'setup.stationsEmpty': 'Voeg minstens één post toe.',
   'setup.stationDuplicate': 'Twee posten hebben dezelfde naam.',
@@ -293,9 +293,9 @@ export const nl: Record<MessageKey, string> = {
   'welcome.f2t': 'Eén preplijst voor de keuken',
   'welcome.f2b':
     'Chefs zetten erop wat er gemaakt moet worden, per post. Afgevinkte regels verdwijnen twee uur later vanzelf.',
-  'welcome.f3t': 'De brigade werkt op een tablet',
+  'welcome.f3t': 'Koks werken op een tablet',
   'welcome.f3b':
-    'Koks tikken een naam en een pincode, vinken mise en place af en claimen een taak, zodat niets twee keer wordt gemaakt. Elk scherm werkt live bij.',
+    'Koks tikken hun naam en pincode aan, vinken mise en place af en claimen een taak, zodat niets twee keer wordt gemaakt. Elk scherm werkt live bij.',
   'welcome.stepsLabel': 'Instellen · zes stappen',
   'welcome.stepsLabelSeven': 'Instellen · zeven stappen',
   'welcome.duration': 'Ongeveer 5 minuten',
@@ -315,7 +315,7 @@ export const nl: Record<MessageKey, string> = {
   'tour.promptEyebrow': 'Welkom, {name}',
   'tour.promptTitle': 'Even een korte rondleiding?',
   'tour.promptBody':
-    'Eén minuut: waar je mise-en-placelijst staat, hoe je dingen afvinkt en claimt, en waar de recepten staan.',
+    'Eén minuut: waar je preplijst staat, hoe je dingen afvinkt en claimt, en waar de recepten staan.',
   'tour.promptNote': 'Dit wordt je maar één keer gevraagd.',
   'tour.start': 'Laat maar zien',
   'tour.notNow': 'Niet nu',
@@ -359,7 +359,7 @@ export const nl: Record<MessageKey, string> = {
   'task.openRecipe': 'Open het recept voor {task}',
 
   'recipes.subtitle':
-    'Mise-en-place en componenten. Met Vrij van zie je wat een allergietafel kan krijgen, subrecepten meegeteld. Gerechten hebben een eigen tabblad.',
+    'Preps en componenten. Met Vrij van zie je wat je aan een gast met een allergie kunt serveren, subrecepten meegeteld. Gerechten hebben een eigen tabblad.',
   'recipes.search': 'Zoek in het boek',
   'recipes.sort': 'Soort',
   'recipes.anySort': 'Elke soort',
@@ -396,7 +396,7 @@ export const nl: Record<MessageKey, string> = {
   'recipe.mayContain': 'Kan sporen bevatten van {allergens}.',
   'recipe.workedOut': 'Berekend uit de ingrediënten en alle subrecepten.',
   'recipe.empty': 'Dit recept is nog leeg.',
-  'recipe.method': 'Bereiding',
+  'recipe.method': 'Werkwijze',
   'recipe.storage': 'Bewaren',
   'recipe.print': 'Receptkaart printen',
   'recipe.duplicate': 'Dupliceren',
@@ -431,7 +431,7 @@ export const nl: Record<MessageKey, string> = {
   'editor.colNote': 'Notitie',
   'editor.sectionHeading': 'Kopje',
   'editor.removeHeading': 'Kopje weghalen',
-  'editor.newSection': 'Onderdeel {count}',
+  'editor.newSection': 'Deel {count}',
   'editor.notePlaceholder': 'Notitie',
   'editor.removeLine': 'Regel weghalen',
   'editor.addLine': 'Regel toevoegen',
@@ -441,7 +441,7 @@ export const nl: Record<MessageKey, string> = {
   'editor.hintNext': 'volgende regel',
   'editor.hintField': 'volgend veld',
   'editor.hintMove': 'regel verplaatsen',
-  'editor.hintCreate': 'op een onbekende naam maakt hem aan',
+  'editor.hintCreate': 'bij een onbekende naam: aanmaken',
   'editor.kindRecipe': 'Recept',
   'editor.kindIngredient': 'Ingrediënt',
   'editor.kindNew': 'Nieuw',
@@ -467,7 +467,7 @@ export const nl: Record<MessageKey, string> = {
   'editor.removeStep': 'Stap {count} weghalen',
 
   'picker.label': 'Wat deze regel is',
-  'picker.placeholder': 'Ingrediënt of onderliggend recept',
+  'picker.placeholder': 'Ingrediënt of subrecept',
   'picker.create': 'Ingrediënt aanmaken',
   'picker.creating': 'Aanmaken',
 
@@ -502,12 +502,12 @@ export const nl: Record<MessageKey, string> = {
   'staff.passwordTag': 'Wachtwoord',
   'staff.locked': 'Geblokkeerd',
   'staff.unlock': 'Blokkade opheffen',
-  'staff.namePlaceholder': 'Zoals de brigade diegene kent',
+  'staff.namePlaceholder': 'Zoals de brigade die persoon kent',
   'staff.role': 'Rol',
   'staff.station': 'Vaste post',
   'staff.noStation': 'Geen vaste post',
   'staff.newPin': 'Nieuwe pincode',
-  'staff.keepIt': 'Leeg laten om te behouden',
+  'staff.keepIt': 'Laat leeg om het te houden',
   'staff.pinPlaceholder': '4 cijfers',
   'staff.pinHint': 'Om in te loggen op een keukentablet.',
   'staff.passwordSection': 'Inloggen met wachtwoord, voor chefs en beheerders',
@@ -519,9 +519,9 @@ export const nl: Record<MessageKey, string> = {
   'stations.loadError': 'De posten konden niet geladen worden.',
   'stations.title': 'Posten',
   'stations.body':
-    'Lijsten worden per post gegroepeerd en in deze volgorde afgedrukt, dus zet ze in de volgorde waarin de keuken is ingedeeld.',
+    'Preplijsten worden per post gegroepeerd en in deze volgorde afgedrukt, dus zet de posten in de volgorde waarin de keuken is ingedeeld.',
   'stations.empty':
-    'Nog geen posten. Een keuken heeft er minstens één nodig voordat een lijst gegroepeerd kan worden.',
+    'Nog geen posten. Een keuken heeft er minstens één nodig voordat een preplijst gegroepeerd kan worden.',
   'stations.addLabel': 'Post toevoegen',
   'stations.placeholder': 'bijv. Garde-manger',
   'stations.rename': 'Hernoemen',
@@ -530,12 +530,12 @@ export const nl: Record<MessageKey, string> = {
 
   'devices.title': 'Keukentablets',
   'devices.body':
-    'Koks kunnen alleen met een pincode inloggen op een aangemelde tablet. Meld aan vanaf de tablet zelf, terwijl je daar als beheerder bent ingelogd.',
+    'Koks kunnen alleen met een pincode inloggen op een aangemelde tablet. Meld de tablet aan vanaf de tablet zelf, terwijl je daar als beheerder bent ingelogd.',
   'devices.enrolled': 'Aangemeld {date}',
   'devices.lastUsed': 'laatst gebruikt {date}',
   'devices.neverUsed': 'nooit gebruikt',
   'devices.empty': 'Nog geen tablets aangemeld, dus niemand kan met een pincode inloggen.',
-  'devices.enrolLabel': 'Het apparaat waar je nu op zit aanmelden',
+  'devices.enrolLabel': 'Meld het apparaat aan dat je nu gebruikt',
   'devices.placeholder': 'bijv. Tablet op de pas',
   'devices.enrolling': 'Aanmelden…',
   'devices.enrol': 'Dit apparaat aanmelden',
@@ -604,7 +604,7 @@ export const nl: Record<MessageKey, string> = {
   'settings.tabBackups': 'Back-ups',
   'backups.title': 'Back-ups',
   'backups.body':
-    "Elke nacht bewaart Mise de hele keuken, foto's inbegrepen, in één versleuteld bestand. Bewaar ook een kopie buiten deze machine.",
+    'Elke nacht bewaart Mise de hele keuken, foto’s inbegrepen, in één versleuteld bestand. Bewaar ook een kopie buiten deze machine.',
   'backups.lastGood': 'Laatste back-up: {time}',
   'backups.never': 'Nog geen back-up. De eerste volgt binnen een paar minuten.',
   'backups.diskLowTitle': 'Weinig ruimte over op deze server',
@@ -627,7 +627,7 @@ export const nl: Record<MessageKey, string> = {
   'backups.reason.auth': 'De NAS weigerde de gebruikersnaam of het wachtwoord.',
   'backups.reason.folder': 'Die map bestaat niet op de NAS. Maak hem daar eerst aan.',
   'backups.reason.remote': 'De NAS weigerde het bestand op te slaan.',
-  'backups.reason.unknown': 'Er ging iets onverwachts mis. Het serverlog geeft de details.',
+  'backups.reason.unknown': 'Er ging iets onverwachts mis. Het serverlogboek geeft de details.',
   'backups.running': 'Back-up maken…',
   'backups.now': 'Nu back-up maken',
   'backups.download': 'Downloaden',
@@ -705,7 +705,7 @@ export const nl: Record<MessageKey, string> = {
   'restore.cta': 'Back-up terugzetten',
   'restore.title': 'Een keuken terughalen',
   'restore.body':
-    "Kies een back-upbestand en typ de herstelsleutel die erbij is geprint. Personeel, recepten, foto's en preplijsten komen allemaal terug. Daarna logt iedereen opnieuw in.",
+    'Kies een back-upbestand en typ de herstelsleutel die erbij is geprint. Personeel, recepten, foto’s en preplijsten komen allemaal terug. Daarna logt iedereen opnieuw in.',
   'restore.file': 'Back-upbestand',
   'restore.key': 'Herstelsleutel',
   'restore.keyHint': 'Hoofdletters en streepjes mogen weg.',
@@ -717,13 +717,13 @@ export const nl: Record<MessageKey, string> = {
   'restore.done': '{kitchen} is terug',
   'restore.doneBody':
     'Log in met hetzelfde e-mailadres en wachtwoord als eerst. Back-ups blijven op deze machine tot je in Instellingen weer een NAS instelt.',
-  'restore.counts': "Personeel: {staff} · Recepten: {recipes} · Foto's: {photos}",
+  'restore.counts': 'Personeel: {staff} · Recepten: {recipes} · Foto’s: {photos}',
   'restore.signIn': 'Inloggen',
   'restore.asideTitle': 'Wat terugkomt',
   'restore.asideStaff': 'Personeel, met wachtwoorden en pincodes',
-  'restore.asideRecipes': "Recepten, ingrediënten en bordfoto's",
+  'restore.asideRecipes': 'Recepten, ingrediënten en bordfoto’s',
   'restore.asidePrep': 'De preplijst',
-  'restore.asideTablets': 'Gekoppelde tablets, zolang de server hetzelfde adres houdt',
+  'restore.asideTablets': 'Aangemelde tablets, zolang de server hetzelfde adres houdt',
 
   // Dish cards
   'recipe.dishCard': 'Gerechtenkaart',
@@ -731,18 +731,18 @@ export const nl: Record<MessageKey, string> = {
   'editor.frontOfHouseHint': 'Wat de gerechtenkaart de bediening vertelt.',
   'editor.flavour': 'Smaakprofiel',
   'editor.flavourHint': 'Scheid met komma’s, bijvoorbeeld romig, knoflook, fris.',
-  'editor.temperature': 'Temperatuur',
-  'editor.course': 'Menu plaatsing',
+  'editor.temperature': 'Serveertemperatuur',
+  'editor.course': 'Plek op het menu',
   'editor.drinks': 'Bijpassende dranken',
-  'editor.drinksHint': 'Bijvoorbeeld Bordeaux wit, kombucha.',
+  'editor.drinksHint': 'Bijvoorbeeld witte Bordeaux, kombucha.',
   'editor.cutlery': 'Bestek',
   'editor.cutleryHint': 'Bijvoorbeeld een kleine lepel.',
   'editor.notSet': 'Niet ingevuld',
   'temperature.cold': 'Koud',
   'temperature.room': 'Kamertemperatuur',
-  'temperature.warm': 'Lauw',
-  'temperature.hot': 'Warm',
-  'temperature.hot_and_cold': 'Warm en koud',
+  'temperature.warm': 'Warm',
+  'temperature.hot': 'Heet',
+  'temperature.hot_and_cold': 'Heet en koud',
   'course.amuse': 'Amuse',
   'course.starter': 'Voorgerecht',
   'course.middle': 'Tussengerecht',
@@ -754,17 +754,17 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.vegan': 'Vegan',
   'ingredients.veganYes': 'Ja',
   'ingredients.veganNo': 'Nee',
-  'ingredients.veganUnknown': 'Niet gezegd',
+  'ingredients.veganUnknown': 'Niet opgegeven',
   'ingredients.veganHint':
-    'Een gerechtenkaart noemt een gerecht nooit vegan zolang een van de ingrediënten niet gezegd is.',
+    'Een gerechtenkaart noemt een gerecht nooit vegan zolang van een ingrediënt niet is opgegeven of het vegan is.',
   'ingredients.veganConflict':
-    'Het kan niet vegan zijn met melk, ei, vis of schaaldieren erin. Op gerechtenkaarten staat dan niet vegan.',
+    'Met melk, ei, vis of schaal- en schelpdieren erin kan het niet vegan zijn. Op gerechtenkaarten staat dan niet vegan.',
   'ingredients.whichCereals': 'Welke granen',
   'ingredients.whichNuts': 'Welke noten',
   'ingredients.cerealsPlaceholder': 'bijv. tarwe, rogge',
   'ingredients.nutsPlaceholder': 'bijv. hazelnoot, walnoot',
   'ingredients.detailsHint':
-    'De wet wil dat het graan en de noot op een gerechtenkaart bij naam genoemd worden.',
+    'Volgens de wet moeten graan en noot op een gerechtenkaart bij naam genoemd worden.',
   'card.title': 'Gerechtenkaart',
   'card.back': '← Het gerecht',
   'card.language': 'Taal van de kaart',
@@ -781,7 +781,7 @@ export const nl: Record<MessageKey, string> = {
   'card.noAccess': 'In deze keuken kunnen alleen chefs en beheerders gerechtenkaarten openen.',
   'card.attentionTitle': 'Even nakijken voor het afdrukken',
   'card.attentionVegan':
-    'Van deze ingrediënten is niet gezegd of ze vegan zijn: {names}. Tot dat gebeurt, kan de kaart het gerecht geen vegan noemen.',
+    'Van deze ingrediënten is niet opgegeven of ze vegan zijn: {names}. Tot dat gebeurt, kan de kaart het gerecht geen vegan noemen.',
   'card.attentionDetails': 'Deze bevatten gluten of noten zonder te zeggen welke: {names}.',
   'card.attentionPhoto': 'Dit gerecht heeft nog geen foto.',
   'card.attentionDraft': 'Dit recept is nog een concept.',
@@ -789,7 +789,7 @@ export const nl: Record<MessageKey, string> = {
   'card.menu': 'Menu',
   'card.flavour': 'Smaakprofiel',
   'card.temperature': 'Temperatuur',
-  'card.course': 'Menu plaatsing',
+  'card.course': 'Gang',
   'card.components': 'Componenten',
   'card.drinks': 'Bijpassende dranken',
   'card.cutlery': 'Bestek',
@@ -843,13 +843,13 @@ export const nl: Record<MessageKey, string> = {
   'dishCards.logoNone': 'Nog geen logo.',
   'dishCards.warning': 'Waarschuwing onderaan elke kaart',
   'dishCards.warningHint':
-    'Schrijf hem in elke taal waarin je afdrukt. Een kaart in een taal zonder waarschuwing gebruikt die in de taal van de keuken.',
+    'Schrijf de tekst in elke taal waarin je afdrukt. Een kaart in een taal zonder waarschuwing gebruikt die in de taal van de keuken.',
   'dishCards.warningPlaceholder': 'Deze gerechtenkaart is eigendom van …',
   'dishCards.show': 'Op de kaart',
   'dishCards.part.menu': 'Menu',
   'dishCards.part.flavour': 'Smaakprofiel',
   'dishCards.part.temperature': 'Temperatuur',
-  'dishCards.part.course': 'Menu plaatsing',
+  'dishCards.part.course': 'Plek op het menu',
   'dishCards.part.drinks': 'Bijpassende dranken',
   'dishCards.part.cutlery': 'Bestek',
   'dishCards.part.photo': 'Foto',
@@ -857,7 +857,7 @@ export const nl: Record<MessageKey, string> = {
   'dishCards.part.location': 'Locatie en adres',
   'dishCards.part.summary': 'Allergenen op de voorkant',
   'dishCards.part.mayContain': '“Kan sporen bevatten”',
-  'dishCards.part.vegan': 'Kolom vegan',
+  'dishCards.part.vegan': 'Vegankolom',
   'dishCards.theme': 'Uiterlijk',
   'dishCards.themeDayHint': 'Wit, zuinig met toner.',
   'dishCards.themeNightHint': 'Donker, het mooist op een scherm of kleurenlaser.',
@@ -868,14 +868,14 @@ export const nl: Record<MessageKey, string> = {
   // Menus
   'nav.menus': 'Menu’s',
   'dishes.subtitle':
-    'Elk gerecht als zijn kaart: wat de bediening leest, met de allergenen uitgerekend uit elk subrecept.',
+    'Elk gerecht als kaart: wat de bediening leest, met de allergenen uitgerekend uit elk subrecept.',
   'dishes.new': 'Nieuw gerecht',
   'dishes.search': 'Zoek een gerecht',
   'dishes.anyCourse': 'Elke gang',
   'dishes.onMenu': 'Alleen op een actief menu',
   'dishes.noMatch': 'Geen gerecht gevonden.',
   'dishes.empty':
-    'Nog geen gerechten. Een gerecht is wat naar de pass gaat: voeg er een toe en het staat hier als zijn kaart.',
+    'Nog geen gerechten. Een gerecht is wat naar de pass gaat: voeg er een toe en het staat hier als kaart.',
   'dishes.count_one': '{count} gerecht',
   'dishes.count_other': '{count} gerechten',
   'dishes.countFreeFrom': '{shown} van {total} gerechten zijn vrij van {allergen}',
@@ -884,9 +884,9 @@ export const nl: Record<MessageKey, string> = {
   'dishes.broken':
     'De allergenen zijn niet uit te rekenen: een subrecept ontbreekt of gebruikt zichzelf.',
   'dishes.openSpec': 'Recept',
-  'dishes.print': 'Printen of pdf',
+  'dishes.print': 'Printen of PDF',
   'dishes.kept':
-    'Deze keuken houdt gerechtenkaarten voor chefs en beheerders. Het recept kun je wel openen.',
+    'Deze keuken beperkt gerechtenkaarten tot chefs en beheerders. Het recept kun je wel openen.',
   'menus.subtitle':
     'De gerechten die de bediening samen verkoopt. Druk het allergenenoverzicht van een menu af, of alle gerechtenkaarten tegelijk.',
   'menus.name': 'Naam van het menu',
@@ -970,9 +970,9 @@ export const nl: Record<MessageKey, string> = {
   'settings.tabConnection': 'Verbinding',
   'connection.relayedTitle': 'Mise kan niet zien wie er in de keuken is',
   'connection.relayedBody':
-    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte, die verbergt waar ze echt zijn. Daarom rekent Mise ze tot buiten de keuken: elk apparaat vraagt één keer toegang aan, en een chef keurt het goed.',
+    'Sommige bezoekers bereiken Mise via de eigen doorgifte van Docker, die verbergt waar ze echt zijn. Daarom rekent Mise ze tot buiten de keuken: elk apparaat vraagt één keer toegang aan, en een chef keurt het goed.',
   'connection.relayedTrusted':
-    'Sommige bezoekers bereiken Mise via Dockers eigen doorgifte, die verbergt waar ze echt zijn. Je hebt gekozen ze tot de keuken te rekenen, dus slaan ze de goedkeuring over die apparaten van buiten nodig hebben, waar ze ook zijn.',
+    'Sommige bezoekers bereiken Mise via de eigen doorgifte van Docker, die verbergt waar ze echt zijn. Je hebt ervoor gekozen ze tot de keuken te rekenen, dus slaan ze de goedkeuring over die apparaten van buiten nodig hebben, waar ze ook zijn.',
   'connection.relayedSeen': 'Laatste doorgegeven bezoeker: {address}, {when}.',
   'connection.relayedTrust': 'Reken deze bezoekers tot de keuken',
   'connection.relayedTrustHint':
@@ -995,7 +995,7 @@ export const nl: Record<MessageKey, string> = {
   'proxy.title': 'Achter een andere webserver',
   'proxy.body':
     'Beantwoordt een andere webserver op je netwerk (bijvoorbeeld Apache, met je websites) al je domeinen? Laat die je Mise-domein doorsturen, met een eigen certificaat. Mise moet dan weten welke machine dat is, zodat het kan zien wie thuis is en wie buiten.',
-  'proxy.trusted': 'Mise gelooft {address} over wie elke bezoeker is.',
+  'proxy.trusted': 'Mise gaat af op {address} voor wie elke bezoeker is.',
   'proxy.none':
     'Geen webserver vertrouwd: alles wat via een andere machine binnenkomt telt als buiten.',
   'proxy.stop': 'Niet meer vertrouwen',
@@ -1008,7 +1008,7 @@ export const nl: Record<MessageKey, string> = {
   'proxy.apacheTitle': 'Apache instellen',
   'proxy.miseAddress': 'Mise op je netwerk',
   'proxy.step1':
-    'Controleer op de Apache-machine of die Mise kan bereiken. Dit hoort "ok" te tonen:',
+    'Controleer op de Apache-machine of die Mise kan bereiken. Dit hoort “ok” te tonen:',
   'proxy.step1Bridge':
     'Draait Apache in een VM op dezelfde TrueNAS als Mise en komt er niets terug? TrueNAS-VM’s kunnen hun eigen host vaak niet bereiken. Maak in TrueNAS onder Network een bridge (br0), zet het adres van de host daarop en koppel de netwerkkaart van de VM aan br0.',
   'proxy.step2': 'Sla dit op als /etc/apache2/sites-available/mise.conf:',
@@ -1023,7 +1023,7 @@ export const nl: Record<MessageKey, string> = {
     'Gebruik het adres van een webserver op het keukennetwerk, zoals 192.168.1.60.',
   'https.title': 'HTTPS',
   'https.body':
-    'Gewoon HTTP blijft altijd werken. Met HTTPS kunnen tablets offline doorwerken en Mise als app installeren, en het is een must voor alles wat via internet bereikbaar is.',
+    'Gewoon HTTP blijft altijd werken. Met HTTPS kunnen tablets offline doorwerken en Mise als app installeren, en het is onmisbaar voor alles wat via internet bereikbaar is.',
   'https.on': 'Aan',
   'https.off': 'Uit',
   'https.kitchenTitle': 'Op het keukennetwerk',
@@ -1129,7 +1129,7 @@ export const nl: Record<MessageKey, string> = {
   'offline.items_other': '{count} onderdelen',
   'offline.field.note': 'Notitie',
   'offline.field.notes': 'Notities',
-  'offline.field.method': 'Bereiding',
+  'offline.field.method': 'Werkwijze',
   'offline.field.description': 'Omschrijving',
   'offline.field.tags': 'Labels',
   'offline.field.components': 'Onderdelen',
@@ -1137,7 +1137,7 @@ export const nl: Record<MessageKey, string> = {
   'offline.field.type': 'Soort recept',
   'offline.field.yield': 'Opbrengst',
   'offline.field.portions': 'Porties',
-  'offline.field.prepMinutes': 'Voorbereidingstijd',
+  'offline.field.prepMinutes': 'Preptijd',
   'offline.field.cookMinutes': 'Kooktijd',
   'offline.field.keeps': 'Houdbaar',
   'offline.field.allergens': 'Allergenen',
@@ -1159,15 +1159,15 @@ export const nl: Record<MessageKey, string> = {
   'prepPrint.empty': 'Niets op de lijst.',
   'prepPrint.line': '{name}, {amount}',
   'recipeCard.makes': 'Opbrengst',
-  'recipeCard.prepTime': 'Bereidingstijd',
+  'recipeCard.prepTime': 'Preptijd',
   'recipeCard.keeps': 'Houdbaar',
   'recipeCard.days_one': '{count} dag',
   'recipeCard.days_other': '{count} dagen',
   'recipeCard.hours_one': '{count} uur',
   'recipeCard.hours_other': '{count} uur',
-  'recipeCard.mayContain': 'Kan bevatten: {allergens}',
+  'recipeCard.mayContain': 'Kan sporen bevatten: {allergens}',
   'recipeCard.onThePlate': 'Op het bord',
-  'recipeCard.plating': 'Opmaak',
+  'recipeCard.plating': 'Aanrichten',
   'recipeCard.ownRecipe': 'eigen recept',
   'updated.title': 'Mise is bijgewerkt',
   'updated.body':
@@ -1191,14 +1191,14 @@ export const nl: Record<MessageKey, string> = {
   'passwordOnly.staff':
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om personeel toe te voegen of rollen, wachtwoorden en pincodes te wijzigen.',
   'passwordOnly.devices':
-    'Je bent ingelogd met je pincode. Log in met je wachtwoord om tablets te koppelen of apparaten van buitenaf toe te laten.',
+    'Je bent ingelogd met je pincode. Log in met je wachtwoord om tablets aan te melden of apparaten van buitenaf toe te laten.',
   'passwordOnly.connection':
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om te wijzigen hoe Mise bereikbaar is.',
   'passwordOnly.backups':
     'Je bent ingelogd met je pincode. Log in met je wachtwoord om back-ups te beheren of de herstelsleutel te zien.',
   'error.passwordRequired':
     'Log in met je wachtwoord om dit te doen. Met een pincode kan al het andere.',
-  'kitchen.idle': 'Uitloggen op gedeelde tablets als ze met rust gelaten worden',
+  'kitchen.idle': 'Uitloggen op gedeelde tablets bij inactiviteit',
   'kitchen.idleNever': 'Nooit',
   'kitchen.idleMinutes': 'Na {minutes} minuten zonder aanraking',
   'kitchen.idleHint':
@@ -1230,7 +1230,7 @@ export const nl: Record<MessageKey, string> = {
   'checklist.edit': 'Checklist bewerken',
   'checklist.editTitle': 'De checklist bewerken',
   'checklist.editHint':
-    'Wat de keuken maakt, per post, met het recept als dat er is. Iedereen kan ze op de preplijst aanvinken.',
+    'Wat de keuken maakt, per post, met het recept als dat er is. Iedereen kan ze aanvinken en op de preplijst zetten.',
   'checklist.itemName': 'Naam',
   'checklist.newItem': 'Nieuw item',
   'checklist.addItem': 'Toevoegen',
@@ -1274,7 +1274,7 @@ export const nl: Record<MessageKey, string> = {
   'setup.stepChecklist': 'Checklist',
   'setup.checklistTitle': 'De prepchecklist',
   'setup.checklistBody':
-    'Wat deze keuken maakt, per station. Iedereen vinkt af wat nodig is en het komt op de preplijst. Je kunt dit overslaan en later invullen.',
+    'Wat deze keuken maakt, per post. Iedereen vinkt af wat nodig is en het komt op de preplijst. Je kunt dit overslaan en later invullen.',
   'setup.pinOnlyHint':
     'Tablets tonen een toetsenblok in plaats van de namen, en de pincode vindt de persoon. Elke pincode moet anders zijn en niet te makkelijk te raden.',
   'setup.pinCommon':
@@ -1297,11 +1297,11 @@ export const nl: Record<MessageKey, string> = {
   'tour.checklistBody':
     'Open de checklist, vink af wat de keuken vandaag nodig heeft en zet het in één keer op de preplijst.',
   'tour.checklistBodyChef':
-    'Jouw checklist van wat de keuken maakt, per station. Iedereen vinkt af wat nodig is en zet het in één keer op de preplijst. Pas hem hier aan als de kaart verandert.',
+    'Jouw checklist van wat de keuken maakt, per post. Iedereen vinkt af wat nodig is en zet het in één keer op de preplijst. Pas hem hier aan als het menu verandert.',
   'password.show': 'Wachtwoord tonen',
   'password.hide': 'Wachtwoord verbergen',
   'editor.cookOnly':
-    'Alleen chef-koks en beheerders kunnen recepten en gerechten schrijven of wijzigen.',
+    'Alleen chefs en beheerders kunnen recepten en gerechten schrijven of wijzigen.',
   'outside.turnDownAll': 'Alle wachtende afwijzen',
   'outside.reallyTurnDownAll_one': '{count} wachtend verzoek afwijzen?',
   'outside.reallyTurnDownAll_other': 'Alle {count} wachtende verzoeken afwijzen?',
@@ -1377,9 +1377,9 @@ export const nl: Record<MessageKey, string> = {
   'privacy.loadError': 'Deze pagina kon niet laden. Probeer het zo opnieuw.',
   'privacy.title': 'Wat Mise bewaart en verstuurt',
   'privacy.intro':
-    'Mise bewaart de gegevens van de keuken op deze server en nergens anders. De keuken is verantwoordelijk voor wat ze over haar personeel bewaart, en op deze pagina staat wat je nodig hebt om iedereen die ernaar vraagt te antwoorden.',
+    'Mise bewaart de gegevens van de keuken op deze server en nergens anders. De keuken is verantwoordelijk voor wat ze over haar personeel bewaart, en op deze pagina staat wat je nodig hebt om iedereen die ernaar vraagt te kunnen antwoorden.',
   'privacy.staffTools':
-    'Onder Personeel downloadt Hun gegevens alles over één persoon, en Voorgoed weghalen haalt diegene eruit.',
+    'Onder Personeel downloadt Hun gegevens alles over één persoon, en Voorgoed weghalen haalt die persoon eruit.',
   'privacy.keptTitle': 'Wat er over mensen bewaard wordt',
   'privacy.keptNames': 'Namen, en een e-mailadres voor wie met een wachtwoord inlogt.',
   'privacy.keptSecrets':
@@ -1400,7 +1400,7 @@ export const nl: Record<MessageKey, string> = {
   'privacy.keptOutsideHow':
     'Een apparaat dat {days} dagen niet gebruikt is, wordt vergeten, adres en browser erbij. Een verzoek waar niemand op reageert, verdwijnt na {hours} uur.',
   'privacy.keptOffline':
-    'Een wijziging die offline is gemaakt, krijgt één keer antwoord en dat antwoord wordt {days} dagen bewaard, zodat ze nooit twee keer wordt doorgevoerd.',
+    'Een wijziging die offline is gemaakt, krijgt één keer antwoord en dat antwoord wordt {days} dagen bewaard, zodat hij nooit twee keer wordt doorgevoerd.',
   'privacy.keptLockout':
     'Verkeerde pincodes en wachtwoorden worden alleen in het geheugen geteld, en vergeten als Mise herstart. Een geblokkeerd account blijft geblokkeerd tot de blokkade afloopt.',
   'privacy.linesDeleted_one': 'Afgevinkte regels worden {count} uur na het afvinken verwijderd.',

@@ -15,7 +15,7 @@ export const es: Record<MessageKey, string> = {
   'common.add': 'Añadir',
   'common.create': 'Crear',
   'common.creating': 'Creando…',
-  'common.none': 'Ninguna',
+  'common.none': 'Ninguno',
   'common.name': 'Nombre',
   'common.email': 'Correo',
   'common.password': 'Contraseña',
@@ -33,16 +33,16 @@ export const es: Record<MessageKey, string> = {
   'common.tryAgain': 'Reintentar',
   'common.loadFailed': 'No se ha podido cargar. Revisa la conexión y vuelve a intentarlo.',
 
-  'error.generic': 'Algo ha fallado.',
+  'error.generic': 'Algo ha salido mal.',
   'error.notFound': 'Eso ya no está. Puede que alguien lo haya quitado.',
   'error.validationFailed': 'Algo no está bien rellenado. Revísalo y vuelve a intentarlo.',
   'error.alreadyExists': 'Eso ya existe.',
   'error.badOrigin':
     'Los cambios solo pueden venir de la propia página de Mise. Abre Mise directamente y vuelve a intentarlo.',
   'error.changedMeanwhile': 'Alguien más ha cambiado esto desde que empezaste.',
-  'error.certificateFailed': 'Let’s Encrypt no dio un certificado. Su motivo: {reason}',
+  'error.certificateFailed': 'Let’s Encrypt no ha emitido ningún certificado. Motivo: {reason}',
   'error.stillReferenced': 'Todavía se usa en otro sitio, así que no se puede quitar.',
-  'error.referenceGone': 'Algo que elegiste, como una partida o una receta, ya no existe.',
+  'error.referenceGone': 'Algo que has elegido, como una partida o una receta, ya no existe.',
   'error.invalidData': 'Ese valor no se permite aquí.',
   'error.writeInProgress': 'Ese cambio se está guardando. Vuelve a intentarlo en un momento.',
   'error.backupFileMissing': 'Adjunta el archivo de copia de seguridad.',
@@ -74,13 +74,13 @@ export const es: Record<MessageKey, string> = {
     'No se pueden calcular los alérgenos de {names}, porque apunta a una receta o ingrediente que ya no existe. Arregla primero la receta.',
   'error.recipeGone': 'Esa receta ya no existe.',
   'error.recipeLoop':
-    '{parent} no puede contener {child}, porque {child} ya contiene {parent}. Sería un bucle.',
+    '{parent} no puede contener {child}, porque {child} ya contiene {parent}. Sería una referencia circular.',
   'error.scaleFailed': 'Esa receta no se pudo calcular a ese tamaño.',
   'error.scaleUnits': 'Ese tamaño está en otro tipo de unidad que lo que rinde la receta.',
   'error.scaleLoop': 'Esta receta se contiene a sí misma, así que no se puede escalar.',
   'error.scaleNoPortions':
     'Esta receta no está escrita en raciones. Escálala por tanda o por rendimiento.',
-  'error.stillUsed': 'Todavía lo usa {names}. Quítalo de ahí primero.',
+  'error.stillUsed': 'Todavía se usa en {names}. Quítalo de ahí primero.',
   'error.alreadyInside': 'Este dispositivo está en la red de la cocina y no necesita aprobación.',
   'error.allergensUnknown':
     'No se pueden calcular los alérgenos de esta receta: falta algo o hace referencia a sí misma. Revisa lo que lleva en el editor.',
@@ -89,7 +89,7 @@ export const es: Record<MessageKey, string> = {
   'error.invalidCredentials': 'No coincide. Inténtalo de nuevo.',
   'error.accountInactive': 'Esa cuenta ya no está activa.',
   'error.deviceNotEnrolled':
-    'El acceso con PIN solo funciona en una tablet registrada por un administrador.',
+    'El acceso con PIN solo funciona en una tableta registrada por un administrador.',
   'error.notAuthenticated': 'Inicia sesión para continuar.',
   'error.forbidden': 'Tu rol no lo permite.',
   'error.setupToken':
@@ -159,9 +159,9 @@ export const es: Record<MessageKey, string> = {
   'task.doneBy': 'Hecha por {name}',
 
   'line.loading': 'Cargando la brigada…',
-  'line.notEnrolledTitle': 'Esta tablet no está registrada',
+  'line.notEnrolledTitle': 'Esta tableta no está registrada',
   'line.notEnrolledBody':
-    'El acceso con PIN solo funciona en una tablet configurada por un administrador. Pídele que inicie sesión aquí y la registre desde Ajustes.',
+    'El acceso con PIN solo funciona en una tableta configurada por un administrador. Pídele que inicie sesión aquí y la registre desde Ajustes.',
   'line.signInPassword': 'Entrar con contraseña',
   'line.whoIsOn': '¿Quién está?',
   'line.nobodyHasPin':
@@ -230,7 +230,7 @@ export const es: Record<MessageKey, string> = {
   'setup.passwordMatch': 'Las contraseñas coinciden.',
   'setup.brigadeTitle': 'Partidas y equipo',
   'setup.brigadeBody':
-    'Las partidas organizan cada lista de mise en place. Empieza con las que tienes; podrás renombrarlas o añadir más después.',
+    'Las partidas organizan cada lista de prep. Empieza con las que tienes; podrás renombrarlas o añadir más después.',
   'setup.stationsHeading': 'Partidas',
   'setup.stationsEmpty': 'Añade al menos una partida.',
   'setup.stationDuplicate': 'Dos partidas tienen el mismo nombre.',
@@ -247,7 +247,7 @@ export const es: Record<MessageKey, string> = {
   'setup.summaryPin': 'PIN para la tableta de la cocina',
   'setup.backupsTitle': 'Copias de seguridad',
   'setup.backupsHint':
-    'Mise hace cada noche una copia de toda la cocina. Una copia en otro sitio evita que un disco roto o un robo se lleve también las copias. Puedes cambiarlo más tarde en Configuración.',
+    'Mise hace cada noche una copia de toda la cocina. Una copia en otro sitio evita que un disco roto o un robo se lleve también las copias. Puedes cambiarlo más tarde en Ajustes.',
   'setup.backupsTestFirst':
     'Prueba primero la conexión con el NAS, o elige otro sitio para las copias.',
   'setup.backupsConnectFirst': 'Conecta primero OneDrive, o elige otro sitio para las copias.',
@@ -255,7 +255,7 @@ export const es: Record<MessageKey, string> = {
     'Necesario para probar el NAS o conectar OneDrive desde fuera de la red de la cocina. Es SETUP_TOKEN en la configuración de Mise, o el código que Mise escribió en su registro.',
   'setup.recipesTitle': 'Recetas',
   'setup.recipesBody':
-    'Añade al recetario los platos y la mise en place que ya conoces: un nombre y lo que rinde una tanda. Ingredientes y elaboración pueden venir después.',
+    'Añade al recetario los platos y la mise en place que ya conoces: un nombre y lo que rinde una tanda. Ingredientes y método pueden venir después.',
   'setup.recipesEmpty':
     'Aún no hay recetas. Puedes saltar este paso y añadirlas más tarde en el recetario.',
   'setup.addRecipe': 'Añadir una receta',
@@ -290,23 +290,23 @@ export const es: Record<MessageKey, string> = {
   'welcome.f1t': 'Fichas técnicas',
   'welcome.f1b':
     'Ajusta al rendimiento o al número de comensales, monta los platos con subrecetas y ve los alérgenos de cada subreceta.',
-  'welcome.f2t': 'Una lista de mise en place para la cocina',
+  'welcome.f2t': 'Una lista de prep para la cocina',
   'welcome.f2b':
     'Los chefs añaden lo que hay que preparar, por partida. Las líneas marcadas desaparecen solas dos horas después.',
   'welcome.f3t': 'La brigada trabaja con tableta',
   'welcome.f3b':
-    'Los cocineros marcan un nombre y un PIN, tachan la mise en place y reclaman una tarea, para que nada se haga dos veces. Cada pantalla se actualiza en vivo.',
+    'Los cocineros tocan su nombre e introducen su PIN, marcan la mise en place y reclaman una tarea, para que nada se haga dos veces. Cada pantalla se actualiza en vivo.',
   'welcome.stepsLabel': 'Configuración · seis pasos',
   'welcome.stepsLabelSeven': 'Configuración · siete pasos',
   'welcome.duration': 'Unos 5 minutos',
   'welcome.readyLabel': 'Ten a mano',
   'welcome.r1': 'El nombre del restaurante',
   'welcome.r2': 'Un correo y una contraseña para ti, el administrador',
-  'welcome.r3': 'Tus partidas — cuarto frío, salsero, pastelería, pase',
+  'welcome.r3': 'Tus partidas — cuarto frío, salsas, pastelería, pase',
   'welcome.r4': 'Opcionalmente tu equipo, un PIN de 4 a 8 dígitos cada uno, y algunas recetas',
   'welcome.changeNote': 'Omite lo que no tengas a mano. Nada es definitivo.',
   'welcome.selfHost':
-    'Todo lo que escribas se queda en este servidor. No se crea ninguna cuenta en otro sitio, y Mise no informa a nadie.',
+    'Todo lo que escribas se queda en este servidor. No se crea ninguna cuenta en otro sitio, y Mise no envía tus datos a ningún lugar.',
   'welcome.cta': 'Configurar esta cocina',
   'setup.readyLabel': 'Listo',
   'setup.readyTitle': '{kitchen} está lista.',
@@ -315,7 +315,7 @@ export const es: Record<MessageKey, string> = {
   'tour.promptEyebrow': 'Hola, {name}',
   'tour.promptTitle': '¿Un recorrido rápido?',
   'tour.promptBody':
-    'Un minuto: dónde está tu lista de mise en place, cómo tachar y reclamar tareas, y dónde están las recetas.',
+    'Un minuto: dónde está tu lista de prep, cómo marcar y reclamar tareas, y dónde están las recetas.',
   'tour.promptNote': 'Solo te lo preguntamos una vez.',
   'tour.start': 'Enséñamelo',
   'tour.notNow': 'Ahora no',
@@ -328,7 +328,7 @@ export const es: Record<MessageKey, string> = {
     'Todo lo que hay que preparar hoy, por partida. Es la página con la que trabaja la línea.',
   'tour.stationsTitle': 'Tu partida',
   'tour.stationsBody': 'Filtra la lista por una partida, o solo por las tareas con tu nombre.',
-  'tour.tickTitle': 'Tacharlo',
+  'tour.tickTitle': 'Marcar',
   'tour.tickBody':
     'Toca una línea cuando esté hecha. Se vuelve gris en todas las pantallas al instante.',
   'tour.makingBody': '¿Empiezas algo? Toca primero Empezar, para que nadie más prepare lo mismo.',
@@ -337,7 +337,7 @@ export const es: Record<MessageKey, string> = {
     'La mise en place se añade a mano a la lista continua. Si añades lo mismo dos veces, se suma en una sola línea.',
   'tour.recipesBody':
     'Todas las recetas de la cocina, con sus alérgenos. Ajusta las cantidades, o imprímelas para el pase.',
-  'tour.ingredientsBody': 'Con lo que se hacen las recetas, con alérgenos y mermas.',
+  'tour.ingredientsBody': 'De qué están hechas las recetas, con alérgenos y mermas.',
   'tour.settingsBody':
     'Partidas, equipo y PIN, tabletas de cocina, fichas de plato y copias de seguridad.',
   'tour.accountTitle': 'Tu idioma',
@@ -353,12 +353,13 @@ export const es: Record<MessageKey, string> = {
   'addTask.submit': 'Añadir la línea',
   'addTask.fromBook': 'Del recetario',
   'addTask.makes': 'rinde {amount}',
-  'addTask.linked': 'Vinculada a la receta {name}. Quien la haga abre la receta en esta cantidad.',
+  'addTask.linked':
+    'Vinculada a la receta {name}. Quien la haga puede abrir la ficha técnica en esta cantidad.',
   'task.recipe': 'Receta',
   'task.openRecipe': 'Abrir la receta de {task}',
 
   'recipes.subtitle':
-    'Mise en place y componentes. Usa Sin para ver lo que puede tomar una mesa con alergias, subrecetas incluidas. Los platos tienen su propia pestaña.',
+    'Elaboraciones y componentes. Usa Sin para ver lo que puedes servir a una mesa con alergias, subrecetas incluidas. Los platos tienen su propia pestaña.',
   'recipes.search': 'Buscar en el recetario',
   'recipes.sort': 'Tipo',
   'recipes.anySort': 'Cualquier tipo',
@@ -386,8 +387,8 @@ export const es: Record<MessageKey, string> = {
   'recipe.backToBook': 'Volver al recetario',
   'recipe.makes': 'Rinde {amount}',
   'recipe.minutes': '{count} min',
-  'recipe.keeps_one': 'Aguanta {count} hora',
-  'recipe.keeps_other': 'Aguanta {count} horas',
+  'recipe.keeps_one': 'Se conserva {count} hora',
+  'recipe.keeps_other': 'Se conserva {count} horas',
   'recipe.asWritten': 'Tal como está escrita',
   'recipe.scaled': '{factor}× la receta escrita',
   'recipe.contains': 'Contiene',
@@ -395,7 +396,7 @@ export const es: Record<MessageKey, string> = {
   'recipe.mayContain': 'Puede contener {allergens}.',
   'recipe.workedOut': 'Calculado a partir de los ingredientes y de cada subreceta.',
   'recipe.empty': 'Esta receta todavía está vacía.',
-  'recipe.method': 'Elaboración',
+  'recipe.method': 'Método',
   'recipe.storage': 'Conservación',
   'recipe.print': 'Imprimir ficha de receta',
   'recipe.duplicate': 'Duplicar',
@@ -424,7 +425,7 @@ export const es: Record<MessageKey, string> = {
   'editor.name': 'Nombre de la receta',
   'editor.namePlaceholder': 'Nombre de la receta',
   'editor.status': 'Estado',
-  'editor.lastSaved': 'Guardada {time}',
+  'editor.lastSaved': 'Último guardado {time}',
   'editor.notSaved': 'Todavía sin guardar',
   'editor.colWhat': 'Qué es',
   'editor.colNote': 'Nota',
@@ -440,7 +441,7 @@ export const es: Record<MessageKey, string> = {
   'editor.hintNext': 'línea siguiente',
   'editor.hintField': 'campo siguiente',
   'editor.hintMove': 'mover una línea',
-  'editor.hintCreate': 'sobre un nombre desconocido lo crea',
+  'editor.hintCreate': 'con un nombre desconocido: crear',
   'editor.kindRecipe': 'Receta',
   'editor.kindIngredient': 'Ingrediente',
   'editor.kindNew': 'Nuevo',
@@ -450,7 +451,7 @@ export const es: Record<MessageKey, string> = {
   'editor.dishPlates_other': 'Las cantidades son para {count} platos.',
   'editor.yieldUnit': 'Unidad de rendimiento',
   'editor.prepMinutes': 'Preparación, minutos',
-  'editor.keepsHours': 'Aguanta, horas',
+  'editor.keepsHours': 'Conservación, horas',
   'editor.storageHint': 'Dónde y cómo se guarda, por ejemplo al vacío en la cámara.',
   'editor.tags': 'Etiquetas',
   'editor.tagsHint': 'Separa con comas, por ejemplo pastel, a la carta.',
@@ -502,14 +503,14 @@ export const es: Record<MessageKey, string> = {
   'staff.passwordTag': 'Contraseña',
   'staff.locked': 'Bloqueado',
   'staff.unlock': 'Quitar el bloqueo',
-  'staff.namePlaceholder': 'Como le conoce la brigada',
+  'staff.namePlaceholder': 'Cómo se le conoce en la brigada',
   'staff.role': 'Rol',
   'staff.station': 'Partida habitual',
   'staff.noStation': 'Sin partida fija',
   'staff.newPin': 'PIN nuevo',
   'staff.keepIt': 'Déjalo vacío para mantenerlo',
   'staff.pinPlaceholder': '4 cifras',
-  'staff.pinHint': 'Para entrar en una tablet de cocina.',
+  'staff.pinHint': 'Para entrar en una tableta de cocina.',
   'staff.passwordSection': 'Acceso con contraseña, para chefs y responsables',
   'staff.newPassword': 'Contraseña nueva',
   'staff.passwordPlaceholder': 'Al menos 12 caracteres',
@@ -519,24 +520,24 @@ export const es: Record<MessageKey, string> = {
   'stations.loadError': 'No se pudieron cargar las partidas.',
   'stations.title': 'Partidas',
   'stations.body':
-    'Las listas se agrupan por partida y se imprimen en este orden, así que ordénalas como está montada la cocina.',
+    'Las listas de prep se agrupan por partida y se imprimen en este orden, así que ordena las partidas como está montada la cocina.',
   'stations.empty':
-    'Todavía no hay partidas. Una cocina necesita al menos una para poder agrupar una lista.',
+    'Todavía no hay partidas. Una cocina necesita al menos una para poder agrupar una lista de prep.',
   'stations.addLabel': 'Añadir una partida',
   'stations.placeholder': 'p. ej. Cuarto frío',
   'stations.rename': 'Renombrar',
   'stations.moveEarlier': 'Adelantar {name}',
   'stations.moveLater': 'Atrasar {name}',
 
-  'devices.title': 'Tablets de cocina',
+  'devices.title': 'Tabletas de cocina',
   'devices.body':
-    'Los cocineros solo pueden entrar con PIN en una tablet registrada. Regístrala desde la propia tablet, con la sesión de administrador abierta en ella.',
+    'Los cocineros solo pueden entrar con PIN en una tableta registrada. Regístrala desde la propia tableta, con la sesión de administrador abierta en ella.',
   'devices.enrolled': 'Registrada el {date}',
   'devices.lastUsed': 'último uso el {date}',
   'devices.neverUsed': 'nunca usada',
-  'devices.empty': 'Todavía no hay tablets registradas, así que nadie puede entrar con PIN.',
+  'devices.empty': 'Todavía no hay tabletas registradas, así que nadie puede entrar con PIN.',
   'devices.enrolLabel': 'Registrar el dispositivo que estás usando',
-  'devices.placeholder': 'p. ej. Tablet del pase',
+  'devices.placeholder': 'p. ej. Tableta del pase',
   'devices.enrolling': 'Registrando…',
   'devices.enrol': 'Registrar este dispositivo',
   'devices.enrolledOk': 'Registrado. Este dispositivo ya puede mostrar el equipo y aceptar PIN.',
@@ -706,7 +707,7 @@ export const es: Record<MessageKey, string> = {
   'restore.cta': 'Restaurar una copia',
   'restore.title': 'Recuperar una cocina',
   'restore.body':
-    'Elige un archivo de copia y escribe la clave de recuperación que se imprimió para ella. Vuelven el equipo, las recetas, las fotos y las listas de mise en place. Después todos vuelven a iniciar sesión.',
+    'Elige un archivo de copia y escribe la clave de recuperación que se imprimió para ella. Vuelven el equipo, las recetas, las fotos y las listas de prep. Después todos vuelven a iniciar sesión.',
   'restore.file': 'Archivo de copia',
   'restore.key': 'Clave de recuperación',
   'restore.keyHint': 'Las mayúsculas y los guiones son opcionales.',
@@ -723,8 +724,8 @@ export const es: Record<MessageKey, string> = {
   'restore.asideTitle': 'Qué vuelve',
   'restore.asideStaff': 'El equipo, con contraseñas y PIN',
   'restore.asideRecipes': 'Recetas, ingredientes y fotos de emplatado',
-  'restore.asidePrep': 'La lista de mise en place',
-  'restore.asideTablets': 'Las tablets registradas, si el servidor mantiene su dirección',
+  'restore.asidePrep': 'La lista de prep',
+  'restore.asideTablets': 'Las tabletas registradas, si el servidor mantiene su dirección',
 
   // Dish cards
   'recipe.dishCard': 'Ficha de plato',
@@ -732,7 +733,7 @@ export const es: Record<MessageKey, string> = {
   'editor.frontOfHouseHint': 'Lo que la ficha de plato le cuenta a la sala.',
   'editor.flavour': 'Perfil de sabor',
   'editor.flavourHint': 'Separa con comas, por ejemplo cremoso, ajo, fresco.',
-  'editor.temperature': 'Se sirve',
+  'editor.temperature': 'Temperatura de servicio',
   'editor.course': 'Lugar en el menú',
   'editor.drinks': 'Maridaje',
   'editor.drinksHint': 'Por ejemplo Burdeos blanco, kombucha.',
@@ -870,14 +871,14 @@ export const es: Record<MessageKey, string> = {
   // Menus
   'nav.menus': 'Menús',
   'dishes.subtitle':
-    'Cada plato como su ficha: lo que lee la sala, con los alérgenos calculados a partir de cada subreceta.',
+    'Cada plato como ficha: lo que lee la sala, con los alérgenos calculados a partir de cada subreceta.',
   'dishes.new': 'Nuevo plato',
   'dishes.search': 'Buscar un plato',
   'dishes.anyCourse': 'Cualquier pase',
   'dishes.onMenu': 'Solo en un menú activo',
   'dishes.noMatch': 'Ningún plato coincide.',
   'dishes.empty':
-    'Aún no hay platos. Un plato es lo que sale al pase: añade uno y aparecerá aquí como su ficha.',
+    'Aún no hay platos. Un plato es lo que sale al pase: añade uno y aparecerá aquí como ficha.',
   'dishes.count_one': '{count} plato',
   'dishes.count_other': '{count} platos',
   'dishes.countFreeFrom': '{shown} de {total} platos sin {allergen}',
@@ -935,7 +936,7 @@ export const es: Record<MessageKey, string> = {
   'access.asking': 'Pidiendo…',
   'access.waitingTitle': 'Esperando aprobación',
   'access.waitingBody':
-    '“{name}” ha pedido acceso. Pide a un chef o al administrador que lo apruebe en Ajustes → Dispositivos, y léele este código para que sepa que eres tú:',
+    '«{name}» ha pedido acceso. Pide a un chef o al administrador que lo apruebe en Ajustes → Dispositivos, y léele este código para que sepa que eres tú:',
   'access.codeLabel': 'Código',
   'access.checking': 'Esta página abre Mise sola en cuanto se apruebe.',
   'access.whyTitle': '¿Por qué pedir?',
@@ -970,11 +971,11 @@ export const es: Record<MessageKey, string> = {
   'connection.relayedBody':
     'Algunos visitantes llegan a Mise a través del propio relé de Docker, que oculta dónde están realmente. Por eso Mise los cuenta como de fuera: cada dispositivo pide acceso una vez y un chef lo aprueba.',
   'connection.relayedTrusted':
-    'Algunos visitantes llegan a Mise a través del propio relé de Docker, que oculta dónde están realmente. Elegiste contarlos como dentro de la cocina, así que se saltan la aprobación que necesitan los dispositivos de fuera, estén donde estén.',
+    'Algunos visitantes llegan a Mise a través del propio relé de Docker, que oculta dónde están realmente. Has elegido contarlos como dentro de la cocina, así que se saltan la aprobación que necesitan los dispositivos de fuera, estén donde estén.',
   'connection.relayedSeen': 'Último visitante reenviado: {address}, {when}.',
   'connection.relayedTrust': 'Contar a estos visitantes como dentro de la cocina',
   'connection.relayedTrustHint':
-    'Solo si a Mise no se puede llegar desde internet, o solo a través de un servidor web de confianza. Si no, cualquiera que lo encuentre se salta la aprobación.',
+    'Solo si no se puede acceder a Mise desde internet, o solo a través de un servidor web de confianza. Si no, cualquiera que lo encuentre se salta la aprobación.',
   'connection.relayedFix':
     'Pasa con Docker sin root, Podman, Docker Desktop, o por IPv6 cuando la red de Docker no lo tiene. Ejecuta Mise con la red del host (network_mode: host), o activa IPv6 en la red de Docker, para que Mise vea la dirección de cada visitante. Consulta «From outside the kitchen» en el README.',
   'connection.domainTitle': 'Dirección desde fuera',
@@ -993,7 +994,7 @@ export const es: Record<MessageKey, string> = {
   'proxy.title': 'Detrás de otro servidor web',
   'proxy.body':
     '¿Otro servidor web de tu red (Apache, por ejemplo, con tus webs) ya responde por tus dominios? Deja que pase tu dominio de Mise, con su propio certificado. Mise necesita saber qué máquina es, para distinguir quién está en casa y quién fuera.',
-  'proxy.trusted': 'Mise cree a {address} sobre quién es cada visitante.',
+  'proxy.trusted': 'Mise se fía de {address} para saber quién es cada visitante.',
   'proxy.none':
     'Ningún servidor web de confianza: todo lo que llega a través de otra máquina cuenta como de fuera.',
   'proxy.stop': 'Dejar de confiar',
@@ -1005,7 +1006,7 @@ export const es: Record<MessageKey, string> = {
   'proxy.trustTyped': 'Confiar',
   'proxy.apacheTitle': 'Configurar Apache',
   'proxy.miseAddress': 'Mise en tu red',
-  'proxy.step1': 'En la máquina de Apache, comprueba que llega a Mise. Debería mostrar "ok":',
+  'proxy.step1': 'En la máquina de Apache, comprueba que llega a Mise. Debería mostrar «ok»:',
   'proxy.step1Bridge':
     '¿Apache en una VM en la misma TrueNAS que Mise y no vuelve nada? Las VM de TrueNAS a menudo no llegan a su propio host. Crea un puente (br0) en Network de TrueNAS, pasa la dirección del host a él y conecta la tarjeta de red de la VM a br0.',
   'proxy.step2': 'Guarda esto como /etc/apache2/sites-available/mise.conf:',
@@ -1020,17 +1021,17 @@ export const es: Record<MessageKey, string> = {
     'Usa la dirección de un servidor web de la red de la cocina, como 192.168.1.60.',
   'https.title': 'HTTPS',
   'https.body':
-    'El HTTP normal sigue funcionando siempre. HTTPS permite que las tablets sigan trabajando sin conexión e instalen Mise como app, y es imprescindible para todo lo accesible desde internet.',
+    'El HTTP normal sigue funcionando siempre. HTTPS permite que las tabletas sigan trabajando sin conexión e instalen Mise como app, y es imprescindible para todo lo accesible desde internet.',
   'https.on': 'Activado',
   'https.off': 'Desactivado',
   'https.kitchenTitle': 'En la red de la cocina',
   'https.kitchenBody':
-    'Mise crea un certificado propio para las direcciones que usan tus tablets. Sin dominio ni internet. Cada tablet confía en él una vez, desde la página de confianza.',
+    'Mise crea un certificado propio para las direcciones que usan tus tabletas. Sin dominio ni internet. Cada tableta confía en él una vez, desde la página de confianza.',
   'https.renews': 'Se renueva solo. El actual vale hasta el {date}.',
-  'https.trustEachTablet': 'En cada tablet, abre esta página una vez y sigue los pasos:',
-  'https.namesLabel': 'Direcciones que usan las tablets',
+  'https.trustEachTablet': 'En cada tableta, abre esta página una vez y sigue los pasos:',
+  'https.namesLabel': 'Direcciones que usan las tabletas',
   'https.namesHint':
-    'La dirección en la barra de las tablets, sin http:// ni puerto. ¿Varias? Sepáralas con comas.',
+    'La dirección en la barra de las tabletas, sin http:// ni puerto. ¿Varias? Sepáralas con comas.',
   'https.making': 'Creando…',
   'https.turnOn': 'Activar',
   'https.turnOff': 'Desactivar',
@@ -1071,25 +1072,25 @@ export const es: Record<MessageKey, string> = {
     'En Safari, descarga el certificado y permítelo cuando pregunte por un perfil de configuración.',
   'trust.downloadButton': 'Descargar certificado',
   'trust.ios1':
-    'Abre Ajustes, toca “Perfil descargado” arriba, luego Instalar, e introduce tu código.',
+    'Abre Ajustes, toca «Perfil descargado» arriba, luego Instalar, e introduce tu código.',
   'trust.ios2': 'Ve a Ajustes → General → Información → Ajustes de confianza de certificados.',
-  'trust.ios3': 'Activa la confianza total para “Mise”.',
+  'trust.ios3': 'Activa la confianza total para «Mise».',
   'trust.android1':
-    'Abre Ajustes y busca “certificado de CA” (a menudo en Seguridad → Cifrado y credenciales → Instalar un certificado).',
+    'Abre Ajustes y busca «certificado de CA» (a menudo en Seguridad → Cifrado y credenciales → Instalar un certificado).',
   'trust.android2':
-    'Elige “Certificado de CA”, toca “Instalar de todos modos” y selecciona mise-kitchen.crt en tus descargas.',
+    'Elige «Certificado de CA», toca «Instalar de todos modos» y selecciona mise-kitchen.crt en tus descargas.',
   'trust.windows1':
-    'Abre el archivo descargado, elige “Instalar certificado” y luego “Usuario actual”.',
+    'Abre el archivo descargado, elige «Instalar certificado» y luego «Usuario actual».',
   'trust.windows2':
-    'Elige “Colocar todos los certificados en el siguiente almacén”, selecciona “Entidades de certificación raíz de confianza”, termina y reinicia el navegador.',
+    'Elige «Colocar todos los certificados en el siguiente almacén», selecciona «Entidades de certificación raíz de confianza», termina y reinicia el navegador.',
   'trust.mac1':
     'Abre el archivo descargado. Acceso a Llaveros lo añade a tu llavero de inicio de sesión.',
   'trust.mac2':
-    'Haz doble clic en “Mise”, abre Confiar y pon “Al usar este certificado” en “Confiar siempre”.',
+    'Haz doble clic en «Mise», abre Confiar y pon «Al usar este certificado» en «Confiar siempre».',
   'trust.other1':
     'Añade el archivo a las autoridades de certificación de confianza del sistema o del navegador. Firefox tiene su propia lista: Ajustes → Privacidad y seguridad → Certificados → Autoridades → Importar.',
   'trust.check':
-    'Comprueba que funcionó: esto abre esta página por HTTPS. Si sale un aviso, faltó un paso.',
+    'Comprueba que ha funcionado: esto abre esta página por HTTPS. Si sale un aviso, ha faltado un paso.',
   'trust.checkButton': 'Comprobar',
   'trust.fingerprint': 'Huella, para comparar',
   'error.badName':
@@ -1126,7 +1127,7 @@ export const es: Record<MessageKey, string> = {
   'offline.items_other': '{count} elementos',
   'offline.field.note': 'Nota',
   'offline.field.notes': 'Notas',
-  'offline.field.method': 'Elaboración',
+  'offline.field.method': 'Método',
   'offline.field.description': 'Descripción',
   'offline.field.tags': 'Etiquetas',
   'offline.field.components': 'Componentes',
@@ -1143,16 +1144,16 @@ export const es: Record<MessageKey, string> = {
   'offline.no': 'No',
   'offline.unknownStation': 'Una partida ya eliminada',
   'offline.label.note': 'la nota de relevo',
-  'offline.label.addLine': 'la línea de mise en place “{name}”',
-  'offline.label.editLine': 'un cambio en una línea de mise en place',
-  'offline.label.removeLine': 'la eliminación de una línea',
-  'offline.label.recipe': 'la receta “{name}”',
-  'offline.label.menu': 'el menú “{name}”',
-  'offline.label.ingredient': 'el ingrediente “{name}”',
+  'offline.label.addLine': 'la línea de prep «{name}»',
+  'offline.label.editLine': 'un cambio en una línea de prep',
+  'offline.label.removeLine': 'la eliminación de una línea de prep',
+  'offline.label.recipe': 'la receta «{name}»',
+  'offline.label.menu': 'el menú «{name}»',
+  'offline.label.ingredient': 'el ingrediente «{name}»',
   'error.offline':
     'Ahora no se puede conectar con Mise, y esto necesita la conexión. Vuelve a intentarlo cuando vuelva.',
   'prepPrint.print': 'Imprimir',
-  'prepPrint.title': 'Mise en place',
+  'prepPrint.title': 'Lista de prep',
   'prepPrint.empty': 'Nada en la lista.',
   'prepPrint.line': '{name}, {amount}',
   'recipeCard.makes': 'Rinde',
@@ -1172,14 +1173,14 @@ export const es: Record<MessageKey, string> = {
   'updated.bodyVersion':
     'Mise se ha actualizado a {version}. Recarga para usarla; no se pierde nada pendiente de enviar.',
   'updated.reload': 'Recargar',
-  'error.pageTitle': 'Esta página no se abrió',
-  'error.pageBody': 'Algo salió mal al abrirla. Recargar suele solucionarlo.',
-  'access.waitingOne': '“{name}” pide acceso desde fuera de la cocina.',
+  'error.pageTitle': 'Esta página no se ha abierto',
+  'error.pageBody': 'Algo ha salido mal al abrirla. Recargar suele solucionarlo.',
+  'access.waitingOne': '«{name}» pide acceso desde fuera de la cocina.',
   'access.waitingCount_one': '1 dispositivo pide acceso desde fuera de la cocina.',
   'access.waitingCount_other': '{count} dispositivos piden acceso desde fuera de la cocina.',
   'access.checkCode': 'Comprobar el código y aprobar',
   'error.incompatibleUnits':
-    '{child} rinde en {makes}, así que aquí no se puede medir en {unit}. Usa el mismo tipo de unidad, o cambia lo que rinde {child}.',
+    '{child} rinde {makes}, así que aquí no se puede medir en {unit}. Usa el mismo tipo de unidad, o cambia lo que rinde {child}.',
   'error.incompatibleUnitsUsedIn':
     '{usedIn} usa {child} en {unit}, y eso no se puede calcular a partir de {makes}. Cambia primero esa línea, o mantén el rendimiento en el mismo tipo de unidad.',
   'recipe.shownAsWritten':
@@ -1188,33 +1189,33 @@ export const es: Record<MessageKey, string> = {
   'passwordOnly.staff':
     'Has iniciado sesión con tu PIN. Para añadir personal o cambiar roles, contraseñas y PIN, inicia sesión con tu contraseña.',
   'passwordOnly.devices':
-    'Has iniciado sesión con tu PIN. Para registrar tablets o dejar entrar dispositivos de fuera, inicia sesión con tu contraseña.',
+    'Has iniciado sesión con tu PIN. Para registrar tabletas o dejar entrar dispositivos de fuera, inicia sesión con tu contraseña.',
   'passwordOnly.connection':
     'Has iniciado sesión con tu PIN. Para cambiar cómo se accede a Mise, inicia sesión con tu contraseña.',
   'passwordOnly.backups':
     'Has iniciado sesión con tu PIN. Para gestionar las copias o ver la clave de recuperación, inicia sesión con tu contraseña.',
   'error.passwordRequired':
     'Inicia sesión con tu contraseña para hacer esto. Con un PIN puedes hacer todo lo demás.',
-  'kitchen.idle': 'Cerrar sesión en las tabletas compartidas si nadie las toca',
+  'kitchen.idle': 'Cerrar sesión en las tabletas compartidas por inactividad',
   'kitchen.idleNever': 'Nunca',
-  'kitchen.idleMinutes': 'Tras {minutes} minutos sin tocarla',
+  'kitchen.idleMinutes': 'Tras {minutes} minutos de inactividad',
   'kitchen.idleHint':
     'Solo se aplica a las tabletas registradas para entrar con PIN. Antes aparece un aviso breve. Los cambios que aún esperan para enviarse se conservan para la próxima vez que esa persona inicie sesión.',
   'idle.warning':
     'Nadie ha tocado esta tableta desde hace un rato. Se cerrará la sesión en {seconds} segundos.',
   'idle.warningSr': 'Nadie ha tocado esta tableta desde hace un rato. La sesión se cerrará pronto.',
-  'idle.stay': 'Seguir con la sesión',
+  'idle.stay': 'Mantener la sesión',
   'idle.signingOut': 'Cerrando sesión…',
   'error.accessListFull':
     'Hay demasiados dispositivos esperando entrar. Pregunta a un responsable.',
-  'kitchen.prepChecklist': 'Lista de comprobación de prep',
+  'kitchen.prepChecklist': 'Checklist de prep',
   'kitchen.prepChecklistHint':
-    'Los chefs mantienen una lista de lo que hace la cocina, por partida. Cualquiera puede marcar lo que hace falta y añadirlo a la lista de prep con un toque.',
-  'checklist.title': 'Lista de prep',
-  'checklist.hint': 'Marca lo que hace falta y añádelo a la lista.',
-  'checklist.empty': 'La lista está vacía. Un chef puede rellenarla.',
-  'checklist.emptyChef': 'La lista está vacía. Añade lo que hace tu cocina.',
-  'checklist.loadError': 'No se pudo cargar la lista.',
+    'Los chefs mantienen un checklist de lo que hace la cocina, por partida. Cualquiera puede marcar lo que hace falta y añadirlo a la lista de prep con un toque.',
+  'checklist.title': 'Checklist de prep',
+  'checklist.hint': 'Marca lo que hace falta y añádelo a la lista de prep.',
+  'checklist.empty': 'El checklist está vacío. Un chef puede rellenarlo.',
+  'checklist.emptyChef': 'El checklist está vacío. Añade lo que hace tu cocina.',
+  'checklist.loadError': 'No se pudo cargar el checklist.',
   'checklist.add': 'Añadir a la lista de prep',
   'checklist.addCount': 'Añadir a la lista de prep ({count})',
   'checklist.added_one': '1 línea añadida a la lista de prep.',
@@ -1223,11 +1224,11 @@ export const es: Record<MessageKey, string> = {
   'checklist.alreadyThere_one': '1 ya estaba en la lista.',
   'checklist.alreadyThere_other': '{count} ya estaban en la lista.',
   'checklist.queued':
-    'Guardado en esta tablet. Las líneas irán a la lista en cuanto se pueda llegar a Mise.',
-  'checklist.edit': 'Editar la lista',
-  'checklist.editTitle': 'Editar la lista',
+    'Guardado en esta tableta. Las líneas irán a la lista de prep en cuanto se pueda llegar a Mise.',
+  'checklist.edit': 'Editar el checklist',
+  'checklist.editTitle': 'Editar el checklist',
   'checklist.editHint':
-    'Lo que hace la cocina, por partida, con su receta si la hay. Cualquiera puede marcarlos hacia la lista de prep.',
+    'Lo que hace la cocina, por partida, con su receta si la hay. Cualquiera puede marcarlos y añadirlos a la lista de prep.',
   'checklist.itemName': 'Nombre',
   'checklist.newItem': 'Nuevo elemento',
   'checklist.addItem': 'Añadir',
@@ -1235,44 +1236,44 @@ export const es: Record<MessageKey, string> = {
   'checklist.moveUp': 'Subir {name}',
   'checklist.moveDown': 'Bajar {name}',
   'checklist.remove': 'Quitar {name}',
-  'checklist.save': 'Guardar la lista',
+  'checklist.save': 'Guardar el checklist',
   'task.addedBy': 'Añadido por {name}',
-  'task.fromChecklistBy': 'De la lista, por {name}',
-  'task.fromChecklist': 'De la lista',
-  'offline.label.checklist': 'la lista de prep',
-  'offline.label.checklistAdd': 'elementos de la lista',
+  'task.fromChecklistBy': 'Del checklist, por {name}',
+  'task.fromChecklist': 'Del checklist',
+  'offline.label.checklist': 'el checklist de prep',
+  'offline.label.checklistAdd': 'elementos del checklist',
   'error.checklistOff':
-    'La lista de prep está desactivada. Un administrador puede activarla en los ajustes.',
+    'El checklist de prep está desactivado. Un administrador puede activarlo en Ajustes.',
   // Entrar solo con PIN
   'line.pinOnlyLead': 'Escribe tu PIN.',
   'line.pinOnlyLeadOk': 'Escribe tu PIN y pulsa OK.',
   'line.noPinYet': '¿Aún sin PIN, o estás en un portátil?',
-  'devices.lockedUntil': 'Demasiados PIN incorrectos. Bloqueada hasta las {time}.',
-  'pinOnly.title': 'Entrar en las tablets',
+  'devices.lockedUntil': 'Demasiados PIN incorrectos. Bloqueado hasta las {time}.',
+  'pinOnly.title': 'Entrar en las tabletas',
   'pinOnly.label': 'Entrar solo con un PIN',
   'pinOnly.hint':
-    'Las tablets muestran un teclado en lugar de los nombres, y el PIN encuentra a la persona. Cada PIN tiene que ser distinto y no ser obvio, así que primero todos los que tienen PIN reciben uno nuevo.',
+    'Las tabletas muestran un teclado en lugar de los nombres, y el PIN encuentra a la persona. Cada PIN tiene que ser distinto y no ser obvio, así que primero todos los que tienen PIN reciben uno nuevo.',
   'pinOnly.on':
-    'Activado. Las tablets solo muestran el teclado. Desactívalo para que vuelvan los nombres; los PIN siguen funcionando.',
+    'Activado. Las tabletas solo muestran el teclado. Desactívalo para que vuelvan los nombres; los PIN siguen funcionando.',
   'pinOnly.waiting':
-    'Esperando PIN nuevos. Las tablets siguen mostrando los nombres hasta que todos tengan uno.',
+    'Esperando PIN nuevos. Las tabletas siguen mostrando los nombres hasta que todos tengan uno.',
   'pinOnly.waitingHow':
     'Un jefe de cocina o un administrador le pone un PIN nuevo a cada uno en Ajustes → Equipo.',
   'pinOnly.waitingFor': 'Aún necesita un PIN nuevo',
   'pinOnly.needsNewPin': 'Necesita un PIN nuevo',
   'pinOnly.pinHint':
-    'Para entrar en una tablet de cocina. Tiene que ser distinto del de los demás, y no uno obvio como 1234.',
+    'Para entrar en una tableta de cocina. Tiene que ser distinto del de los demás, y no uno obvio como 1234.',
   'error.pinTaken': 'Elige otro PIN.',
   'error.pinTooCommon': 'Elige un PIN menos obvio.',
-  'error.pinOnlyOff': 'Esta tablet vuelve a mostrar los nombres. Toca tu nombre y luego tu PIN.',
-  'error.pinOnlyOn': 'En esta tablet ahora se entra solo con un PIN.',
+  'error.pinOnlyOff': 'Esta tableta vuelve a mostrar los nombres. Toca tu nombre y luego tu PIN.',
+  'error.pinOnlyOn': 'En esta tableta ahora se entra solo con un PIN.',
   'error.tabletLockedUntil':
-    'Demasiados PIN incorrectos en esta tablet. Vuelve a intentarlo después de las {time}, o pide a un jefe de cocina que quite el bloqueo.',
+    'Demasiados PIN incorrectos en esta tableta. Vuelve a intentarlo después de las {time}, o pide a un jefe de cocina que quite el bloqueo.',
   // Setup: the 2.3 options, the checklist step, and the sign-in hint
-  'setup.stepChecklist': 'Lista',
-  'setup.checklistTitle': 'La lista de prep',
+  'setup.stepChecklist': 'Checklist',
+  'setup.checklistTitle': 'El checklist de prep',
   'setup.checklistBody':
-    'Lo que hace esta cocina, por puesto. Cualquiera marca lo que hace falta y pasa a la lista de prep. Puedes saltar este paso y rellenarla más tarde.',
+    'Lo que hace esta cocina, por partida. Cualquiera marca lo que hace falta y pasa a la lista de prep. Puedes saltar este paso y rellenarlo más tarde.',
   'setup.pinOnlyHint':
     'Las tabletas muestran un teclado en vez de los nombres, y el PIN encuentra a la persona. Cada PIN tiene que ser distinto y no fácil de adivinar.',
   'setup.pinCommon':
@@ -1282,25 +1283,25 @@ export const es: Record<MessageKey, string> = {
   'setup.pinOnlyFix':
     'Algunos PIN no sirven para entrar solo con un PIN. Cámbialos, o desactívalo.',
   'setup.pinOnlyChange': 'Cambiar los PIN',
-  'setup.summaryChecklistOn': 'Lista de prep activada',
-  'setup.summaryChecklistOff': 'Lista de prep desactivada',
+  'setup.summaryChecklistOn': 'Checklist de prep activado',
+  'setup.summaryChecklistOff': 'Checklist de prep desactivado',
   'setup.summaryChecklistLines_one': '1 línea',
   'setup.summaryChecklistLines_other': '{count} líneas',
   'setup.summaryPinOnly': 'Las tabletas entran solo con un PIN',
   'setup.summaryNames': 'Las tabletas muestran los nombres y luego piden el PIN',
   'setup.summaryIdle':
-    'Las tabletas compartidas cierran sesión tras {minutes} minutos sin tocarlas',
+    'Las tabletas compartidas cierran sesión tras {minutes} minutos de inactividad',
   'setup.summaryIdleNever': 'Las tabletas compartidas siguen con la sesión abierta',
   'login.tabletPinBody': 'Los cocineros entran en la tableta de la cocina con su PIN.',
-  'tour.checklistTitle': 'La lista de prep',
+  'tour.checklistTitle': 'El checklist de prep',
   'tour.checklistBody':
-    'Abre la lista, marca lo que la cocina necesita hoy y pásalo a la lista de prep de una vez.',
+    'Abre el checklist, marca lo que la cocina necesita hoy y pásalo a la lista de prep de una vez.',
   'tour.checklistBodyChef':
-    'Tu lista de lo que hace la cocina, por puesto. Cualquiera marca lo que hace falta y lo pasa a la lista de prep de una vez. Edítala aquí cuando cambie la carta.',
+    'Tu checklist de lo que hace la cocina, por partida. Cualquiera marca lo que hace falta y lo pasa a la lista de prep de una vez. Edítalo aquí cuando cambie la carta.',
   'password.show': 'Mostrar contraseña',
   'password.hide': 'Ocultar contraseña',
   'editor.cookOnly':
-    'Solo los jefes de cocina y los administradores pueden escribir o cambiar recetas y platos.',
+    'Solo los chefs y los administradores pueden escribir o cambiar recetas y platos.',
   'outside.turnDownAll': 'Rechazar todas las pendientes',
   'outside.reallyTurnDownAll_one': '¿Rechazar {count} solicitud pendiente?',
   'outside.reallyTurnDownAll_other': '¿Rechazar las {count} solicitudes pendientes?',
@@ -1312,9 +1313,9 @@ export const es: Record<MessageKey, string> = {
   'checklist.linkRecipeFor': 'Vincular una receta a {name}',
   'checklist.searchRecipe': 'Buscar en el libro una receta para {name}',
   'checklist.searchRecipePlaceholder': 'Buscar en el libro',
-  'checklistPrint.title': 'Checklist de preparación',
-  'checklistPrint.print': 'Imprimir la checklist',
-  'checklistPrint.empty': 'La checklist está vacía.',
+  'checklistPrint.title': 'Checklist de prep',
+  'checklistPrint.print': 'Imprimir el checklist',
+  'checklistPrint.empty': 'El checklist está vacío.',
   // Privacidad: qué se guarda, cuánto tiempo, y los datos de una persona
   'settings.tabPrivacy': 'Privacidad',
   'kitchen.keepFor': 'Guardarlas durante',
@@ -1327,13 +1328,13 @@ export const es: Record<MessageKey, string> = {
     'Las líneas marcadas más antiguas se eliminan, para que el registro de quién hizo qué no crezca sin fin.',
   'staff.theirData': 'Sus datos',
   'staff.theirDataHint':
-    'Todo lo que Mise guarda sobre {name}: su cuenta, las líneas de mise en place que añadió, tomó o marcó, una nota de relevo firmada con su nombre, y dónde tiene la sesión abierta. Nunca su PIN ni su contraseña.',
+    'Todo lo que Mise guarda sobre {name}: su cuenta, las líneas de prep que añadió, tomó o marcó, una nota de relevo firmada con su nombre, y dónde tiene la sesión abierta. Nunca su PIN ni su contraseña.',
   'staff.downloadReadable': 'Descargar para leer',
   'staff.downloadJson': 'Descargar en JSON',
   'staff.removeForGood': 'Quitar para siempre',
   'staff.removeTitle': '¿Quitar a {name} para siempre?',
   'staff.removeWhat':
-    'Su cuenta y sus sesiones desaparecen, y su nombre sale de las líneas de mise en place, de la nota de relevo y de los dispositivos que aprobó. Las líneas y la nota se quedan. No se puede deshacer.',
+    'Su cuenta y sus sesiones desaparecen, y su nombre sale de las líneas de prep, de la nota de relevo y de los dispositivos que aprobó. Las líneas y la nota se quedan. No se puede deshacer.',
   'staff.removeBackupsLocal_one':
     'Las copias de seguridad hechas antes conservan sus datos hasta que otras más nuevas las sustituyen. Este servidor guarda la última copia, y hace una cada noche en que algo cambia.',
   'staff.removeBackupsLocal_other':
@@ -1354,13 +1355,13 @@ export const es: Record<MessageKey, string> = {
   'personData.hasPassword': 'Entra con contraseña',
   'personData.hasPin': 'Entra con PIN',
   'personData.pinSetAt': 'PIN puesto por última vez',
-  'personData.tourSeenAt': 'Visita guiada ofrecida',
+  'personData.tourSeenAt': 'Recorrido ofrecido',
   'personData.lockedUntil': 'Bloqueado hasta',
   'personData.createdAt': 'Añadido al equipo',
   'personData.updatedAt': 'Cuenta cambiada por última vez',
   'personData.secrets':
-    'Un PIN o una contraseña solo se guarda como hash, del que no se puede recuperar. No está en este archivo.',
-  'personData.lines': 'Líneas de mise en place',
+    'Un PIN o una contraseña solo se guardan como hash, del que no se pueden recuperar. No están en este archivo.',
+  'personData.lines': 'Líneas de prep',
   'personData.lineTimes': 'Añadida {added} · marcada {ticked}',
   'personData.lineAdded': 'La puso en la lista',
   'personData.lineOnIt': 'Lleva su nombre',
@@ -1369,11 +1370,11 @@ export const es: Record<MessageKey, string> = {
   'personData.note': 'Nota de relevo firmada con su nombre',
   'personData.sessions': 'Sesiones abiertas',
   'personData.session': 'Desde {started}, visto por última vez {seen}, termina {ends}',
-  'personData.tablet': 'Tablet',
+  'personData.tablet': 'Tableta',
   'personData.browser': 'Navegador',
   'personData.devices': 'Dispositivos de fuera que aprobó',
   'personData.device': 'aprobado {approved}, usado por última vez {seen}',
-  'privacy.loadError': 'No se pudo cargar esta página. Prueba de nuevo en un momento.',
+  'privacy.loadError': 'No se pudo cargar esta página. Inténtalo de nuevo en un momento.',
   'privacy.title': 'Lo que Mise guarda y envía',
   'privacy.intro':
     'Mise guarda los datos de la cocina en este servidor y en ningún otro sitio. La cocina es responsable de lo que guarda sobre su equipo, y esta página tiene lo que necesitas para responder a quien pregunte.',
@@ -1384,16 +1385,16 @@ export const es: Record<MessageKey, string> = {
   'privacy.keptSecrets':
     'PIN y contraseñas solo como hash. Nadie puede leerlos de vuelta, tampoco Mise.',
   'privacy.keptLines':
-    'Quién puso cada línea de mise en place en la lista, qué nombre lleva y quién la marcó, con cuándo se añadió y se marcó.',
+    'Quién puso cada línea de prep en la lista, qué nombre lleva y quién la marcó, con cuándo se añadió y se marcó.',
   'privacy.keptNote':
     'El nombre de quien escribió la nota de relevo, hasta que la siguiente nota la sustituya.',
   'privacy.keptRecipes': 'Quién escribió cada receta.',
   'privacy.keptSessions':
-    'Quién tiene la sesión abierta: desde cuándo, cuándo se le vio por última vez, en qué tablet y en qué navegador.',
+    'Quién tiene la sesión abierta: desde cuándo, cuándo se le vio por última vez, en qué tableta y en qué navegador.',
   'privacy.keptSessionsHow':
     'Una sesión con contraseña dura {days} días, con PIN {hours} horas. Después se elimina.',
   'privacy.keptTablets':
-    'Tablets de la cocina: el nombre que se le dio a cada una, y cuándo se usó por última vez.',
+    'Tabletas de la cocina: el nombre que se le dio a cada una, y cuándo se usó por última vez.',
   'privacy.keptOutside':
     'Dispositivos fuera de la cocina: el nombre que se dio cada uno, la dirección y el navegador desde los que pidió acceso, quién lo aprobó y cuándo se usó por última vez.',
   'privacy.keptOutsideHow':
@@ -1412,7 +1413,7 @@ export const es: Record<MessageKey, string> = {
     'Las líneas marcadas se guardan fuera de la vista para siempre. En Ajustes → Cocina se puede limitar.',
   'privacy.backupsTitle': 'Copias de seguridad',
   'privacy.backupsWhat':
-    'Cada copia contiene el equipo, con los hashes pero nunca un PIN ni una contraseña, las recetas y la lista de mise en place. Está cifrada con la clave de recuperación.',
+    'Cada copia contiene el equipo, con los hashes pero nunca un PIN ni una contraseña, las recetas y la lista de prep. Está cifrada con la clave de recuperación.',
   'privacy.backupsLocal_one': 'Este servidor guarda la última copia.',
   'privacy.backupsLocal_other': 'Este servidor guarda las últimas {count} copias.',
   'privacy.backupsNights':
@@ -1425,14 +1426,14 @@ export const es: Record<MessageKey, string> = {
   'privacy.sentTitle': 'Lo que Mise envía, y adónde',
   'privacy.sentGithub':
     'Una vez al día, api.github.com, para preguntar cuál es la versión más nueva de Mise. No se envía nada sobre la cocina.',
-  'privacy.sentGithubOn': 'Activado. Un administrador puede apagarlo en Ajustes → Cocina.',
+  'privacy.sentGithubOn': 'Activado. Un administrador puede desactivarlo en Ajustes → Cocina.',
   'privacy.sentLetsEncrypt':
     'Let’s Encrypt, cuando HTTPS está activado para la dirección de fuera, para obtener y renovar su certificado.',
   'privacy.sentOnedrive':
     'Microsoft OneDrive, cuando las copias van allí: las copias cifradas, tras iniciar sesión en Microsoft.',
   'privacy.sentWebdav': 'Tu NAS o Nextcloud, cuando las copias van allí: las copias cifradas.',
   'privacy.sentOn': 'Activado aquí.',
-  'privacy.sentOff': 'Apagado aquí.',
+  'privacy.sentOff': 'Desactivado aquí.',
   'privacy.sentNothingElse':
     'Nada más. Sin estadísticas, sin seguimiento y sin publicidad, y sin fuentes ni scripts de ningún otro sitio.',
   'about.licences': 'Licencias',
