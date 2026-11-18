@@ -177,3 +177,33 @@ test('the licence notices open offline too', async ({ browser }) => {
   await expect(tablet.locator('body')).toContainText('Third-party notices');
   await context.close();
 });
+
+test('what was loaded ahead is still on the tablet long after, unopened', async ({
+  browser,
+  request,
+}) => {
+  const api = await signedInApi(request);
+  const recipe = await (
+    await api.post('/api/recipes', {
+      data: { name: unique('Pickled shallots'), type: 'prep', yield: { value: 300, unit: 'g' } },
+    })
+  ).json();
+
+  const context = await browser.newContext({ viewport: { width: 1024, height: 1200 } });
+  const tablet = await context.newPage();
+  await tablet.clock.install();
+  await signIn(tablet);
+  await keptOnDevice(tablet, recipe.id);
+
+  // Nobody opens it. Well past the five minutes a cache keeps an unused answer by default.
+  await tablet.clock.fastForward('20:00');
+  await tablet.clock.fastForward('00:05');
+  // Let the copy on the device be written, before reading it back.
+  await tablet.waitForTimeout(2_000);
+  await keptOnDevice(tablet, recipe.id);
+
+  await context.setOffline(true);
+  await tablet.goto(`/recipes/${recipe.id}`).catch(() => undefined);
+  await expect(tablet.locator('main')).toContainText(recipe.name, { timeout: 15_000 });
+  await context.close();
+});
