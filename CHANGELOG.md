@@ -23,7 +23,10 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
   Recipe link, like one added from the book.
 - **Print checklist** gives a sheet by station with a box per line, for kitchens that tick on paper.
 - Ticking no longer makes the page jump: the "not sent yet" notice only shows once a tick has
-  waited a second, at the bottom of the screen.
+  waited a second, at the bottom of the screen. Notices there stack instead of covering each
+  other.
+- Deleting a recipe that a checklist line links to no longer stops the next checklist save, or
+  loses a tablet's edit made offline: the line simply loses its link, on every screen.
 
 **Privacy**
 
@@ -47,7 +50,13 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
   form that can't be saved.
 - **Turn down all waiting** clears every outside device waiting to be let in, in one go.
 - The footer links to "GitHub", and **Licences** next to it lists every open-source package and
-  font that ships with Mise.
+  font that ships with Mise, offline too.
+- A sous chef's **Staff** tab only offers what a sous chef may do: see the brigade, and download
+  their own data.
+- **Settings → Connection** says plainly that the web server Mise sees is a suggestion to check:
+  any machine on the network can put itself forward.
+- The Dutch, German, French and Spanish texts were gone over: one word for each kitchen term
+  throughout, the same form of address everywhere, and a number of clumsy or wrong phrases fixed.
 
 **Accessibility**
 
@@ -63,7 +72,19 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
 
 - Shipped dependencies are checked for known security problems on every change; a few were
   updated to fixed versions.
-- The upgrade test covers 2.3.1.
+- Tablets load ahead for offline use far more lightly: they ask whether anything changed, and only
+  then fetch the kitchen in one go, read once on the server and shared between tablets. Before,
+  every tablet asked for every recipe several times over, every half hour.
+- Restoring a backup no longer writes a readable copy of it to disk, and photos and database go in
+  together: if a restore fails, the server is left exactly as it was. Leftovers of a restore cut
+  short are cleared when Mise starts.
+- Two people saving the same recipe, menu, ingredient or handover note at the same moment, or two
+  administrators stepping down at once, are now caught inside the save itself, not only just
+  before it.
+- Removing someone also clears the answers Mise keeps for a week to repeat a write, where those
+  name them.
+- The upgrade test covers 2.3.1, and checks that ticked lines a kitchen keeps survive the update and
+  a restore.
 
 ## 2.3.1
 
