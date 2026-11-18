@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
+import { writeReceipts } from '../../db/schema.js';
 import { ADMIN, cookieFrom, setUpKitchen, useTestContext } from '../../test/harness.js';
 
 const ctx = useTestContext();
@@ -331,6 +332,26 @@ describe('editing staff', () => {
     expect(tasks.json()).toEqual([
       expect.objectContaining({ id: taskId, assignedUserId: null, assignedUserName: null }),
     ]);
+  });
+
+  it('keeps no answer to a retried write that names someone removed', async () => {
+    const created = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/users',
+      payload: { displayName: 'Marco', role: 'cook', email: 'Marco@example.com', pin: '4821' },
+      headers: { 'x-mise-write': 'create-marco-0001' },
+      cookies: as(admin),
+    });
+    expect(created.statusCode).toBe(200);
+    const removed = await ctx.app.inject({
+      method: 'DELETE',
+      url: `/api/users/${created.json().id}`,
+      cookies: as(admin),
+    });
+    expect(removed.statusCode).toBe(204);
+
+    const kept = await ctx.db.select().from(writeReceipts);
+    expect(kept.filter((receipt) => receipt.body?.toLowerCase().includes('marco'))).toEqual([]);
   });
 });
 

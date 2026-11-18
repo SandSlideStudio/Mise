@@ -409,7 +409,20 @@ export function createKitchenService(db: Database) {
         .update(kitchens)
         .set({ handoverNoteBy: null })
         .where(eq(kitchens.handoverNoteBy, current.displayName));
-      await tx.delete(writeReceipts).where(like(writeReceipts.key, `${id}:%`));
+      // Their own writes' answers, and others' answers that name them (the
+      // one that created them, say): kept a week to answer a retry, but not
+      // for someone who is gone.
+      await tx
+        .delete(writeReceipts)
+        .where(
+          or(
+            like(writeReceipts.key, `${id}:%`),
+            sql`strpos(${writeReceipts.body}, ${id}) > 0`,
+            ...(current.email
+              ? [sql`strpos(lower(${writeReceipts.body}), ${current.email.toLowerCase()}) > 0`]
+              : []),
+          ),
+        );
       await tx.delete(users).where(eq(users.id, id));
       return 'removed' as const;
     });
