@@ -529,3 +529,7 @@ See [SECURITY.md](SECURITY.md) to report a problem privately.
 Mise is free software under the [GNU Affero General Public License v3.0](LICENSE). You can run it,
 change it and share it. If you change it and let other people use your changed version over a
 network, you have to offer them your source code too.
+
+Mise is built on open-source packages and the Barlow fonts; their licences are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md), and under **Licences** at the bottom of the app.
+After changing dependencies, run `npm run licenses` to bring that list up to date.

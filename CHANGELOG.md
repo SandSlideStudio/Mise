@@ -50,7 +50,23 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
 - A cook who opens a recipe or dish editor by its address sees that it's for chefs, instead of a
   form that can't be saved.
 - **Turn down all waiting** clears every outside device waiting to be let in, in one go.
-- The footer links to "GitHub".
+- The footer links to "GitHub", and **Licences** next to it lists every open-source package and
+  font that ships with Mise.
+
+**Accessibility**
+
+- Every page is now checked automatically for accessibility, in day and night, on a computer and a
+  phone, as a chef and as a cook, setup included. What the checks found is fixed: language buttons
+  say what they show, the dish card's allergen table can be scrolled with the keyboard, the remove
+  confirmation reads clearly at night, editors and pages have proper headings, and the tour keeps
+  the keyboard inside it until it's closed.
+- The prep list and the checklist can be used by keyboard alone, checked by tests.
+- The small "Step 5 of 6" line in setup is easier to read.
+
+**Under the hood**
+
+- Shipped dependencies are checked for known security problems on every change; a few were
+  updated to fixed versions.
 - The upgrade test covers 2.3.1.
 
 ## 2.3.1
