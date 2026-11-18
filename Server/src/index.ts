@@ -118,13 +118,17 @@ async function main(): Promise<void> {
   // Whether a newer Mise is out: a minute after start, then daily, if allowed.
   app.updates.start();
 
-  // Expired sessions are cleared out at start and then once an hour.
+  // Expired sessions, and whatever has been kept long enough (old ticked
+  // lines, outside devices nobody uses), are cleared out at start and then
+  // once an hour.
   const purge = () =>
-    Promise.all([app.auth.purgeExpiredSessions(), app.purgeWriteReceipts()]).catch(
-      (error: unknown) => {
-        app.log.warn({ error }, 'could not clear expired sessions');
-      },
-    );
+    Promise.all([
+      app.auth.purgeExpiredSessions(),
+      app.purgeWriteReceipts(),
+      app.privacy.forgetOld(),
+    ]).catch((error: unknown) => {
+      app.log.warn({ error }, 'could not clear out what has been kept long enough');
+    });
   await purge();
   setInterval(() => void purge(), 3_600_000).unref();
 

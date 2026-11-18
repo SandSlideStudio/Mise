@@ -15,8 +15,10 @@ import { HttpsSettings } from './settings/HttpsSettings.js';
 import { PasswordOnly } from '../components/PasswordOnly.js';
 import { useScrollFade } from '../lib/scrollFade.js';
 import { DishCardSettings } from './settings/DishCardSettings.js';
+import { PrivacySettings } from './settings/PrivacySettings.js';
 
-type TabId = 'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups';
+type TabId =
+  'staff' | 'stations' | 'devices' | 'kitchen' | 'dishCards' | 'connection' | 'backups' | 'privacy';
 
 const TABS: { id: TabId; label: MessageKey; adminOnly?: boolean }[] = [
   { id: 'staff', label: 'settings.tabStaff' },
@@ -26,6 +28,7 @@ const TABS: { id: TabId; label: MessageKey; adminOnly?: boolean }[] = [
   { id: 'dishCards', label: 'settings.tabDishCards' },
   { id: 'connection', label: 'settings.tabConnection', adminOnly: true },
   { id: 'backups', label: 'settings.tabBackups', adminOnly: true },
+  { id: 'privacy', label: 'settings.tabPrivacy' },
 ];
 
 /** Everything an administrator sets up once and then forgets about. */
@@ -110,6 +113,8 @@ export function Settings() {
             <BackupSettings />
           </PasswordOnly>
         ) : null}
+
+        {tab === 'privacy' ? <PrivacySettings /> : null}
 
         <AboutLine className="border-line mt-12 border-t pt-4" />
       </main>

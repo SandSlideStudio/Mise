@@ -6,6 +6,14 @@ import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 import { VersionSettings } from './VersionSettings.js';
 
 export const IDLE_CHOICES = [2, 5, 10, 15, 30];
+/** How long kept ticked lines stay, in days. Leaving the choice empty keeps them for good. */
+const KEEP_CHOICES = [30, 90, 180, 365, 730];
+
+function keepChoices(current: number | null): number[] {
+  return current === null || KEEP_CHOICES.includes(current)
+    ? KEEP_CHOICES
+    : [...KEEP_CHOICES, current].sort((a, b) => a - b);
+}
 
 /** The usual choices, plus whatever is set already if it was set some other way. */
 function idleChoices(current: number | null): number[] {
@@ -20,13 +28,14 @@ function idleChoices(current: number | null): number[] {
  */
 export function KitchenSettings() {
   const translator = useT();
-  const { t } = translator;
+  const { t, plural } = translator;
   const kitchen = useKitchen();
   const update = useUpdateKitchen();
   const [name, setName] = useState('');
   const [language, setLanguage] = useState<Language>('en');
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
   const [idleMinutes, setIdleMinutes] = useState<number | null>(null);
+  const [keepDays, setKeepDays] = useState<number | null>(365);
   const [prepChecklist, setPrepChecklist] = useState(false);
 
   // Seed the form once the current settings arrive.
@@ -36,6 +45,7 @@ export function KitchenSettings() {
       setLanguage(kitchen.data.language);
       setTickedRetention(kitchen.data.tickedRetention);
       setIdleMinutes(kitchen.data.idleSignOutMinutes);
+      setKeepDays(kitchen.data.tickedKeepDays);
       setPrepChecklist(kitchen.data.prepChecklist);
     }
   }, [kitchen.data]);
@@ -50,6 +60,7 @@ export function KitchenSettings() {
       name,
       language,
       tickedRetention,
+      tickedKeepDays: keepDays,
       idleSignOutMinutes: idleMinutes,
       prepChecklist,
     });
@@ -88,6 +99,32 @@ export function KitchenSettings() {
           </select>
           <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.retentionHint')}</p>
         </div>
+
+        {tickedRetention === 'keep' ? (
+          <div>
+            <label className="label" htmlFor="tickedKeepDays">
+              {t('kitchen.keepFor')}
+            </label>
+            <select
+              id="tickedKeepDays"
+              className="field"
+              value={keepDays ?? ''}
+              onChange={(e) => setKeepDays(e.target.value === '' ? null : Number(e.target.value))}
+            >
+              {keepChoices(keepDays).map((days) => (
+                <option key={days} value={days}>
+                  {days === 365
+                    ? t('kitchen.keepYear')
+                    : days === 730
+                      ? t('kitchen.keepTwoYears')
+                      : plural('kitchen.keepDays', days)}
+                </option>
+              ))}
+              <option value="">{t('kitchen.keepForGood')}</option>
+            </select>
+            <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.keepForHint')}</p>
+          </div>
+        ) : null}
 
         <label className="flex cursor-pointer items-start gap-3">
           <input

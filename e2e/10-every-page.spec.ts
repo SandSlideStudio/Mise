@@ -594,7 +594,7 @@ for (const { label, viewport } of WIDTHS) {
       const tabs = page.getByRole('tablist').first().getByRole('tab');
       await expect(tabs.first()).toBeVisible();
       const names = (await tabs.allTextContents()).map((text) => text.trim());
-      expect(names, 'the administrator sees all seven tabs').toHaveLength(7);
+      expect(names, 'the administrator sees all eight tabs').toHaveLength(8);
       const seen = new Set<string>();
       // The tabs in the order Settings lists them, which is the name each puts in the address.
       const ids = ['staff', 'stations', 'devices', 'kitchen', 'dishCards', 'connection', 'backups'];

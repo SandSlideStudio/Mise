@@ -1316,4 +1316,125 @@ export const nl: Record<MessageKey, string> = {
   'checklistPrint.title': 'Prepchecklist',
   'checklistPrint.print': 'Checklist printen',
   'checklistPrint.empty': 'De checklist is leeg.',
+  // Privacy: wat bewaard wordt, hoe lang, en de gegevens van één persoon
+  'settings.tabPrivacy': 'Privacy',
+  'kitchen.keepFor': 'Bewaren voor',
+  'kitchen.keepDays_one': '{count} dag',
+  'kitchen.keepDays_other': '{count} dagen',
+  'kitchen.keepYear': 'Een jaar',
+  'kitchen.keepTwoYears': 'Twee jaar',
+  'kitchen.keepForGood': 'Voorgoed',
+  'kitchen.keepForHint':
+    'Oudere afgevinkte regels worden verwijderd, zodat het overzicht van wie wat deed niet eindeloos groeit.',
+  'staff.theirData': 'Hun gegevens',
+  'staff.theirDataHint':
+    'Alles wat Mise over {name} bewaart: het account, de prepregels die ze toevoegden, oppakten of afvinkten, een overdrachtsnotitie met hun naam eronder, en waar ze ingelogd zijn. Nooit hun pincode of wachtwoord.',
+  'staff.downloadReadable': 'Downloaden om te lezen',
+  'staff.downloadJson': 'Downloaden als JSON',
+  'staff.removeForGood': 'Voorgoed weghalen',
+  'staff.removeTitle': '{name} voorgoed weghalen?',
+  'staff.removeWhat':
+    'Het account en de sessies verdwijnen, en hun naam gaat van prepregels, de overdrachtsnotitie en apparaten die ze toelieten. De regels en de notitie blijven. Dit kan niet ongedaan worden gemaakt.',
+  'staff.removeBackupsLocal_one':
+    'Eerder gemaakte back-ups houden hun gegevens tot nieuwere ze vervangen. Deze server bewaart de laatste back-up, en maakt er een elke nacht dat er iets verandert.',
+  'staff.removeBackupsLocal_other':
+    'Eerder gemaakte back-ups houden hun gegevens tot nieuwere ze vervangen. Deze server bewaart de laatste {count}, en maakt er een elke nacht dat er iets verandert, dus na {count} nachten met wijzigingen zijn ze hier weg.',
+  'staff.removeBackupsRemote_one': 'De NAS of OneDrive bewaart de laatste back-up.',
+  'staff.removeBackupsRemote_other':
+    'De NAS of OneDrive bewaart de laatste {count}, dus daar zijn ze na {count} nachten met wijzigingen weg.',
+  'staff.removeBackupsDownloaded':
+    'Een back-up die iemand downloadde, houdt ze zo lang die bewaard wordt.',
+  'personData.title': 'Wat Mise over {name} bewaart',
+  'personData.made': 'Gemaakt op {date} door {kitchen}.',
+  'personData.yes': 'Ja',
+  'personData.no': 'Nee',
+  'personData.none': 'Geen.',
+  'personData.account': 'Account',
+  'personData.active': 'Kan inloggen',
+  'personData.language': 'Eigen taal',
+  'personData.hasPassword': 'Logt in met een wachtwoord',
+  'personData.hasPin': 'Logt in met een pincode',
+  'personData.pinSetAt': 'Pincode laatst ingesteld',
+  'personData.tourSeenAt': 'Rondleiding aangeboden',
+  'personData.lockedUntil': 'Geblokkeerd tot',
+  'personData.createdAt': 'Toegevoegd aan het personeel',
+  'personData.updatedAt': 'Account laatst gewijzigd',
+  'personData.secrets':
+    'Een pincode of wachtwoord wordt alleen als hash bewaard, waaruit het niet terug te halen is. Die staat niet in dit bestand.',
+  'personData.lines': 'Prepregels',
+  'personData.lineTimes': 'Toegevoegd {added} · afgevinkt {ticked}',
+  'personData.lineAdded': 'Zette hem op de lijst',
+  'personData.lineOnIt': 'Hun naam staat erbij',
+  'personData.lineTicked': 'Vinkte hem af',
+  'personData.recipes': 'Recepten die ze schreven',
+  'personData.note': 'Overdrachtsnotitie met hun naam eronder',
+  'personData.sessions': 'Ingelogd',
+  'personData.session': 'Sinds {started}, laatst gezien {seen}, loopt af {ends}',
+  'personData.tablet': 'Tablet',
+  'personData.browser': 'Browser',
+  'personData.devices': 'Apparaten van buiten die ze toelieten',
+  'personData.device': 'toegelaten {approved}, laatst gebruikt {seen}',
+  'privacy.loadError': 'Deze pagina kon niet laden. Probeer het zo opnieuw.',
+  'privacy.title': 'Wat Mise bewaart en verstuurt',
+  'privacy.intro':
+    'Mise bewaart de gegevens van de keuken op deze server en nergens anders. De keuken is verantwoordelijk voor wat ze over haar personeel bewaart, en op deze pagina staat wat je nodig hebt om iedereen die ernaar vraagt te antwoorden.',
+  'privacy.staffTools':
+    'Onder Personeel downloadt Hun gegevens alles over één persoon, en Voorgoed weghalen haalt diegene eruit.',
+  'privacy.keptTitle': 'Wat er over mensen bewaard wordt',
+  'privacy.keptNames': 'Namen, en een e-mailadres voor wie met een wachtwoord inlogt.',
+  'privacy.keptSecrets':
+    'Pincodes en wachtwoorden alleen als hash. Niemand kan ze teruglezen, Mise ook niet.',
+  'privacy.keptLines':
+    'Wie elke prepregel op de lijst zette, wiens naam erbij staat en wie hem afvinkte, met wanneer hij werd toegevoegd en afgevinkt.',
+  'privacy.keptNote':
+    'De naam van wie de overdrachtsnotitie schreef, tot de volgende notitie hem vervangt.',
+  'privacy.keptRecipes': 'Wie elk recept schreef.',
+  'privacy.keptSessions':
+    'Wie er ingelogd is: sinds wanneer, wanneer laatst gezien, op welke tablet en in welke browser.',
+  'privacy.keptSessionsHow':
+    'Inloggen met een wachtwoord duurt {days} dagen, met een pincode {hours} uur. Daarna wordt het verwijderd.',
+  'privacy.keptTablets':
+    'Keukentablets: de naam die elke tablet kreeg, en wanneer hij laatst gebruikt is.',
+  'privacy.keptOutside':
+    'Apparaten buiten de keuken: de naam die elk zichzelf gaf, het adres en de browser waarmee het vroeg, wie het toeliet en wanneer het laatst gebruikt is.',
+  'privacy.keptOutsideHow':
+    'Een apparaat dat {days} dagen niet gebruikt is, wordt vergeten, adres en browser erbij. Een verzoek waar niemand op reageert, verdwijnt na {hours} uur.',
+  'privacy.keptOffline':
+    'Een wijziging die offline is gemaakt, krijgt één keer antwoord en dat antwoord wordt {days} dagen bewaard, zodat ze nooit twee keer wordt doorgevoerd.',
+  'privacy.keptLockout':
+    'Verkeerde pincodes en wachtwoorden worden alleen in het geheugen geteld, en vergeten als Mise herstart. Een geblokkeerd account blijft geblokkeerd tot de blokkade afloopt.',
+  'privacy.linesDeleted_one': 'Afgevinkte regels worden {count} uur na het afvinken verwijderd.',
+  'privacy.linesDeleted_other': 'Afgevinkte regels worden {count} uur na het afvinken verwijderd.',
+  'privacy.linesKeptDays_one':
+    'Afgevinkte regels worden {count} dag uit het zicht bewaard en dan verwijderd.',
+  'privacy.linesKeptDays_other':
+    'Afgevinkte regels worden {count} dagen uit het zicht bewaard en dan verwijderd.',
+  'privacy.linesKeptForGood':
+    'Afgevinkte regels worden voorgoed uit het zicht bewaard. Onder Instellingen → Keuken kun je dat beperken.',
+  'privacy.backupsTitle': 'Back-ups',
+  'privacy.backupsWhat':
+    'Elke back-up bevat het personeel, met de hashes maar nooit een pincode of wachtwoord, de recepten en de preplijst. Hij is versleuteld met de herstelsleutel.',
+  'privacy.backupsLocal_one': 'Deze server bewaart de laatste back-up.',
+  'privacy.backupsLocal_other': 'Deze server bewaart de laatste {count} back-ups.',
+  'privacy.backupsNights':
+    'Er wordt er een gemaakt elke nacht dat er iets veranderde, dus de oudste kan ouder zijn dan zoveel nachten.',
+  'privacy.backupsRemote_one': 'De NAS of OneDrive bewaart ook de laatste back-up.',
+  'privacy.backupsRemote_other': 'De NAS of OneDrive bewaart ook de laatste {count} back-ups.',
+  'privacy.backupsOnlyHere': 'Back-ups gaan nergens anders heen.',
+  'privacy.backupsLeftOut':
+    'Sessies, apparaten van buiten en de back-upinstellingen zitten nooit in een back-up. Een back-up die iemand downloadde, blijft bestaan zo lang die persoon hem bewaart.',
+  'privacy.sentTitle': 'Wat Mise verstuurt, en waarheen',
+  'privacy.sentGithub':
+    'Eén keer per dag api.github.com, om te vragen welke versie van Mise de nieuwste is. Er gaat niets over de keuken mee.',
+  'privacy.sentGithubOn': 'Aan. Een beheerder zet het uit onder Instellingen → Keuken.',
+  'privacy.sentLetsEncrypt':
+    'Let’s Encrypt, als HTTPS aan staat voor het adres van buiten, om het certificaat te halen en te vernieuwen.',
+  'privacy.sentOnedrive':
+    'Microsoft OneDrive, als back-ups daarheen gaan: de versleutelde back-ups, na inloggen bij Microsoft.',
+  'privacy.sentWebdav':
+    'Je NAS of Nextcloud, als back-ups daarheen gaan: de versleutelde back-ups.',
+  'privacy.sentOn': 'Hier aan.',
+  'privacy.sentOff': 'Hier uit.',
+  'privacy.sentNothingElse':
+    'Verder niets. Geen statistieken, geen tracking en geen advertenties, en geen lettertypen of scripts van ergens anders.',
 };

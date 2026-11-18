@@ -211,6 +211,25 @@ export function createPrepService(db: Database) {
     return removed.length;
   }
 
+  /**
+   * Kept lines don't stay for ever: once ticked this many days ago they are
+   * deleted, so the record of who did what doesn't grow without end. Null
+   * keeps them for good. Returns how many were deleted.
+   */
+  async function expireKept(days: number | null, now = Date.now()): Promise<number> {
+    if (days === null) return 0;
+    const removed = await db
+      .delete(prepTasks)
+      .where(
+        and(
+          eq(prepTasks.status, 'done'),
+          lt(prepTasks.completedAt, new Date(now - days * 86_400_000)),
+        ),
+      )
+      .returning({ id: prepTasks.id });
+    return removed.length;
+  }
+
   /** What is on the list right now. */
   async function listTasks() {
     // As text: the Postgres driver won't take a Date as a prepared parameter.
@@ -333,6 +352,7 @@ export function createPrepService(db: Database) {
     deleteTask,
     isGone,
     expire,
+    expireKept,
   };
 }
 

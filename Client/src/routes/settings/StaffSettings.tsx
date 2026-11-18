@@ -12,7 +12,10 @@ import {
   useUpdateStaff,
 } from '../../api/kitchen.js';
 import { useCurrentUser } from '../../api/session.js';
+import { fetchPersonData, usePrivacySummary } from '../../api/privacy.js';
+import { saveFile } from '../../components/PrintSheets.js';
 import { errorMessage, roleName, useT } from '../../i18n/index.js';
+import { readablePersonData } from '../../lib/personData.js';
 
 /**
  * The brigade.
@@ -102,6 +105,7 @@ function StaffRow({
   const remove = useRemoveStaff();
   const unlock = useUnlockStaff();
   const [confirming, setConfirming] = useState(false);
+  const [showData, setShowData] = useState(false);
 
   const station = stations.find((s) => s.id === person.defaultStationId);
   const locked = person.lockedUntil !== null && new Date(person.lockedUntil) > new Date();
@@ -143,30 +147,40 @@ function StaffRow({
           </button>
         ) : null}
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {canManage ? (
             <button type="button" className="btn-small" onClick={onEdit}>
               {editing ? t('common.cancel') : t('common.edit')}
             </button>
           ) : null}
-          {!isSelf && canManage ? (
-            confirming ? (
-              <button
-                type="button"
-                className="btn-small border-danger text-danger"
-                onClick={() => remove.mutate(person.id, { onSettled: () => setConfirming(false) })}
-                disabled={remove.isPending}
-              >
-                {t('common.reallyRemove')}
-              </button>
-            ) : (
-              <button type="button" className="btn-small" onClick={() => setConfirming(true)}>
-                {t('common.remove')}
-              </button>
-            )
+          {canManage ? (
+            <button
+              type="button"
+              className="btn-small"
+              aria-expanded={showData}
+              onClick={() => setShowData(!showData)}
+            >
+              {t('staff.theirData')}
+            </button>
+          ) : null}
+          {!isSelf && canManage && !confirming ? (
+            <button type="button" className="btn-small" onClick={() => setConfirming(true)}>
+              {t('staff.removeForGood')}
+            </button>
           ) : null}
         </div>
       </div>
+
+      {showData ? <PersonDataDownload person={person} /> : null}
+
+      {confirming ? (
+        <RemoveForGood
+          person={person}
+          pending={remove.isPending}
+          onRemove={() => remove.mutate(person.id, { onSettled: () => setConfirming(false) })}
+          onCancel={() => setConfirming(false)}
+        />
+      ) : null}
 
       {remove.error ? (
         <p role="alert" className="text-danger mt-2 text-sm">
@@ -180,6 +194,111 @@ function StaffRow({
         </div>
       ) : null}
     </li>
+  );
+}
+
+/**
+ * Everything Mise holds about someone, for when they ask. Readable for them,
+ * and the same as JSON for a computer.
+ */
+function PersonDataDownload({ person }: { person: User }) {
+  const translator = useT();
+  const { t } = translator;
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<unknown>(null);
+
+  async function download(as: 'text' | 'json') {
+    setPending(true);
+    setError(null);
+    try {
+      const data = await fetchPersonData(person.id);
+      const name = `${person.displayName} - Mise`;
+      if (as === 'json') {
+        const json = JSON.stringify(data, null, 2);
+        saveFile(new Blob([json], { type: 'application/json' }), `${name}.json`);
+      } else {
+        const text = readablePersonData(translator, data);
+        saveFile(new Blob([text], { type: 'text/plain;charset=utf-8' }), `${name}.txt`);
+      }
+    } catch (caught) {
+      setError(caught);
+    } finally {
+      setPending(false);
+    }
+  }
+
+  return (
+    <div className="bg-surface border-line mt-4 border px-4 py-4">
+      <p className="text-ink-soft text-sm">
+        {t('staff.theirDataHint', { name: person.displayName })}
+      </p>
+      <div className="mt-3 flex flex-wrap gap-3">
+        <button
+          type="button"
+          className="btn-quiet"
+          disabled={pending}
+          onClick={() => void download('text')}
+        >
+          {t('staff.downloadReadable')}
+        </button>
+        <button
+          type="button"
+          className="btn-quiet"
+          disabled={pending}
+          onClick={() => void download('json')}
+        >
+          {t('staff.downloadJson')}
+        </button>
+      </div>
+      {error ? (
+        <p role="alert" className="text-danger mt-2 text-sm">
+          {errorMessage(translator, error)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * Removing someone can't be undone, and backups made before still hold them
+ * until they rotate out. Both are said before anything happens.
+ */
+function RemoveForGood({
+  person,
+  pending,
+  onRemove,
+  onCancel,
+}: {
+  person: User;
+  pending: boolean;
+  onRemove: () => void;
+  onCancel: () => void;
+}) {
+  const { t, plural } = useT();
+  const privacy = usePrivacySummary();
+  const backups = privacy.data?.backups;
+  const remote = backups && (backups.webdav || backups.onedrive);
+
+  return (
+    <div role="alert" className="border-danger bg-surface-raised mt-4 border-l-[6px] px-5 py-4">
+      <p className="font-medium">{t('staff.removeTitle', { name: person.displayName })}</p>
+      <p className="text-ink-soft mt-1 text-sm">{t('staff.removeWhat')}</p>
+      {backups ? (
+        <p className="text-ink-soft mt-2 text-sm">
+          {plural('staff.removeBackupsLocal', backups.keepLocal)}
+          {remote ? ` ${plural('staff.removeBackupsRemote', backups.keepRemote)}` : ''}{' '}
+          {t('staff.removeBackupsDownloaded')}
+        </p>
+      ) : null}
+      <div className="mt-4 flex flex-wrap gap-3">
+        <button type="button" className="btn-danger" disabled={pending} onClick={onRemove}>
+          {t('staff.removeForGood')}
+        </button>
+        <button type="button" className="btn-quiet" onClick={onCancel}>
+          {t('common.cancel')}
+        </button>
+      </div>
+    </div>
   );
 }
 

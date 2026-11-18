@@ -139,6 +139,12 @@ export function createAccessService(db: Database) {
   }
 
   return {
+    /**
+     * Also run once an hour, so a device nobody uses is forgotten after 90
+     * days, with its address and browser, even when nobody opens Settings.
+     */
+    sweep,
+
     /** A new request. Returns the cookie's token and the code to read out. */
     async ask(input: { name: string; userAgent: string | null; address: string }) {
       await sweep();

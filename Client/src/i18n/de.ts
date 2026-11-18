@@ -1331,4 +1331,127 @@ export const de: Record<MessageKey, string> = {
   'checklistPrint.title': 'Prep-Checkliste',
   'checklistPrint.print': 'Checkliste drucken',
   'checklistPrint.empty': 'Die Checkliste ist leer.',
+  // Datenschutz: was gespeichert wird, wie lange, und die Daten einer Person
+  'settings.tabPrivacy': 'Datenschutz',
+  'kitchen.keepFor': 'Behalten für',
+  'kitchen.keepDays_one': '{count} Tag',
+  'kitchen.keepDays_other': '{count} Tage',
+  'kitchen.keepYear': 'Ein Jahr',
+  'kitchen.keepTwoYears': 'Zwei Jahre',
+  'kitchen.keepForGood': 'Für immer',
+  'kitchen.keepForHint':
+    'Ältere abgehakte Zeilen werden gelöscht, damit die Aufzeichnung, wer was gemacht hat, nicht endlos wächst.',
+  'staff.theirData': 'Ihre Daten',
+  'staff.theirDataHint':
+    'Alles, was Mise über {name} speichert: das Konto, die Prep-Zeilen, die die Person hinzugefügt, übernommen oder abgehakt hat, eine Übergabenotiz mit ihrem Namen und wo sie angemeldet ist. Nie ihre PIN oder ihr Passwort.',
+  'staff.downloadReadable': 'Zum Lesen herunterladen',
+  'staff.downloadJson': 'Als JSON herunterladen',
+  'staff.removeForGood': 'Endgültig entfernen',
+  'staff.removeTitle': '{name} endgültig entfernen?',
+  'staff.removeWhat':
+    'Konto und Sitzungen verschwinden, und der Name verschwindet von Prep-Zeilen, der Übergabenotiz und Geräten, die die Person zugelassen hat. Die Zeilen und die Notiz bleiben. Das lässt sich nicht rückgängig machen.',
+  'staff.removeBackupsLocal_one':
+    'Frühere Backups behalten die Daten, bis neuere sie ersetzen. Dieser Server behält das letzte Backup und macht jede Nacht eins, in der sich etwas geändert hat.',
+  'staff.removeBackupsLocal_other':
+    'Frühere Backups behalten die Daten, bis neuere sie ersetzen. Dieser Server behält die letzten {count} und macht jede Nacht eins, in der sich etwas geändert hat; nach {count} Nächten mit Änderungen sind sie hier also weg.',
+  'staff.removeBackupsRemote_one': 'Das NAS oder OneDrive behält das letzte Backup.',
+  'staff.removeBackupsRemote_other':
+    'Das NAS oder OneDrive behält die letzten {count}; dort sind sie nach {count} Nächten mit Änderungen weg.',
+  'staff.removeBackupsDownloaded':
+    'Ein heruntergeladenes Backup behält sie, solange es aufbewahrt wird.',
+  'personData.title': 'Was Mise über {name} speichert',
+  'personData.made': 'Erstellt am {date} von {kitchen}.',
+  'personData.yes': 'Ja',
+  'personData.no': 'Nein',
+  'personData.none': 'Keine.',
+  'personData.account': 'Konto',
+  'personData.active': 'Kann sich anmelden',
+  'personData.language': 'Eigene Sprache',
+  'personData.hasPassword': 'Meldet sich mit Passwort an',
+  'personData.hasPin': 'Meldet sich mit PIN an',
+  'personData.pinSetAt': 'PIN zuletzt gesetzt',
+  'personData.tourSeenAt': 'Rundgang angeboten',
+  'personData.lockedUntil': 'Gesperrt bis',
+  'personData.createdAt': 'Zum Team hinzugefügt',
+  'personData.updatedAt': 'Konto zuletzt geändert',
+  'personData.secrets':
+    'Eine PIN oder ein Passwort wird nur als Hash gespeichert, aus dem es sich nicht zurückgewinnen lässt. Er steht nicht in dieser Datei.',
+  'personData.lines': 'Prep-Zeilen',
+  'personData.lineTimes': 'Hinzugefügt {added} · abgehakt {ticked}',
+  'personData.lineAdded': 'Hat sie auf die Liste gesetzt',
+  'personData.lineOnIt': 'Ihr Name steht daran',
+  'personData.lineTicked': 'Hat sie abgehakt',
+  'personData.recipes': 'Rezepte, die die Person geschrieben hat',
+  'personData.note': 'Übergabenotiz mit ihrem Namen',
+  'personData.sessions': 'Angemeldet',
+  'personData.session': 'Seit {started}, zuletzt gesehen {seen}, endet {ends}',
+  'personData.tablet': 'Tablet',
+  'personData.browser': 'Browser',
+  'personData.devices': 'Geräte von außen, die die Person zugelassen hat',
+  'personData.device': 'zugelassen {approved}, zuletzt benutzt {seen}',
+  'privacy.loadError': 'Diese Seite konnte nicht geladen werden. Versuch es gleich noch einmal.',
+  'privacy.title': 'Was Mise speichert und sendet',
+  'privacy.intro':
+    'Mise speichert die Daten der Küche auf diesem Server und nirgends sonst. Die Küche ist für das verantwortlich, was sie über ihr Team speichert, und auf dieser Seite steht, was du brauchst, um jedem zu antworten, der danach fragt.',
+  'privacy.staffTools':
+    'Unter Team lädt Ihre Daten alles über eine Person herunter, und Endgültig entfernen nimmt sie heraus.',
+  'privacy.keptTitle': 'Was über Menschen gespeichert wird',
+  'privacy.keptNames': 'Namen, und eine E-Mail-Adresse für alle, die sich mit Passwort anmelden.',
+  'privacy.keptSecrets':
+    'PINs und Passwörter nur als Hash. Niemand kann sie zurücklesen, auch Mise nicht.',
+  'privacy.keptLines':
+    'Wer jede Prep-Zeile auf die Liste gesetzt hat, wessen Name daran steht und wer sie abgehakt hat, mit dem Zeitpunkt des Hinzufügens und Abhakens.',
+  'privacy.keptNote':
+    'Der Name dessen, der die Übergabenotiz geschrieben hat, bis die nächste Notiz sie ersetzt.',
+  'privacy.keptRecipes': 'Wer jedes Rezept geschrieben hat.',
+  'privacy.keptSessions':
+    'Wer angemeldet ist: seit wann, zuletzt gesehen wann, auf welchem Tablet und in welchem Browser.',
+  'privacy.keptSessionsHow':
+    'Eine Anmeldung mit Passwort hält {days} Tage, mit PIN {hours} Stunden. Danach wird sie gelöscht.',
+  'privacy.keptTablets':
+    'Küchentablets: der Name, den jedes bekommen hat, und wann es zuletzt benutzt wurde.',
+  'privacy.keptOutside':
+    'Geräte außerhalb der Küche: der Name, den sich jedes gegeben hat, die Adresse und der Browser, mit dem es gefragt hat, wer es zugelassen hat und wann es zuletzt benutzt wurde.',
+  'privacy.keptOutsideHow':
+    'Ein Gerät, das {days} Tage nicht benutzt wurde, wird vergessen, mit Adresse und Browser. Eine Anfrage, auf die niemand antwortet, verschwindet nach {hours} Stunden.',
+  'privacy.keptOffline':
+    'Eine offline gemachte Änderung wird einmal beantwortet und die Antwort {days} Tage behalten, damit sie nie zweimal ausgeführt wird.',
+  'privacy.keptLockout':
+    'Falsche PINs und Passwörter werden nur im Speicher gezählt und beim Neustart von Mise vergessen. Ein gesperrtes Konto bleibt gesperrt, bis die Sperre endet.',
+  'privacy.linesDeleted_one': 'Abgehakte Zeilen werden {count} Stunde nach dem Abhaken gelöscht.',
+  'privacy.linesDeleted_other':
+    'Abgehakte Zeilen werden {count} Stunden nach dem Abhaken gelöscht.',
+  'privacy.linesKeptDays_one':
+    'Abgehakte Zeilen werden {count} Tag unsichtbar behalten und dann gelöscht.',
+  'privacy.linesKeptDays_other':
+    'Abgehakte Zeilen werden {count} Tage unsichtbar behalten und dann gelöscht.',
+  'privacy.linesKeptForGood':
+    'Abgehakte Zeilen werden für immer unsichtbar behalten. Unter Einstellungen → Küche lässt sich das begrenzen.',
+  'privacy.backupsTitle': 'Backups',
+  'privacy.backupsWhat':
+    'Jedes Backup enthält das Team, mit den Hashes, aber nie einer PIN oder einem Passwort, die Rezepte und die Prep-Liste. Es ist mit dem Wiederherstellungsschlüssel verschlüsselt.',
+  'privacy.backupsLocal_one': 'Dieser Server behält das letzte Backup.',
+  'privacy.backupsLocal_other': 'Dieser Server behält die letzten {count} Backups.',
+  'privacy.backupsNights':
+    'Eins wird jede Nacht gemacht, in der sich etwas geändert hat; das älteste kann also älter sein als so viele Nächte.',
+  'privacy.backupsRemote_one': 'Das NAS oder OneDrive behält ebenfalls das letzte Backup.',
+  'privacy.backupsRemote_other':
+    'Das NAS oder OneDrive behält ebenfalls die letzten {count} Backups.',
+  'privacy.backupsOnlyHere': 'Backups gehen nirgendwo sonst hin.',
+  'privacy.backupsLeftOut':
+    'Sitzungen, Geräte von außen und die Backup-Einstellungen sind nie in einem Backup. Ein heruntergeladenes Backup bleibt, solange es jemand aufbewahrt.',
+  'privacy.sentTitle': 'Was Mise sendet, und wohin',
+  'privacy.sentGithub':
+    'Einmal am Tag api.github.com, um zu fragen, welche Version von Mise die neueste ist. Nichts über die Küche geht mit.',
+  'privacy.sentGithubOn': 'An. Ein Administrator schaltet es unter Einstellungen → Küche aus.',
+  'privacy.sentLetsEncrypt':
+    'Let’s Encrypt, wenn HTTPS für die Adresse von außen an ist, um das Zertifikat zu holen und zu erneuern.',
+  'privacy.sentOnedrive':
+    'Microsoft OneDrive, wenn Backups dorthin gehen: die verschlüsselten Backups, nach der Anmeldung bei Microsoft.',
+  'privacy.sentWebdav':
+    'Dein NAS oder Nextcloud, wenn Backups dorthin gehen: die verschlüsselten Backups.',
+  'privacy.sentOn': 'Hier an.',
+  'privacy.sentOff': 'Hier aus.',
+  'privacy.sentNothingElse':
+    'Sonst nichts. Keine Statistik, kein Tracking und keine Werbung, und keine Schriften oder Skripte von woanders.',
 };
