@@ -101,6 +101,11 @@ export const kitchens = pgTable('kitchen', {
   pinOnlySince: timestamp('pin_only_since', { withTimezone: true }),
   /** Sign out of a shared tablet after this many minutes untouched. Null: never. */
   idleSignOutMinutes: integer('idle_sign_out_minutes'),
+  /**
+   * Kept ticked lines (tickedRetention 'keep') are removed after this many
+   * days, so the record doesn't grow forever with who did what. Null: never.
+   */
+  tickedKeepDays: integer('ticked_keep_days').default(365),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -122,10 +127,15 @@ export const prepChecklistItems = pgTable(
     id: uuid('id').primaryKey().defaultRandom(),
     stationId: uuid('station_id').references(() => stations.id, { onDelete: 'set null' }),
     name: text('name').notNull(),
+    /** The recipe the line is made from, if any: the prep line it adds links to it. */
+    recipeId: uuid('recipe_id').references(() => recipes.id, { onDelete: 'set null' }),
     sortOrder: integer('sort_order').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [index('prep_checklist_item_station_idx').on(t.stationId)],
+  (t) => [
+    index('prep_checklist_item_station_idx').on(t.stationId),
+    index('prep_checklist_item_recipe_idx').on(t.recipeId),
+  ],
 );
 
 export const users = pgTable(

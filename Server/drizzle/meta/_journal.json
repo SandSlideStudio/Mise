@@ -162,6 +162,13 @@
       "when": 1794864950460,
       "tag": "0022_prep_checklist_and_pin_only",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1794999654047,
+      "tag": "0023_checklist_recipe_and_retention",
+      "breakpoints": true
     }
   ]
 }

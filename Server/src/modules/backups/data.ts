@@ -10,13 +10,14 @@ import * as schema from '../../db/schema.js';
 export const BACKED_UP: PgTable[] = [
   schema.kitchens,
   schema.stations,
-  schema.prepChecklistItems,
   schema.users,
   schema.devices,
   schema.ingredients,
   schema.recipes,
   schema.recipeComponents,
   schema.recipePhotos,
+  // After recipes: a checklist line can point at one.
+  schema.prepChecklistItems,
   schema.prepTasks,
   schema.dishCardSettings,
   schema.menus,
