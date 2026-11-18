@@ -1459,4 +1459,5 @@ export const fr: Record<MessageKey, string> = {
   'privacy.sentOff': 'Désactivé ici.',
   'privacy.sentNothingElse':
     'Rien d’autre. Pas de statistiques, pas de pistage, pas de publicité, et aucune police ni aucun script venus d’ailleurs.',
+  'about.licences': 'Licences',
 };

@@ -1435,4 +1435,5 @@ export const es: Record<MessageKey, string> = {
   'privacy.sentOff': 'Apagado aquí.',
   'privacy.sentNothingElse':
     'Nada más. Sin estadísticas, sin seguimiento y sin publicidad, y sin fuentes ni scripts de ningún otro sitio.',
+  'about.licences': 'Licencias',
 };

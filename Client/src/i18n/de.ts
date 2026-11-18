@@ -1454,4 +1454,5 @@ export const de: Record<MessageKey, string> = {
   'privacy.sentOff': 'Hier aus.',
   'privacy.sentNothingElse':
     'Sonst nichts. Keine Statistik, kein Tracking und keine Werbung, und keine Schriften oder Skripte von woanders.',
+  'about.licences': 'Lizenzen',
 };

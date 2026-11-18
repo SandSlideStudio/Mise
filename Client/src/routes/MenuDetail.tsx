@@ -251,6 +251,8 @@ function MenuHeader({ menu, canManage }: { menu: Menu; canManage: boolean }) {
 
   return (
     <form onSubmit={onSubmit} className="flex flex-col gap-3">
+      {/* The name is edited in place; a screen reader still finds the page's heading. */}
+      <h1 className="sr-only">{menu.name}</h1>
       <div className="flex flex-wrap items-center gap-3">
         <input
           aria-label={t('menus.name')}

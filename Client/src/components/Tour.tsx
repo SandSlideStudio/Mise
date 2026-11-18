@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { Role } from '@mise/contracts';
 import { useKitchen } from '../api/kitchen.js';
 import { useCurrentUser, useUpdateMe } from '../api/session.js';
 import { useT, type MessageKey } from '../i18n/index.js';
+import { useFocusTrap } from '../lib/focusTrap.js';
 import { Plate } from './Plate.js';
 
 /**
@@ -118,6 +119,8 @@ export function TourHost() {
 
 function TourPrompt({ name, onAnswer }: { name: string; onAnswer: (takeTour: boolean) => void }) {
   const { t } = useT();
+  const box = useRef<HTMLDivElement>(null);
+  useFocusTrap(box);
 
   useEffect(() => {
     function onKey(event: KeyboardEvent) {
@@ -133,6 +136,7 @@ function TourPrompt({ name, onAnswer }: { name: string; onAnswer: (takeTour: boo
       style={{ background: DIM }}
     >
       <div
+        ref={box}
         role="dialog"
         aria-modal="true"
         aria-labelledby="tour-prompt-title"
@@ -199,6 +203,8 @@ function Tour({
   const [box, setBox] = useState<Box | null>(null);
   const stop = stops[Math.min(index, stops.length - 1)]!;
   const last = index === stops.length - 1;
+  const dialog = useRef<HTMLDivElement>(null);
+  useFocusTrap(dialog);
 
   // Find what this stop is about, bring it into view, and keep following it:
   // the page may still be loading, scrolling, or changing size underneath.
@@ -257,6 +263,7 @@ function Tour({
 
   return (
     <div
+      ref={dialog}
       role="dialog"
       aria-modal="true"
       aria-label={t('tour.label')}
@@ -284,7 +291,8 @@ function Tour({
             <button
               type="button"
               onClick={onClose}
-              className="text-ink-soft hover:text-ink font-display text-xs font-semibold"
+              // A finger-sized target that takes no more room than the words.
+              className="text-ink-soft hover:text-ink font-display -my-3 -mr-2 min-h-11 px-2 text-xs font-semibold"
             >
               {t('tour.skip')}
             </button>

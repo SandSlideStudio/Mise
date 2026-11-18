@@ -1401,6 +1401,7 @@ export const en = {
   'privacy.sentOff': 'Off here.',
   'privacy.sentNothingElse':
     'Nothing else. No analytics, no tracking and no advertising, and no fonts or scripts from anywhere else.',
+  'about.licences': 'Licences',
 } as const;
 
 export type MessageKey = keyof typeof en;

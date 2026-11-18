@@ -29,9 +29,11 @@
     "db:generate": "npm run db:generate --workspace @mise/server",
     "db:migrate": "npm run db:migrate --workspace @mise/server",
     "db:studio": "npm run db:studio --workspace @mise/server",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "licenses": "node scripts/licenses.mjs"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@eslint/js": "^9.17.0",
     "@playwright/test": "1.63.0",
     "@types/node": "^22.20.2",

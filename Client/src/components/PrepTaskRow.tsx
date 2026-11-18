@@ -200,12 +200,17 @@ function RemoveButton({
     <button
       type="button"
       disabled={disabled}
-      aria-label={t('task.remove', { task: task.description })}
+      // Once it asks, its name starts with the question it shows.
+      aria-label={
+        confirming
+          ? `${t('task.removeConfirm')} ${t('task.remove', { task: task.description })}`
+          : t('task.remove', { task: task.description })
+      }
       onClick={() => (confirming ? onRemove() : setConfirming(true))}
       onBlur={() => setConfirming(false)}
       className={`no-print border-rule flex w-14 shrink-0 items-center justify-center border-l text-center transition-colors disabled:opacity-45 sm:w-16 ${
         confirming
-          ? 'bg-danger text-sm font-semibold text-white'
+          ? 'bg-danger text-surface text-sm font-semibold'
           : 'bg-surface-raised text-ink-soft active:bg-surface-sunk text-xl'
       }`}
     >

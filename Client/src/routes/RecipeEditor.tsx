@@ -341,304 +341,168 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
 
   return (
     <AppShell>
-      <form onSubmit={onSubmit} className="mx-auto max-w-[1340px] px-4 py-6 sm:px-6 sm:py-8">
-        <Plate className="bg-surface">
-          <div className="bg-surface-raised border-line flex flex-wrap items-center gap-x-5 gap-y-3 border-b px-4 py-4 sm:px-6">
-            <span className="eyebrow text-[13px]">
-              {recipe ? t('editor.editing') : t('recipes.new')}
-            </span>
-            <input
-              aria-label={t('editor.name')}
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('editor.namePlaceholder')}
-              required
-              autoFocus={!recipe}
-              className="font-display text-ink border-field focus-visible:border-accent placeholder:text-ink-faint min-w-0 flex-1 basis-full border-b-2 bg-transparent px-1 pb-0.5 text-[30px] sm:basis-0 font-semibold focus-visible:outline-none sm:max-w-[420px] sm:text-[34px]"
-            />
-            <select
-              aria-label={t('editor.status')}
-              value={status}
-              onChange={(e) => setStatus(e.target.value as RecipeStatus)}
-              className={`tag h-8 cursor-pointer bg-transparent text-[13px] ${
-                status === 'published' ? 'tag-brand' : status === 'draft' ? 'tag-accent' : ''
-              }`}
-            >
-              {(['draft', 'published', 'archived'] as const).map((value) => (
-                <option key={value} value={value}>
-                  {recipeStatusName(t, value)}
-                </option>
-              ))}
-            </select>
-            <span className="text-ink-soft ml-auto text-sm">
-              {pending
-                ? t('common.saving')
-                : recipe
-                  ? t('editor.lastSaved', {
-                      time: new Date(recipe.updatedAt).toLocaleString(locale, {
-                        weekday: 'short',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      }),
-                    })
-                  : t('editor.notSaved')}
-            </span>
-            <button
-              type="button"
-              className="btn-quiet min-h-11 px-4"
-              onClick={() =>
-                recipe
-                  ? recipe.type === 'dish'
-                    ? void navigate({ to: '/dishes/$dishId', params: { dishId: recipe.id } })
-                    : void navigate({ to: '/recipes/$recipeId', params: { recipeId: recipe.id } })
-                  : void navigate({ to: type === 'dish' ? '/dishes' : '/recipes' })
-              }
-            >
-              {t('common.cancel')}
-            </button>
-            <button
-              type="submit"
-              className="btn-primary min-h-11 px-[22px] text-xl"
-              disabled={pending}
-            >
-              {t('common.save')}
-            </button>
-          </div>
-
-          {error ? (
-            <p
-              role="alert"
-              className="border-danger bg-danger/10 text-danger border-b px-4 py-3 text-[17px] sm:px-6"
-            >
-              {errorMessage(translator, error)}
-            </p>
-          ) : null}
-
-          {/* "The rest" goes beside the lines only where both fit; on a tablet it sits below. */}
-          <div className="grid xl:grid-cols-[minmax(0,1fr)_340px]">
-            <div className="border-line xl:border-r">
-              <div
-                className={`col-head hidden items-center gap-3 px-6 py-2.5 lg:grid ${LINE_COLUMNS}`}
+      <main>
+        <form onSubmit={onSubmit} className="mx-auto max-w-[1340px] px-4 py-6 sm:px-6 sm:py-8">
+          <Plate className="bg-surface">
+            <div className="bg-surface-raised border-line flex flex-wrap items-center gap-x-5 gap-y-3 border-b px-4 py-4 sm:px-6">
+              {/* The page's heading, drawn as the small label it has always been. */}
+              <h1 className="eyebrow font-sans text-[13px] leading-normal">
+                {recipe ? t('editor.editing') : t('recipes.new')}
+              </h1>
+              <input
+                aria-label={t('editor.name')}
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('editor.namePlaceholder')}
+                required
+                autoFocus={!recipe}
+                className="font-display text-ink border-field focus-visible:border-accent placeholder:text-ink-faint min-w-0 flex-1 basis-full border-b-2 bg-transparent px-1 pb-0.5 text-[30px] sm:basis-0 font-semibold focus-visible:outline-none sm:max-w-[420px] sm:text-[34px]"
+              />
+              <select
+                aria-label={t('editor.status')}
+                value={status}
+                onChange={(e) => setStatus(e.target.value as RecipeStatus)}
+                className={`tag h-8 cursor-pointer bg-transparent text-[13px] ${
+                  status === 'published' ? 'tag-brand' : status === 'draft' ? 'tag-accent' : ''
+                }`}
               >
-                <span>{t('editor.colWhat')}</span>
-                <span className="text-right">{t('common.howMuch')}</span>
-                <span>{t('common.unit')}</span>
-                <span>{t('editor.colNote')}</span>
-                <span />
-              </div>
-
-              {lines.map((line, index) => {
-                const previous = lines[index - 1];
-                const startsSection =
-                  index === 0 ? line.section !== '' : previous!.section !== line.section;
-
-                return (
-                  <div key={line.key}>
-                    {startsSection ? (
-                      <div className="bg-surface flex items-center gap-3 px-4 pt-3.5 pb-1.5 sm:px-6">
-                        <input
-                          ref={register(`${line.key}:section`)}
-                          aria-label={t('editor.sectionHeading')}
-                          value={line.section}
-                          size={Math.max(10, line.section.length + 1)}
-                          placeholder={t('editor.sectionHeading')}
-                          onChange={(e) => renameSection(index, e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              setFocusTarget(`${line.key}:picker`);
-                            }
-                          }}
-                          className="font-display text-brand placeholder:text-ink-faint focus-visible:border-accent max-w-[70%] border-b border-transparent bg-transparent text-lg font-semibold focus-visible:outline-none"
-                        />
-                        <span className="bg-field h-px flex-1" aria-hidden />
-                        <button
-                          type="button"
-                          className="text-ink-faint hover:text-ink text-xs"
-                          onClick={() => renameSection(index, previous?.section ?? '')}
-                        >
-                          {t('editor.removeHeading')}
-                        </button>
-                      </div>
-                    ) : null}
-
-                    <div
-                      className={`bg-surface-raised border-rule grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 border-t px-4 py-2 sm:px-6 lg:gap-3 lg:py-1.5 ${LINE_COLUMNS}`}
-                    >
-                      <div className="col-span-3 flex min-w-0 flex-col gap-1 lg:col-span-1">
-                        <ComponentPicker
-                          value={line.ref}
-                          displayName={line.displayName}
-                          excludeRecipeId={recipe?.id}
-                          inputRef={register(`${line.key}:picker`)}
-                          onChange={(ref, displayName) =>
-                            updateLine(line.key, { ref, displayName })
-                          }
-                          onChosen={() => setFocusTarget(`${line.key}:amount`)}
-                          onKeyDown={(e) => onLineKey(e, index, 'picker')}
-                        />
-                        <KindTag line={line} />
-                      </div>
-                      <input
-                        ref={register(`${line.key}:amount`)}
-                        type="number"
-                        inputMode="decimal"
-                        step="any"
-                        min={0}
-                        value={line.amount}
-                        onChange={(e) => updateLine(line.key, { amount: e.target.value })}
-                        onKeyDown={(e) => onLineKey(e, index, 'amount')}
-                        placeholder="0"
-                        aria-label={t('common.howMuch')}
-                        className="field qty h-11 text-right text-[22px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
-                      />
-                      <select
-                        ref={register(`${line.key}:unit`)}
-                        value={line.unit}
-                        onChange={(e) => updateLine(line.key, { unit: e.target.value as UnitCode })}
-                        onKeyDown={(e) => onLineKey(e, index, 'unit')}
-                        aria-label={t('common.unit')}
-                        className="field h-11"
-                      >
-                        {ALL_UNITS.map((unit) => (
-                          <option key={unit.code} value={unit.code}>
-                            {unit.code}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        ref={register(`${line.key}:note`)}
-                        value={line.note}
-                        onChange={(e) => updateLine(line.key, { note: e.target.value })}
-                        onKeyDown={(e) => onLineKey(e, index, 'note')}
-                        placeholder={t('editor.notePlaceholder')}
-                        aria-label={t('editor.colNote')}
-                        className="field text-ink-soft order-last col-span-3 h-11 lg:order-none lg:col-span-1"
-                      />
-                      <span className="flex gap-1 justify-self-end">
-                        <CellButton
-                          label={t('common.moveUp')}
-                          onClick={() => move(index, -1)}
-                          disabled={index === 0}
-                        >
-                          ↑
-                        </CellButton>
-                        <CellButton
-                          label={t('common.moveDown')}
-                          onClick={() => move(index, 1)}
-                          disabled={index === lines.length - 1}
-                        >
-                          ↓
-                        </CellButton>
-                        <CellButton
-                          label={t('editor.removeLine')}
-                          onClick={() =>
-                            setLines((current) =>
-                              current.length === 1
-                                ? [blankLine()]
-                                : current.filter((l) => l.key !== line.key),
-                            )
-                          }
-                        >
-                          ✕
-                        </CellButton>
-                      </span>
-                    </div>
-                  </div>
-                );
-              })}
-
-              <div className="bg-surface border-line flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-3.5 sm:px-6">
-                <button
-                  type="button"
-                  className="btn-quiet min-h-11 px-4"
-                  onClick={() => insertAfter(lines.length - 1)}
-                >
-                  {t('editor.addLine')}
-                </button>
-                <button type="button" className="btn-quiet min-h-11 px-4" onClick={addSection}>
-                  {t('editor.addSection')}
-                </button>
-                <span className="text-ink-soft text-[13px]">{plural('editor.lines', filled)}</span>
-                <span className="text-ink-soft ml-auto hidden gap-[18px] text-[13px] xl:flex">
-                  <Hint keys="↵">{t('editor.hintNext')}</Hint>
-                  <Hint keys="⇥">{t('editor.hintField')}</Hint>
-                  <Hint keys="Alt ↑ ↓">{t('editor.hintMove')}</Hint>
-                  <Hint keys="↵">{t('editor.hintCreate')}</Hint>
-                </span>
-              </div>
-
-              <div className="bg-surface border-line border-t px-4 py-5 sm:px-6">
-                <h2 className="heading-rule mb-3">{t('recipe.method')}</h2>
-                <MethodEditor steps={steps} onChange={setSteps} />
-              </div>
+                {(['draft', 'published', 'archived'] as const).map((value) => (
+                  <option key={value} value={value}>
+                    {recipeStatusName(t, value)}
+                  </option>
+                ))}
+              </select>
+              <span className="text-ink-soft ml-auto text-sm">
+                {pending
+                  ? t('common.saving')
+                  : recipe
+                    ? t('editor.lastSaved', {
+                        time: new Date(recipe.updatedAt).toLocaleString(locale, {
+                          weekday: 'short',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        }),
+                      })
+                    : t('editor.notSaved')}
+              </span>
+              <button
+                type="button"
+                className="btn-quiet min-h-11 px-4"
+                onClick={() =>
+                  recipe
+                    ? recipe.type === 'dish'
+                      ? void navigate({ to: '/dishes/$dishId', params: { dishId: recipe.id } })
+                      : void navigate({ to: '/recipes/$recipeId', params: { recipeId: recipe.id } })
+                    : void navigate({ to: type === 'dish' ? '/dishes' : '/recipes' })
+                }
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="submit"
+                className="btn-primary min-h-11 px-[22px] text-xl"
+                disabled={pending}
+              >
+                {t('common.save')}
+              </button>
             </div>
 
-            <aside className="bg-surface border-line flex flex-col gap-[18px] border-t px-4 py-5 sm:px-[22px] xl:border-t-0">
-              <h2 className="font-display text-brand text-xl font-semibold">
-                {t('editor.theRest')}
-              </h2>
+            {error ? (
+              <p
+                role="alert"
+                className="border-danger bg-danger/10 text-danger border-b px-4 py-3 text-[17px] sm:px-6"
+              >
+                {errorMessage(translator, error)}
+              </p>
+            ) : null}
 
-              <div className="grid grid-cols-2 gap-3">
-                <RailField label={t('common.station')} htmlFor="station">
-                  <select
-                    id="station"
-                    className="field min-h-10"
-                    value={stationId}
-                    onChange={(e) => setStationId(e.target.value)}
-                  >
-                    <option value="">{t('common.none')}</option>
-                    {(stations.data ?? []).map((station) => (
-                      <option key={station.id} value={station.id}>
-                        {station.name}
-                      </option>
-                    ))}
-                  </select>
-                </RailField>
+            {/* "The rest" goes beside the lines only where both fit; on a tablet it sits below. */}
+            <div className="grid xl:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="border-line xl:border-r">
+                <div
+                  className={`col-head hidden items-center gap-3 px-6 py-2.5 lg:grid ${LINE_COLUMNS}`}
+                >
+                  <span>{t('editor.colWhat')}</span>
+                  <span className="text-right">{t('common.howMuch')}</span>
+                  <span>{t('common.unit')}</span>
+                  <span>{t('editor.colNote')}</span>
+                  <span />
+                </div>
 
-                {/* A dish stays a dish, and a prep or component never becomes one:
-                    dishes are made and kept under their own tab. */}
-                {isDish ? null : (
-                  <RailField label={t('recipes.sort')} htmlFor="type">
-                    <select
-                      id="type"
-                      className="field min-h-10"
-                      value={type}
-                      onChange={(e) => setType(e.target.value as RecipeType)}
-                    >
-                      {(['prep', 'component'] as const).map((value) => (
-                        <option key={value} value={value}>
-                          {recipeTypeName(t, value)}
-                        </option>
-                      ))}
-                    </select>
-                  </RailField>
-                )}
+                {lines.map((line, index) => {
+                  const previous = lines[index - 1];
+                  const startsSection =
+                    index === 0 ? line.section !== '' : previous!.section !== line.section;
 
-                {isDish ? null : (
-                  <>
-                    <RailField
-                      label={t('editor.batchMakes')}
-                      htmlFor="yieldAmount"
-                      className="col-span-2"
-                    >
-                      <span className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
+                  return (
+                    <div key={line.key}>
+                      {startsSection ? (
+                        <div className="bg-surface flex items-center gap-3 px-4 pt-3.5 pb-1.5 sm:px-6">
+                          <input
+                            ref={register(`${line.key}:section`)}
+                            aria-label={t('editor.sectionHeading')}
+                            value={line.section}
+                            size={Math.max(10, line.section.length + 1)}
+                            placeholder={t('editor.sectionHeading')}
+                            onChange={(e) => renameSection(index, e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                setFocusTarget(`${line.key}:picker`);
+                              }
+                            }}
+                            className="font-display text-brand placeholder:text-ink-faint focus-visible:border-accent max-w-[70%] border-b border-transparent bg-transparent text-lg font-semibold focus-visible:outline-none"
+                          />
+                          <span className="bg-field h-px flex-1" aria-hidden />
+                          <button
+                            type="button"
+                            className="text-ink-faint hover:text-ink text-xs"
+                            onClick={() => renameSection(index, previous?.section ?? '')}
+                          >
+                            {t('editor.removeHeading')}
+                          </button>
+                        </div>
+                      ) : null}
+
+                      <div
+                        className={`bg-surface-raised border-rule grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2 border-t px-4 py-2 sm:px-6 lg:gap-3 lg:py-1.5 ${LINE_COLUMNS}`}
+                      >
+                        <div className="col-span-3 flex min-w-0 flex-col gap-1 lg:col-span-1">
+                          <ComponentPicker
+                            value={line.ref}
+                            displayName={line.displayName}
+                            excludeRecipeId={recipe?.id}
+                            inputRef={register(`${line.key}:picker`)}
+                            onChange={(ref, displayName) =>
+                              updateLine(line.key, { ref, displayName })
+                            }
+                            onChosen={() => setFocusTarget(`${line.key}:amount`)}
+                            onKeyDown={(e) => onLineKey(e, index, 'picker')}
+                          />
+                          <KindTag line={line} />
+                        </div>
                         <input
-                          id="yieldAmount"
+                          ref={register(`${line.key}:amount`)}
                           type="number"
                           inputMode="decimal"
                           step="any"
                           min={0}
-                          className="field qty min-h-10 text-xl"
-                          value={yieldAmount}
-                          onChange={(e) => setYieldAmount(e.target.value)}
-                          required
+                          value={line.amount}
+                          onChange={(e) => updateLine(line.key, { amount: e.target.value })}
+                          onKeyDown={(e) => onLineKey(e, index, 'amount')}
+                          placeholder="0"
+                          aria-label={t('common.howMuch')}
+                          className="field qty h-11 text-right text-[22px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
                         />
                         <select
-                          aria-label={t('editor.yieldUnit')}
-                          className="field min-h-10"
-                          value={yieldUnit}
-                          onChange={(e) => setYieldUnit(e.target.value as UnitCode)}
+                          ref={register(`${line.key}:unit`)}
+                          value={line.unit}
+                          onChange={(e) =>
+                            updateLine(line.key, { unit: e.target.value as UnitCode })
+                          }
+                          onKeyDown={(e) => onLineKey(e, index, 'unit')}
+                          aria-label={t('common.unit')}
+                          className="field h-11"
                         >
                           {ALL_UNITS.map((unit) => (
                             <option key={unit.code} value={unit.code}>
@@ -646,110 +510,253 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                             </option>
                           ))}
                         </select>
-                      </span>
-                    </RailField>
+                        <input
+                          ref={register(`${line.key}:note`)}
+                          value={line.note}
+                          onChange={(e) => updateLine(line.key, { note: e.target.value })}
+                          onKeyDown={(e) => onLineKey(e, index, 'note')}
+                          placeholder={t('editor.notePlaceholder')}
+                          aria-label={t('editor.colNote')}
+                          className="field text-ink-soft order-last col-span-3 h-11 lg:order-none lg:col-span-1"
+                        />
+                        <span className="flex gap-1 justify-self-end">
+                          <CellButton
+                            label={t('common.moveUp')}
+                            onClick={() => move(index, -1)}
+                            disabled={index === 0}
+                          >
+                            ↑
+                          </CellButton>
+                          <CellButton
+                            label={t('common.moveDown')}
+                            onClick={() => move(index, 1)}
+                            disabled={index === lines.length - 1}
+                          >
+                            ↓
+                          </CellButton>
+                          <CellButton
+                            label={t('editor.removeLine')}
+                            onClick={() =>
+                              setLines((current) =>
+                                current.length === 1
+                                  ? [blankLine()]
+                                  : current.filter((l) => l.key !== line.key),
+                              )
+                            }
+                          >
+                            ✕
+                          </CellButton>
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
 
-                    <RailField label={t('editor.prepMinutes')} htmlFor="prepMinutes">
-                      <input
-                        id="prepMinutes"
-                        type="number"
-                        min={0}
-                        className="field min-h-10"
-                        value={prepMinutes}
-                        onChange={(e) => setPrepMinutes(e.target.value)}
-                      />
-                    </RailField>
+                <div className="bg-surface border-line flex flex-wrap items-center gap-x-4 gap-y-2 border-t px-4 py-3.5 sm:px-6">
+                  <button
+                    type="button"
+                    className="btn-quiet min-h-11 px-4"
+                    onClick={() => insertAfter(lines.length - 1)}
+                  >
+                    {t('editor.addLine')}
+                  </button>
+                  <button type="button" className="btn-quiet min-h-11 px-4" onClick={addSection}>
+                    {t('editor.addSection')}
+                  </button>
+                  <span className="text-ink-soft text-[13px]">
+                    {plural('editor.lines', filled)}
+                  </span>
+                  <span className="text-ink-soft ml-auto hidden gap-[18px] text-[13px] xl:flex">
+                    <Hint keys="↵">{t('editor.hintNext')}</Hint>
+                    <Hint keys="⇥">{t('editor.hintField')}</Hint>
+                    <Hint keys="Alt ↑ ↓">{t('editor.hintMove')}</Hint>
+                    <Hint keys="↵">{t('editor.hintCreate')}</Hint>
+                  </span>
+                </div>
 
-                    <RailField label={t('editor.keepsHours')} htmlFor="shelfLife">
-                      <input
-                        id="shelfLife"
-                        type="number"
-                        min={0}
-                        className="field min-h-10"
-                        value={shelfLifeHours}
-                        onChange={(e) => setShelfLifeHours(e.target.value)}
-                      />
-                    </RailField>
-                  </>
-                )}
+                <div className="bg-surface border-line border-t px-4 py-5 sm:px-6">
+                  <h2 className="heading-rule mb-3">{t('recipe.method')}</h2>
+                  <MethodEditor steps={steps} onChange={setSteps} />
+                </div>
               </div>
 
-              {isDish ? (
-                <p className="text-ink-soft text-sm">
-                  {plural('editor.dishPlates', dishSize.portions)}
-                </p>
-              ) : (
-                <RailField
-                  label={t('recipe.storage')}
-                  htmlFor="storage"
-                  hint={t('editor.storageHint')}
-                >
+              <aside className="bg-surface border-line flex flex-col gap-[18px] border-t px-4 py-5 sm:px-[22px] xl:border-t-0">
+                <h2 className="font-display text-brand text-xl font-semibold">
+                  {t('editor.theRest')}
+                </h2>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <RailField label={t('common.station')} htmlFor="station">
+                    <select
+                      id="station"
+                      className="field min-h-10"
+                      value={stationId}
+                      onChange={(e) => setStationId(e.target.value)}
+                    >
+                      <option value="">{t('common.none')}</option>
+                      {(stations.data ?? []).map((station) => (
+                        <option key={station.id} value={station.id}>
+                          {station.name}
+                        </option>
+                      ))}
+                    </select>
+                  </RailField>
+
+                  {/* A dish stays a dish, and a prep or component never becomes one:
+                    dishes are made and kept under their own tab. */}
+                  {isDish ? null : (
+                    <RailField label={t('recipes.sort')} htmlFor="type">
+                      <select
+                        id="type"
+                        className="field min-h-10"
+                        value={type}
+                        onChange={(e) => setType(e.target.value as RecipeType)}
+                      >
+                        {(['prep', 'component'] as const).map((value) => (
+                          <option key={value} value={value}>
+                            {recipeTypeName(t, value)}
+                          </option>
+                        ))}
+                      </select>
+                    </RailField>
+                  )}
+
+                  {isDish ? null : (
+                    <>
+                      <RailField
+                        label={t('editor.batchMakes')}
+                        htmlFor="yieldAmount"
+                        className="col-span-2"
+                      >
+                        <span className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
+                          <input
+                            id="yieldAmount"
+                            type="number"
+                            inputMode="decimal"
+                            step="any"
+                            min={0}
+                            className="field qty min-h-10 text-xl"
+                            value={yieldAmount}
+                            onChange={(e) => setYieldAmount(e.target.value)}
+                            required
+                          />
+                          <select
+                            aria-label={t('editor.yieldUnit')}
+                            className="field min-h-10"
+                            value={yieldUnit}
+                            onChange={(e) => setYieldUnit(e.target.value as UnitCode)}
+                          >
+                            {ALL_UNITS.map((unit) => (
+                              <option key={unit.code} value={unit.code}>
+                                {unit.code}
+                              </option>
+                            ))}
+                          </select>
+                        </span>
+                      </RailField>
+
+                      <RailField label={t('editor.prepMinutes')} htmlFor="prepMinutes">
+                        <input
+                          id="prepMinutes"
+                          type="number"
+                          min={0}
+                          className="field min-h-10"
+                          value={prepMinutes}
+                          onChange={(e) => setPrepMinutes(e.target.value)}
+                        />
+                      </RailField>
+
+                      <RailField label={t('editor.keepsHours')} htmlFor="shelfLife">
+                        <input
+                          id="shelfLife"
+                          type="number"
+                          min={0}
+                          className="field min-h-10"
+                          value={shelfLifeHours}
+                          onChange={(e) => setShelfLifeHours(e.target.value)}
+                        />
+                      </RailField>
+                    </>
+                  )}
+                </div>
+
+                {isDish ? (
+                  <p className="text-ink-soft text-sm">
+                    {plural('editor.dishPlates', dishSize.portions)}
+                  </p>
+                ) : (
+                  <RailField
+                    label={t('recipe.storage')}
+                    htmlFor="storage"
+                    hint={t('editor.storageHint')}
+                  >
+                    <input
+                      id="storage"
+                      className="field min-h-10"
+                      value={storage}
+                      onChange={(e) => setStorage(e.target.value)}
+                    />
+                  </RailField>
+                )}
+
+                <RailField label={t('editor.tags')} htmlFor="tags" hint={t('editor.tagsHint')}>
                   <input
-                    id="storage"
+                    id="tags"
                     className="field min-h-10"
-                    value={storage}
-                    onChange={(e) => setStorage(e.target.value)}
+                    value={tags}
+                    onChange={(e) => setTags(e.target.value)}
                   />
                 </RailField>
-              )}
 
-              <RailField label={t('editor.tags')} htmlFor="tags" hint={t('editor.tagsHint')}>
-                <input
-                  id="tags"
-                  className="field min-h-10"
-                  value={tags}
-                  onChange={(e) => setTags(e.target.value)}
-                />
-              </RailField>
+                {type === 'dish' ? (
+                  <>
+                    <div className="bg-field h-px" />
+                    <FrontOfHouse
+                      flavour={flavour}
+                      onFlavour={setFlavour}
+                      temperature={temperature}
+                      onTemperature={setTemperature}
+                      course={course}
+                      onCourse={setCourse}
+                      drinks={drinks}
+                      onDrinks={setDrinks}
+                      cutlery={cutlery}
+                      onCutlery={setCutlery}
+                    />
+                  </>
+                ) : null}
 
-              {type === 'dish' ? (
-                <>
-                  <div className="bg-field h-px" />
-                  <FrontOfHouse
-                    flavour={flavour}
-                    onFlavour={setFlavour}
-                    temperature={temperature}
-                    onTemperature={setTemperature}
-                    course={course}
-                    onCourse={setCourse}
-                    drinks={drinks}
-                    onDrinks={setDrinks}
-                    cutlery={cutlery}
-                    onCutlery={setCutlery}
-                  />
-                </>
-              ) : null}
+                <div className="bg-field h-px" />
 
-              <div className="bg-field h-px" />
+                <AllergenRollup recipeId={recipe?.id} />
 
-              <AllergenRollup recipeId={recipe?.id} />
-
-              <fieldset className="flex flex-col gap-2">
-                <legend className="eyebrow mb-2">{t('editor.mayContain')}</legend>
-                <div className="flex flex-wrap gap-1.5">
-                  {ALLERGENS.map((allergen) => (
-                    <button
-                      key={allergen}
-                      type="button"
-                      aria-pressed={mayContain.includes(allergen)}
-                      onClick={() =>
-                        setMayContain((current) =>
-                          current.includes(allergen)
-                            ? current.filter((a) => a !== allergen)
-                            : [...current, allergen],
-                        )
-                      }
-                      className="toggle px-2.5 py-1 text-[13px]"
-                    >
-                      {allergenName(t, allergen)}
-                    </button>
-                  ))}
-                </div>
-              </fieldset>
-            </aside>
-          </div>
-        </Plate>
-      </form>
+                <fieldset className="flex flex-col gap-2">
+                  <legend className="eyebrow mb-2">{t('editor.mayContain')}</legend>
+                  <div className="flex flex-wrap gap-1.5">
+                    {ALLERGENS.map((allergen) => (
+                      <button
+                        key={allergen}
+                        type="button"
+                        aria-pressed={mayContain.includes(allergen)}
+                        onClick={() =>
+                          setMayContain((current) =>
+                            current.includes(allergen)
+                              ? current.filter((a) => a !== allergen)
+                              : [...current, allergen],
+                          )
+                        }
+                        className="toggle px-2.5 py-1 text-[13px]"
+                      >
+                        {allergenName(t, allergen)}
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+              </aside>
+            </div>
+          </Plate>
+        </form>
+      </main>
     </AppShell>
   );
 }

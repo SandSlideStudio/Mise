@@ -41,6 +41,23 @@ function serviceWorker(): Plugin {
 }
 
 /**
+ * The third-party notices ship inside the app, so the "Licences" link works on
+ * any server, offline too. The file itself lives at the root of the repository
+ * (scripts/licenses.mjs writes it); here it goes out as plain text, which every
+ * browser shows rather than downloads.
+ */
+function notices(): Plugin {
+  return {
+    name: 'mise-third-party-notices',
+    apply: 'build',
+    generateBundle() {
+      const source = readFileSync(new URL('../THIRD-PARTY-NOTICES.md', import.meta.url), 'utf8');
+      this.emitFile({ type: 'asset', fileName: 'THIRD-PARTY-NOTICES.txt', source });
+    },
+  };
+}
+
+/**
  * A gzip and a brotli copy next to every text file of the build. The server
  * hands a tablet the smaller one it understands, without compressing anything
  * itself on every request (which a Raspberry Pi would feel).
@@ -75,7 +92,7 @@ function precompress(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), tailwindcss(), serviceWorker(), precompress()],
+  plugins: [react(), tailwindcss(), notices(), serviceWorker(), precompress()],
   define: {
     __MISE_VERSION__: JSON.stringify(root.version),
     __MISE_SOURCE__: JSON.stringify(root.homepage),

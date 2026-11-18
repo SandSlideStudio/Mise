@@ -1437,4 +1437,5 @@ export const nl: Record<MessageKey, string> = {
   'privacy.sentOff': 'Hier uit.',
   'privacy.sentNothingElse':
     'Verder niets. Geen statistieken, geen tracking en geen advertenties, en geen lettertypen of scripts van ergens anders.',
+  'about.licences': 'Licenties',
 };

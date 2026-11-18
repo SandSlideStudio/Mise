@@ -20,6 +20,12 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # A known high or critical advisory in what ships (not the tools that
+      # only build and test it) stops the release until it is dealt with.
+      - run: npm audit --omit=dev --audit-level=high
+      # The notices the app ships list every dependency; a changed lockfile
+      # needs them written again.
+      - run: node scripts/licenses.mjs --check
       - run: npm run typecheck
       - run: npm run lint
       - run: npm run format:check

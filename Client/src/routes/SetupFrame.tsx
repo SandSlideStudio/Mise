@@ -122,7 +122,7 @@ export function SetupFrame({
           </div>
           <span
             key={`short-${position}`}
-            className="fade-swap text-accent font-display text-[13px] font-semibold sm:hidden"
+            className="fade-swap text-accent font-display text-[15px] font-semibold sm:hidden"
           >
             {position === 0
               ? t('welcome.step0')
@@ -166,9 +166,10 @@ export function SetupFrame({
               </span>
             ))}
           </div>
+          {/* 15 px, not 13: at arm's length from a tablet the smaller line went unread. */}
           <p
             key={`label-${position}`}
-            className="fade-swap text-accent font-display hidden pt-2 pb-2.5 text-[13px] font-semibold sm:block"
+            className="fade-swap text-accent font-display hidden pt-2 pb-2.5 text-[15px] font-semibold sm:block"
           >
             {label}
           </p>
@@ -176,29 +177,31 @@ export function SetupFrame({
         </div>
       </header>
 
-      <form
-        noValidate
-        onSubmit={(event) => {
-          event.preventDefault();
-          onSubmit();
-        }}
-        className="mx-auto grid w-full max-w-[1440px] flex-1 content-start gap-8 px-5 pt-6 pb-32 sm:px-10 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_388px] lg:gap-10 lg:pb-8 xl:grid-cols-[minmax(0,1fr)_520px] xl:gap-[72px] xl:px-16 xl:pt-9 xl:pb-11"
-      >
-        <section className="flex min-w-0 flex-col">
-          <div key={turnKey} className={turnClassName}>
-            {children}
-          </div>
-          <div className="hidden min-h-8 flex-1 lg:block" />
-          {/* One set of buttons: pinned to the bottom on a phone, under the page on a tablet or desk. */}
-          {footer ? (
-            <div className="bg-surface-raised border-rule fixed inset-x-0 bottom-0 z-20 border-t px-5 pt-3.5 pb-[18px] sm:px-10 lg:static lg:z-auto lg:border-0 lg:bg-transparent lg:p-0 lg:pt-6">
-              {footer}
+      <main className="flex flex-1 flex-col">
+        <form
+          noValidate
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSubmit();
+          }}
+          className="mx-auto grid w-full max-w-[1440px] flex-1 content-start gap-8 px-5 pt-6 pb-32 sm:px-10 sm:pt-8 lg:grid-cols-[minmax(0,1fr)_388px] lg:gap-10 lg:pb-8 xl:grid-cols-[minmax(0,1fr)_520px] xl:gap-[72px] xl:px-16 xl:pt-9 xl:pb-11"
+        >
+          <section className="flex min-w-0 flex-col">
+            <div key={turnKey} className={turnClassName}>
+              {children}
             </div>
-          ) : null}
-        </section>
+            <div className="hidden min-h-8 flex-1 lg:block" />
+            {/* One set of buttons: pinned to the bottom on a phone, under the page on a tablet or desk. */}
+            {footer ? (
+              <div className="bg-surface-raised border-rule fixed inset-x-0 bottom-0 z-20 border-t px-5 pt-3.5 pb-[18px] sm:px-10 lg:static lg:z-auto lg:border-0 lg:bg-transparent lg:p-0 lg:pt-6">
+                {footer}
+              </div>
+            ) : null}
+          </section>
 
-        <aside className="flex min-w-0 flex-col gap-6 lg:self-start">{aside}</aside>
-      </form>
+          <aside className="flex min-w-0 flex-col gap-6 lg:self-start">{aside}</aside>
+        </form>
+      </main>
     </div>
   );
 }
@@ -341,7 +344,13 @@ export function LanguageButton({
       type="button"
       lang={code}
       aria-pressed={selected}
-      aria-label={LANGUAGE_NAMES[code]}
+      // The name starts with what the button shows, so someone who says "NL"
+      // to voice control, or hears it read, finds the same button.
+      aria-label={
+        label.toLowerCase() === LANGUAGE_NAMES[code].toLowerCase()
+          ? LANGUAGE_NAMES[code]
+          : `${label.toUpperCase()}, ${LANGUAGE_NAMES[code]}`
+      }
       onClick={() => onLanguage(code)}
       className={`font-display font-semibold transition-colors ${className} ${
         selected

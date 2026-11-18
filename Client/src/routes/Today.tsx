@@ -333,7 +333,7 @@ function Handover() {
           onBlur={() => setConfirmingRemove(false)}
           className={`min-h-11 min-w-11 border-2 px-3 text-lg leading-none font-medium transition-colors disabled:opacity-45 ${
             confirmingRemove
-              ? 'bg-danger border-danger text-white'
+              ? 'bg-danger border-danger text-surface'
               : 'border-line text-ink-soft bg-surface-raised'
           }`}
         >

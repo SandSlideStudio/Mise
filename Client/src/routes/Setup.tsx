@@ -1882,16 +1882,22 @@ function Summary({
 }) {
   const { t } = useT();
   return (
-    <div className="flex items-start gap-4 p-4 xl:p-5">
-      <div className="min-w-0 flex-1">
-        <dt className="text-ink-faint font-display mb-1 text-[13px] font-semibold xl:text-xs">
-          {title}
-        </dt>
-        <dd>{children}</dd>
-      </div>
-      <button type="button" className="btn-small shrink-0" onClick={onEdit}>
-        {t('common.edit')}
-      </button>
+    // A list of terms may only hold a term and its description, so the Edit
+    // button sits inside the description, on a grid shared with the term.
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] grid-rows-[auto_auto] gap-x-4 p-4 xl:p-5">
+      <dt className="text-ink-faint font-display col-start-1 row-start-1 mb-1 text-[13px] font-semibold xl:text-xs">
+        {title}
+      </dt>
+      <dd className="col-span-2 col-start-1 row-span-2 row-start-1 grid grid-cols-subgrid grid-rows-subgrid">
+        <div className="col-start-1 row-start-2 min-w-0">{children}</div>
+        <button
+          type="button"
+          className="btn-small col-start-2 row-span-2 row-start-1 self-start"
+          onClick={onEdit}
+        >
+          {t('common.edit')}
+        </button>
+      </dd>
     </div>
   );
 }

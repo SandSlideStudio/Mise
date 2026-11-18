@@ -135,9 +135,10 @@ export function DishCardView({ card }: { card: DishCard }) {
                 <p className="font-display text-brand text-[13px] font-semibold tracking-[0.18em] uppercase">
                   {heading}
                 </p>
-                <h2 className="font-display mt-1 text-[38px] leading-[0.95] font-semibold tracking-[0.01em] uppercase sm:text-[52px]">
+                {/* The dish's own page: its name is the page's heading. */}
+                <h1 className="font-display mt-1 text-[38px] leading-[0.95] font-semibold tracking-[0.01em] uppercase sm:text-[52px]">
                   {dish.name}
-                </h2>
+                </h1>
               </div>
               {logo ? (
                 <img src={logo} alt="" className="h-14 w-14 shrink-0 object-contain" />
@@ -165,9 +166,9 @@ export function DishCardView({ card }: { card: DishCard }) {
             <div className="grid gap-6 md:grid-cols-[minmax(0,6fr)_minmax(0,5fr)]">
               {components.length > 0 ? (
                 <section>
-                  <h3 className="font-display text-ink-faint mb-2 text-[14px] font-semibold tracking-[0.14em] uppercase">
+                  <h2 className="font-display text-ink-faint mb-2 text-[14px] font-semibold tracking-[0.14em] uppercase">
                     {t('card.components')}
-                  </h3>
+                  </h2>
                   <ol>
                     {components.map((component, i) => (
                       <li
@@ -190,9 +191,9 @@ export function DishCardView({ card }: { card: DishCard }) {
                 {lists.map(([part, label, items]) =>
                   shows(part) && items.length > 0 ? (
                     <section key={part}>
-                      <h3 className="font-display text-ink-faint mb-1 text-[14px] font-semibold tracking-[0.14em] uppercase">
+                      <h2 className="font-display text-ink-faint mb-1 text-[14px] font-semibold tracking-[0.14em] uppercase">
                         {label}
-                      </h3>
+                      </h2>
                       <ul className="text-[17px]">
                         {items.map((item) => (
                           <li key={item}>{item}</li>
@@ -251,7 +252,13 @@ function AllergenTable({
   ];
 
   return (
-    <div className="mt-5 overflow-x-auto">
+    // On a phone the table scrolls sideways; focusable, so a keyboard can scroll it too.
+    <div
+      className="mt-5 overflow-x-auto"
+      tabIndex={0}
+      role="region"
+      aria-label={t('card.allergens')}
+    >
       <table className="w-full min-w-[760px] border-collapse text-[14px]">
         <thead>
           <tr>

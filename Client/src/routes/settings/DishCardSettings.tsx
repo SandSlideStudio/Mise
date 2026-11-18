@@ -207,9 +207,9 @@ function SettingsForm({ settings }: { settings: Settings }) {
                   type="button"
                   role="tab"
                   aria-selected={warningLanguage === code}
-                  aria-pressed={warningLanguage === code}
                   onClick={() => setWarningLanguage(code)}
-                  className="toggle px-2.5 py-1 text-[13px]"
+                  // A tab is selected, not pressed: aria-pressed is not allowed on one.
+                  className="toggle aria-selected:border-accent aria-selected:bg-accent aria-selected:text-accent-ink px-2.5 py-1 text-[13px]"
                 >
                   {LANGUAGE_NAMES[code]}
                   {warnings[code]?.trim() ? ' ●' : ''}
