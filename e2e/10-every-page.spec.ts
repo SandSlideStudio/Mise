@@ -594,7 +594,7 @@ for (const { label, viewport } of WIDTHS) {
       const tabs = page.getByRole('tablist').first().getByRole('tab');
       await expect(tabs.first()).toBeVisible();
       const names = (await tabs.allTextContents()).map((text) => text.trim());
-      expect(names, 'the administrator sees all seven tabs').toHaveLength(7);
+      expect(names, 'the administrator sees all eight tabs').toHaveLength(8);
       const seen = new Set<string>();
       for (const name of names) {
         await tabs.getByText(name, { exact: true }).click();

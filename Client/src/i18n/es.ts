@@ -1271,4 +1271,124 @@ export const es: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'En esta tablet ahora se entra solo con un PIN.',
   'error.tabletLockedUntil':
     'Demasiados PIN incorrectos en esta tablet. Vuelve a intentarlo después de las {time}, o pide a un jefe de cocina que quite el bloqueo.',
+  // Privacidad: qué se guarda, cuánto tiempo, y los datos de una persona
+  'settings.tabPrivacy': 'Privacidad',
+  'kitchen.keepFor': 'Guardarlas durante',
+  'kitchen.keepDays_one': '{count} día',
+  'kitchen.keepDays_other': '{count} días',
+  'kitchen.keepYear': 'Un año',
+  'kitchen.keepTwoYears': 'Dos años',
+  'kitchen.keepForGood': 'Para siempre',
+  'kitchen.keepForHint':
+    'Las líneas marcadas más antiguas se eliminan, para que el registro de quién hizo qué no crezca sin fin.',
+  'staff.theirData': 'Sus datos',
+  'staff.theirDataHint':
+    'Todo lo que Mise guarda sobre {name}: su cuenta, las líneas de mise en place que añadió, tomó o marcó, una nota de relevo firmada con su nombre, y dónde tiene la sesión abierta. Nunca su PIN ni su contraseña.',
+  'staff.downloadReadable': 'Descargar para leer',
+  'staff.downloadJson': 'Descargar en JSON',
+  'staff.removeForGood': 'Quitar para siempre',
+  'staff.removeTitle': '¿Quitar a {name} para siempre?',
+  'staff.removeWhat':
+    'Su cuenta y sus sesiones desaparecen, y su nombre sale de las líneas de mise en place, de la nota de relevo y de los dispositivos que aprobó. Las líneas y la nota se quedan. No se puede deshacer.',
+  'staff.removeBackupsLocal_one':
+    'Las copias de seguridad hechas antes conservan sus datos hasta que otras más nuevas las sustituyen. Este servidor guarda la última copia, y hace una cada noche en que algo cambia.',
+  'staff.removeBackupsLocal_other':
+    'Las copias de seguridad hechas antes conservan sus datos hasta que otras más nuevas las sustituyen. Este servidor guarda las últimas {count}, y hace una cada noche en que algo cambia, así que tras {count} noches con cambios ya no están aquí.',
+  'staff.removeBackupsRemote_one': 'El NAS o OneDrive guarda la última copia.',
+  'staff.removeBackupsRemote_other':
+    'El NAS o OneDrive guarda las últimas {count}, así que allí desaparecen tras {count} noches con cambios.',
+  'staff.removeBackupsDownloaded':
+    'Una copia que alguien descargó los conserva mientras se guarde.',
+  'personData.title': 'Lo que Mise guarda sobre {name}',
+  'personData.made': 'Hecho el {date} por {kitchen}.',
+  'personData.yes': 'Sí',
+  'personData.no': 'No',
+  'personData.none': 'Ninguno.',
+  'personData.account': 'Cuenta',
+  'personData.active': 'Puede iniciar sesión',
+  'personData.language': 'Idioma propio',
+  'personData.hasPassword': 'Entra con contraseña',
+  'personData.hasPin': 'Entra con PIN',
+  'personData.pinSetAt': 'PIN puesto por última vez',
+  'personData.tourSeenAt': 'Visita guiada ofrecida',
+  'personData.lockedUntil': 'Bloqueado hasta',
+  'personData.createdAt': 'Añadido al equipo',
+  'personData.updatedAt': 'Cuenta cambiada por última vez',
+  'personData.secrets':
+    'Un PIN o una contraseña solo se guarda como hash, del que no se puede recuperar. No está en este archivo.',
+  'personData.lines': 'Líneas de mise en place',
+  'personData.lineTimes': 'Añadida {added} · marcada {ticked}',
+  'personData.lineAdded': 'La puso en la lista',
+  'personData.lineOnIt': 'Lleva su nombre',
+  'personData.lineTicked': 'La marcó',
+  'personData.recipes': 'Recetas que escribió',
+  'personData.note': 'Nota de relevo firmada con su nombre',
+  'personData.sessions': 'Sesiones abiertas',
+  'personData.session': 'Desde {started}, visto por última vez {seen}, termina {ends}',
+  'personData.tablet': 'Tablet',
+  'personData.browser': 'Navegador',
+  'personData.devices': 'Dispositivos de fuera que aprobó',
+  'personData.device': 'aprobado {approved}, usado por última vez {seen}',
+  'privacy.loadError': 'No se pudo cargar esta página. Prueba de nuevo en un momento.',
+  'privacy.title': 'Lo que Mise guarda y envía',
+  'privacy.intro':
+    'Mise guarda los datos de la cocina en este servidor y en ningún otro sitio. La cocina es responsable de lo que guarda sobre su equipo, y esta página tiene lo que necesitas para responder a quien pregunte.',
+  'privacy.staffTools':
+    'En Equipo, Sus datos descarga todo sobre una persona, y Quitar para siempre la saca.',
+  'privacy.keptTitle': 'Lo que se guarda sobre las personas',
+  'privacy.keptNames': 'Nombres, y un correo para quien entra con contraseña.',
+  'privacy.keptSecrets':
+    'PIN y contraseñas solo como hash. Nadie puede leerlos de vuelta, tampoco Mise.',
+  'privacy.keptLines':
+    'Quién puso cada línea de mise en place en la lista, qué nombre lleva y quién la marcó, con cuándo se añadió y se marcó.',
+  'privacy.keptNote':
+    'El nombre de quien escribió la nota de relevo, hasta que la siguiente nota la sustituya.',
+  'privacy.keptRecipes': 'Quién escribió cada receta.',
+  'privacy.keptSessions':
+    'Quién tiene la sesión abierta: desde cuándo, cuándo se le vio por última vez, en qué tablet y en qué navegador.',
+  'privacy.keptSessionsHow':
+    'Una sesión con contraseña dura {days} días, con PIN {hours} horas. Después se elimina.',
+  'privacy.keptTablets':
+    'Tablets de la cocina: el nombre que se le dio a cada una, y cuándo se usó por última vez.',
+  'privacy.keptOutside':
+    'Dispositivos fuera de la cocina: el nombre que se dio cada uno, la dirección y el navegador desde los que pidió acceso, quién lo aprobó y cuándo se usó por última vez.',
+  'privacy.keptOutsideHow':
+    'Un dispositivo sin usar durante {days} días se olvida, con su dirección y su navegador. Una solicitud que nadie responde desaparece a las {hours} horas.',
+  'privacy.keptOffline':
+    'Un cambio enviado sin conexión recibe una sola respuesta, que se guarda {days} días para que nunca se haga dos veces.',
+  'privacy.keptLockout':
+    'Los PIN y contraseñas equivocados solo se cuentan en memoria, y se olvidan cuando Mise se reinicia. Una cuenta bloqueada sigue así hasta que termina el bloqueo.',
+  'privacy.linesDeleted_one': 'Las líneas marcadas se eliminan {count} hora después.',
+  'privacy.linesDeleted_other': 'Las líneas marcadas se eliminan {count} horas después.',
+  'privacy.linesKeptDays_one':
+    'Las líneas marcadas se guardan fuera de la vista {count} día y luego se eliminan.',
+  'privacy.linesKeptDays_other':
+    'Las líneas marcadas se guardan fuera de la vista {count} días y luego se eliminan.',
+  'privacy.linesKeptForGood':
+    'Las líneas marcadas se guardan fuera de la vista para siempre. En Ajustes → Cocina se puede limitar.',
+  'privacy.backupsTitle': 'Copias de seguridad',
+  'privacy.backupsWhat':
+    'Cada copia contiene el equipo, con los hashes pero nunca un PIN ni una contraseña, las recetas y la lista de mise en place. Está cifrada con la clave de recuperación.',
+  'privacy.backupsLocal_one': 'Este servidor guarda la última copia.',
+  'privacy.backupsLocal_other': 'Este servidor guarda las últimas {count} copias.',
+  'privacy.backupsNights':
+    'Se hace una cada noche en que algo cambió, así que la más antigua puede tener más noches que esas.',
+  'privacy.backupsRemote_one': 'El NAS o OneDrive también guarda la última copia.',
+  'privacy.backupsRemote_other': 'El NAS o OneDrive también guarda las últimas {count} copias.',
+  'privacy.backupsOnlyHere': 'Las copias no van a ningún otro sitio.',
+  'privacy.backupsLeftOut':
+    'Las sesiones, los dispositivos de fuera y los ajustes de las copias nunca están en una copia. Una copia que alguien descargó existe mientras la guarde.',
+  'privacy.sentTitle': 'Lo que Mise envía, y adónde',
+  'privacy.sentGithub':
+    'Una vez al día, api.github.com, para preguntar cuál es la versión más nueva de Mise. No se envía nada sobre la cocina.',
+  'privacy.sentGithubOn': 'Activado. Un administrador puede apagarlo en Ajustes → Cocina.',
+  'privacy.sentLetsEncrypt':
+    'Let’s Encrypt, cuando HTTPS está activado para la dirección de fuera, para obtener y renovar su certificado.',
+  'privacy.sentOnedrive':
+    'Microsoft OneDrive, cuando las copias van allí: las copias cifradas, tras iniciar sesión en Microsoft.',
+  'privacy.sentWebdav': 'Tu NAS o Nextcloud, cuando las copias van allí: las copias cifradas.',
+  'privacy.sentOn': 'Activado aquí.',
+  'privacy.sentOff': 'Apagado aquí.',
+  'privacy.sentNothingElse':
+    'Nada más. Sin estadísticas, sin seguimiento y sin publicidad, y sin fuentes ni scripts de ningún otro sitio.',
 };

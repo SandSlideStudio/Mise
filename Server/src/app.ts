@@ -42,6 +42,8 @@ import { createUpdateChecker, type UpdateChecker } from './modules/updates/servi
 import { kitchens } from './db/schema.js';
 import { createBackupService, type BackupService } from './modules/backups/service.js';
 import { createOnedrive } from './modules/backups/onedrive.js';
+import privacyRoutes from './modules/privacy/routes.js';
+import { createPrivacyService, type PrivacyService } from './modules/privacy/service.js';
 
 /**
  * The server is one deployable unit: it answers the API under /api and serves
@@ -56,6 +58,7 @@ declare module 'fastify' {
     setupCodeNeeded: (request: FastifyRequest) => boolean;
     backups: BackupService;
     updates: UpdateChecker;
+    privacy: PrivacyService;
     httpsListener: HttpsListener;
   }
 }
@@ -176,6 +179,7 @@ export async function buildApp(
     }),
   );
   app.addHook('onClose', async () => app.updates.stop());
+  app.decorate('privacy', createPrivacyService(app.db, app.access));
 
   app.get('/api/health', { config: { rateLimit: false } }, async () => ({
     status: 'ok',
@@ -197,6 +201,7 @@ export async function buildApp(
   await app.register(menuRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
   await app.register(updateRoutes, { prefix: '/api' });
+  await app.register(privacyRoutes, { prefix: '/api' });
   await app.register(connectionRoutes, { prefix: '/api' });
   await app.register(acmeChallengeRoute);
   await registerUploads(app, config);

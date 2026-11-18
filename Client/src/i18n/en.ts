@@ -1243,6 +1243,123 @@ export const en = {
   'error.pinOnlyOn': 'This tablet now signs in with a PIN only.',
   'error.tabletLockedUntil':
     'Too many wrong PINs on this tablet. Try again after {time}, or ask a head chef to lift the lock.',
+  // Privacy: what is kept, for how long, and one person's data
+  'settings.tabPrivacy': 'Privacy',
+  'kitchen.keepFor': 'Keep them for',
+  'kitchen.keepDays_one': '{count} day',
+  'kitchen.keepDays_other': '{count} days',
+  'kitchen.keepYear': 'A year',
+  'kitchen.keepTwoYears': 'Two years',
+  'kitchen.keepForGood': 'For good',
+  'kitchen.keepForHint':
+    'Older ticked lines are deleted, so the record of who did what doesn’t grow without end.',
+  'staff.theirData': 'Their data',
+  'staff.theirDataHint':
+    'Everything Mise holds about {name}: their account, the prep lines they added, were on or ticked off, a handover note signed with their name, and where they are signed in. Never their PIN or password.',
+  'staff.downloadReadable': 'Download to read',
+  'staff.downloadJson': 'Download as JSON',
+  'staff.removeForGood': 'Remove for good',
+  'staff.removeTitle': 'Remove {name} for good?',
+  'staff.removeWhat':
+    'Their account and sessions go, and their name comes off prep lines, the handover note and devices they approved. The lines and the note stay. This can’t be undone.',
+  'staff.removeBackupsLocal_one':
+    'Backups made before keep their details until newer ones replace them. This server keeps the last backup, and makes one each night something changes.',
+  'staff.removeBackupsLocal_other':
+    'Backups made before keep their details until newer ones replace them. This server keeps the last {count}, and makes one each night something changes, so they are gone from here after {count} more nights with changes.',
+  'staff.removeBackupsRemote_one': 'The NAS or OneDrive keeps the last backup.',
+  'staff.removeBackupsRemote_other':
+    'The NAS or OneDrive keeps the last {count}, so there they go after {count} more nights with changes.',
+  'staff.removeBackupsDownloaded': 'A backup someone downloaded keeps them as long as it is kept.',
+  'personData.title': 'What Mise holds about {name}',
+  'personData.made': 'Made on {date} by {kitchen}.',
+  'personData.yes': 'Yes',
+  'personData.no': 'No',
+  'personData.none': 'None.',
+  'personData.account': 'Account',
+  'personData.active': 'Can sign in',
+  'personData.language': 'Own language',
+  'personData.hasPassword': 'Signs in with a password',
+  'personData.hasPin': 'Signs in with a PIN',
+  'personData.pinSetAt': 'PIN last set',
+  'personData.tourSeenAt': 'Offered the tour',
+  'personData.lockedUntil': 'Locked until',
+  'personData.createdAt': 'Added to the staff',
+  'personData.updatedAt': 'Account last changed',
+  'personData.secrets':
+    'A PIN or password is only kept as a hash, which can’t be turned back into it. It isn’t in this file.',
+  'personData.lines': 'Prep lines',
+  'personData.lineTimes': 'Added {added} · ticked {ticked}',
+  'personData.lineAdded': 'Put it on the list',
+  'personData.lineOnIt': 'Their name is on it',
+  'personData.lineTicked': 'Ticked it off',
+  'personData.recipes': 'Recipes they wrote',
+  'personData.note': 'Handover note signed with their name',
+  'personData.sessions': 'Signed in',
+  'personData.session': 'Since {started}, last seen {seen}, ends {ends}',
+  'personData.tablet': 'Tablet',
+  'personData.browser': 'Browser',
+  'personData.devices': 'Outside devices they approved',
+  'personData.device': 'approved {approved}, last used {seen}',
+  'privacy.loadError': 'Could not load this page. Try again in a moment.',
+  'privacy.title': 'What Mise stores and sends',
+  'privacy.intro':
+    'Mise keeps the kitchen’s data on this server and nowhere else. The kitchen is responsible for what it keeps about its staff, and this page is what you need to answer anyone who asks.',
+  'privacy.staffTools':
+    'Under Staff, Their data downloads everything about one person, and Remove for good takes them out.',
+  'privacy.keptTitle': 'What is kept about people',
+  'privacy.keptNames': 'Names, and an email address for anyone who signs in with a password.',
+  'privacy.keptSecrets':
+    'PINs and passwords only as a hash. Nobody can read them back, Mise included.',
+  'privacy.keptLines':
+    'Who put each prep line on the list, whose name is on it and who ticked it off, with when it was added and ticked.',
+  'privacy.keptNote':
+    'The name of whoever wrote the handover note, until the next note replaces it.',
+  'privacy.keptRecipes': 'Who wrote each recipe.',
+  'privacy.keptSessions':
+    'Who is signed in: since when, last seen when, on which tablet and in which browser.',
+  'privacy.keptSessionsHow':
+    'A password sign-in lasts {days} days, a PIN sign-in {hours} hours. Then it is deleted.',
+  'privacy.keptTablets': 'Kitchen tablets: the name each one was given, and when it was last used.',
+  'privacy.keptOutside':
+    'Devices outside the kitchen: the name each gave itself, the address and browser it asked from, who approved it and when it was last used.',
+  'privacy.keptOutsideHow':
+    'A device unused for {days} days is forgotten, address and browser with it. A request nobody answers goes after {hours} hours.',
+  'privacy.keptOffline':
+    'A change sent from offline is answered once and the answer kept {days} days, so it is never made twice.',
+  'privacy.keptLockout':
+    'Wrong PINs and passwords are counted in memory only, and forgotten when Mise restarts. A locked account stays locked until the lock ends.',
+  'privacy.linesDeleted_one': 'Ticked lines are deleted {count} hour after they are ticked.',
+  'privacy.linesDeleted_other': 'Ticked lines are deleted {count} hours after they are ticked.',
+  'privacy.linesKeptDays_one': 'Ticked lines are kept out of sight for {count} day, then deleted.',
+  'privacy.linesKeptDays_other':
+    'Ticked lines are kept out of sight for {count} days, then deleted.',
+  'privacy.linesKeptForGood':
+    'Ticked lines are kept out of sight for good. Settings → Kitchen can limit this.',
+  'privacy.backupsTitle': 'Backups',
+  'privacy.backupsWhat':
+    'Each backup holds the staff list, with the hashes but never a PIN or password, the recipes and the prep list. It is encrypted with the recovery key.',
+  'privacy.backupsLocal_one': 'This server keeps the last backup.',
+  'privacy.backupsLocal_other': 'This server keeps the last {count} backups.',
+  'privacy.backupsNights':
+    'One is made each night something changed, so the oldest can be older than that many nights.',
+  'privacy.backupsRemote_one': 'The NAS or OneDrive keeps the last backup too.',
+  'privacy.backupsRemote_other': 'The NAS or OneDrive keeps the last {count} backups too.',
+  'privacy.backupsOnlyHere': 'Backups go nowhere else.',
+  'privacy.backupsLeftOut':
+    'Sessions, outside devices and the backup settings are never in a backup. A backup someone downloaded is kept as long as they keep it.',
+  'privacy.sentTitle': 'What Mise sends, and where',
+  'privacy.sentGithub':
+    'Once a day, api.github.com, to ask which version of Mise is newest. Nothing about the kitchen goes with it.',
+  'privacy.sentGithubOn': 'On. An administrator can switch it off under Settings → Kitchen.',
+  'privacy.sentLetsEncrypt':
+    'Let’s Encrypt, when HTTPS is on for the outside address, to get and renew its certificate.',
+  'privacy.sentOnedrive':
+    'Microsoft OneDrive, when backups go there: the encrypted backups, after signing in at Microsoft.',
+  'privacy.sentWebdav': 'Your NAS or Nextcloud, when backups go there: the encrypted backups.',
+  'privacy.sentOn': 'On here.',
+  'privacy.sentOff': 'Off here.',
+  'privacy.sentNothingElse':
+    'Nothing else. No analytics, no tracking and no advertising, and no fonts or scripts from anywhere else.',
 } as const;
 
 export type MessageKey = keyof typeof en;

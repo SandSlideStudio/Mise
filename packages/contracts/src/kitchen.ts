@@ -88,6 +88,8 @@ export const kitchenSchema = z.object({
   pinOnly: pinOnlyStateSchema,
   /** Sign out of a shared tablet after this many minutes untouched. Null: never. */
   idleSignOutMinutes: z.number().int().nullable(),
+  /** Kept ticked lines are deleted once this many days old. Null: kept for good. */
+  tickedKeepDays: z.number().int().nullable(),
 });
 
 export const updateKitchenSchema = z.object({
@@ -97,6 +99,7 @@ export const updateKitchenSchema = z.object({
   prepChecklist: z.boolean().optional(),
   pinOnly: z.boolean().optional(),
   idleSignOutMinutes: z.number().int().min(1).max(240).nullable().optional(),
+  tickedKeepDays: z.number().int().min(1).max(3650).nullable().optional(),
 });
 
 /**

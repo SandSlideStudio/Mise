@@ -32,7 +32,7 @@ declare module 'fastify' {
 }
 
 const WRITES = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-const KEEP_DAYS = 7;
+export const KEEP_DAYS = 7;
 const VALID_ID = /^[A-Za-z0-9_-]{8,64}$/;
 
 function writeId(request: FastifyRequest): string | null {

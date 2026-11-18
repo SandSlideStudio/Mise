@@ -268,6 +268,56 @@ docker compose start app
 docker compose exec -T app tar xzf - -C /data/uploads < mise-photos.tar.gz
 ```
 
+## What Mise stores and sends
+
+Mise keeps the kitchen's data on your server and nowhere else. That makes the kitchen responsible
+for what it keeps about its staff. **Settings → Privacy** says all of this with the numbers this
+server actually uses, so you can answer anyone who asks.
+
+What is kept about people, and for how long:
+
+- **Names**, and an **email address** for anyone who signs in with a password.
+- **PINs and passwords** only as a hash. Nobody can read them back, Mise included.
+- **Prep lines:** who put each line on the list, whose name is on it and who ticked it off, with
+  when it was added and ticked. A ticked line leaves the list after two hours. If the kitchen
+  deletes those (**Settings → Kitchen**), it's gone then. If it keeps them, they're deleted after
+  a year by default; the same setting chooses 30 days to two years, or for good.
+- **The handover note** keeps the name of whoever wrote it, until the next note replaces it.
+- **Recipes** remember who wrote them.
+- **Sessions:** who is signed in, since when, last seen when, on which tablet and in which browser.
+  A password sign-in lasts 14 days, a PIN sign-in 14 hours; then it's deleted.
+- **Kitchen tablets:** the name you gave each one, and when it was last used.
+- **Outside devices:** the name each gave itself, the address and browser it asked from, who
+  approved it and when it was last used. One unused for 90 days is forgotten, address and browser
+  with it, and a request nobody answers goes after a day.
+- **Changes sent from offline:** Mise keeps its answer for a week, so a change is never made twice.
+- **Wrong PINs and passwords** are counted in memory only, and forgotten when Mise restarts.
+
+Under **Settings → Staff**, a head chef or administrator signed in with a password can download
+everything Mise holds about one person (**Their data**, readable or as JSON), or **Remove for
+good**: the account and sessions go, and the name comes off prep lines, the handover note and
+devices they approved. Backups made before keep them until newer backups replace them (see below).
+
+**Backups** hold the staff list (with the hashes, never a PIN or password), the recipes, the photos
+and the prep list, encrypted with the recovery key. The server keeps the last 7, and a NAS or
+OneDrive the last 30, unless you change that under **Settings → Backups**. A backup is made each
+night something changed, so the oldest can be older than that many nights. Sessions, outside
+devices and the backup settings are never in a backup. A backup someone downloaded is kept as long
+as they keep it.
+
+Every connection Mise itself makes to the outside world:
+
+- **api.github.com**, once a day, to ask which version is newest. Nothing about the kitchen goes
+  with it. An administrator can switch it off under **Settings → Kitchen**.
+- **Let's Encrypt**, only when HTTPS is on for the outside address, to get and renew the
+  certificate. (Caddy from the compose file does the same for its own certificate.)
+- **Microsoft OneDrive** (login.microsoftonline.com and graph.microsoft.com), only when backups go
+  there: the encrypted backups.
+- **Your NAS or Nextcloud** over WebDAV, only when backups go there: the encrypted backups.
+
+Nothing else: no analytics, no tracking, no advertising, and the app loads no fonts or scripts from
+anywhere else. Installing and updating download Mise from GitHub and its image from `ghcr.io`.
+
 ## On a Raspberry Pi
 
 Mise runs on anything from a Raspberry Pi Zero 2 W up. In testing, a busy service with ten tablets

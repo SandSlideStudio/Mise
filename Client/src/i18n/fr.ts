@@ -1291,4 +1291,126 @@ export const fr: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code seul.',
   'error.tabletLockedUntil':
     'Trop de codes erronés sur cette tablette. Réessayez après {time}, ou demandez à un chef de cuisine de lever le blocage.',
+  // Confidentialité : ce qui est gardé, combien de temps, et les données d’une personne
+  'settings.tabPrivacy': 'Confidentialité',
+  'kitchen.keepFor': 'Les garder',
+  'kitchen.keepDays_one': '{count} jour',
+  'kitchen.keepDays_other': '{count} jours',
+  'kitchen.keepYear': 'Un an',
+  'kitchen.keepTwoYears': 'Deux ans',
+  'kitchen.keepForGood': 'Pour toujours',
+  'kitchen.keepForHint':
+    'Les lignes cochées plus anciennes sont supprimées, pour que la trace de qui a fait quoi ne grandisse pas sans fin.',
+  'staff.theirData': 'Ses données',
+  'staff.theirDataHint':
+    'Tout ce que Mise garde sur {name} : son compte, les lignes de mise en place ajoutées, prises ou cochées, une note de passation signée de son nom, et où la personne est connectée. Jamais son code ni son mot de passe.',
+  'staff.downloadReadable': 'Télécharger pour lire',
+  'staff.downloadJson': 'Télécharger en JSON',
+  'staff.removeForGood': 'Retirer pour de bon',
+  'staff.removeTitle': 'Retirer {name} pour de bon ?',
+  'staff.removeWhat':
+    'Son compte et ses sessions disparaissent, et son nom est retiré des lignes de mise en place, de la note de passation et des appareils qu’elle a acceptés. Les lignes et la note restent. C’est définitif.',
+  'staff.removeBackupsLocal_one':
+    'Les sauvegardes faites avant gardent ses données jusqu’à ce que de plus récentes les remplacent. Ce serveur garde la dernière sauvegarde, et en fait une chaque nuit où quelque chose change.',
+  'staff.removeBackupsLocal_other':
+    'Les sauvegardes faites avant gardent ses données jusqu’à ce que de plus récentes les remplacent. Ce serveur garde les {count} dernières, et en fait une chaque nuit où quelque chose change : elles ont disparu d’ici après {count} nuits avec des changements.',
+  'staff.removeBackupsRemote_one': 'Le NAS ou OneDrive garde la dernière sauvegarde.',
+  'staff.removeBackupsRemote_other':
+    'Le NAS ou OneDrive garde les {count} dernières : là-bas, elles disparaissent après {count} nuits avec des changements.',
+  'staff.removeBackupsDownloaded':
+    'Une sauvegarde téléchargée par quelqu’un les garde aussi longtemps qu’elle est conservée.',
+  'personData.title': 'Ce que Mise garde sur {name}',
+  'personData.made': 'Fait le {date} par {kitchen}.',
+  'personData.yes': 'Oui',
+  'personData.no': 'Non',
+  'personData.none': 'Aucune.',
+  'personData.account': 'Compte',
+  'personData.active': 'Peut se connecter',
+  'personData.language': 'Langue choisie',
+  'personData.hasPassword': 'Se connecte avec un mot de passe',
+  'personData.hasPin': 'Se connecte avec un code',
+  'personData.pinSetAt': 'Code défini le',
+  'personData.tourSeenAt': 'Visite guidée proposée le',
+  'personData.lockedUntil': 'Bloqué jusqu’au',
+  'personData.createdAt': 'Ajouté à l’équipe le',
+  'personData.updatedAt': 'Compte modifié le',
+  'personData.secrets':
+    'Un code ou un mot de passe n’est gardé que sous forme de hachage, dont on ne peut pas le retrouver. Il n’est pas dans ce fichier.',
+  'personData.lines': 'Lignes de mise en place',
+  'personData.lineTimes': 'Ajoutée {added} · cochée {ticked}',
+  'personData.lineAdded': 'L’a mise sur la liste',
+  'personData.lineOnIt': 'Son nom y figure',
+  'personData.lineTicked': 'L’a cochée',
+  'personData.recipes': 'Recettes écrites par cette personne',
+  'personData.note': 'Note de passation signée de son nom',
+  'personData.sessions': 'Connexions',
+  'personData.session': 'Depuis {started}, vu {seen}, se termine {ends}',
+  'personData.tablet': 'Tablette',
+  'personData.browser': 'Navigateur',
+  'personData.devices': 'Appareils extérieurs acceptés par cette personne',
+  'personData.device': 'accepté {approved}, utilisé {seen}',
+  'privacy.loadError': 'Impossible de charger cette page. Réessaie dans un instant.',
+  'privacy.title': 'Ce que Mise garde et envoie',
+  'privacy.intro':
+    'Mise garde les données de la cuisine sur ce serveur et nulle part ailleurs. La cuisine est responsable de ce qu’elle garde sur son équipe, et cette page contient ce qu’il faut pour répondre à quiconque le demande.',
+  'privacy.staffTools':
+    'Sous Équipe, Ses données télécharge tout sur une personne, et Retirer pour de bon la retire.',
+  'privacy.keptTitle': 'Ce qui est gardé sur les personnes',
+  'privacy.keptNames': 'Les noms, et une adresse e-mail pour qui se connecte avec un mot de passe.',
+  'privacy.keptSecrets':
+    'Les codes et mots de passe seulement sous forme de hachage. Personne ne peut les relire, Mise non plus.',
+  'privacy.keptLines':
+    'Qui a mis chaque ligne de mise en place sur la liste, quel nom y figure et qui l’a cochée, avec quand elle a été ajoutée et cochée.',
+  'privacy.keptNote':
+    'Le nom de qui a écrit la note de passation, jusqu’à ce que la suivante la remplace.',
+  'privacy.keptRecipes': 'Qui a écrit chaque recette.',
+  'privacy.keptSessions':
+    'Qui est connecté : depuis quand, vu pour la dernière fois quand, sur quelle tablette et dans quel navigateur.',
+  'privacy.keptSessionsHow':
+    'Une connexion par mot de passe dure {days} jours, par code {hours} heures. Ensuite, elle est supprimée.',
+  'privacy.keptTablets':
+    'Les tablettes de la cuisine : le nom donné à chacune, et quand elle a servi pour la dernière fois.',
+  'privacy.keptOutside':
+    'Les appareils hors de la cuisine : le nom que chacun s’est donné, l’adresse et le navigateur de sa demande, qui l’a accepté et quand il a servi pour la dernière fois.',
+  'privacy.keptOutsideHow':
+    'Un appareil inutilisé pendant {days} jours est oublié, adresse et navigateur compris. Une demande sans réponse disparaît après {hours} heures.',
+  'privacy.keptOffline':
+    'Une modification envoyée hors ligne reçoit une seule réponse, gardée {days} jours, pour qu’elle ne soit jamais faite deux fois.',
+  'privacy.keptLockout':
+    'Les mauvais codes et mots de passe sont comptés en mémoire seulement, et oubliés au redémarrage de Mise. Un compte bloqué le reste jusqu’à la fin du blocage.',
+  'privacy.linesDeleted_one': 'Les lignes cochées sont supprimées {count} heure après.',
+  'privacy.linesDeleted_other': 'Les lignes cochées sont supprimées {count} heures après.',
+  'privacy.linesKeptDays_one':
+    'Les lignes cochées sont gardées hors de vue {count} jour, puis supprimées.',
+  'privacy.linesKeptDays_other':
+    'Les lignes cochées sont gardées hors de vue {count} jours, puis supprimées.',
+  'privacy.linesKeptForGood':
+    'Les lignes cochées sont gardées hors de vue pour toujours. Réglages → Cuisine permet de limiter cela.',
+  'privacy.backupsTitle': 'Sauvegardes',
+  'privacy.backupsWhat':
+    'Chaque sauvegarde contient l’équipe, avec les hachages mais jamais un code ou un mot de passe, les recettes et la liste de mise en place. Elle est chiffrée avec la clé de récupération.',
+  'privacy.backupsLocal_one': 'Ce serveur garde la dernière sauvegarde.',
+  'privacy.backupsLocal_other': 'Ce serveur garde les {count} dernières sauvegardes.',
+  'privacy.backupsNights':
+    'Une sauvegarde est faite chaque nuit où quelque chose a changé : la plus ancienne peut donc dater de plus de nuits que cela.',
+  'privacy.backupsRemote_one': 'Le NAS ou OneDrive garde aussi la dernière sauvegarde.',
+  'privacy.backupsRemote_other':
+    'Le NAS ou OneDrive garde aussi les {count} dernières sauvegardes.',
+  'privacy.backupsOnlyHere': 'Les sauvegardes ne vont nulle part ailleurs.',
+  'privacy.backupsLeftOut':
+    'Les sessions, les appareils extérieurs et les réglages des sauvegardes ne sont jamais dans une sauvegarde. Une sauvegarde téléchargée existe aussi longtemps qu’on la garde.',
+  'privacy.sentTitle': 'Ce que Mise envoie, et où',
+  'privacy.sentGithub':
+    'Une fois par jour, api.github.com, pour demander quelle version de Mise est la plus récente. Rien sur la cuisine n’est envoyé avec.',
+  'privacy.sentGithubOn': 'Activé. Un administrateur peut le couper dans Réglages → Cuisine.',
+  'privacy.sentLetsEncrypt':
+    'Let’s Encrypt, quand HTTPS est activé pour l’adresse extérieure, pour obtenir et renouveler son certificat.',
+  'privacy.sentOnedrive':
+    'Microsoft OneDrive, quand les sauvegardes y vont : les sauvegardes chiffrées, après connexion chez Microsoft.',
+  'privacy.sentWebdav':
+    'Ton NAS ou Nextcloud, quand les sauvegardes y vont : les sauvegardes chiffrées.',
+  'privacy.sentOn': 'Activé ici.',
+  'privacy.sentOff': 'Désactivé ici.',
+  'privacy.sentNothingElse':
+    'Rien d’autre. Pas de statistiques, pas de pistage, pas de publicité, et aucune police ni aucun script venus d’ailleurs.',
 };

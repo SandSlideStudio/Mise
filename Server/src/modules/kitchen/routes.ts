@@ -94,6 +94,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       prepChecklist: row.prepChecklist,
       pinOnly: await kitchen.pinOnlyState(row),
       idleSignOutMinutes: row.idleSignOutMinutes,
+      tickedKeepDays: row.tickedKeepDays,
     };
   }
 
@@ -266,6 +267,9 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const result = await kitchen.deleteUser(request.params.id, request.user!);
       if (!result.ok) throw failureToError(result.error);
+      app.auth.forgetFailures(request.params.id);
+      // Their name is gone from the prep list and the handover note too.
+      app.live.publish('prep');
       return reply.status(204).send(null);
     },
   );

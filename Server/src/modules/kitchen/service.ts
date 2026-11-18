@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, isNotNull, isNull, lt, ne, or, sql } from 'drizzle-orm';
+import { and, asc, eq, gte, isNotNull, isNull, like, lt, ne, or, sql } from 'drizzle-orm';
 import { mayManage } from '@mise/contracts';
 import { isCommonPin } from '@mise/domain';
 import type {
@@ -11,7 +11,7 @@ import type {
   UpdateUser,
 } from '@mise/contracts';
 import type { Database } from '../../db/client.js';
-import { kitchens, sessions, stations, users } from '../../db/schema.js';
+import { kitchens, sessions, stations, users, writeReceipts } from '../../db/schema.js';
 import { hashSecret, verifySecret } from '../../lib/crypto.js';
 
 /**
@@ -338,9 +338,13 @@ export function createKitchenService(db: Database) {
   }
 
   /**
-   * Removing someone deletes them outright. Their sessions go with them, and
-   * prep they were on or ticked off stays on the list without a name, because
-   * the tasks point at people with "on delete set null".
+   * Removing someone is for good. Their account and sessions go, and prep
+   * they added, were on or ticked off stays on the list without a name,
+   * because everything points at people with "on delete set null" (outside
+   * devices they approved too). What holds their name as text is cleared as
+   * well: the handover note keeps its words but loses the signature, and the
+   * answers kept for their offline changes, which can repeat their own
+   * details, are dropped. Backups made before keep them until they rotate out.
    */
   async function deleteUser(
     id: string,
@@ -357,7 +361,16 @@ export function createKitchenService(db: Database) {
     }
     if (id === actor.id) return { ok: false, error: { kind: 'self_lockout' } };
 
-    await db.delete(users).where(eq(users.id, id));
+    await db.transaction(async (tx) => {
+      // The note keeps the name as written, so a namesake's note loses its
+      // signature too; better that than keeping a name that should be gone.
+      await tx
+        .update(kitchens)
+        .set({ handoverNoteBy: null })
+        .where(eq(kitchens.handoverNoteBy, current.displayName));
+      await tx.delete(writeReceipts).where(like(writeReceipts.key, `${id}:%`));
+      await tx.delete(users).where(eq(users.id, id));
+    });
     return { ok: true };
   }
 
