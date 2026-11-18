@@ -31,11 +31,9 @@ const ITEM_ORDER = [
   asc(prepChecklistItems.createdAt),
 ];
 
-const checklistRoutes: FastifyPluginAsync = async (app) => {
-  const r = app.withTypeProvider<ZodTypeProvider>();
-  const prep = createPrepService(app.db);
-
-  async function readItems(exec: Executor = app.db) {
+/** The checklist as the API shows it. Also read by the bundle for offline use. */
+export function createChecklistReader(db: Executor) {
+  async function readItems(exec: Executor = db) {
     return exec
       .select({
         id: prepChecklistItems.id,
@@ -48,7 +46,7 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
       .orderBy(...ITEM_ORDER);
   }
 
-  async function readChecklist(exec: Executor = app.db) {
+  async function readChecklist(exec: Executor = db) {
     const [kitchen] = await exec
       .select({ on: kitchens.prepChecklist, at: kitchens.prepChecklistUpdatedAt })
       .from(kitchens)
@@ -59,6 +57,14 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
       updatedAt: (kitchen?.at ?? new Date(0)).toISOString(),
     };
   }
+
+  return { readItems, readChecklist };
+}
+
+const checklistRoutes: FastifyPluginAsync = async (app) => {
+  const r = app.withTypeProvider<ZodTypeProvider>();
+  const prep = createPrepService(app.db);
+  const { readItems, readChecklist } = createChecklistReader(app.db);
 
   r.get(
     '/checklist',

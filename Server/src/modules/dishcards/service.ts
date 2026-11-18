@@ -119,12 +119,13 @@ export function createDishCardService(db: Database) {
 
   async function card(
     recipeId: string,
+    loaded?: Awaited<ReturnType<typeof loadRecipeBook>>,
   ): Promise<{ ok: true; card: DishCard } | { ok: false; error: CardFailure }> {
     const [dish] = await db.select().from(recipes).where(eq(recipes.id, recipeId)).limit(1);
     if (!dish) return { ok: false, error: { kind: 'not_found' } };
     if (dish.type !== 'dish') return { ok: false, error: { kind: 'not_a_dish' } };
 
-    const book = await loadRecipeBook(db);
+    const book = loaded ?? (await loadRecipeBook(db));
     const matrix = dishCardMatrix(recipeId, book);
     // A card that can't be worked out is not printed with a guess in it.
     if (!matrix.ok) return { ok: false, error: { kind: 'broken' } };
@@ -213,7 +214,9 @@ export function createDishCardService(db: Database) {
    * Every dish, with what the front of its card shows and its allergens as a
    * whole. One pass over the recipe book, so the Dishes page is one request.
    */
-  async function summaries(): Promise<DishSummary[]> {
+  async function summaries(
+    loaded?: Awaited<ReturnType<typeof loadRecipeBook>>,
+  ): Promise<DishSummary[]> {
     const [dishes, book, photos, onMenus] = await Promise.all([
       db
         .select({
@@ -227,7 +230,7 @@ export function createDishCardService(db: Database) {
         .from(recipes)
         .where(eq(recipes.type, 'dish'))
         .orderBy(asc(recipes.name)),
-      loadRecipeBook(db),
+      loaded ?? loadRecipeBook(db),
       db.select().from(recipePhotos),
       db
         .select({ recipeId: menuDishes.recipeId, name: menus.name })

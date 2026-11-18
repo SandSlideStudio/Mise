@@ -1,5 +1,5 @@
 import { ApiError } from '../../lib/errors.js';
-import { and, asc, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, ilike, inArray, isNotNull, sql, type SQL } from 'drizzle-orm';
 import type { CreateRecipe, CreateRecipeComponent, UpdateRecipe } from '@mise/contracts';
 import {
   findCycle,
@@ -100,6 +100,35 @@ export function createRecipesService(db: Database) {
       .orderBy(asc(recipes.name));
   }
 
+  /**
+   * Every recipe as getRecipe gives it, in three queries instead of three per
+   * recipe. Same orders, so what comes out is what one-by-one would give.
+   */
+  async function allRecipes() {
+    const [rows, components, photos] = await Promise.all([
+      db.select().from(recipes).orderBy(asc(recipes.name)),
+      db.select().from(recipeComponents).orderBy(asc(recipeComponents.sortOrder)),
+      db.select().from(recipePhotos).orderBy(asc(recipePhotos.createdAt)),
+    ]);
+    const componentsOf = new Map<string, typeof components>();
+    for (const component of components) {
+      const list = componentsOf.get(component.recipeId) ?? [];
+      list.push(component);
+      componentsOf.set(component.recipeId, list);
+    }
+    const photosOf = new Map<string, typeof photos>();
+    for (const photo of photos) {
+      const list = photosOf.get(photo.recipeId) ?? [];
+      list.push(photo);
+      photosOf.set(photo.recipeId, list);
+    }
+    return rows.map((row) => ({
+      ...row,
+      components: componentsOf.get(row.id) ?? [],
+      photos: photosOf.get(row.id) ?? [],
+    }));
+  }
+
   async function getRecipe(id: string) {
     const [row] = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1);
     if (!row) return null;
@@ -120,8 +149,11 @@ export function createRecipesService(db: Database) {
   }
 
   /** Allergens for the whole tree beneath a recipe. */
-  async function allergensFor(id: string): Promise<AllergenProfile> {
-    const book = await loadRecipeBook(db);
+  async function allergensFor(
+    id: string,
+    loaded?: Awaited<ReturnType<typeof loadRecipeBook>>,
+  ): Promise<AllergenProfile> {
+    const book = loaded ?? (await loadRecipeBook(db));
     const result = rollUpAllergens(id, book);
     // Never fewer allergens than are really in it: when the tree can't be
     // followed all the way down (a missing reference, a loop), that is an
@@ -444,6 +476,22 @@ export function createRecipesService(db: Database) {
       .where(eq(recipeComponents.childRecipeId, id));
   }
 
+  /** usedBy for every recipe at once: which recipes each one is a part of. */
+  async function usedByAll() {
+    const rows = await db
+      .select({ child: recipeComponents.childRecipeId, id: recipes.id, name: recipes.name })
+      .from(recipeComponents)
+      .innerJoin(recipes, eq(recipes.id, recipeComponents.recipeId))
+      .where(isNotNull(recipeComponents.childRecipeId));
+    const byChild = new Map<string, { id: string; name: string }[]>();
+    for (const { child, id, name } of rows) {
+      const list = byChild.get(child!) ?? [];
+      list.push({ id, name });
+      byChild.set(child!, list);
+    }
+    return byChild;
+  }
+
   /**
    * Recipes that can't be called free from an allergen: they contain it or may
    * contain it anywhere in their tree, or their allergens can't be worked out.
@@ -484,6 +532,8 @@ export function createRecipesService(db: Database) {
     deleteRecipe,
     duplicateRecipe,
     usedBy,
+    usedByAll,
+    allRecipes,
     idsWithAllergen,
     detectCycle,
     recipesByIds,

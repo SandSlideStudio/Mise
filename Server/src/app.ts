@@ -37,6 +37,7 @@ import photoRoutes from './modules/recipes/photos.js';
 import backupRoutes from './modules/backups/routes.js';
 import dishCardRoutes from './modules/dishcards/routes.js';
 import menuRoutes from './modules/menus/routes.js';
+import offlineRoutes from './modules/offline/routes.js';
 import updateRoutes from './modules/updates/routes.js';
 import { createUpdateChecker, type UpdateChecker } from './modules/updates/service.js';
 import { kitchens } from './db/schema.js';
@@ -200,6 +201,7 @@ export async function buildApp(
   await app.register(photoRoutes, { prefix: '/api' });
   await app.register(dishCardRoutes, { prefix: '/api' });
   await app.register(menuRoutes, { prefix: '/api' });
+  await app.register(offlineRoutes, { prefix: '/api' });
   await app.register(backupRoutes, { prefix: '/api' });
   await app.register(updateRoutes, { prefix: '/api' });
   await app.register(privacyRoutes, { prefix: '/api' });
