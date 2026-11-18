@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { PasswordInput } from '../../components/PasswordInput.js';
 import { mayManage, ROLES, type Role, type Station, type User } from '@mise/contracts';
 import {
   useCreateStaff,
@@ -341,10 +342,8 @@ function StaffForm({
             <label className="label" htmlFor="password">
               {editing && person.hasPassword ? t('staff.newPassword') : t('common.password')}
             </label>
-            <input
+            <PasswordInput
               id="password"
-              type="password"
-              className="field"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="new-password"

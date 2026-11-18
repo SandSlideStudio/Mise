@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { PasswordInput } from '../components/PasswordInput.js';
 import { Link, useNavigate } from '@tanstack/react-router';
 import { LANGUAGES } from '@mise/contracts';
 import { useLogin, useSetupStatus } from '../api/session.js';
@@ -24,7 +25,6 @@ export function Login() {
   const login = useLogin();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   // Counts failed tries, so the same error shakes again on a second miss.
   const [attempts, setAttempts] = useState(0);
 
@@ -106,26 +106,13 @@ export function Login() {
               <label className="label" htmlFor="password">
                 {t('common.password')}
               </label>
-              <div className="relative">
-                <input
-                  id="password"
-                  type={showPassword ? 'text' : 'password'}
-                  className="field pr-24"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  autoComplete="current-password"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((shown) => !shown)}
-                  aria-pressed={showPassword}
-                  aria-controls="password"
-                  className="text-ink-soft hover:text-ink font-display absolute inset-y-0 right-0 px-4 text-sm font-semibold transition-colors"
-                >
-                  {showPassword ? t('login.hide') : t('login.show')}
-                </button>
-              </div>
+              <PasswordInput
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
+                required
+              />
             </div>
 
             {login.error ? (

@@ -60,6 +60,15 @@ export function useApproveRemoteDevice() {
   });
 }
 
+/** Turns down every request still waiting; approved devices stay. */
+export function useTurnDownWaiting() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.post<{ removed: number }>('/access/devices/turn-down-waiting', {}),
+    onSettled: () => void queryClient.invalidateQueries({ queryKey: ['remote-devices'] }),
+  });
+}
+
 export function useRemoveRemoteDevice() {
   const queryClient = useQueryClient();
   return useMutation({

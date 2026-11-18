@@ -1,4 +1,5 @@
 import { useState, type KeyboardEvent, type ReactNode } from 'react';
+import { PasswordInput } from '../components/PasswordInput.js';
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
 import {
@@ -686,20 +687,20 @@ export function Setup() {
                     htmlFor="password"
                     hint={t('setup.passwordHint')}
                   >
-                    <input
+                    <PasswordInput
                       id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      className="field"
+                      shown={showPassword}
+                      onShownChange={setShowPassword}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       autoComplete="new-password"
                     />
                   </Field>
                   <Field label={t('setup.confirmPassword')} htmlFor="confirmPassword">
-                    <input
+                    <PasswordInput
                       id="confirmPassword"
-                      type={showPassword ? 'text' : 'password'}
-                      className="field"
+                      shown={showPassword}
+                      onShownChange={setShowPassword}
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
                       autoComplete="new-password"
@@ -707,11 +708,6 @@ export function Setup() {
                   </Field>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <Switch
-                    checked={showPassword}
-                    onChange={setShowPassword}
-                    label={t('setup.showPassword')}
-                  />
                   <PasswordState password={password} confirm={confirm} />
                 </div>
                 <Field label={t('setup.yourPin')} htmlFor="pin" hint={t('setup.yourPinHint')}>
@@ -1120,10 +1116,8 @@ function SetupNas({
           />
         </Field>
         <Field label={t('backups.webdavPassword')} htmlFor="setupWebdavPassword">
-          <input
+          <PasswordInput
             id="setupWebdavPassword"
-            type="password"
-            className="field"
             value={draft.password}
             onChange={(e) => change({ password: e.target.value })}
             autoComplete="new-password"

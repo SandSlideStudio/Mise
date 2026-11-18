@@ -327,6 +327,63 @@ describe('asking and approving', () => {
   });
 });
 
+describe('turning down everyone waiting', () => {
+  const turnDownAll = (token: string) =>
+    from(INSIDE, {
+      method: 'POST',
+      url: '/api/access/devices/turn-down-waiting',
+      cookie: `mise_session=${token}`,
+    });
+
+  it('clears every waiting request and leaves an approved device alone', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const phone = await ask('Phone 1', '198.51.100.1');
+    await ask('Phone 2', '198.51.100.2');
+    await ask('Phone 3', '198.51.100.3');
+    const { devices } = await list(admin);
+    const first = devices.find((device) => device.name === 'Phone 1')!;
+    await approve(admin, first.id);
+
+    const result = await turnDownAll(admin);
+    expect(result.statusCode).toBe(200);
+    expect(result.json()).toEqual({ removed: 2 });
+    const left = (await list(admin)).devices;
+    expect(left).toHaveLength(1);
+    expect(left[0]?.status).toBe('approved');
+    const me = await from(OUTSIDE, { method: 'GET', url: '/api/auth/me', cookie: phone.cookie });
+    expect(me.json().error?.code).not.toBe('access_required');
+  });
+
+  it('says zero when nobody is waiting', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    expect((await turnDownAll(admin)).json()).toEqual({ removed: 0 });
+  });
+
+  it('is for chefs and administrators, not cooks', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    await ask();
+    await from(INSIDE, {
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        displayName: 'Marco',
+        role: 'cook',
+        email: 'marco@example.com',
+        password: 'a-long-cook-password',
+      },
+      cookie: `mise_session=${admin}`,
+    });
+    const signedIn = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'marco@example.com', password: 'a-long-cook-password' },
+    });
+    const cook = cookieFrom(signedIn, 'mise_session')!;
+    expect((await turnDownAll(cook)).statusCode).toBe(403);
+    expect((await list(admin)).devices).toHaveLength(1);
+  });
+});
+
 describe('running out', () => {
   it('ends an approval after 90 days unused', async () => {
     const admin = await setUpKitchen(ctx.app);

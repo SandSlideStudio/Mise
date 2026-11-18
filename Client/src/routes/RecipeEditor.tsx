@@ -31,7 +31,8 @@ import { useStations } from '../api/kitchen.js';
 import { useAwaiting } from '../lib/awaiting.js';
 import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCreateRecipe, useRecipe, useRecipeAllergens, useUpdateRecipe } from '../api/recipes.js';
-import { AppShell } from '../components/AppShell.js';
+import { AppShell, PageHeader } from '../components/AppShell.js';
+import { useCurrentUser } from '../api/session.js';
 import { LoadError } from '../components/LoadError.js';
 import { ComponentPicker } from '../components/ComponentPicker.js';
 import { Plate } from '../components/Plate.js';
@@ -100,6 +101,26 @@ export function RecipeEditor() {
   const existing = useRecipe(recipeId);
   // A dish edited under Recipes, or a prep under Dishes: moved to its own tab.
   useRightSection(existing.data, 'edit');
+  const { data: user } = useCurrentUser();
+
+  if (!user) return null;
+
+  // Only Save was refused before; a cook who types the address now gets the
+  // answer up front, as in Settings, instead of an editor they can't use.
+  if (user.role === 'cook') {
+    return (
+      <AppShell>
+        <main className="mx-auto max-w-5xl px-4 py-8 sm:px-5 sm:py-10">
+          <PageHeader
+            title={
+              window.location.pathname.startsWith('/dishes') ? t('nav.dishes') : t('nav.recipes')
+            }
+            description={t('editor.cookOnly')}
+          />
+        </main>
+      </AppShell>
+    );
+  }
 
   if (recipeId && existing.isPending) {
     return (

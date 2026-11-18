@@ -105,7 +105,6 @@ export const nl: Record<MessageKey, string> = {
   'shell.home': 'Mise, vandaag',
   'shell.signOut': 'Uitloggen',
   'shell.signOutFailed': 'Uitloggen is mislukt. Controleer de verbinding en probeer het opnieuw.',
-  'shell.sourceCode': 'Broncode',
   'shell.language': 'Taal',
   'shell.languageKitchen': 'Taal van de keuken ({language})',
 
@@ -180,8 +179,6 @@ export const nl: Record<MessageKey, string> = {
   'login.onTheLine': 'Sta je op de lijn?',
   'login.pinLink': 'Inloggen met je pincode',
   'login.titleKitchen': 'Inloggen bij {kitchen}',
-  'login.show': 'Tonen',
-  'login.hide': 'Verbergen',
   'login.forgot': 'Wachtwoord vergeten? Een beheerder kan bij Instellingen een nieuw instellen.',
   'login.tabletBody': 'Koks loggen in op de keukentablet: tik je naam aan en voer je pincode in.',
   'login.server': 'Verbonden met {host}',
@@ -228,7 +225,6 @@ export const nl: Record<MessageKey, string> = {
     'Jij bent de beheerder. Je logt in met dit e-mailadres en wachtwoord, op elk apparaat.',
   'setup.emailInvalid': 'Dat lijkt geen e-mailadres.',
   'setup.confirmPassword': 'Wachtwoord nogmaals',
-  'setup.showPassword': 'Wachtwoord tonen',
   'setup.passwordMismatch': 'De twee wachtwoorden zijn niet hetzelfde.',
   'setup.passwordMatch': 'De wachtwoorden komen overeen.',
   'setup.brigadeTitle': 'Posten en personeel',
@@ -1272,4 +1268,11 @@ export const nl: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Op deze tablet log je nu in met alleen een pincode.',
   'error.tabletLockedUntil':
     'Te veel verkeerde pincodes op deze tablet. Probeer het na {time} opnieuw, of vraag een chef-kok de blokkade op te heffen.',
+  'password.show': 'Wachtwoord tonen',
+  'password.hide': 'Wachtwoord verbergen',
+  'editor.cookOnly':
+    'Alleen chef-koks en beheerders kunnen recepten en gerechten schrijven of wijzigen.',
+  'outside.turnDownAll': 'Alle wachtende afwijzen',
+  'outside.reallyTurnDownAll_one': '{count} wachtend verzoek afwijzen?',
+  'outside.reallyTurnDownAll_other': 'Alle {count} wachtende verzoeken afwijzen?',
 };

@@ -109,7 +109,6 @@ export const fr: Record<MessageKey, string> = {
   'shell.home': "Mise, aujourd'hui",
   'shell.signOut': 'Se déconnecter',
   'shell.signOutFailed': 'Impossible de se déconnecter. Vérifiez la connexion et réessayez.',
-  'shell.sourceCode': 'Code source',
   'shell.language': 'Langue',
   'shell.languageKitchen': 'Langue de la cuisine ({language})',
 
@@ -185,8 +184,6 @@ export const fr: Record<MessageKey, string> = {
   'login.onTheLine': 'Au passe ?',
   'login.pinLink': 'Se connecter avec votre code',
   'login.titleKitchen': 'Connexion à {kitchen}',
-  'login.show': 'Afficher',
-  'login.hide': 'Masquer',
   'login.forgot':
     'Mot de passe oublié ? Un administrateur peut en définir un nouveau dans les Réglages.',
   'login.tabletBody':
@@ -235,7 +232,6 @@ export const fr: Record<MessageKey, string> = {
     'Vous êtes l’administrateur. Vous vous connectez avec cet e-mail et ce mot de passe, depuis n’importe quel appareil.',
   'setup.emailInvalid': 'Cela ne ressemble pas à une adresse e-mail.',
   'setup.confirmPassword': 'Confirmer le mot de passe',
-  'setup.showPassword': 'Afficher le mot de passe',
   'setup.passwordMismatch': 'Les deux mots de passe ne sont pas identiques.',
   'setup.passwordMatch': 'Les mots de passe correspondent.',
   'setup.brigadeTitle': 'Postes et équipe',
@@ -1291,4 +1287,11 @@ export const fr: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code seul.',
   'error.tabletLockedUntil':
     'Trop de codes erronés sur cette tablette. Réessayez après {time}, ou demandez à un chef de cuisine de lever le blocage.',
+  'password.show': 'Afficher le mot de passe',
+  'password.hide': 'Masquer le mot de passe',
+  'editor.cookOnly':
+    'Seuls les chefs et les administrateurs peuvent écrire ou modifier les recettes et les plats.',
+  'outside.turnDownAll': 'Refuser toutes les demandes en attente',
+  'outside.reallyTurnDownAll_one': 'Refuser {count} demande en attente ?',
+  'outside.reallyTurnDownAll_other': 'Refuser les {count} demandes en attente ?',
 };

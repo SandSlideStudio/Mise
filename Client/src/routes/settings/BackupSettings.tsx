@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { PasswordInput } from '../../components/PasswordInput.js';
 import { createPortal } from 'react-dom';
 import type { BackupDestination, BackupFile, BackupStatus, OnedriveStatus } from '@mise/contracts';
 import { LoadError } from '../../components/LoadError.js';
@@ -321,10 +322,8 @@ function Destination({ status }: { status: BackupStatus }) {
                 <label className="label" htmlFor="webdavPassword">
                   {t('backups.webdavPassword')}
                 </label>
-                <input
+                <PasswordInput
                   id="webdavPassword"
-                  className="field"
-                  type="password"
                   autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

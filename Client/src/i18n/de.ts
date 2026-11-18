@@ -110,7 +110,6 @@ export const de: Record<MessageKey, string> = {
   'shell.signOut': 'Abmelden',
   'shell.signOutFailed':
     'Abmelden hat nicht geklappt. Prüf die Verbindung und versuch es noch einmal.',
-  'shell.sourceCode': 'Quellcode',
   'shell.language': 'Sprache',
   'shell.languageKitchen': 'Sprache der Küche ({language})',
 
@@ -185,8 +184,6 @@ export const de: Record<MessageKey, string> = {
   'login.onTheLine': 'Auf dem Posten?',
   'login.pinLink': 'Mit deiner PIN anmelden',
   'login.titleKitchen': 'Bei {kitchen} anmelden',
-  'login.show': 'Anzeigen',
-  'login.hide': 'Verbergen',
   'login.forgot':
     'Passwort vergessen? Ein Administrator kann unter Einstellungen ein neues festlegen.',
   'login.tabletBody': 'Köche melden sich am Küchentablet an: Namen antippen, dann die PIN.',
@@ -234,7 +231,6 @@ export const de: Record<MessageKey, string> = {
     'Du bist der Administrator. Du meldest dich mit dieser E-Mail und diesem Passwort an, auf jedem Gerät.',
   'setup.emailInvalid': 'Das sieht nicht wie eine E-Mail-Adresse aus.',
   'setup.confirmPassword': 'Passwort wiederholen',
-  'setup.showPassword': 'Passwort anzeigen',
   'setup.passwordMismatch': 'Die beiden Passwörter stimmen nicht überein.',
   'setup.passwordMatch': 'Die Passwörter stimmen überein.',
   'setup.brigadeTitle': 'Posten und Team',
@@ -1287,4 +1283,11 @@ export const de: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'An diesem Tablet meldest du dich jetzt nur mit der PIN an.',
   'error.tabletLockedUntil':
     'Zu viele falsche PINs an diesem Tablet. Versuche es nach {time} erneut, oder bitte einen Küchenchef, die Sperre aufzuheben.',
+  'password.show': 'Passwort anzeigen',
+  'password.hide': 'Passwort verbergen',
+  'editor.cookOnly':
+    'Nur Küchenchefs und Administratoren können Rezepte und Gerichte schreiben oder ändern.',
+  'outside.turnDownAll': 'Alle wartenden ablehnen',
+  'outside.reallyTurnDownAll_one': '{count} wartende Anfrage ablehnen?',
+  'outside.reallyTurnDownAll_other': 'Alle {count} wartenden Anfragen ablehnen?',
 };
