@@ -297,6 +297,7 @@ export const es: Record<MessageKey, string> = {
   'welcome.f3b':
     'Los cocineros marcan un nombre y un PIN, tachan la mise en place y reclaman una tarea, para que nada se haga dos veces. Cada pantalla se actualiza en vivo.',
   'welcome.stepsLabel': 'Configuración · seis pasos',
+  'welcome.stepsLabelSeven': 'Configuración · siete pasos',
   'welcome.duration': 'Unos 5 minutos',
   'welcome.readyLabel': 'Ten a mano',
   'welcome.r1': 'El nombre del restaurante',

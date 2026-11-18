@@ -297,6 +297,7 @@ export const nl: Record<MessageKey, string> = {
   'welcome.f3b':
     'Koks tikken een naam en een pincode, vinken mise en place af en claimen een taak, zodat niets twee keer wordt gemaakt. Elk scherm werkt live bij.',
   'welcome.stepsLabel': 'Instellen · zes stappen',
+  'welcome.stepsLabelSeven': 'Instellen · zeven stappen',
   'welcome.duration': 'Ongeveer 5 minuten',
   'welcome.readyLabel': 'Klaarleggen',
   'welcome.r1': 'De naam van het restaurant',

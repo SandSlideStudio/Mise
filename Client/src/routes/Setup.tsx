@@ -59,14 +59,18 @@ import { isPlainHttp } from '../lib/nas.js';
  */
 
 const STEPS = ['kitchen', 'you', 'brigade', 'recipes', 'settings', 'check'] as const;
-/** With the prep checklist chosen, the chef builds it right after the stations. */
+/**
+ * With the prep checklist chosen, the chef builds it right after choosing it
+ * under settings: the stations are known by then, and the step follows the
+ * switch that asks for it instead of coming before it.
+ */
 const STEPS_WITH_CHECKLIST = [
   'kitchen',
   'you',
   'brigade',
-  'checklist',
   'recipes',
   'settings',
+  'checklist',
   'check',
 ] as const;
 type Step = (typeof STEPS_WITH_CHECKLIST)[number];
@@ -1126,18 +1130,6 @@ export function Setup() {
                       </ul>
                     )}
                   </Summary>
-                  {prepChecklist ? (
-                    <Summary
-                      title={t('setup.stepChecklist')}
-                      onEdit={() => goTo(stepAt('checklist'))}
-                    >
-                      <p className={checklistCount === 0 ? 'text-ink-soft' : undefined}>
-                        {checklistCount === 0
-                          ? t('setup.summaryNone')
-                          : plural('setup.summaryChecklistLines', checklistCount)}
-                      </p>
-                    </Summary>
-                  ) : null}
                   <Summary title={t('setup.stepRecipes')} onEdit={() => goTo(stepAt('recipes'))}>
                     {recipes.length === 0 ? (
                       <p className="text-ink-soft">{t('setup.summaryNone')}</p>
@@ -1197,6 +1189,18 @@ export function Setup() {
                         : t('setup.summaryNoTablet')}
                     </p>
                   </Summary>
+                  {prepChecklist ? (
+                    <Summary
+                      title={t('setup.stepChecklist')}
+                      onEdit={() => goTo(stepAt('checklist'))}
+                    >
+                      <p className={checklistCount === 0 ? 'text-ink-soft' : undefined}>
+                        {checklistCount === 0
+                          ? t('setup.summaryNone')
+                          : plural('setup.summaryChecklistLines', checklistCount)}
+                      </p>
+                    </Summary>
+                  ) : null}
                 </dl>
               </Plate>
             ) : null}

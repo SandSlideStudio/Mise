@@ -307,6 +307,7 @@ export const fr: Record<MessageKey, string> = {
   'welcome.f3b':
     'Les cuisiniers saisissent un nom et un code, cochent la mise en place et prennent une tâche, pour que rien ne soit fait deux fois. Chaque écran se met à jour en direct.',
   'welcome.stepsLabel': 'Configuration · six étapes',
+  'welcome.stepsLabelSeven': 'Configuration · sept étapes',
   'welcome.duration': 'Environ 5 minutes',
   'welcome.readyLabel': 'À portée de main',
   'welcome.r1': 'Le nom du restaurant',

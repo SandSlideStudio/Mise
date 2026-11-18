@@ -305,6 +305,7 @@ export const de: Record<MessageKey, string> = {
   'welcome.f3b':
     'Köche melden sich mit einer PIN an, haken Vorbereitungen ab und übernehmen Aufgaben, damit nichts doppelt gemacht wird. Jeder Bildschirm aktualisiert sich live.',
   'welcome.stepsLabel': 'Einrichtung · sechs Schritte',
+  'welcome.stepsLabelSeven': 'Einrichtung · sieben Schritte',
   'welcome.duration': 'Etwa 5 Minuten',
   'welcome.readyLabel': 'Bereithalten',
   'welcome.r1': 'Den Namen des Restaurants',

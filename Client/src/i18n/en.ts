@@ -293,6 +293,7 @@ export const en = {
   'welcome.f3b':
     'Cooks tap a name and a PIN, tick prep off and claim a job, so nothing gets made twice. Every screen updates live.',
   'welcome.stepsLabel': 'Setup · six steps',
+  'welcome.stepsLabelSeven': 'Setup · seven steps',
   'welcome.duration': 'About 5 minutes',
   'welcome.readyLabel': 'Have ready',
   'welcome.r1': "The restaurant's name",

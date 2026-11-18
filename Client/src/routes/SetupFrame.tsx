@@ -21,13 +21,16 @@ export const SETUP_STEPS: { label: MessageKey; optional?: boolean }[] = [
   { label: 'setup.stepCheck' },
 ];
 
-/** With the prep checklist chosen, one more step comes after the stations. */
+/**
+ * With the prep checklist chosen, one more step comes after settings, where it
+ * is switched on: the same order as the pages themselves (Setup.tsx).
+ */
 export function setupSteps(withChecklist: boolean): typeof SETUP_STEPS {
   if (!withChecklist) return SETUP_STEPS;
   return [
-    ...SETUP_STEPS.slice(0, 3),
+    ...SETUP_STEPS.slice(0, 5),
     { label: 'setup.stepChecklist', optional: true },
-    ...SETUP_STEPS.slice(3),
+    ...SETUP_STEPS.slice(5),
   ];
 }
 
@@ -248,7 +251,7 @@ export function PageHeading({
   );
 }
 
-/** The six steps on a plate: ticked when done, marked where you are. */
+/** The steps on a plate: ticked when done, marked where you are. */
 export function StepIndex({
   position,
   onPick,
@@ -264,7 +267,7 @@ export function StepIndex({
     <div>
       <div className="flex items-baseline justify-between gap-4">
         <h2 className="text-ink-faint font-display text-[13px] font-semibold xl:text-xs">
-          {t('welcome.stepsLabel')}
+          {t(withChecklist ? 'welcome.stepsLabelSeven' : 'welcome.stepsLabel')}
         </h2>
         <span className="text-ink-faint font-mono text-[11px]">{t('welcome.duration')}</span>
       </div>
