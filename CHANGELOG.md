@@ -25,8 +25,9 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
 - Ticking no longer makes the page jump: the "not sent yet" notice only shows once a tick has
   waited a second, at the bottom of the screen. Notices there stack instead of covering each
   other.
-- Deleting a recipe that a checklist line links to no longer stops the next checklist save, or
-  loses a tablet's edit made offline: the line simply loses its link, on every screen.
+- Deleting a recipe that a checklist line links to no longer stops the next checklist save: the
+  line simply loses its link, on every screen. A tablet that changed the checklist offline
+  meanwhile asks which version to keep, instead of losing its change.
 
 **Privacy**
 
@@ -75,6 +76,10 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
 - Tablets load ahead for offline use far more lightly: they ask whether anything changed, and only
   then fetch the kitchen in one go, read once on the server and shared between tablets. Before,
   every tablet asked for every recipe several times over, every half hour.
+- What a tablet loaded ahead now stays on it for the week it is meant to. Before, a recipe or card
+  nobody had opened was let go of after five minutes, so offline it often wasn't there. Changes
+  not sent yet, or saved while loading, are never painted over by what was loaded, and cards a
+  cook may no longer open are no longer kept.
 - Restoring a backup no longer writes a readable copy of it to disk, and photos and database go in
   together: if a restore fails, the server is left exactly as it was. Leftovers of a restore cut
   short are cleared when Mise starts.

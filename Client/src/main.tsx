@@ -95,6 +95,10 @@ const queryClient: QueryClient = new QueryClient({
       // the prep list honest without anyone reaching for reload.
       refetchOnWindowFocus: true,
       staleTime: 30_000,
+      // As long as it is kept on the device. The default (five minutes) let
+      // go of anything no screen showed, loaded ahead or not, and the copy on
+      // the device followed: a recipe nobody opened was gone offline.
+      gcTime: KEPT_FOR_MS,
       // Once, for a dropped connection; asking again won't change a no.
       retry: (count, error) => count < 1 && !(error instanceof RequestFailed && error.status < 500),
     },
@@ -138,7 +142,7 @@ function Shell() {
   // Changes kept on the device while Mise couldn't be reached go out from here.
   setOutboxUser(currentUser.data?.id ?? null);
   useOutboxSender();
-  useLoadAhead(currentUser.data != null);
+  useLoadAhead(currentUser.data?.id);
   useVersionWatch();
   // Saved ticks keep being sent whichever screen is open.
   useTickSender();

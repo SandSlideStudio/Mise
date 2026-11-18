@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
 import type { OfflineBundle } from '@mise/contracts';
 import { markReachable } from '../lib/connectivity.js';
+import { add } from '../lib/outbox.js';
 import { forgetKept, loadAhead } from './offline.js';
 
 // No IndexedDB in the test browser; the store is not what is under test.
@@ -152,10 +153,74 @@ describe('loading ahead', () => {
   it('forgets the version with everything else on signing out', async () => {
     const queryClient = new QueryClient();
     await loadAhead(queryClient);
+    // What signing out does: the kept copy goes, and the answers with it.
     await forgetKept();
+    queryClient.removeQueries();
     fetchMock.mockClear();
 
     await loadAhead(queryClient);
     expect(asked()).toContain('/offline/bundle');
+  });
+
+  it('keeps the version in the cache it describes, so they are saved together', async () => {
+    const queryClient = new QueryClient();
+    await loadAhead(queryClient);
+    expect(queryClient.getQueryData(['loaded-version'])).toBe(version);
+  });
+
+  it('leaves an edit waiting to be sent as it is, and loads again later', async () => {
+    const queryClient = new QueryClient();
+    await loadAhead(queryClient);
+    queryClient.setQueryData(['recipe', 'r1'], { id: 'r1', name: 'Edited offline' });
+    add({
+      id: 'recipe-000000001',
+      userId: 'user-1',
+      method: 'PATCH',
+      path: '/recipes/r1',
+      body: { name: 'Edited offline' },
+      label: { key: 'offline.label.recipe' },
+    });
+    version = 'boot-1-chef-changed';
+    await loadAhead(queryClient, 'user-1');
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual({
+      id: 'r1',
+      name: 'Edited offline',
+    });
+    expect(queryClient.getQueryData(['loaded-version'])).not.toBe(version);
+  });
+
+  it('does not paint over a save that finished while the bundle was on its way', async () => {
+    const queryClient = new QueryClient();
+    let release = () => {};
+    fetchMock.mockImplementation((input) => {
+      const url = String(input);
+      if (url.endsWith('/offline/version')) return Promise.resolve(json({ version }));
+      if (url.endsWith('/offline/bundle')) {
+        return new Promise((resolve) => {
+          release = () => resolve(json(bundle()));
+        });
+      }
+      return Promise.resolve(json([]));
+    });
+    const loading = loadAhead(queryClient);
+    await vi.waitFor(() => expect(asked()).toContain('/offline/bundle'));
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    queryClient.setQueryData(['recipe', 'r1'], { id: 'r1', name: 'Saved online' });
+    release();
+    await loading;
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual({ id: 'r1', name: 'Saved online' });
+    // Not counted as complete: the next round loads what it missed.
+    expect(queryClient.getQueryData(['loaded-version'])).toBeUndefined();
+  });
+
+  it('lets go of cards and recipes the bundle no longer holds', async () => {
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['dish-card', 'gone'], { name: 'Old card' });
+    queryClient.setQueryData(['recipe', 'gone'], { id: 'gone' });
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await loadAhead(queryClient);
+    expect(queryClient.getQueryData(['dish-card', 'gone'])).toBeUndefined();
+    expect(queryClient.getQueryData(['recipe', 'gone'])).toBeUndefined();
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual(recipe);
   });
 });

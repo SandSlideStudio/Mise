@@ -4,6 +4,7 @@ import { unpackOfflineBundle, type OfflineBundle } from '@mise/contracts';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { del, get, set } from 'idb-keyval';
 import { isReachable } from '../lib/connectivity.js';
+import { entriesFor } from '../lib/outbox.js';
 import { api } from './client.js';
 
 /**
@@ -61,7 +62,6 @@ export function keepOnDevice(queryKey: QueryKey, hasAnswer: boolean): boolean {
 /** Forget everything kept, as signing out on a shared tablet does: data and photos. */
 export async function forgetKept(): Promise<void> {
   await del(STORE_KEY).catch(() => undefined);
-  rememberVersion(null);
   // The photos the service worker keeps (sw/service-worker.js).
   if (typeof caches !== 'undefined') await caches.delete('mise-photos').catch(() => false);
 }
@@ -97,34 +97,29 @@ async function inTurn(jobs: (() => Promise<void>)[]): Promise<void> {
 }
 
 /**
- * The data version the last complete load saw. A plain string on the device,
- * forgotten with everything else on signing out.
+ * The data version the last complete load saw. Kept in the cache itself, so
+ * it is saved on the device with the answers it describes, and never says
+ * "up to date" about answers that didn't make it there.
  */
-const LOADED_KEY = 'mise.loaded-version';
+const LOADED_KEY = ['loaded-version'] as const;
 
-function loadedVersion(): string | null {
-  try {
-    return localStorage.getItem(LOADED_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function rememberVersion(version: string | null): void {
-  try {
-    if (version) localStorage.setItem(LOADED_KEY, version);
-    else localStorage.removeItem(LOADED_KEY);
-  } catch {
-    // Not remembered: the next load simply goes ahead.
-  }
-}
+/** Kinds of answer the bundle holds one of per recipe or menu. */
+const PER_ITEM = new Set([
+  'recipe',
+  'recipe-used-by',
+  'recipe-allergens',
+  'recipe-expanded',
+  'dish-card',
+  'menu',
+  'menu-overview',
+]);
 
 /**
  * Loads what may be needed offline, but only if the kitchen's data changed
  * since the last complete load, and then in one request: the server reads its
  * recipe book once for all of it, not once for every recipe and screen.
  */
-export async function loadAhead(queryClient: QueryClient): Promise<void> {
+export async function loadAhead(queryClient: QueryClient, userId?: string): Promise<void> {
   if (!isReachable()) return;
 
   let current: string;
@@ -136,40 +131,68 @@ export async function loadAhead(queryClient: QueryClient): Promise<void> {
   // The version alone is not trusted when the saved answers are gone (cleared
   // by the browser, or older than a week): then they are loaded again.
   const haveAnswers = queryClient.getQueryData(['recipes', {}]) !== undefined;
-  if (current === loadedVersion() && haveAnswers) return;
+  if (current === queryClient.getQueryData(LOADED_KEY) && haveAnswers) return;
 
+  const started = Date.now();
   let bundle: OfflineBundle;
   try {
     bundle = await api.get<OfflineBundle>('/offline/bundle');
   } catch {
     return;
   }
-  // A change being sent right now is shown as made; answers read before it
-  // must not paint over it. The next round loads them.
+  // Changes not sent yet are shown as made; the server's copy must not paint
+  // over them. The next round, once they are sent, loads it.
   if (queryClient.isMutating() > 0) return;
+  if (userId && entriesFor(userId).length > 0) return;
 
+  let complete = true;
+  const fresher = (queryKey: QueryKey) => {
+    const state = queryClient.getQueryState(queryKey);
+    return state !== undefined && state.dataUpdatedAt > started;
+  };
+  const inBundle = new Map<string, Set<string>>();
   for (const [queryKey, data] of unpackOfflineBundle(bundle)) {
+    const kind = String(queryKey[0]);
+    if (PER_ITEM.has(kind)) {
+      if (!inBundle.has(kind)) inBundle.set(kind, new Set());
+      inBundle.get(kind)!.add(String(queryKey[1]));
+    }
+    // Saved while the bundle was on its way: newer than what it holds.
+    if (fresher(queryKey)) {
+      complete = false;
+      continue;
+    }
     queryClient.setQueryData(queryKey, data);
   }
+  // What the bundle no longer holds is gone, or no longer theirs to open
+  // (cards made chefs-only): not kept for offline use either.
+  queryClient.removeQueries({
+    predicate: (query) => {
+      const kind = String(query.queryKey[0]);
+      if (!PER_ITEM.has(kind)) return false;
+      if (inBundle.get(kind)?.has(String(query.queryKey[1]))) return false;
+      return query.state.dataUpdatedAt <= started && query.getObserversCount() === 0;
+    },
+  });
   // Light, and changing all day, so asked for directly.
   await inTurn([
     () => load(queryClient, ['tasks', 'running'], '/running/tasks'),
     () => load(queryClient, ['handover'], '/running/note'),
   ]);
-  rememberVersion(bundle.version);
+  if (complete) queryClient.setQueryData(LOADED_KEY, bundle.version);
 }
 
 /** Load the kitchen ahead now and then while someone is signed in. Mounted once, in the shell. */
-export function useLoadAhead(signedIn: boolean): void {
+export function useLoadAhead(userId: string | null | undefined): void {
   const queryClient = useQueryClient();
   useEffect(() => {
-    if (!signedIn) return;
+    if (!userId) return;
     // A moment after start, so the screen someone opened loads first.
-    const first = window.setTimeout(() => void loadAhead(queryClient), 5_000);
-    const timer = window.setInterval(() => void loadAhead(queryClient), EVERY_MS);
+    const first = window.setTimeout(() => void loadAhead(queryClient, userId), 5_000);
+    const timer = window.setInterval(() => void loadAhead(queryClient, userId), EVERY_MS);
     return () => {
       window.clearTimeout(first);
       window.clearInterval(timer);
     };
-  }, [signedIn, queryClient]);
+  }, [userId, queryClient]);
 }
