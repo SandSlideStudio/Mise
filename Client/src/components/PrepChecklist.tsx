@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import type { ChecklistItem, Station } from '@mise/contracts';
+import type { ChecklistItem, RecipeSummary, Station } from '@mise/contracts';
 import { isQueued } from '../api/client.js';
 import {
   groupChecklist,
@@ -9,8 +9,10 @@ import {
   useSaveChecklist,
 } from '../api/checklist.js';
 import { useKitchen, useStations } from '../api/kitchen.js';
+import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { errorMessage, useT } from '../i18n/index.js';
+import { ChecklistSheet, usePrintChecklist } from './ChecklistPrint.js';
 
 /**
  * The chef's checklist, on the prep list.
@@ -42,6 +44,7 @@ function Panel() {
   const [editing, setEditing] = useState(false);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
   const [outcome, setOutcome] = useState<Outcome>(null);
+  const [printing, print] = usePrintChecklist();
 
   const items = checklist.data?.items ?? [];
   // An item the chef has removed since it was ticked isn't ticked any more.
@@ -124,6 +127,11 @@ function Panel() {
                     : t('checklist.add')}
               </button>
             ) : null}
+            {items.length > 0 ? (
+              <button type="button" className="btn-quiet min-h-11" onClick={print}>
+                {t('checklistPrint.print')}
+              </button>
+            ) : null}
             {canEdit && checklist.data ? (
               <button type="button" className="btn-quiet min-h-11" onClick={() => setEditing(true)}>
                 {t('checklist.edit')}
@@ -153,6 +161,14 @@ function Panel() {
             </p>
           ) : null}
         </div>
+      ) : null}
+
+      {printing ? (
+        <ChecklistSheet
+          kitchenName={user?.kitchenName ?? ''}
+          items={items}
+          stations={stations.data ?? []}
+        />
       ) : null}
 
       {open && editing && checklist.data ? (
@@ -242,7 +258,9 @@ function Editor({
       ...draft.filter((item) => item.id === id).map((item) => ({ ...item, stationId })),
     ]);
   const append = (stationId: string | null, name: string) =>
-    setDraft([...draft, { id: newItemId(), stationId, name }]);
+    setDraft([...draft, { id: newItemId(), stationId, name, recipeId: null }]);
+  const link = (id: string, recipeId: string | null) =>
+    setDraft(draft.map((item) => (item.id === id ? { ...item, recipeId } : item)));
 
   /** Swap with the neighbour in the same station, wherever that is in the whole list. */
   function shift(id: string, by: -1 | 1) {
@@ -340,6 +358,11 @@ function Editor({
                   >
                     <span aria-hidden>✕</span>
                   </button>
+                  <RecipeLinkField
+                    name={item.name}
+                    recipeId={item.recipeId}
+                    onChange={(recipeId) => link(item.id, recipeId)}
+                  />
                 </li>
               ))}
             </ul>
@@ -398,6 +421,113 @@ function NewItem({ onAdd }: { onAdd: (name: string) => void }) {
       <button type="button" className="btn-quiet min-h-11" disabled={!name.trim()} onClick={commit}>
         {t('checklist.addItem')}
       </button>
+    </div>
+  );
+}
+
+/**
+ * Which recipe a checklist line is made from. Typing offers matching recipes
+ * from the book, like adding a line to the prep list; the line it adds then
+ * links to the recipe. Not needed: most lines have none.
+ */
+function RecipeLinkField({
+  name,
+  recipeId,
+  onChange,
+}: {
+  name: string;
+  recipeId: string | null;
+  onChange: (recipeId: string | null) => void;
+}) {
+  const { t } = useT();
+  const recipes = useRecipes();
+  const [searching, setSearching] = useState(false);
+  const [typed, setTyped] = useState('');
+
+  const linked = recipeId ? (recipes.data ?? []).find((r) => r.id === recipeId) : undefined;
+  const query = typed.trim().toLocaleLowerCase();
+  const suggestions: RecipeSummary[] =
+    query.length < 2
+      ? []
+      : (recipes.data ?? [])
+          .filter((r) => r.status !== 'archived' && r.name.toLocaleLowerCase().includes(query))
+          .sort(
+            (a, b) =>
+              Number(!a.name.toLocaleLowerCase().startsWith(query)) -
+                Number(!b.name.toLocaleLowerCase().startsWith(query)) ||
+              a.name.localeCompare(b.name),
+          )
+          .slice(0, 5);
+
+  if (recipeId) {
+    return (
+      <div className="flex basis-full items-center gap-2 text-[15px]">
+        <span className="eyebrow">{t('checklist.recipe')}</span>
+        <span className="text-brand min-w-0 break-words">
+          {linked?.name ?? t('checklist.recipeLinked')}
+        </span>
+        <button
+          type="button"
+          className="btn-small min-h-11"
+          aria-label={t('checklist.unlinkRecipe', { name })}
+          onClick={() => onChange(null)}
+        >
+          {t('checklist.unlink')}
+        </button>
+      </div>
+    );
+  }
+
+  if (!searching) {
+    return (
+      <button
+        type="button"
+        className="btn-quiet min-h-11 basis-full justify-start text-[15px]"
+        aria-label={t('checklist.linkRecipeFor', { name })}
+        onClick={() => setSearching(true)}
+      >
+        {t('checklist.linkRecipe')}
+      </button>
+    );
+  }
+
+  return (
+    <div className="flex basis-full flex-wrap items-center gap-2">
+      <input
+        autoFocus
+        aria-label={t('checklist.searchRecipe', { name })}
+        placeholder={t('checklist.searchRecipePlaceholder')}
+        className="field h-11 min-w-0 flex-1 basis-48"
+        value={typed}
+        autoComplete="off"
+        onChange={(e) => setTyped(e.target.value)}
+        onKeyDown={(e) => {
+          // Enter is for picking, not for saving the whole checklist.
+          if (e.key === 'Enter') e.preventDefault();
+        }}
+      />
+      <button type="button" className="btn-quiet min-h-11" onClick={() => setSearching(false)}>
+        {t('common.cancel')}
+      </button>
+      {suggestions.length > 0 ? (
+        <div className="flex basis-full flex-wrap items-center gap-2">
+          <span className="eyebrow">{t('addTask.fromBook')}</span>
+          {suggestions.map((recipe) => (
+            <button
+              key={recipe.id}
+              type="button"
+              className="toggle min-h-11 px-3 text-[15px]"
+              onClick={() => {
+                onChange(recipe.id);
+                setSearching(false);
+                setTyped('');
+              }}
+            >
+              {recipe.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }

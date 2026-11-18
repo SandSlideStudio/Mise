@@ -1287,4 +1287,15 @@ export const de: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'An diesem Tablet meldest du dich jetzt nur mit der PIN an.',
   'error.tabletLockedUntil':
     'Zu viele falsche PINs an diesem Tablet. Versuche es nach {time} erneut, oder bitte einen Küchenchef, die Sperre aufzuheben.',
+  'checklist.recipe': 'Rezept',
+  'checklist.recipeLinked': 'Ein Rezept aus dem Buch',
+  'checklist.unlinkRecipe': 'Rezept von {name} lösen',
+  'checklist.unlink': 'Lösen',
+  'checklist.linkRecipe': 'Rezept verknüpfen',
+  'checklist.linkRecipeFor': 'Ein Rezept mit {name} verknüpfen',
+  'checklist.searchRecipe': 'Im Buch ein Rezept für {name} suchen',
+  'checklist.searchRecipePlaceholder': 'Im Buch suchen',
+  'checklistPrint.title': 'Prep-Checkliste',
+  'checklistPrint.print': 'Checkliste drucken',
+  'checklistPrint.empty': 'Die Checkliste ist leer.',
 };

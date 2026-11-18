@@ -17,7 +17,7 @@ interface Item {
 
 async function call(
   cookie: string,
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
   url: string,
   payload?: unknown,
   headers: Record<string, string> = {},
@@ -309,6 +309,77 @@ describe('who added a line', () => {
     });
     const [line] = await lines();
     expect(line).toMatchObject({ createdByName: null, fromChecklist: true });
+  });
+});
+
+describe('a checklist line linked to a recipe', () => {
+  async function recipe(name: string) {
+    const response = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/recipes',
+      payload: { name, type: 'prep', yield: { value: 1, unit: 'kg' } },
+      cookies: as(admin),
+    });
+    return response.json().id as string;
+  }
+
+  type Linked = Item & { recipeId: string | null };
+  const read = async () => (await checklist()).items as Linked[];
+
+  beforeEach(async () => {
+    await setSwitch(true);
+  });
+
+  it('keeps the link, and a line without one has none', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const saved = await save([
+      { stationId: hot, name: 'Fig gel', recipeId: gel },
+      { stationId: hot, name: 'Jus' },
+    ]);
+    expect(saved.json().items.map((i: Linked) => i.recipeId)).toEqual([gel, null]);
+  });
+
+  it('puts the recipe on the prep line it adds, and not on others', async () => {
+    const gel = await recipe('Vijgen Gel');
+    await save([
+      { stationId: hot, name: 'Fig gel', recipeId: gel },
+      { stationId: hot, name: 'Jus' },
+    ]);
+    const items = await read();
+    const response = await call(cook, 'POST', '/api/checklist/add', {
+      ids: items.map((i) => i.id),
+    });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 0 });
+    const list = (await call(admin, 'GET', '/api/running/tasks')).json() as {
+      description: string;
+      recipeId: string | null;
+    }[];
+    expect(list.find((l) => l.description === 'Fig gel')!.recipeId).toBe(gel);
+    expect(list.find((l) => l.description === 'Jus')!.recipeId).toBeNull();
+  });
+
+  it('still skips a line that is already open on the station', async () => {
+    const gel = await recipe('Vijgen Gel');
+    await save([{ stationId: hot, name: 'Fig gel', recipeId: gel }]);
+    const [item] = await read();
+    await call(cook, 'POST', '/api/checklist/add', { ids: [item!.id] });
+    const again = await call(cook, 'POST', '/api/checklist/add', { ids: [item!.id] });
+    expect(again.json()).toEqual({ added: 0, alreadyThere: 1 });
+  });
+
+  it('leaves the line without a link when the recipe is deleted', async () => {
+    const gel = await recipe('Vijgen Gel');
+    await save([{ stationId: hot, name: 'Fig gel', recipeId: gel }]);
+    await call(admin, 'DELETE', `/api/recipes/${gel}`);
+    expect((await read()).map((i) => [i.name, i.recipeId])).toEqual([['Fig gel', null]]);
+  });
+
+  it('refuses a recipe that does not exist', async () => {
+    const response = await save([
+      { stationId: hot, name: 'Fig gel', recipeId: '33333333-3333-4333-8333-333333333333' },
+    ]);
+    expect(response.statusCode).toBeGreaterThanOrEqual(400);
+    expect(response.statusCode).toBeLessThan(500);
   });
 });
 

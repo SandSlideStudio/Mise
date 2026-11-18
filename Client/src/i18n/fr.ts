@@ -1291,4 +1291,15 @@ export const fr: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code seul.',
   'error.tabletLockedUntil':
     'Trop de codes erronés sur cette tablette. Réessayez après {time}, ou demandez à un chef de cuisine de lever le blocage.',
+  'checklist.recipe': 'Recette',
+  'checklist.recipeLinked': 'Une recette du livre',
+  'checklist.unlinkRecipe': 'Détacher la recette de {name}',
+  'checklist.unlink': 'Détacher',
+  'checklist.linkRecipe': 'Lier une recette',
+  'checklist.linkRecipeFor': 'Lier une recette à {name}',
+  'checklist.searchRecipe': 'Chercher dans le livre une recette pour {name}',
+  'checklist.searchRecipePlaceholder': 'Chercher dans le livre',
+  'checklistPrint.title': 'Checklist de préparation',
+  'checklistPrint.print': 'Imprimer la checklist',
+  'checklistPrint.empty': 'La checklist est vide.',
 };

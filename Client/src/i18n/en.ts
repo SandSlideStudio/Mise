@@ -1243,6 +1243,17 @@ export const en = {
   'error.pinOnlyOn': 'This tablet now signs in with a PIN only.',
   'error.tabletLockedUntil':
     'Too many wrong PINs on this tablet. Try again after {time}, or ask a head chef to lift the lock.',
+  'checklist.recipe': 'Recipe',
+  'checklist.recipeLinked': 'A recipe in the book',
+  'checklist.unlinkRecipe': 'Unlink the recipe from {name}',
+  'checklist.unlink': 'Unlink',
+  'checklist.linkRecipe': 'Link a recipe',
+  'checklist.linkRecipeFor': 'Link a recipe to {name}',
+  'checklist.searchRecipe': 'Search the book for a recipe for {name}',
+  'checklist.searchRecipePlaceholder': 'Search the book',
+  'checklistPrint.title': 'Prep checklist',
+  'checklistPrint.print': 'Print checklist',
+  'checklistPrint.empty': 'The checklist is empty.',
 } as const;
 
 export type MessageKey = keyof typeof en;

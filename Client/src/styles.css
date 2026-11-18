@@ -566,6 +566,23 @@
 }
 
 /*
+ * The checklist on its own sheet, put under the page only while it prints.
+ */
+.print-checklist {
+  display: none;
+}
+
+@media print {
+  html.printing-checklist body > :not(.print-checklist) {
+    display: none !important;
+  }
+
+  html.printing-checklist .print-checklist {
+    display: block;
+  }
+}
+
+/*
  * The backup recovery key on its own sheet. Only there while the key is shown,
  * and only printed when the Print button next to it asked for it.
  */

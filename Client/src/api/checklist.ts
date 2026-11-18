@@ -55,6 +55,7 @@ export function useChecklist(enabled = true) {
             id: item.id ?? newItemId(),
             stationId: item.stationId,
             name: item.name,
+            recipeId: item.recipeId ?? null,
           })),
         };
       },

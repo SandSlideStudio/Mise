@@ -1272,4 +1272,15 @@ export const nl: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Op deze tablet log je nu in met alleen een pincode.',
   'error.tabletLockedUntil':
     'Te veel verkeerde pincodes op deze tablet. Probeer het na {time} opnieuw, of vraag een chef-kok de blokkade op te heffen.',
+  'checklist.recipe': 'Recept',
+  'checklist.recipeLinked': 'Een recept uit het boek',
+  'checklist.unlinkRecipe': 'Recept van {name} loskoppelen',
+  'checklist.unlink': 'Loskoppelen',
+  'checklist.linkRecipe': 'Recept koppelen',
+  'checklist.linkRecipeFor': 'Een recept koppelen aan {name}',
+  'checklist.searchRecipe': 'Zoek in het boek een recept voor {name}',
+  'checklist.searchRecipePlaceholder': 'Zoek in het boek',
+  'checklistPrint.title': 'Prepchecklist',
+  'checklistPrint.print': 'Checklist printen',
+  'checklistPrint.empty': 'De checklist is leeg.',
 };
