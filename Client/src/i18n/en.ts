@@ -978,7 +978,8 @@ export const en = {
   'proxy.trusted': 'Mise takes {address} at its word about who each visitor is.',
   'proxy.none': 'No web server trusted: anything passed on by another machine counts as outside.',
   'proxy.stop': 'Stop trusting',
-  'proxy.seen': 'Requests for {host} are arriving through {address}. Is that your web server?',
+  'proxy.seen':
+    'Requests for {host} are arriving through {address}. Is that your web server? Any machine on your network can send requests like these, so check the address is your web server’s own before you trust it.',
   'proxy.seenShared':
     'Until you trust it, everyone coming through it counts as one visitor: a few wrong passwords from anyone there lock everyone outside out for a while.',
   'proxy.trust': 'Trust {address}',

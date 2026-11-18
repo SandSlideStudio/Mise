@@ -1015,7 +1015,8 @@ export const fr: Record<MessageKey, string> = {
   'proxy.none':
     'Aucun serveur web approuvé : tout ce qui passe par une autre machine compte comme extérieur.',
   'proxy.stop': 'Ne plus faire confiance',
-  'proxy.seen': 'Les requêtes pour {host} arrivent par {address}. Est-ce votre serveur web ?',
+  'proxy.seen':
+    'Les requêtes pour {host} arrivent par {address}. Est-ce votre serveur web ? N’importe quel appareil de votre réseau peut envoyer de telles requêtes : vérifiez que c’est bien l’adresse de votre serveur web avant de lui faire confiance.',
   'proxy.seenShared':
     'Tant que vous ne lui faites pas confiance, tous ceux qui passent par lui comptent comme un seul visiteur : quelques mauvais mots de passe de n’importe qui bloquent tout le monde hors de la cuisine pendant un moment.',
   'proxy.trust': 'Faire confiance à {address}',

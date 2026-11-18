@@ -999,7 +999,8 @@ export const nl: Record<MessageKey, string> = {
   'proxy.none':
     'Geen webserver vertrouwd: alles wat via een andere machine binnenkomt telt als buiten.',
   'proxy.stop': 'Niet meer vertrouwen',
-  'proxy.seen': 'Verzoeken voor {host} komen binnen via {address}. Is dat je webserver?',
+  'proxy.seen':
+    'Verzoeken voor {host} komen binnen via {address}. Is dat je webserver? Elk apparaat op je netwerk kan zulke verzoeken sturen, dus controleer of dit echt het adres van je webserver is voordat je het vertrouwt.',
   'proxy.seenShared':
     'Tot je het vertrouwt, telt iedereen die erdoor komt als één bezoeker: een paar verkeerde wachtwoorden van wie dan ook sluiten iedereen buiten de keuken een tijdje uit.',
   'proxy.trust': 'Vertrouw {address}',

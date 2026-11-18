@@ -998,7 +998,8 @@ export const es: Record<MessageKey, string> = {
   'proxy.none':
     'Ningún servidor web de confianza: todo lo que llega a través de otra máquina cuenta como de fuera.',
   'proxy.stop': 'Dejar de confiar',
-  'proxy.seen': 'Las peticiones para {host} llegan a través de {address}. ¿Es tu servidor web?',
+  'proxy.seen':
+    'Las peticiones para {host} llegan a través de {address}. ¿Es tu servidor web? Cualquier equipo de tu red puede enviar estas peticiones, así que comprueba que es la dirección de tu servidor web antes de confiar en ella.',
   'proxy.seenShared':
     'Hasta que confíes en él, todos los que llegan por ahí cuentan como un solo visitante: unas pocas contraseñas incorrectas de cualquiera bloquean a todos los de fuera durante un rato.',
   'proxy.trust': 'Confiar en {address}',

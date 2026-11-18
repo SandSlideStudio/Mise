@@ -1015,7 +1015,8 @@ export const de: Record<MessageKey, string> = {
   'proxy.none':
     'Keinem Webserver vertraut: Alles, was über eine andere Maschine kommt, gilt als draußen.',
   'proxy.stop': 'Nicht mehr vertrauen',
-  'proxy.seen': 'Anfragen für {host} kommen über {address}. Ist das dein Webserver?',
+  'proxy.seen':
+    'Anfragen für {host} kommen über {address}. Ist das dein Webserver? Jedes Gerät in deinem Netzwerk kann solche Anfragen schicken, also prüfe, ob das wirklich die Adresse deines Webservers ist, bevor du ihr vertraust.',
   'proxy.seenShared':
     'Bis du ihm vertraust, zählt jeder, der darüber kommt, als ein Besucher: ein paar falsche Passwörter von irgendwem sperren alle außerhalb der Küche eine Weile aus.',
   'proxy.trust': '{address} vertrauen',
