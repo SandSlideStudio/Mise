@@ -1,3 +1,4 @@
+import { BottomNotice } from './BottomNotice.js';
 import { useEffect, useRef, useState } from 'react';
 import type { SessionUser } from '@mise/contracts';
 import { useKitchen } from '../api/kitchen.js';
@@ -81,7 +82,7 @@ function Watching({ user }: { user: SessionUser }) {
   if (secondsLeft === null) return null;
 
   return (
-    <div className="no-print fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
+    <BottomNotice>
       <div className="border-accent bg-accent-wash flex max-w-xl flex-wrap items-center justify-between gap-3 border-2 px-4 py-3 shadow-sm sm:px-5">
         {/* The count itself would be read out every second, so it is only drawn. */}
         <p role="status" className="sr-only">
@@ -98,6 +99,6 @@ function Watching({ user }: { user: SessionUser }) {
           {t('idle.stay')}
         </button>
       </div>
-    </div>
+    </BottomNotice>
   );
 }

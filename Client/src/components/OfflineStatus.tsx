@@ -13,6 +13,7 @@ import { useConnectivity } from '../lib/connectivity.js';
 import { useSettled } from '../lib/useSettled.js';
 import { goingOut, useOutbox, type OutboxEntry } from '../lib/outbox.js';
 import { clockTime, errorMessage, useT, type MessageKey, type Translator } from '../i18n/index.js';
+import { BottomNotice } from './BottomNotice.js';
 import { fieldName, namingFrom, showValue } from './conflictValues.js';
 
 /**
@@ -41,8 +42,25 @@ export function OfflineStatus() {
 
   if (reachable && waiting.length === 0 && dropped.length === 0 && !sendingShown) return null;
 
+  const sending =
+    reachable && sendingShown ? (
+      // Over the page, not in it, so it never pushes the list down.
+      <BottomNotice>
+        <p
+          role="status"
+          className="border-accent bg-surface-raised border-2 px-4 py-3 text-lg sm:px-5"
+        >
+          {plural('offline.sending', lastPending.current)}
+        </p>
+      </BottomNotice>
+    ) : null;
+  // Only what sits in the page takes room in it.
+  const inPage = !reachable || dropped.length > 0 || setAside.length > 0 || conflict !== undefined;
+  if (!inPage) return sending;
+
   return (
     <div className="no-print mx-4 mt-4 flex flex-col gap-3 sm:mx-7">
+      {sending}
       {!reachable ? (
         <p
           role="status"
@@ -52,16 +70,6 @@ export function OfflineStatus() {
           {t('offline.body', { time: clockTime(locale, new Date(since).toISOString()) })}
           {pending > 0 ? ` ${plural('offline.waiting', pending)}` : ''}
         </p>
-      ) : sendingShown ? (
-        // Over the page, not in it, so it never pushes the list down.
-        <div className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
-          <p
-            role="status"
-            className="border-accent bg-surface-raised pointer-events-auto border-2 px-4 py-3 text-lg sm:px-5"
-          >
-            {plural('offline.sending', lastPending.current)}
-          </p>
-        </div>
       ) : null}
 
       {dropped.length > 0 ? (

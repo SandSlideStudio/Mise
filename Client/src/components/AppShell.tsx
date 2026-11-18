@@ -1,3 +1,4 @@
+import { BottomNotice } from './BottomNotice.js';
 import { Link, useRouterState } from '@tanstack/react-router';
 import { useRef, type ReactNode } from 'react';
 import { LANGUAGES, type Language } from '@mise/contracts';
@@ -138,17 +139,17 @@ function TickStatus() {
     <>
       {waiting > 0 ? (
         // Over the page, not in it, so it never pushes the list down.
-        <div className="no-print pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-4 pb-4">
+        <BottomNotice>
           <p
             role="status"
-            className="border-accent bg-accent-wash pointer-events-auto max-w-2xl border-2 px-4 py-3 text-lg sm:px-5"
+            className="border-accent bg-accent-wash max-w-2xl border-2 px-4 py-3 text-lg sm:px-5"
           >
             <span className="font-display font-semibold tracking-[0.04em]">
               {plural('today.pending', waiting)}
             </span>{' '}
             {t('today.pendingStill')}
           </p>
-        </div>
+        </BottomNotice>
       ) : null}
       {refused ? (
         <div
