@@ -1271,4 +1271,33 @@ export const es: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'En esta tablet ahora se entra solo con un PIN.',
   'error.tabletLockedUntil':
     'Demasiados PIN incorrectos en esta tablet. Vuelve a intentarlo después de las {time}, o pide a un jefe de cocina que quite el bloqueo.',
+  // Setup: the 2.3 options, the checklist step, and the sign-in hint
+  'setup.stepChecklist': 'Lista',
+  'setup.checklistTitle': 'La lista de prep',
+  'setup.checklistBody':
+    'Lo que hace esta cocina, por puesto. Cualquiera marca lo que hace falta y pasa a la lista de prep. Puedes saltar este paso y rellenarla más tarde.',
+  'setup.pinOnlyHint':
+    'Las tabletas muestran un teclado en vez de los nombres, y el PIN encuentra a la persona. Cada PIN tiene que ser distinto y no fácil de adivinar.',
+  'setup.pinCommon':
+    'Uno de los PIN es demasiado fácil de adivinar. Elige uno menos obvio, nada como 1234.',
+  'setup.pinTaken':
+    'Dos personas tienen el mismo PIN. Entrando solo con un PIN, cada PIN tiene que ser distinto.',
+  'setup.pinOnlyFix':
+    'Algunos PIN no sirven para entrar solo con un PIN. Cámbialos, o desactívalo.',
+  'setup.pinOnlyChange': 'Cambiar los PIN',
+  'setup.summaryChecklistOn': 'Lista de prep activada',
+  'setup.summaryChecklistOff': 'Lista de prep desactivada',
+  'setup.summaryChecklistLines_one': '1 línea',
+  'setup.summaryChecklistLines_other': '{count} líneas',
+  'setup.summaryPinOnly': 'Las tabletas entran solo con un PIN',
+  'setup.summaryNames': 'Las tabletas muestran los nombres y luego piden el PIN',
+  'setup.summaryIdle':
+    'Las tabletas compartidas cierran sesión tras {minutes} minutos sin tocarlas',
+  'setup.summaryIdleNever': 'Las tabletas compartidas siguen con la sesión abierta',
+  'login.tabletPinBody': 'Los cocineros entran en la tableta de la cocina con su PIN.',
+  'tour.checklistTitle': 'La lista de prep',
+  'tour.checklistBody':
+    'Abre la lista, marca lo que la cocina necesita hoy y pásalo a la lista de prep de una vez.',
+  'tour.checklistBodyChef':
+    'Tu lista de lo que hace la cocina, por puesto. Cualquiera marca lo que hace falta y lo pasa a la lista de prep de una vez. Edítala aquí cuando cambie la carta.',
 };

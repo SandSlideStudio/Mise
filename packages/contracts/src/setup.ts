@@ -39,6 +39,13 @@ export const setupRecipeSchema = z.object({
   portions: z.number().positive().nullable().optional(),
 });
 
+/** One line of the prep checklist, by station name: nothing has an id yet. */
+export const setupChecklistItemSchema = z.object({
+  /** The name of one of the stations in the same request, or none. */
+  station: z.string().max(80).nullable().optional(),
+  name: z.string().trim().min(1).max(120),
+});
+
 /**
  * Where backups go, chosen and connected during setup. A NAS was tested and
  * OneDrive signed in to on the way; the server checks OneDrive again.
@@ -68,6 +75,17 @@ export const setupRequestSchema = z
     /** Becomes the kitchen's default language. */
     language: languageSchema.optional(),
     tickedRetention: tickedRetentionSchema.optional(),
+    /** The chef's checklist on the prep list. */
+    prepChecklist: z.boolean().optional(),
+    /** The lines on it, only with the checklist on. */
+    checklist: z.array(setupChecklistItemSchema).max(500).optional(),
+    /**
+     * Sign in by PIN alone, from the start. Every PIN here is new, so it is on
+     * at once; the PINs must then all differ and not be easy to guess.
+     */
+    pinOnly: z.boolean().optional(),
+    /** Sign out of a shared tablet after this many minutes untouched. Null or none: never. */
+    idleSignOutMinutes: z.number().int().min(1).max(240).nullable().optional(),
     /** The browser's time zone, so the nightly backup runs at night where the kitchen is. */
     timeZone: z.string().max(64).optional(),
     stations: z.array(z.string().trim().min(1).max(80)).min(1).max(50).optional(),
@@ -93,6 +111,14 @@ export const setupRequestSchema = z
     };
     setup.staff?.forEach((person, i) => checkStation(person.station, ['staff', i, 'station']));
     setup.recipes?.forEach((recipe, i) => checkStation(recipe.station, ['recipes', i, 'station']));
+    setup.checklist?.forEach((item, i) => checkStation(item.station, ['checklist', i, 'station']));
+    if (setup.checklist?.length && !setup.prepChecklist) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['checklist'],
+        message: 'A checklist needs the prep checklist switched on',
+      });
+    }
 
     const recipes = (setup.recipes ?? []).map((recipe) => sameName(recipe.name));
     if (new Set(recipes).size !== recipes.length) {
@@ -107,4 +133,5 @@ export const setupRequestSchema = z
 export type SetupRequest = z.infer<typeof setupRequestSchema>;
 export type SetupStaff = z.infer<typeof setupStaffSchema>;
 export type SetupRecipe = z.infer<typeof setupRecipeSchema>;
+export type SetupChecklistItem = z.infer<typeof setupChecklistItemSchema>;
 export type SetupBackups = z.infer<typeof setupBackupsSchema>;

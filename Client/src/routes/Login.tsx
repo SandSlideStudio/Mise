@@ -165,7 +165,10 @@ export function Login() {
               <path d="m8.4 15.6 1.6 1.6 3.2-3.2" />
             </svg>
             <h2 className="text-ink font-display text-2xl font-semibold">{t('login.onTheLine')}</h2>
-            <p className="text-ink-soft text-pretty">{t('login.tabletBody')}</p>
+            <p className="text-ink-soft text-pretty">
+              {/* The tablet shows no names once the kitchen signs in by PIN alone. */}
+              {status.data?.pinOnly ? t('login.tabletPinBody') : t('login.tabletBody')}
+            </p>
             <Link
               to="/line"
               className="btn-quiet font-display mt-1 flex h-14 items-center px-5 text-lg font-semibold"

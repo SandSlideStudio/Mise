@@ -48,6 +48,11 @@ export const setupStatusSchema = z.object({
   kitchenName: z.string().nullable(),
   /** Whether setting up needs the one-time code from the install. */
   setupTokenRequired: z.boolean(),
+  /**
+   * Whether tablets sign in by PIN alone, so the email page can say how
+   * cooks sign in. Only that it is on; nothing about who has a PIN.
+   */
+  pinOnly: z.boolean(),
 });
 
 export const loginRequestSchema = z.object({

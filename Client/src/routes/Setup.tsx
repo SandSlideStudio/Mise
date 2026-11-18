@@ -10,7 +10,7 @@ import {
   type SetupRequest,
   type TickedRetention,
 } from '@mise/contracts';
-import { ALL_UNITS, ONE_PLATE, type UnitCode } from '@mise/domain';
+import { ALL_UNITS, isCommonPin, ONE_PLATE, type UnitCode } from '@mise/domain';
 import type { BackupDestination, OnedriveStatus, RestoreResult } from '@mise/contracts';
 import {
   useRestoreBackup,
@@ -42,6 +42,7 @@ import {
   type TurnDirection,
 } from './SetupFrame.js';
 import { SelfHostNote, WelcomeAside, WelcomePage } from './Welcome.js';
+import { IDLE_CHOICES } from './settings/KitchenSettings.js';
 import { isPlainHttp } from '../lib/nas.js';
 
 /**
@@ -57,8 +58,18 @@ import { isPlainHttp } from '../lib/nas.js';
  */
 
 const STEPS = ['kitchen', 'you', 'brigade', 'recipes', 'settings', 'check'] as const;
-type Step = (typeof STEPS)[number];
-/** Welcome, the six steps, and the signed page that closes into the app. */
+/** With the prep checklist chosen, the chef builds it right after the stations. */
+const STEPS_WITH_CHECKLIST = [
+  'kitchen',
+  'you',
+  'brigade',
+  'checklist',
+  'recipes',
+  'settings',
+  'check',
+] as const;
+type Step = (typeof STEPS_WITH_CHECKLIST)[number];
+/** Welcome, the six or seven steps, and the signed page that closes into the app. */
 type Page = 'welcome' | Step | 'ready' | 'restore' | 'restored';
 
 /** What a restore brings back, listed beside the form. */
@@ -70,7 +81,7 @@ const RESTORED = [
 ] as const;
 
 function isStep(page: Page): page is Step {
-  return (STEPS as readonly string[]).includes(page);
+  return (STEPS_WITH_CHECKLIST as readonly string[]).includes(page);
 }
 
 /** How long the signed page stays before the frame closes, and how long closing takes. */
@@ -81,6 +92,7 @@ const STEP_TITLE: Record<Step, MessageKey> = {
   kitchen: 'setup.kitchenTitle',
   you: 'setup.youTitle',
   brigade: 'setup.brigadeTitle',
+  checklist: 'setup.checklistTitle',
   recipes: 'setup.recipesTitle',
   settings: 'setup.settingsTitle',
   check: 'setup.checkTitle',
@@ -90,6 +102,7 @@ const STEP_BODY: Record<Step, MessageKey> = {
   kitchen: 'setup.kitchenBody',
   you: 'setup.youBody',
   brigade: 'setup.brigadeBody',
+  checklist: 'setup.checklistBody',
   recipes: 'setup.recipesBody',
   settings: 'setup.settingsBody',
   check: 'setup.checkBody',
@@ -123,6 +136,13 @@ interface PersonDraft {
   role: StaffRole;
   stationKey: string;
   pin: string;
+}
+
+/** One line of the checklist while it is being built; stations have no id yet. */
+interface ChecklistDraft {
+  key: string;
+  stationKey: string;
+  name: string;
 }
 
 interface RecipeDraft {
@@ -183,6 +203,11 @@ export function Setup() {
   const [recipes, setRecipes] = useState<RecipeDraft[]>([]);
 
   const [tickedRetention, setTickedRetention] = useState<TickedRetention>('keep');
+  const [prepChecklist, setPrepChecklist] = useState(false);
+  const [checklist, setChecklist] = useState<ChecklistDraft[]>([]);
+  const [pinOnly, setPinOnly] = useState(false);
+  const [idleMinutes, setIdleMinutes] = useState<number | null>(null);
+  const steps: readonly Step[] = prepChecklist ? STEPS_WITH_CHECKLIST : STEPS;
   const [enrolDevice, setEnrolDevice] = useState(false);
   // Every backup stays on this machine; these are where else it goes too.
   const [sendTo, setSendTo] = useState<BackupDestination[]>([]);
@@ -206,8 +231,10 @@ export function Setup() {
   const askForCode = status.data?.setupTokenRequired === true && (!linkCode || codeRejected);
   const onedrive = useSetupOnedrive(code.trim(), toOnedrive);
 
-  /** -1 on the welcome page, 0 to 5 on the steps, 6 once it is all signed. */
-  const index = isStep(page) ? STEPS.indexOf(page) : page === 'ready' ? STEPS.length : -1;
+  /** -1 on the welcome page, 0 to 5 (or 6) on the steps, then one more once it is all signed. */
+  const index = isStep(page) ? steps.indexOf(page) : page === 'ready' ? steps.length : -1;
+  const stepAt = (step: Step) => steps.indexOf(step);
+  const checklistCount = checklist.filter((line) => line.name.trim()).length;
   const pending = setup.isPending || enrol.isPending || restore.isPending;
 
   // The frame follows the requested page at once; the text in the middle
@@ -218,6 +245,21 @@ export function Setup() {
   function chooseLanguage(next: Language) {
     setLanguage(next);
     preview(next);
+  }
+
+  /**
+   * While PIN-only is chosen, a PIN has to find one person and not be one a
+   * stranger would try first: the same rules Settings holds every new PIN to.
+   */
+  function pinProblems() {
+    if (!pinOnly) return { admin: false, common: false, taken: false };
+    const given = staff.map((person) => person.pin).filter((p) => PIN.test(p));
+    const all = PIN.test(pin) ? [pin, ...given] : given;
+    return {
+      admin: PIN.test(pin) && isCommonPin(pin),
+      common: given.some(isCommonPin),
+      taken: new Set(all).size !== all.length,
+    };
   }
 
   function problemsWith(which: Step): MessageKey[] {
@@ -232,6 +274,7 @@ export function Setup() {
         if (password.length < MIN_PASSWORD) found.add('setup.passwordShort');
         else if (password !== confirm) found.add('setup.passwordMismatch');
         if (pin && !PIN.test(pin)) found.add('setup.pinInvalid');
+        if (pinProblems().admin) found.add('setup.pinCommon');
         break;
       case 'brigade': {
         const named = stations.filter((station) => station.name.trim());
@@ -241,6 +284,8 @@ export function Setup() {
           found.add('setup.stationDuplicate');
         if (staff.some((person) => !person.displayName.trim())) found.add('setup.nameMissing');
         if (staff.some((person) => !PIN.test(person.pin))) found.add('setup.pinInvalid');
+        if (pinProblems().common) found.add('setup.pinCommon');
+        if (pinProblems().taken) found.add('setup.pinTaken');
         break;
       }
       case 'recipes':
@@ -253,6 +298,7 @@ export function Setup() {
         }
         break;
       case 'settings':
+        if (Object.values(pinProblems()).some(Boolean)) found.add('setup.pinOnlyFix');
         if (enrolDevice && !deviceName.trim()) found.add('setup.required');
         if (toWebdav && !nas.tested) found.add('setup.backupsTestFirst');
         if (toOnedrive && !onedrive.data?.account) {
@@ -269,7 +315,7 @@ export function Setup() {
   function goTo(target: number) {
     // Moving forward means every page in between has to be right.
     for (let i = Math.max(index, 0); i < target; i += 1) {
-      const blocked = STEPS[i]!;
+      const blocked = steps[i]!;
       if (problemsWith(blocked).length > 0) {
         if (blocked !== page) {
           setDirection(i > index ? 'forward' : 'back');
@@ -281,7 +327,16 @@ export function Setup() {
     }
     setAttempted(false);
     setDirection(target > index ? 'forward' : 'back');
-    setPage(STEPS[target]!);
+    setPage(steps[target]!);
+  }
+
+  /** From the settings page to the PINs that PIN-only sign-in turns down, with the reasons shown. */
+  function fixPins() {
+    const problem = pinProblems();
+    const target = problem.admin && !problem.common && !problem.taken ? 'you' : 'brigade';
+    setDirection('back');
+    setAttempted(true);
+    setPage(target);
   }
 
   function goBack() {
@@ -327,6 +382,19 @@ export function Setup() {
       pin: pin || undefined,
       language,
       tickedRetention,
+      ...(prepChecklist
+        ? {
+            prepChecklist: true,
+            checklist: checklist
+              .filter((line) => line.name.trim() && stationName(line.stationKey))
+              .map((line) => ({
+                station: stationName(line.stationKey),
+                name: line.name.trim(),
+              })),
+          }
+        : {}),
+      ...(pinOnly ? { pinOnly: true } : {}),
+      idleSignOutMinutes: idleMinutes,
       timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
       stations: stations.map((station) => station.name.trim()),
       staff: staff.map((person) => ({
@@ -389,6 +457,7 @@ export function Setup() {
             language,
             kitchenName: kitchenName.trim(),
             setupTokenRequired: false,
+            pinOnly,
           });
           void navigate({ to: '/' });
         }, READY_HOLD_MS + CLOSE_MS);
@@ -446,6 +515,8 @@ export function Setup() {
     setRecipes((rows) =>
       rows.map((row) => (keys.has(row.stationKey) ? row : { ...row, stationKey: '' })),
     );
+    // A checklist line belongs to its station, so it goes with it.
+    setChecklist((rows) => rows.filter((row) => keys.has(row.stationKey)));
   }
 
   const problems = !attempted
@@ -495,7 +566,8 @@ export function Setup() {
               ? pending
                 ? t('common.creating')
                 : t('setup.create')
-              : page === 'recipes' && recipes.length === 0
+              : (page === 'recipes' && recipes.length === 0) ||
+                  (page === 'checklist' && checklist.every((line) => !line.name.trim()))
                 ? t('setup.skip')
                 : t('setup.next')}
         </ForwardButton>
@@ -520,7 +592,11 @@ export function Setup() {
       </Plate>
     ) : (
       <Plate className="bg-surface-raised hidden flex-col gap-[22px] px-6 pt-[26px] pb-6 lg:flex xl:gap-[26px] xl:px-8 xl:pt-[34px] xl:pb-[30px]">
-        <StepIndex position={index + 1} onPick={page === 'ready' ? undefined : (i) => goTo(i)} />
+        <StepIndex
+          position={index + 1}
+          withChecklist={prepChecklist}
+          onPick={page === 'ready' ? undefined : (i) => goTo(i)}
+        />
         {page === 'ready' ? null : (
           <p className="text-ink-soft text-[13px] leading-[1.45] text-pretty xl:text-sm xl:leading-normal">
             {t('welcome.lead2')}
@@ -532,6 +608,7 @@ export function Setup() {
   return (
     <SetupFrame
       position={index + 1}
+      withChecklist={prepChecklist}
       language={language}
       onLanguage={chooseLanguage}
       onSubmit={onSubmit}
@@ -619,7 +696,7 @@ export function Setup() {
         <>
           <PageHeading
             title={t(STEP_TITLE[shown])}
-            tag={shown === 'recipes' ? t('setup.optional') : undefined}
+            tag={shown === 'recipes' || shown === 'checklist' ? t('setup.optional') : undefined}
           >
             {t(STEP_BODY[shown])}
           </PageHeading>
@@ -810,6 +887,32 @@ export function Setup() {
               </>
             ) : null}
 
+            {shown === 'checklist' ? (
+              <div className="flex flex-col gap-6">
+                {stations.map((station) => (
+                  <SetupChecklistStation
+                    key={station.key}
+                    name={station.name.trim()}
+                    lines={checklist.filter((line) => line.stationKey === station.key)}
+                    onRename={(key, name) =>
+                      setChecklist((rows) =>
+                        rows.map((row) => (row.key === key ? { ...row, name } : row)),
+                      )
+                    }
+                    onRemove={(key) =>
+                      setChecklist((rows) => rows.filter((row) => row.key !== key))
+                    }
+                    onAdd={(name) =>
+                      setChecklist((rows) => [
+                        ...rows,
+                        { key: newKey(), stationKey: station.key, name },
+                      ])
+                    }
+                  />
+                ))}
+              </div>
+            ) : null}
+
             {shown === 'recipes' ? (
               <section>
                 {recipes.length === 0 ? (
@@ -873,6 +976,56 @@ export function Setup() {
                   />
                   <p className="text-ink-soft text-sm text-pretty">{t('kitchen.retentionHint')}</p>
                 </fieldset>
+
+                <section className="border-rule flex flex-col gap-3 border-t pt-6">
+                  <Switch
+                    checked={prepChecklist}
+                    onChange={setPrepChecklist}
+                    label={t('kitchen.prepChecklist')}
+                  />
+                  <p className="text-ink-soft text-sm text-pretty">
+                    {t('kitchen.prepChecklistHint')}
+                  </p>
+                </section>
+
+                <section className="border-rule flex flex-col gap-3 border-t pt-6">
+                  <Switch checked={pinOnly} onChange={setPinOnly} label={t('pinOnly.label')} />
+                  <p className="text-ink-soft text-sm text-pretty">{t('setup.pinOnlyHint')}</p>
+                  {Object.values(pinProblems()).some(Boolean) ? (
+                    <div className="fade-swap flex flex-wrap items-center gap-3">
+                      <p role="status" className="text-danger text-sm text-pretty">
+                        {t('setup.pinOnlyFix')}
+                      </p>
+                      <button type="button" className="btn-small" onClick={fixPins}>
+                        {t('setup.pinOnlyChange')}
+                      </button>
+                    </div>
+                  ) : null}
+                </section>
+
+                <section className="border-rule border-t pt-6">
+                  <Field
+                    label={t('kitchen.idle')}
+                    htmlFor="idleSignOut"
+                    hint={t('kitchen.idleHint')}
+                  >
+                    <select
+                      id="idleSignOut"
+                      className="field"
+                      value={idleMinutes ?? ''}
+                      onChange={(e) =>
+                        setIdleMinutes(e.target.value === '' ? null : Number(e.target.value))
+                      }
+                    >
+                      <option value="">{t('kitchen.idleNever')}</option>
+                      {IDLE_CHOICES.map((minutes) => (
+                        <option key={minutes} value={minutes}>
+                          {t('kitchen.idleMinutes', { minutes: String(minutes) })}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </section>
 
                 <fieldset className="border-rule flex flex-col gap-2 border-t pt-6">
                   <legend className="sr-only">{t('setup.backupsTitle')}</legend>
@@ -942,19 +1095,22 @@ export function Setup() {
             {shown === 'check' ? (
               <Plate className="bg-surface-raised">
                 <dl className="divide-line divide-y">
-                  <Summary title={t('setup.stepKitchen')} onEdit={() => goTo(0)}>
+                  <Summary title={t('setup.stepKitchen')} onEdit={() => goTo(stepAt('kitchen'))}>
                     <p>{kitchenName.trim()}</p>
                     <p className="text-ink-soft text-sm">{LANGUAGE_NAMES[language]}</p>
                   </Summary>
-                  <Summary title={t('setup.stepYou')} onEdit={() => goTo(1)}>
+                  <Summary title={t('setup.stepYou')} onEdit={() => goTo(stepAt('you'))}>
                     <p>{t('setup.summaryAdmin', { name: displayName.trim() })}</p>
                     <p className="text-ink-soft text-sm">{email.trim()}</p>
                     {pin ? <p className="text-ink-soft text-sm">{t('setup.summaryPin')}</p> : null}
                   </Summary>
-                  <Summary title={t('setup.stationsHeading')} onEdit={() => goTo(2)}>
+                  <Summary
+                    title={t('setup.stationsHeading')}
+                    onEdit={() => goTo(stepAt('brigade'))}
+                  >
                     <p>{stations.map((station) => station.name.trim()).join(', ')}</p>
                   </Summary>
-                  <Summary title={t('setup.staffHeading')} onEdit={() => goTo(2)}>
+                  <Summary title={t('setup.staffHeading')} onEdit={() => goTo(stepAt('brigade'))}>
                     {staff.length === 0 ? (
                       <p className="text-ink-soft">{t('setup.summaryNone')}</p>
                     ) : (
@@ -974,7 +1130,19 @@ export function Setup() {
                       </ul>
                     )}
                   </Summary>
-                  <Summary title={t('setup.stepRecipes')} onEdit={() => goTo(3)}>
+                  {prepChecklist ? (
+                    <Summary
+                      title={t('setup.stepChecklist')}
+                      onEdit={() => goTo(stepAt('checklist'))}
+                    >
+                      <p className={checklistCount === 0 ? 'text-ink-soft' : undefined}>
+                        {checklistCount === 0
+                          ? t('setup.summaryNone')
+                          : plural('setup.summaryChecklistLines', checklistCount)}
+                      </p>
+                    </Summary>
+                  ) : null}
+                  <Summary title={t('setup.stepRecipes')} onEdit={() => goTo(stepAt('recipes'))}>
                     {recipes.length === 0 ? (
                       <p className="text-ink-soft">{t('setup.summaryNone')}</p>
                     ) : (
@@ -994,13 +1162,26 @@ export function Setup() {
                       </ul>
                     )}
                   </Summary>
-                  <Summary title={t('setup.stepSettings')} onEdit={() => goTo(4)}>
+                  <Summary title={t('setup.stepSettings')} onEdit={() => goTo(stepAt('settings'))}>
                     <p>
                       {t(
                         tickedRetention === 'delete'
                           ? 'kitchen.retentionDelete'
                           : 'kitchen.retentionKeep',
                       )}
+                    </p>
+                    <p className="text-ink-soft text-sm">
+                      {prepChecklist
+                        ? t('setup.summaryChecklistOn')
+                        : t('setup.summaryChecklistOff')}
+                    </p>
+                    <p className="text-ink-soft text-sm">
+                      {pinOnly ? t('setup.summaryPinOnly') : t('setup.summaryNames')}
+                    </p>
+                    <p className="text-ink-soft text-sm">
+                      {idleMinutes === null
+                        ? t('setup.summaryIdleNever')
+                        : t('setup.summaryIdle', { minutes: String(idleMinutes) })}
                     </p>
                     <p className="text-ink-soft text-sm">{t('backups.whereLocal')}</p>
                     {toWebdav ? (
@@ -1238,6 +1419,91 @@ function SetupOnedrive({ status, code }: { status: OnedriveStatus | null; code: 
         </p>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The checklist lines of one station, while setup is still collecting them.
+ * The same names-only list as Edit checklist on the prep list, without ids
+ * or order: they are made, in this order, when the kitchen is created.
+ */
+function SetupChecklistStation({
+  name,
+  lines,
+  onRename,
+  onRemove,
+  onAdd,
+}: {
+  name: string;
+  lines: ChecklistDraft[];
+  onRename: (key: string, name: string) => void;
+  onRemove: (key: string) => void;
+  onAdd: (name: string) => void;
+}) {
+  const { t } = useT();
+  const [adding, setAdding] = useState('');
+
+  function commit() {
+    const trimmed = adding.trim();
+    if (!trimmed) return;
+    onAdd(trimmed);
+    setAdding('');
+  }
+
+  return (
+    <section>
+      <SectionTitle>{name}</SectionTitle>
+      {lines.length > 0 ? (
+        <ul className="mb-2 flex flex-col gap-2">
+          {lines.map((line) => (
+            <li key={line.key} className="flex gap-2">
+              <input
+                aria-label={t('checklist.itemName')}
+                className="field h-11 min-w-0 flex-1"
+                value={line.name}
+                maxLength={120}
+                onChange={(e) => onRename(line.key, e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-small min-h-11 min-w-11 shrink-0"
+                aria-label={t('checklist.remove', { name: line.name })}
+                onClick={() => onRemove(line.key)}
+              >
+                <span aria-hidden>✕</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+      <div className="flex gap-2">
+        <input
+          aria-label={`${name}: ${t('checklist.newItem')}`}
+          placeholder={t('checklist.newItem')}
+          className="field h-11 min-w-0 flex-1"
+          value={adding}
+          maxLength={120}
+          autoComplete="off"
+          onChange={(e) => setAdding(e.target.value)}
+          onKeyDown={(e) => {
+            // Enter adds the line, instead of going on to the next step.
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              e.stopPropagation();
+              commit();
+            }
+          }}
+        />
+        <button
+          type="button"
+          className="btn-quiet min-h-11"
+          disabled={!adding.trim()}
+          onClick={commit}
+        >
+          {t('checklist.addItem')}
+        </button>
+      </div>
+    </section>
   );
 }
 

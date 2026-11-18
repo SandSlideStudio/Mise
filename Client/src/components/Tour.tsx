@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { Role } from '@mise/contracts';
+import { useKitchen } from '../api/kitchen.js';
 import { useCurrentUser, useUpdateMe } from '../api/session.js';
 import { useT, type MessageKey } from '../i18n/index.js';
 import { Plate } from './Plate.js';
@@ -27,7 +28,7 @@ interface Stop {
   body: MessageKey;
 }
 
-function stopsFor(role: Role): Stop[] {
+function stopsFor(role: Role, checklist: boolean): Stop[] {
   const manager = role !== 'cook';
   const stops: Stop[] = [
     { title: 'tour.welcomeTitle', body: 'tour.welcomeBody' },
@@ -36,6 +37,14 @@ function stopsFor(role: Role): Stop[] {
     { target: 'task', title: 'tour.tickTitle', body: 'tour.tickBody' },
     { target: 'being-made', title: 'task.beingMade', body: 'tour.makingBody' },
   ];
+  // Only a kitchen that has switched it on has the button to point at.
+  if (checklist) {
+    stops.push({
+      target: 'checklist',
+      title: 'tour.checklistTitle',
+      body: manager ? 'tour.checklistBodyChef' : 'tour.checklistBody',
+    });
+  }
   if (manager) {
     stops.push({ target: 'add-line', title: 'tour.addLineTitle', body: 'tour.addLineBody' });
   }
@@ -66,6 +75,7 @@ function prefersReducedMotion(): boolean {
 export function TourHost() {
   const { data: user } = useCurrentUser();
   const update = useUpdateMe();
+  const { data: kitchen } = useKitchen();
   const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const [phase, setPhase] = useState<'waiting' | 'asking' | 'touring' | 'done'>('waiting');
@@ -97,7 +107,7 @@ export function TourHost() {
   if (phase === 'touring') {
     return (
       <Tour
-        stops={stopsFor(user.role)}
+        stops={stopsFor(user.role, kitchen?.prepChecklist === true)}
         kitchenName={user.kitchenName}
         onClose={() => setPhase('done')}
       />

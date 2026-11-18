@@ -20,6 +20,7 @@ describe('interface language', () => {
       language: 'nl',
       kitchenName: ADMIN.kitchenName,
       setupTokenRequired: false,
+      pinOnly: false,
     });
   });
 

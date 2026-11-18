@@ -127,6 +127,8 @@ export function useUpdateKitchen() {
       void queryClient.invalidateQueries({ queryKey: ['kitchen'] });
       void queryClient.invalidateQueries({ queryKey: ['me'] });
       void queryClient.invalidateQueries({ queryKey: ['pin-only'] });
+      // The sign-in page words its hint by the mode.
+      void queryClient.invalidateQueries({ queryKey: ['setup-status'] });
     },
   });
 }

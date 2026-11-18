@@ -21,6 +21,16 @@ export const SETUP_STEPS: { label: MessageKey; optional?: boolean }[] = [
   { label: 'setup.stepCheck' },
 ];
 
+/** With the prep checklist chosen, one more step comes after the stations. */
+export function setupSteps(withChecklist: boolean): typeof SETUP_STEPS {
+  if (!withChecklist) return SETUP_STEPS;
+  return [
+    ...SETUP_STEPS.slice(0, 3),
+    { label: 'setup.stepChecklist', optional: true },
+    ...SETUP_STEPS.slice(3),
+  ];
+}
+
 export type TurnDirection = 'forward' | 'back';
 
 /** How long the old page takes to leave before the new one arrives. */
@@ -70,9 +80,11 @@ export function SetupFrame({
   footer,
   aside,
   closing = false,
+  withChecklist = false,
 }: {
-  /** 0 is the welcome page, 1 to 6 are the steps, 7 is signed and done. */
+  /** 0 is the welcome page, 1 to 6 (7 with the checklist) are the steps, then signed and done. */
   position: number;
+  withChecklist?: boolean;
   language: Language;
   onLanguage: (next: Language) => void;
   onSubmit: () => void;
@@ -85,13 +97,14 @@ export function SetupFrame({
   closing?: boolean;
 }) {
   const { t } = useT();
-  const total = SETUP_STEPS.length;
+  const steps = setupSteps(withChecklist);
+  const total = steps.length;
   const label =
     position === 0
       ? t('welcome.step0')
       : position > total
         ? t('setup.readyLabel')
-        : `${t('setup.stepOf', { current: position, total })} · ${t(SETUP_STEPS[position - 1]!.label)}`;
+        : `${t('setup.stepOf', { current: position, total })} · ${t(steps[position - 1]!.label)}`;
 
   return (
     <div className={`plain-page flex min-h-dvh flex-col ${closing ? 'frame-leave' : ''}`}>
@@ -141,7 +154,7 @@ export function SetupFrame({
             aria-valuetext={label}
             className="flex h-[3px] gap-0.5"
           >
-            {SETUP_STEPS.map((step, i) => (
+            {steps.map((step, i) => (
               <span key={step.label} className="bg-line relative flex-1 overflow-hidden">
                 <span
                   className="bg-accent absolute inset-0 origin-left transition-transform duration-500 ease-out motion-reduce:transition-none"
@@ -239,8 +252,10 @@ export function PageHeading({
 export function StepIndex({
   position,
   onPick,
+  withChecklist = false,
 }: {
   position: number;
+  withChecklist?: boolean;
   /** Jump back to a finished step. */
   onPick?: (index: number) => void;
 }) {
@@ -254,7 +269,7 @@ export function StepIndex({
         <span className="text-ink-faint font-mono text-[11px]">{t('welcome.duration')}</span>
       </div>
       <ol className="border-rule mt-2.5 border-b xl:mt-3.5">
-        {SETUP_STEPS.map((step, i) => {
+        {setupSteps(withChecklist).map((step, i) => {
           const number = i + 1;
           const done = position > 0 && number < position;
           const current = number === position;
