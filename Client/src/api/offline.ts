@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient, type QueryClient, type QueryKey } from '@tanstack/react-query';
-import type { MenuSummary, RecipeSummary } from '@mise/contracts';
+import { unpackOfflineBundle, type OfflineBundle } from '@mise/contracts';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { del, get, set } from 'idb-keyval';
 import { isReachable } from '../lib/connectivity.js';
@@ -61,6 +61,7 @@ export function keepOnDevice(queryKey: QueryKey, hasAnswer: boolean): boolean {
 /** Forget everything kept, as signing out on a shared tablet does: data and photos. */
 export async function forgetKept(): Promise<void> {
   await del(STORE_KEY).catch(() => undefined);
+  rememberVersion(null);
   // The photos the service worker keeps (sw/service-worker.js).
   if (typeof caches !== 'undefined') await caches.delete('mise-photos').catch(() => false);
 }
@@ -68,7 +69,7 @@ export async function forgetKept(): Promise<void> {
 // --- loading ahead -------------------------------------------------------------
 
 const EVERY_MS = 30 * 60 * 1000;
-/** Fresh enough not to ask again. */
+/** How long the prep list and the handover note stay fresh before they are asked for again. */
 const FRESH_MS = 25 * 60 * 1000;
 /** A few at a time, so a Raspberry Pi serving the kitchen doesn't notice. */
 const AT_ONCE = 3;
@@ -95,36 +96,67 @@ async function inTurn(jobs: (() => Promise<void>)[]): Promise<void> {
   );
 }
 
-async function loadAhead(queryClient: QueryClient): Promise<void> {
+/**
+ * The data version the last complete load saw. A plain string on the device,
+ * forgotten with everything else on signing out.
+ */
+const LOADED_KEY = 'mise.loaded-version';
+
+function loadedVersion(): string | null {
+  try {
+    return localStorage.getItem(LOADED_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function rememberVersion(version: string | null): void {
+  try {
+    if (version) localStorage.setItem(LOADED_KEY, version);
+    else localStorage.removeItem(LOADED_KEY);
+  } catch {
+    // Not remembered: the next load simply goes ahead.
+  }
+}
+
+/**
+ * Loads what may be needed offline, but only if the kitchen's data changed
+ * since the last complete load, and then in one request: the server reads its
+ * recipe book once for all of it, not once for every recipe and screen.
+ */
+export async function loadAhead(queryClient: QueryClient): Promise<void> {
   if (!isReachable()) return;
+
+  let current: string;
+  try {
+    current = (await api.get<{ version: string }>('/offline/version')).version;
+  } catch {
+    return;
+  }
+  // The version alone is not trusted when the saved answers are gone (cleared
+  // by the browser, or older than a week): then they are loaded again.
+  const haveAnswers = queryClient.getQueryData(['recipes', {}]) !== undefined;
+  if (current === loadedVersion() && haveAnswers) return;
+
+  let bundle: OfflineBundle;
+  try {
+    bundle = await api.get<OfflineBundle>('/offline/bundle');
+  } catch {
+    return;
+  }
+  // A change being sent right now is shown as made; answers read before it
+  // must not paint over it. The next round loads them.
+  if (queryClient.isMutating() > 0) return;
+
+  for (const [queryKey, data] of unpackOfflineBundle(bundle)) {
+    queryClient.setQueryData(queryKey, data);
+  }
+  // Light, and changing all day, so asked for directly.
   await inTurn([
     () => load(queryClient, ['tasks', 'running'], '/running/tasks'),
     () => load(queryClient, ['handover'], '/running/note'),
-    () => load(queryClient, ['checklist'], '/checklist'),
-    () => load(queryClient, ['stations'], '/stations'),
-    () => load(queryClient, ['recipes', {}], '/recipes'),
-    () => load(queryClient, ['dishes'], '/dishes'),
-    () => load(queryClient, ['menus'], '/menus'),
-    () => load(queryClient, ['dish-card-settings'], '/dish-cards/settings'),
   ]);
-
-  const recipes = queryClient.getQueryData<RecipeSummary[]>(['recipes', {}]) ?? [];
-  const menus = queryClient.getQueryData<MenuSummary[]>(['menus']) ?? [];
-  await inTurn([
-    ...recipes.flatMap(({ id, type }) => [
-      () => load(queryClient, ['recipe', id], `/recipes/${id}`),
-      () => load(queryClient, ['recipe-expanded', id, {}], `/recipes/${id}/expanded`),
-      () => load(queryClient, ['recipe-allergens', id], `/recipes/${id}/allergens`),
-      () => load(queryClient, ['recipe-used-by', id], `/recipes/${id}/used-by`),
-      ...(type === 'dish'
-        ? [() => load(queryClient, ['dish-card', id], `/recipes/${id}/card`)]
-        : []),
-    ]),
-    ...menus.flatMap(({ id }) => [
-      () => load(queryClient, ['menu', id], `/menus/${id}`),
-      () => load(queryClient, ['menu-overview', id], `/menus/${id}/overview`),
-    ]),
-  ]);
+  rememberVersion(bundle.version);
 }
 
 /** Load the kitchen ahead now and then while someone is signed in. Mounted once, in the shell. */

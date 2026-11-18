@@ -87,9 +87,9 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
  */
 export async function loadComponentNames(
   db: Database,
-  recipeId: string,
+  recipeId?: string,
 ): Promise<Map<string, string>> {
-  const rows = await db
+  const query = db
     .select({
       componentId: recipeComponents.id,
       ingredientName: ingredients.name,
@@ -97,8 +97,9 @@ export async function loadComponentNames(
     })
     .from(recipeComponents)
     .leftJoin(ingredients, eq(ingredients.id, recipeComponents.ingredientId))
-    .leftJoin(recipes, eq(recipes.id, recipeComponents.childRecipeId))
-    .where(eq(recipeComponents.recipeId, recipeId));
+    .leftJoin(recipes, eq(recipes.id, recipeComponents.childRecipeId));
+  // No recipe named: every line of every recipe, for the bundle for offline use.
+  const rows = await (recipeId ? query.where(eq(recipeComponents.recipeId, recipeId)) : query);
 
   return new Map(
     rows.map((row) => [row.componentId, row.ingredientName ?? row.recipeName ?? 'Unknown']),

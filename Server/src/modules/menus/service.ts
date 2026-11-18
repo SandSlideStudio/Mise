@@ -267,11 +267,12 @@ export function createMenusService(db: Database) {
    */
   async function overview(
     id: string,
+    loaded?: Awaited<ReturnType<typeof loadRecipeBook>>,
   ): Promise<{ ok: true; overview: MenuOverview } | { ok: false; error: MenuFailure }> {
     const found = await row(id);
     if (!found) return { ok: false, error: { kind: 'not_found' } };
     const dishes = await dishesOf(id);
-    const book = await loadRecipeBook(db);
+    const book = loaded ?? (await loadRecipeBook(db));
 
     const broken: string[] = [];
     const rows: MenuOverview['dishes'] = [];

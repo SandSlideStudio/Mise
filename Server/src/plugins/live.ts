@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin';
 import type { FastifyPluginAsync } from 'fastify';
+import { randomBytes } from 'node:crypto';
 import type { ServerResponse } from 'node:http';
 import { SESSION_COOKIE } from './auth.js';
 
@@ -26,6 +27,12 @@ declare module 'fastify' {
       publish: (topic: LiveTopic) => void;
       /** Returns the function that stops listening. */
       subscribe: (listener: Listener) => () => void;
+      /**
+       * A cheap stamp of everything a tablet loads ahead for offline use. It
+       * differs after any write to those parts of the kitchen and after a
+       * restart, and is the same otherwise. Only ever compared for equality.
+       */
+      dataVersion: () => string;
     };
   }
 }
@@ -49,6 +56,30 @@ const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
   ['/api/access', 'staff'],
 ];
 
+/**
+ * Writes that change what is loaded ahead for offline use: recipes, menus,
+ * dishes, stations, the checklist and card settings. Deliberately not prep
+ * ticks or sign-ins, which happen all day and are kept current by the live
+ * signals above. Backups and setup are here because a restore or a first-run
+ * replaces the lot.
+ */
+const BUNDLE_ROUTES = [
+  '/api/recipes',
+  '/api/ingredients',
+  '/api/photos',
+  '/api/menus',
+  '/api/kitchen',
+  '/api/stations',
+  '/api/dish-cards',
+  '/api/checklist',
+  '/api/backups',
+  '/api/setup',
+];
+
+function movesBundle(route: string | undefined): boolean {
+  return !!route && BUNDLE_ROUTES.some((p) => route === p || route.startsWith(`${p}/`));
+}
+
 const WRITES = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 
 /** Often enough that no proxy or tablet decides the connection is dead. */
@@ -66,7 +97,12 @@ const livePlugin: FastifyPluginAsync = async (app) => {
   const listeners = new Set<Listener>();
   const streams = new Set<ServerResponse>();
 
+  // The random part makes a restart look like a change, so tablets load once.
+  const boot = randomBytes(4).toString('hex');
+  let changes = 0;
+
   app.decorate('live', {
+    dataVersion: () => `${boot}-${changes}`,
     publish: (topic: LiveTopic) => {
       for (const listener of listeners) listener(topic);
     },
@@ -81,7 +117,9 @@ const livePlugin: FastifyPluginAsync = async (app) => {
   // write that succeeded changed anything.
   app.addHook('onResponse', async (request, reply) => {
     if (!WRITES.has(request.method) || reply.statusCode >= 400) return;
-    const topic = topicFor(request.routeOptions.url);
+    const route = request.routeOptions.url;
+    if (movesBundle(route)) changes += 1;
+    const topic = topicFor(route);
     if (topic) app.live.publish(topic);
   });
 

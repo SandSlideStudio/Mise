@@ -13,3 +13,4 @@ export * from './updates.js';
 export * from './access.js';
 export * from './connection.js';
 export * from './privacy.js';
+export * from './offline.js';

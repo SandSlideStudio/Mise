@@ -17,19 +17,13 @@ import {
   scaleQuerySchema,
   updateRecipeSchema,
 } from '@mise/contracts';
-import {
-  expandRecipe,
-  factorFor,
-  isAllergen,
-  isUnitCode,
-  type ExpandError,
-  type Quantity,
-} from '@mise/domain';
+import type { ExpandError } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
 import { ensureUnchanged } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { recipePhotos } from '../../db/schema.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
+import { expandAgainst, serialise, summarise } from './shape.js';
 import type { UnitProblem } from './service.js';
 import { createRecipesService } from './service.js';
 
@@ -40,63 +34,9 @@ import { createRecipesService } from './service.js';
  * the spec. Only chefs and managers can change it.
  */
 
-type StoredRecipe = NonNullable<
-  Awaited<ReturnType<ReturnType<typeof createRecipesService>['getRecipe']>>
->;
-
 const recipeRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const svc = createRecipesService(app.db);
-
-  function serialise(row: StoredRecipe, names: Map<string, string>) {
-    return {
-      id: row.id,
-      name: row.name,
-      type: row.type,
-      status: row.status,
-      stationId: row.stationId,
-      yield: {
-        value: row.yieldEntered,
-        unit: isUnitCode(row.yieldUnit) ? row.yieldUnit : ('g' as const),
-      },
-      portions: row.portions,
-      prepMinutes: row.prepMinutes,
-      cookMinutes: row.cookMinutes,
-      shelfLifeHours: row.shelfLifeHours,
-      storage: row.storage,
-      method: row.method,
-      tags: row.tags,
-      declaredAllergens: row.declaredAllergens.filter(isAllergen),
-      mayContain: row.mayContain.filter(isAllergen),
-      flavourProfile: row.flavourProfile,
-      servingTemperature: row.servingTemperature,
-      course: row.course,
-      drinkPairings: row.drinkPairings,
-      cutlery: row.cutlery,
-      components: row.components.map((component) => ({
-        id: component.id,
-        sortOrder: component.sortOrder,
-        section: component.section,
-        note: component.note,
-        quantity: {
-          value: component.quantityEntered,
-          unit: isUnitCode(component.unitEntered) ? component.unitEntered : ('g' as const),
-        },
-        ref: component.childRecipeId
-          ? ({ kind: 'recipe', recipeId: component.childRecipeId } as const)
-          : ({ kind: 'ingredient', ingredientId: component.ingredientId! } as const),
-        displayName: names.get(component.id) ?? '',
-      })),
-      photos: row.photos.map((photo) => ({
-        id: photo.id,
-        url: `/api/uploads/${photo.path}`,
-        caption: photo.caption,
-        isPrimary: photo.isPrimary,
-      })),
-      version: row.version,
-      updatedAt: row.updatedAt.toISOString(),
-    };
-  }
 
   r.get(
     '/recipes',
@@ -121,20 +61,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       return rows
         .filter((row) => (allowed ? allowed.has(row.id) : true))
         .filter((row) => (excluded ? !excluded.has(row.id) : true))
-        .map((row) => ({
-          id: row.id,
-          name: row.name,
-          type: row.type,
-          status: row.status,
-          stationId: row.stationId,
-          yield: {
-            value: row.yieldEntered,
-            unit: isUnitCode(row.yieldUnit) ? row.yieldUnit : ('g' as const),
-          },
-          portions: row.portions,
-          tags: row.tags,
-          updatedAt: row.updatedAt.toISOString(),
-        }));
+        .map(summarise);
     },
   );
 
@@ -228,24 +155,16 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       const row = await svc.getRecipe(request.params.id);
       if (!row) throw ApiError.notFound('That recipe');
 
-      const book = await loadRecipeBook(app.db);
-      const target: { portions?: number; factor?: number; yield?: Quantity } = {};
-      if (request.query.factor !== undefined) target.factor = request.query.factor;
-      else if (request.query.portions !== undefined) target.portions = request.query.portions;
-      else if (request.query.yieldValue !== undefined && request.query.yieldUnit !== undefined) {
-        target.yield = { value: request.query.yieldValue, unit: request.query.yieldUnit };
-      }
-
-      const factor = factorFor(request.params.id, target, book);
-      if (!factor.ok) throw scaleError(factor.error);
-
-      const lines = expandRecipe(request.params.id, factor.value, book);
-      if (!lines.ok) throw scaleError(lines.error);
+      const expanded = expandAgainst(
+        request.params.id,
+        request.query,
+        await loadRecipeBook(app.db),
+      );
+      if (!expanded.ok) throw scaleError(expanded.error);
 
       return {
         recipe: serialise(row, await loadComponentNames(app.db, row.id)),
-        factor: factor.value,
-        lines: lines.value,
+        ...expanded.value,
         allergens: await svc.allergensFor(request.params.id),
       };
     },
