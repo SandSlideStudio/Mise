@@ -1288,6 +1288,36 @@ export const fr: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code seul.',
   'error.tabletLockedUntil':
     'Trop de codes erronés sur cette tablette. Réessayez après {time}, ou demandez à un chef de cuisine de lever le blocage.',
+  // Setup: the 2.3 options, the checklist step, and the sign-in hint
+  'setup.stepChecklist': 'Checklist',
+  'setup.checklistTitle': 'La checklist de prep',
+  'setup.checklistBody':
+    'Ce que cette cuisine prépare, par poste. Chacun coche ce qu’il faut et cela passe sur la liste de prep. Vous pouvez passer cette étape et la remplir plus tard.',
+  'setup.pinOnlyHint':
+    'Les tablettes affichent un clavier au lieu des noms, et le code retrouve la personne. Chaque code doit être différent et pas trop facile à deviner.',
+  'setup.pinCommon':
+    'L’un des codes est trop facile à deviner. Choisissez-en un moins évident, pas du genre 1234.',
+  'setup.pinTaken':
+    'Deux personnes ont le même code. Avec un code seul, chaque code doit être différent.',
+  'setup.pinOnlyFix':
+    'Certains codes ne marchent pas avec un code seul. Changez-les, ou désactivez cette option.',
+  'setup.pinOnlyChange': 'Changer les codes',
+  'setup.summaryChecklistOn': 'Checklist de prep activée',
+  'setup.summaryChecklistOff': 'Checklist de prep désactivée',
+  'setup.summaryChecklistLines_one': '1 ligne',
+  'setup.summaryChecklistLines_other': '{count} lignes',
+  'setup.summaryPinOnly': 'Les tablettes se connectent avec un code seul',
+  'setup.summaryNames': 'Les tablettes affichent les noms, puis demandent un code',
+  'setup.summaryIdle':
+    'Les tablettes partagées se déconnectent après {minutes} minutes sans toucher',
+  'setup.summaryIdleNever': 'Les tablettes partagées restent connectées',
+  'login.tabletPinBody':
+    'Les cuisiniers se connectent sur la tablette de la cuisine avec leur code.',
+  'tour.checklistTitle': 'La checklist de prep',
+  'tour.checklistBody':
+    'Ouvrez la checklist, cochez ce dont la cuisine a besoin aujourd’hui et ajoutez-le d’un coup à la liste de prep.',
+  'tour.checklistBodyChef':
+    'Votre checklist de ce que prépare la cuisine, par poste. Chacun coche ce qu’il faut et l’ajoute d’un coup à la liste de prep. Modifiez-la ici quand la carte change.',
   'password.show': 'Afficher le mot de passe',
   'password.hide': 'Masquer le mot de passe',
   'editor.cookOnly':

@@ -2,7 +2,15 @@ import { and, eq, isNull, lt, sql } from 'drizzle-orm';
 import { DEFAULT_STATIONS, type Language, type SetupRequest } from '@mise/contracts';
 import { toBase, type UnitCode } from '@mise/domain';
 import type { Database, Executor, Transaction } from '../../db/client.js';
-import { devices, kitchens, recipes, sessions, stations, users } from '../../db/schema.js';
+import {
+  devices,
+  kitchens,
+  prepChecklistItems,
+  recipes,
+  sessions,
+  stations,
+  users,
+} from '../../db/schema.js';
 import {
   dummyVerify,
   generateToken,
@@ -383,6 +391,11 @@ export function createAuthService(db: Database) {
    * What a shared tablet offers before anyone has signed in: the names, or
    * once the kitchen signs in by PIN alone, only the keypad.
    */
+  /** Whether tablets sign in by PIN alone right now. */
+  async function pinOnly(): Promise<boolean> {
+    return (await pinOnlySince()) !== null;
+  }
+
   async function roster() {
     const since = await pinOnlySince();
     if (since) {
@@ -457,10 +470,17 @@ export function createAuthService(db: Database) {
       if ((existing?.count ?? 0) > 0)
         return { ok: false as const, error: 'already_set_up' as const };
 
+      // One moment for everything chosen here: PIN-only is on from it, so
+      // every PIN set below counts as new (it is chosen when the PINs are set).
+      const now = new Date();
       await tx.insert(kitchens).values({
         name: input.kitchenName,
         language: input.language ?? 'en',
         ...(input.tickedRetention ? { tickedRetention: input.tickedRetention } : {}),
+        prepChecklist: input.prepChecklist ?? false,
+        prepChecklistUpdatedAt: now,
+        pinOnlySince: input.pinOnly ? now : null,
+        idleSignOutMinutes: input.idleSignOutMinutes ?? null,
       });
 
       // A kitchen with no stations cannot group a prep list. The setup screens
@@ -485,7 +505,7 @@ export function createAuthService(db: Database) {
           passwordHash,
           pinHash,
           pinLength: input.pin?.length ?? null,
-          pinSetAt: pinHash ? new Date() : null,
+          pinSetAt: pinHash ? now : null,
           role: 'admin',
         })
         .returning({ id: users.id });
@@ -499,7 +519,7 @@ export function createAuthService(db: Database) {
             role: person.role,
             pinHash: person.pinHash,
             pinLength: person.pin.length,
-            pinSetAt: new Date(),
+            pinSetAt: now,
             defaultStationId: stationId(person.station),
           })),
         );
@@ -519,6 +539,19 @@ export function createAuthService(db: Database) {
             portions: recipe.portions ?? null,
             createdBy: user.id,
           })),
+        );
+      }
+
+      if (input.prepChecklist && input.checklist && input.checklist.length > 0) {
+        const next = new Map<string | null, number>();
+        await tx.insert(prepChecklistItems).values(
+          input.checklist.map((item) => {
+            // Kept in the order given, within each station.
+            const at = stationId(item.station);
+            const sortOrder = next.get(at) ?? 0;
+            next.set(at, sortOrder + 1);
+            return { stationId: at, name: item.name, sortOrder };
+          }),
         );
       }
 
@@ -556,6 +589,7 @@ export function createAuthService(db: Database) {
     revokeDevice,
     roster,
     needsSetup,
+    pinOnly,
     runSetup,
     kitchen,
     issueSession,

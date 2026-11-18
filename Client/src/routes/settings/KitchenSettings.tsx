@@ -5,7 +5,7 @@ import { useCurrentUser } from '../../api/session.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 import { VersionSettings } from './VersionSettings.js';
 
-const IDLE_CHOICES = [2, 5, 10, 15, 30];
+export const IDLE_CHOICES = [2, 5, 10, 15, 30];
 
 /** The usual choices, plus whatever is set already if it was set some other way. */
 function idleChoices(current: number | null): number[] {

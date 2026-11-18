@@ -7,9 +7,11 @@ import {
   onedriveStatusSchema,
   sessionUserSchema,
   setupRequestSchema,
+  type SetupRequest,
   setupStatusSchema,
   testBackupDestinationSchema,
 } from '@mise/contracts';
+import { isCommonPin } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
 import { safeEqual } from '../../lib/crypto.js';
 import { PASSWORD_SESSION_DAYS } from '../auth/service.js';
@@ -26,6 +28,22 @@ import { validTimeZone } from '../backups/service.js';
  * gap, and they stop existing the moment an account is created: once the user
  * table is not empty, both return 404 for the life of the deployment.
  */
+/**
+ * PIN-only sign-in asks for what Settings asks of every new PIN: none the
+ * same as another, none that a stranger would try first. Checked on the PINs
+ * as typed, since nothing is stored yet. As in Settings, never whose.
+ */
+function refuseBadPins(setup: SetupRequest): void {
+  if (!setup.pinOnly) return;
+  const pins = [setup.pin, ...(setup.staff ?? []).map((person) => person.pin)].filter(
+    (pin): pin is string => Boolean(pin),
+  );
+  if (pins.some(isCommonPin)) throw new ApiError(400, 'pin_too_common', 'Pick a less obvious PIN.');
+  if (new Set(pins).size !== pins.length) {
+    throw new ApiError(409, 'pin_taken', 'Choose another PIN.');
+  }
+}
+
 const setupRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
 
@@ -142,6 +160,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
       language: kitchen?.language ?? 'en',
       kitchenName: kitchen?.name ?? null,
       setupTokenRequired: app.setupCodeNeeded(request),
+      pinOnly: await app.auth.pinOnly(),
     };
   });
 
@@ -155,6 +174,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
         response: {
           200: z.object({ user: sessionUserSchema }),
           403: errorSchema,
+          400: errorSchema,
           404: errorSchema,
           409: errorSchema,
         },
@@ -162,6 +182,7 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request, reply) => {
       await allowed(request, request.body.setupToken);
+      refuseBadPins(request.body);
       const backups = request.body.backups;
       const onedrive = (await app.backups.status()).onedrive;
       const sendTo = backups?.sendTo ?? [];

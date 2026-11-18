@@ -50,6 +50,7 @@ describe('the sign-in screens', () => {
       language: 'en',
       kitchenName: ADMIN.kitchenName,
       setupTokenRequired: false,
+      pinOnly: false,
     });
   });
 

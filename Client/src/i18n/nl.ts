@@ -1269,6 +1269,34 @@ export const nl: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'Op deze tablet log je nu in met alleen een pincode.',
   'error.tabletLockedUntil':
     'Te veel verkeerde pincodes op deze tablet. Probeer het na {time} opnieuw, of vraag een chef-kok de blokkade op te heffen.',
+  // Setup: the 2.3 options, the checklist step, and the sign-in hint
+  'setup.stepChecklist': 'Checklist',
+  'setup.checklistTitle': 'De prepchecklist',
+  'setup.checklistBody':
+    'Wat deze keuken maakt, per station. Iedereen vinkt af wat nodig is en het komt op de preplijst. Je kunt dit overslaan en later invullen.',
+  'setup.pinOnlyHint':
+    'Tablets tonen een toetsenblok in plaats van de namen, en de pincode vindt de persoon. Elke pincode moet anders zijn en niet te makkelijk te raden.',
+  'setup.pinCommon':
+    'Een van de pincodes is te makkelijk te raden. Kies een minder voor de hand liggende, niet zoiets als 1234.',
+  'setup.pinTaken':
+    'Twee mensen hebben dezelfde pincode. Met alleen een pincode moet elke pincode anders zijn.',
+  'setup.pinOnlyFix':
+    'Sommige pincodes werken niet met alleen een pincode. Pas ze aan, of zet het uit.',
+  'setup.pinOnlyChange': 'Pincodes aanpassen',
+  'setup.summaryChecklistOn': 'Prepchecklist aan',
+  'setup.summaryChecklistOff': 'Prepchecklist uit',
+  'setup.summaryChecklistLines_one': '1 regel',
+  'setup.summaryChecklistLines_other': '{count} regels',
+  'setup.summaryPinOnly': 'Tablets loggen in met alleen een pincode',
+  'setup.summaryNames': 'Tablets tonen de namen en vragen dan om een pincode',
+  'setup.summaryIdle': 'Gedeelde tablets loggen uit na {minutes} minuten ongebruikt',
+  'setup.summaryIdleNever': 'Gedeelde tablets blijven ingelogd',
+  'login.tabletPinBody': 'Koks loggen in op de keukentablet met hun pincode.',
+  'tour.checklistTitle': 'De prepchecklist',
+  'tour.checklistBody':
+    'Open de checklist, vink af wat de keuken vandaag nodig heeft en zet het in één keer op de preplijst.',
+  'tour.checklistBodyChef':
+    'Jouw checklist van wat de keuken maakt, per station. Iedereen vinkt af wat nodig is en zet het in één keer op de preplijst. Pas hem hier aan als de kaart verandert.',
   'password.show': 'Wachtwoord tonen',
   'password.hide': 'Wachtwoord verbergen',
   'editor.cookOnly':

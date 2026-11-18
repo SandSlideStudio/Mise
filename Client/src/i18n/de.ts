@@ -1284,6 +1284,34 @@ export const de: Record<MessageKey, string> = {
   'error.pinOnlyOn': 'An diesem Tablet meldest du dich jetzt nur mit der PIN an.',
   'error.tabletLockedUntil':
     'Zu viele falsche PINs an diesem Tablet. Versuche es nach {time} erneut, oder bitte einen Küchenchef, die Sperre aufzuheben.',
+  // Setup: the 2.3 options, the checklist step, and the sign-in hint
+  'setup.stepChecklist': 'Checkliste',
+  'setup.checklistTitle': 'Die Prep-Checkliste',
+  'setup.checklistBody':
+    'Was diese Küche herstellt, nach Posten. Alle haken ab, was gebraucht wird, und es kommt auf die Prep-Liste. Du kannst das überspringen und später ausfüllen.',
+  'setup.pinOnlyHint':
+    'Tablets zeigen ein Tastenfeld statt der Namen, und die PIN findet die Person. Jede PIN muss anders und nicht leicht zu erraten sein.',
+  'setup.pinCommon':
+    'Eine der PINs ist zu leicht zu erraten. Wähle eine weniger naheliegende, nichts wie 1234.',
+  'setup.pinTaken':
+    'Zwei Personen haben dieselbe PIN. Bei der Anmeldung nur mit PIN muss jede PIN anders sein.',
+  'setup.pinOnlyFix':
+    'Einige PINs funktionieren bei der Anmeldung nur mit PIN nicht. Ändere sie oder schalte das aus.',
+  'setup.pinOnlyChange': 'PINs ändern',
+  'setup.summaryChecklistOn': 'Prep-Checkliste an',
+  'setup.summaryChecklistOff': 'Prep-Checkliste aus',
+  'setup.summaryChecklistLines_one': '1 Zeile',
+  'setup.summaryChecklistLines_other': '{count} Zeilen',
+  'setup.summaryPinOnly': 'Tablets melden nur mit PIN an',
+  'setup.summaryNames': 'Tablets zeigen die Namen und fragen dann nach der PIN',
+  'setup.summaryIdle': 'Gemeinsame Tablets melden nach {minutes} Minuten ab',
+  'setup.summaryIdleNever': 'Gemeinsame Tablets bleiben angemeldet',
+  'login.tabletPinBody': 'Köche melden sich am Küchentablet mit ihrer PIN an.',
+  'tour.checklistTitle': 'Die Prep-Checkliste',
+  'tour.checklistBody':
+    'Öffne die Checkliste, hake ab, was die Küche heute braucht, und setze es auf einmal auf die Prep-Liste.',
+  'tour.checklistBodyChef':
+    'Deine Checkliste dessen, was die Küche herstellt, nach Posten. Alle haken ab, was gebraucht wird, und setzen es auf einmal auf die Prep-Liste. Ändere sie hier, wenn sich die Karte ändert.',
   'password.show': 'Passwort anzeigen',
   'password.hide': 'Passwort verbergen',
   'editor.cookOnly':

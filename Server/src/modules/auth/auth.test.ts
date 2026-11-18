@@ -21,6 +21,7 @@ describe('first run', () => {
       language: 'en',
       kitchenName: null,
       setupTokenRequired: false,
+      pinOnly: false,
     });
   });
 
@@ -36,6 +37,7 @@ describe('first run', () => {
       language: 'en',
       kitchenName: ADMIN.kitchenName,
       setupTokenRequired: false,
+      pinOnly: false,
     });
   });
 

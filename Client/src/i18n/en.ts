@@ -1240,6 +1240,32 @@ export const en = {
   'error.pinOnlyOn': 'This tablet now signs in with a PIN only.',
   'error.tabletLockedUntil':
     'Too many wrong PINs on this tablet. Try again after {time}, or ask a head chef to lift the lock.',
+  // Setup: the 2.3 options, the checklist step, and the sign-in hint
+  'setup.stepChecklist': 'Checklist',
+  'setup.checklistTitle': 'The prep checklist',
+  'setup.checklistBody':
+    'What this kitchen makes, by station. Anyone ticks what is needed and it goes on the prep list. You can skip this and fill it in later.',
+  'setup.pinOnlyHint':
+    'Tablets show a keypad instead of the names, and the PIN finds the person. Every PIN has to be different and not an obvious one.',
+  'setup.pinCommon':
+    'One of the PINs is too easy to guess. Pick a less obvious one, not something like 1234.',
+  'setup.pinTaken': 'Two people have the same PIN. With a PIN only, every PIN has to be different.',
+  'setup.pinOnlyFix': 'Some PINs will not work with a PIN only. Change them, or switch it off.',
+  'setup.pinOnlyChange': 'Change the PINs',
+  'setup.summaryChecklistOn': 'Prep checklist on',
+  'setup.summaryChecklistOff': 'Prep checklist off',
+  'setup.summaryChecklistLines_one': '1 line',
+  'setup.summaryChecklistLines_other': '{count} lines',
+  'setup.summaryPinOnly': 'Tablets sign in with a PIN only',
+  'setup.summaryNames': 'Tablets show the names, then ask for a PIN',
+  'setup.summaryIdle': 'Shared tablets sign out after {minutes} minutes alone',
+  'setup.summaryIdleNever': 'Shared tablets stay signed in',
+  'login.tabletPinBody': 'Cooks sign in on the kitchen tablet with their PIN.',
+  'tour.checklistTitle': 'The prep checklist',
+  'tour.checklistBody':
+    'Open the checklist, tick what the kitchen needs today and add it to the prep list in one go.',
+  'tour.checklistBodyChef':
+    'Your checklist of what the kitchen makes, by station. Anyone ticks what is needed and adds it to the prep list in one go. Edit it here whenever the menu changes.',
   'password.show': 'Show password',
   'password.hide': 'Hide password',
   'editor.cookOnly': 'Only chefs and administrators can write or change recipes and dishes.',
