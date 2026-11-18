@@ -105,7 +105,6 @@ export const es: Record<MessageKey, string> = {
   'shell.signOut': 'Cerrar sesión',
   'shell.signOutFailed':
     'No se ha podido cerrar la sesión. Revisa la conexión y vuelve a intentarlo.',
-  'shell.sourceCode': 'Código fuente',
   'shell.language': 'Idioma',
   'shell.languageKitchen': 'Idioma de la cocina ({language})',
 
@@ -180,8 +179,6 @@ export const es: Record<MessageKey, string> = {
   'login.onTheLine': '¿Estás en la línea?',
   'login.pinLink': 'Entrar con tu PIN',
   'login.titleKitchen': 'Entrar en {kitchen}',
-  'login.show': 'Mostrar',
-  'login.hide': 'Ocultar',
   'login.forgot': '¿Has olvidado la contraseña? Un administrador puede poner una nueva en Ajustes.',
   'login.tabletBody':
     'Los cocineros entran en la tableta de cocina: toca tu nombre y luego tu PIN.',
@@ -229,7 +226,6 @@ export const es: Record<MessageKey, string> = {
     'Eres el administrador. Entras con este correo y contraseña, desde cualquier dispositivo.',
   'setup.emailInvalid': 'Eso no parece una dirección de correo.',
   'setup.confirmPassword': 'Repite la contraseña',
-  'setup.showPassword': 'Mostrar contraseña',
   'setup.passwordMismatch': 'Las dos contraseñas no coinciden.',
   'setup.passwordMatch': 'Las contraseñas coinciden.',
   'setup.brigadeTitle': 'Partidas y equipo',
@@ -1300,4 +1296,11 @@ export const es: Record<MessageKey, string> = {
     'Abre la lista, marca lo que la cocina necesita hoy y pásalo a la lista de prep de una vez.',
   'tour.checklistBodyChef':
     'Tu lista de lo que hace la cocina, por puesto. Cualquiera marca lo que hace falta y lo pasa a la lista de prep de una vez. Edítala aquí cuando cambie la carta.',
+  'password.show': 'Mostrar contraseña',
+  'password.hide': 'Ocultar contraseña',
+  'editor.cookOnly':
+    'Solo los jefes de cocina y los administradores pueden escribir o cambiar recetas y platos.',
+  'outside.turnDownAll': 'Rechazar todas las pendientes',
+  'outside.reallyTurnDownAll_one': '¿Rechazar {count} solicitud pendiente?',
+  'outside.reallyTurnDownAll_other': '¿Rechazar las {count} solicitudes pendientes?',
 };

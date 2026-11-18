@@ -1,9 +1,11 @@
 import { useState, type FormEvent } from 'react';
+import { PasswordInput } from '../../components/PasswordInput.js';
 import type { RemoteDevice } from '@mise/contracts';
 import {
   useApproveRemoteDevice,
   useRemoteDevices,
   useRemoveRemoteDevice,
+  useTurnDownWaiting,
 } from '../../api/access.js';
 import { LoadError } from '../../components/LoadError.js';
 import { errorMessage, useT } from '../../i18n/index.js';
@@ -35,7 +37,10 @@ export function OutsideDeviceSettings() {
 
       {waiting.length > 0 ? (
         <>
-          <h3 className="eyebrow mb-3">{t('outside.waiting')}</h3>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <h3 className="eyebrow">{t('outside.waiting')}</h3>
+            {waiting.length > 1 ? <TurnDownAll count={waiting.length} /> : null}
+          </div>
           <ul className="border-accent bg-surface-raised divide-line mb-8 divide-y border-2">
             {waiting.map((device) => (
               <WaitingDevice key={device.id} device={device} inside={remote.data!.inside} />
@@ -61,6 +66,43 @@ export function OutsideDeviceSettings() {
         </p>
       ) : null}
     </section>
+  );
+}
+
+/** Clears a flood of requests in one tap; asks first, with the number it will turn down. */
+function TurnDownAll({ count }: { count: number }) {
+  const translator = useT();
+  const { t, plural } = translator;
+  const turnDown = useTurnDownWaiting();
+  const [confirming, setConfirming] = useState(false);
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {confirming ? (
+        <>
+          <button
+            type="button"
+            className="btn-small border-danger text-danger"
+            onClick={() => turnDown.mutate(undefined, { onSettled: () => setConfirming(false) })}
+            disabled={turnDown.isPending}
+          >
+            {plural('outside.reallyTurnDownAll', count)}
+          </button>
+          <button type="button" className="btn-small" onClick={() => setConfirming(false)}>
+            {t('common.cancel')}
+          </button>
+        </>
+      ) : (
+        <button type="button" className="btn-small" onClick={() => setConfirming(true)}>
+          {t('outside.turnDownAll')}
+        </button>
+      )}
+      {turnDown.error ? (
+        <p role="alert" className="text-danger basis-full text-sm">
+          {errorMessage(translator, turnDown.error)}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -116,10 +158,8 @@ function WaitingDevice({ device, inside }: { device: RemoteDevice; inside: boole
             <label className="label" htmlFor={`password-${device.id}`}>
               {t('outside.passwordLabel')}
             </label>
-            <input
+            <PasswordInput
               id={`password-${device.id}`}
-              type="password"
-              className="field"
               autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}

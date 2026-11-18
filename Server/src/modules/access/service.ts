@@ -314,6 +314,15 @@ export function createAccessService(db: Database) {
       return rows[0]?.name ?? null;
     },
 
+    /** Turn down every request still waiting, leaving approved devices alone. Returns how many. */
+    async removeWaiting(): Promise<number> {
+      const rows = await db
+        .delete(remoteDevices)
+        .where(eq(remoteDevices.status, 'pending'))
+        .returning({ id: remoteDevices.id });
+      return rows.length;
+    },
+
     /** Turn down a request, or take back an approval. */
     async remove(id: string): Promise<void> {
       await db.delete(remoteDevices).where(eq(remoteDevices.id, id));

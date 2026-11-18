@@ -103,7 +103,6 @@ export const en = {
   'shell.home': 'Mise, today',
   'shell.signOut': 'Sign out',
   'shell.signOutFailed': 'Couldn’t sign out. Check the connection and try again.',
-  'shell.sourceCode': 'Source code',
   'shell.language': 'Language',
   'shell.languageKitchen': 'Kitchen default ({language})',
 
@@ -179,8 +178,6 @@ export const en = {
   'login.onTheLine': 'On the line?',
   'login.pinLink': 'Sign in with your PIN',
   'login.titleKitchen': 'Sign in to {kitchen}',
-  'login.show': 'Show',
-  'login.hide': 'Hide',
   'login.forgot': 'Forgotten your password? An administrator can set a new one under Settings.',
   'login.tabletBody': 'Cooks sign in on the kitchen tablet: tap your name, then your PIN.',
   'login.server': 'Connected to {host}',
@@ -227,7 +224,6 @@ export const en = {
     'You’re the administrator. You sign in with this email and password, on any device.',
   'setup.emailInvalid': 'That doesn’t look like an email address.',
   'setup.confirmPassword': 'Password again',
-  'setup.showPassword': 'Show password',
   'setup.passwordMismatch': 'The two passwords don’t match.',
   'setup.passwordMatch': 'The passwords match.',
   'setup.brigadeTitle': 'Stations and staff',
@@ -1269,6 +1265,12 @@ export const en = {
     'Open the checklist, tick what the kitchen needs today and add it to the prep list in one go.',
   'tour.checklistBodyChef':
     'Your checklist of what the kitchen makes, by station. Anyone ticks what is needed and adds it to the prep list in one go. Edit it here whenever the menu changes.',
+  'password.show': 'Show password',
+  'password.hide': 'Hide password',
+  'editor.cookOnly': 'Only chefs and administrators can write or change recipes and dishes.',
+  'outside.turnDownAll': 'Turn down all waiting',
+  'outside.reallyTurnDownAll_one': 'Turn down {count} waiting request?',
+  'outside.reallyTurnDownAll_other': 'Turn down all {count} waiting requests?',
 } as const;
 
 export type MessageKey = keyof typeof en;

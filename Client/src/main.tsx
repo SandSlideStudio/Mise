@@ -280,7 +280,15 @@ const routeTree = rootRoute.addChildren([
   createRoute({ getParentRoute: () => rootRoute, path: '/login', component: Login }),
   createRoute({ getParentRoute: () => rootRoute, path: '/trust', component: Trust }),
   createRoute({ getParentRoute: () => rootRoute, path: '/line', component: Line }),
-  createRoute({ getParentRoute: () => rootRoute, path: '/settings', component: Settings }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/settings',
+    component: Settings,
+    // The open tab lives in the address, so a reload and Back keep it. Settings checks the name.
+    validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+      tab: typeof search.tab === 'string' ? search.tab : undefined,
+    }),
+  }),
 ]);
 
 // No view transitions: where the browser can't run one (a dimmed or covered

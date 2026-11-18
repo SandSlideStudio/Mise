@@ -1,5 +1,5 @@
 import { AboutLine } from '../components/AboutLine.js';
-import { useState } from 'react';
+import { useNavigate, useSearch } from '@tanstack/react-router';
 import { AppShell, PageHeader } from '../components/AppShell.js';
 import { useCurrentUser } from '../api/session.js';
 import { useT, type MessageKey } from '../i18n/index.js';
@@ -28,18 +28,21 @@ const TABS: { id: TabId; label: MessageKey; adminOnly?: boolean }[] = [
   { id: 'backups', label: 'settings.tabBackups', adminOnly: true },
 ];
 
-/** A link such as the backup warning's can open a tab directly: /settings?tab=backups. */
-function tabFromAddress(): TabId {
-  const asked = new URLSearchParams(window.location.search).get('tab');
-  return TABS.some((entry) => entry.id === asked) ? (asked as TabId) : 'staff';
-}
-
 /** Everything an administrator sets up once and then forgets about. */
 export function Settings() {
   const { t } = useT();
   const { data: user } = useCurrentUser();
   const tabsRef = useScrollFade<HTMLDivElement>();
-  const [tab, setTab] = useState<TabId>(tabFromAddress);
+  const navigate = useNavigate();
+  // The tab is in the address (/settings?tab=backups), so a link can open one
+  // directly, a reload stays on it and Back steps between the tabs seen.
+  const asked = (useSearch({ strict: false }) as { tab?: string }).tab;
+  const tab: TabId = TABS.some(
+    (entry) => entry.id === asked && (!entry.adminOnly || user?.role === 'admin'),
+  )
+    ? (asked as TabId)
+    : 'staff';
+  const setTab = (next: TabId) => void navigate({ to: '/settings', search: { tab: next } });
 
   if (!user) return null;
 

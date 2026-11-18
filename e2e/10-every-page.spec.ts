@@ -596,7 +596,10 @@ for (const { label, viewport } of WIDTHS) {
       const names = (await tabs.allTextContents()).map((text) => text.trim());
       expect(names, 'the administrator sees all seven tabs').toHaveLength(7);
       const seen = new Set<string>();
-      for (const name of names) {
+      // The tabs in the order Settings lists them, which is the name each puts in the address.
+      const ids = ['staff', 'stations', 'devices', 'kitchen', 'dishCards', 'connection', 'backups'];
+      const tabOf = (p: Page) => new URL(p.url()).searchParams.get('tab');
+      for (const [position, name] of names.entries()) {
         await tabs.getByText(name, { exact: true }).click();
         await expect(tabs.getByText(name, { exact: true })).toHaveAttribute(
           'aria-selected',
@@ -612,9 +615,26 @@ for (const { label, viewport } of WIDTHS) {
         const body = (await page.getByRole('main').innerText()).replace(/\s+/g, ' ');
         expect(body.length, `${name}: has content`).toBeGreaterThan(80);
         seen.add(body);
+        // The open tab is in the address, which stays on /settings.
         expect(pathOf(page)).toBe('/settings');
+        await expect
+          .poll(() => tabOf(page), `${name}: the tab is in the address`)
+          .toBe(ids[position]);
       }
       expect(seen.size, 'every tab shows different content').toBe(names.length);
+
+      // A reload stays on the tab, and Back steps from tab to tab.
+      await page.reload();
+      await expect(tabs.getByText(names[6]!, { exact: true })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      await page.goBack();
+      await expect(tabs.getByText(names[5]!, { exact: true })).toHaveAttribute(
+        'aria-selected',
+        'true',
+      );
+      expect(tabOf(page)).toBe('connection');
 
       // A link such as the backup warning's opens a tab directly.
       for (const [id, name] of [
@@ -769,7 +789,8 @@ for (const { label, viewport } of WIDTHS) {
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
       await expect(page.getByText('Loading…')).toHaveCount(0);
 
-      // The editors open for anyone, but saving a recipe says no, in words, and stays put.
+      // The editors are not for a cook: typing the address shows the same calm
+      // refusal as Settings, with no editor and no Save to press.
       for (const path of [
         '/recipes/new',
         '/dishes/new',
@@ -777,17 +798,17 @@ for (const { label, viewport } of WIDTHS) {
         `/dishes/${s.dishId}/edit`,
       ]) {
         await page.goto(path);
-        const name = page.getByLabel('Recipe name', { exact: true });
-        await expect(name, `${path}: the editor`).toBeVisible();
-        if (!path.endsWith('/new')) {
-          await page.getByRole('button', { name: 'Save', exact: true }).click();
-          await expect(
-            page.getByText('Your role doesn’t allow that.'),
-            `${path}: the refusal`,
-          ).toBeVisible();
-        }
+        await expect(
+          page.getByText('Only chefs and administrators can write or change recipes and dishes.'),
+          `${path}: the refusal`,
+        ).toBeVisible();
+        await expect(
+          page.getByLabel('Recipe name', { exact: true }),
+          `${path}: no editor`,
+        ).toHaveCount(0);
+        await expect(page.getByRole('button', { name: 'Save', exact: true })).toHaveCount(0);
         await page.waitForTimeout(SETTLE_MS);
-        expect(pathOf(page), `${path}: stays put after a refused save`).toBe(path);
+        expect(pathOf(page), `${path}: stays put`).toBe(path);
         await nav(page).getByRole('link', { name: 'Recipes', exact: true }).click();
         await expectStaysAt(page, '/recipes', `${path} then Recipes`);
       }

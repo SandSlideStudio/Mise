@@ -133,6 +133,16 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
+  // One tap clears a flood of requests; only the waiting ones, never an approval.
+  r.post(
+    '/devices/turn-down-waiting',
+    {
+      onRequest: [app.requireRole(...MANAGERS), app.requirePassword],
+      schema: { response: { 200: z.object({ removed: z.number().int() }), 403: errorSchema } },
+    },
+    async () => ({ removed: await app.access.removeWaiting() }),
+  );
+
   r.delete(
     '/devices/:id',
     {
