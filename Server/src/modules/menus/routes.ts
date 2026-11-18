@@ -12,7 +12,7 @@ import {
   updateMenuSchema,
 } from '@mise/contracts';
 import { ApiError } from '../../lib/errors.js';
-import { ensureUnchanged } from '../../lib/conflict.js';
+import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService } from '../dishcards/service.js';
 import { createMenusService, type MenuFailure } from './service.js';
@@ -29,6 +29,8 @@ function failureToError(failure: MenuFailure): ApiError {
   switch (failure.kind) {
     case 'not_found':
       return ApiError.notFound('That menu');
+    case 'changed':
+      return new ApiError(409, 'changed_meanwhile', 'Someone else changed this since you started.');
     case 'duplicate_name':
       return new ApiError(409, 'menu_name_taken', 'There is already a menu with that name.');
     case 'not_dishes':
@@ -123,7 +125,14 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
       const before = await svc.getMenu(request.params.id);
       if (!before) throw ApiError.notFound('That menu');
       await ensureUnchanged(request, new Date(before.updatedAt), () => before);
-      const result = await svc.updateMenu(request.params.id, request.body);
+      // The check above is the quick answer; this one is the one that counts,
+      // made inside the save with the menu locked.
+      const result = await svc.updateMenu(request.params.id, request.body, (updatedAt) =>
+        matchesBase(request, updatedAt),
+      );
+      if (!result.ok && result.error.kind === 'changed') {
+        await changedMeanwhile(() => svc.getMenu(request.params.id));
+      }
       if (!result.ok) throw failureToError(result.error);
       return result.menu;
     },

@@ -53,6 +53,7 @@ export type UpdateRecipeResult =
   | { outcome: 'updated'; recipe: StoredRecipe }
   | { outcome: 'cycle'; through: string[] }
   | { outcome: 'units'; problem: UnitProblem }
+  | { outcome: 'changed' }
   | { outcome: 'not_found' };
 
 function quantityColumns(quantity: { value: number; unit: string }) {
@@ -303,7 +304,16 @@ export function createRecipesService(db: Database) {
     });
   }
 
-  async function updateRecipe(id: string, input: UpdateRecipe): Promise<UpdateRecipeResult> {
+  /**
+   * unchanged says whether the edit started from the recipe as it is now; it
+   * is asked under the row's lock, in the save itself, so two edits from the
+   * same version can't both go through.
+   */
+  async function updateRecipe(
+    id: string,
+    input: UpdateRecipe,
+    unchanged: (updatedAt: Date) => boolean = () => true,
+  ): Promise<UpdateRecipeResult> {
     const existing = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1);
     if (existing.length === 0) return { outcome: 'not_found' };
 
@@ -311,6 +321,13 @@ export function createRecipesService(db: Database) {
       // Checked inside the save, one save at a time: two edits at once can't
       // slip a loop or a broken unit past each other.
       await lockGraph(tx);
+      const [locked] = await tx
+        .select({ updatedAt: recipes.updatedAt })
+        .from(recipes)
+        .where(eq(recipes.id, id))
+        .for('update');
+      if (!locked) return { outcome: 'not_found' as const };
+      if (!unchanged(locked.updatedAt)) return { outcome: 'changed' as const };
       if (input.components) {
         const cycle = await findCycleIn(tx, id, input.components);
         if (cycle) return { outcome: 'cycle' as const, through: cycle };

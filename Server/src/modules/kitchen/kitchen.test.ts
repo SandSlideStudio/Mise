@@ -334,6 +334,66 @@ describe('editing staff', () => {
   });
 });
 
+describe('two administrators stepping down at the same moment', () => {
+  /** A second administrator, signed in. */
+  async function secondAdmin() {
+    const email = 'sous@example.com';
+    const password = 'another-long-password';
+    const created = await addStaff(ctx.app, admin, {
+      displayName: 'Sous',
+      email,
+      password,
+      role: 'admin',
+    });
+    const login = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email, password },
+    });
+    return { id: created.id, cookie: cookieFrom(login, 'mise_session')! };
+  }
+
+  async function myId() {
+    const list = await ctx.app.inject({ method: 'GET', url: '/api/users', cookies: as(admin) });
+    return list.json().find((u: { email: string }) => u.email === ADMIN.email).id as string;
+  }
+
+  // The test database has one connection, so the two requests are interleaved
+  // rather than truly parallel; the lock inside the write is what makes any
+  // order safe on a real server.
+  it('removes only one of two administrators removing each other', async () => {
+    const other = await secondAdmin();
+    const mine = await myId();
+    const [a, b] = await Promise.all([
+      ctx.app.inject({ method: 'DELETE', url: `/api/users/${other.id}`, cookies: as(admin) }),
+      ctx.app.inject({ method: 'DELETE', url: `/api/users/${mine}`, cookies: as(other.cookie) }),
+    ]);
+    expect([a.statusCode, b.statusCode].sort()).toEqual([204, 409]);
+    const loser = a.statusCode === 409 ? a : b;
+    expect(loser.json().error.message).toContain('only administrator');
+  });
+
+  it('demotes only one of two administrators demoting each other', async () => {
+    const other = await secondAdmin();
+    const mine = await myId();
+    const [a, b] = await Promise.all([
+      ctx.app.inject({
+        method: 'PATCH',
+        url: `/api/users/${other.id}`,
+        payload: { role: 'cook' },
+        cookies: as(admin),
+      }),
+      ctx.app.inject({
+        method: 'PATCH',
+        url: `/api/users/${mine}`,
+        payload: { role: 'cook' },
+        cookies: as(other.cookie),
+      }),
+    ]);
+    expect([a.statusCode, b.statusCode].sort()).toEqual([200, 409]);
+  });
+});
+
 /**
  * A self-hosted server has no support desk. If the last administrator locks
  * themselves out, nobody can let them back in without a database client.

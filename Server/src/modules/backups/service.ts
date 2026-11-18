@@ -2,8 +2,10 @@ import { createHash, randomUUID } from 'node:crypto';
 import {
   mkdir,
   readdir,
+  copyFile,
   readFile,
   rename,
+  rm,
   stat,
   statfs,
   unlink,
@@ -30,11 +32,53 @@ import {
 } from '../../db/schema.js';
 import { VERSION } from '../../lib/version.js';
 import { packEntries, unpackEntries, type Entry } from './archive.js';
-import { decryptToFile, formatRecoveryKey, generateRecoveryKey, writeEncrypted } from './crypto.js';
+import {
+  decryptChunks,
+  formatRecoveryKey,
+  generateRecoveryKey,
+  verifySeal,
+  writeEncrypted,
+} from './crypto.js';
 import { exportTables, restoreTables } from './data.js';
 import { BackupFailure, failureCode } from './failure.js';
 import type { DeviceCode, Onedrive } from './onedrive.js';
 import * as webdav from './webdav.js';
+
+/** Photos of a restore wait in a folder of this name, beside the upload folder. */
+const stagingPrefix = (uploadDir: string) => `.${path.basename(uploadDir)}-restore-`;
+
+const remove = (target: string) => rm(target, { recursive: true, force: true }).catch(() => {});
+
+/**
+ * Put a staged photo in place. A rename is atomic on one filesystem; when the
+ * upload folder is a separate mount the file is copied beside its final name
+ * and renamed from there, so a half-copied photo never has its real name.
+ * An existing file of that name is left alone (names are unique); returns
+ * whether this call put the file there.
+ */
+async function moveIn(from: string, to: string): Promise<boolean> {
+  if (
+    await stat(to).then(
+      () => true,
+      () => false,
+    )
+  )
+    return false;
+  try {
+    await rename(from, to);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== 'EXDEV') throw error;
+    const partial = `${to}.partial-${randomUUID()}`;
+    try {
+      await copyFile(from, partial);
+      await rename(partial, to);
+    } catch (copyError) {
+      await unlink(partial).catch(() => {});
+      throw copyError;
+    }
+  }
+  return true;
+}
 
 /** Below this much free room, Settings → Backups warns. */
 const LOW_DISK_BYTES = 500 * 1024 * 1024;
@@ -542,19 +586,31 @@ export function createBackupService({
   }
 
   /**
-   * Put a backup back onto a server that hasn't been set up. The file is
-   * decrypted and checked in full before anything is written.
+   * Put a backup back onto a server that hasn't been set up.
+   *
+   * The seal is checked first, by reading the whole file and keeping nothing;
+   * only then is it read again, in memory, entry by entry. No plain copy of
+   * the backup is ever written, so there is nothing to find on the disk after
+   * a crash. Photos go into a staging folder next to the upload folder, and
+   * move into place as the last step before the database commits: if
+   * anything fails they are taken out again and the database rolls back, so
+   * the kitchen stays as it was. A crash can at worst leave photos nothing
+   * points at (they have unique names, and a second try replaces nothing).
    */
   async function restore(upload: string, typedKey: string): Promise<RestoreResult> {
     const key = formatRecoveryKey(typedKey);
-    await mkdir(backupDir, { recursive: true });
-    const plain = path.join(backupDir, `.restore-${randomUUID()}`);
-    try {
-      await decryptToFile(upload, plain, key);
+    await verifySeal(upload, key);
 
+    const staging = path.join(
+      path.dirname(uploadDir),
+      `${stagingPrefix(uploadDir)}${randomUUID()}`,
+    );
+    const placed: string[] = [];
+    try {
       let manifest: Manifest | null = null;
       const tables = new Map<string, string>();
-      for await (const entry of unpackEntries(plain)) {
+      const staged: string[] = [];
+      for await (const entry of unpackEntries(decryptChunks(upload, key))) {
         if (entry.name === 'manifest.json') {
           manifest = JSON.parse(entry.data.toString('utf8')) as Manifest;
         } else if (entry.name.startsWith('table/') && entry.name.endsWith('.json')) {
@@ -562,11 +618,18 @@ export function createBackupService({
             entry.name.slice('table/'.length, -'.json'.length),
             entry.data.toString('utf8'),
           );
+        } else if (entry.name.startsWith('photo/')) {
+          const name = path.basename(entry.name);
+          if (!/^[\w-]+\.[a-z0-9]+$/i.test(name)) continue;
+          if (staged.length === 0) await mkdir(staging, { recursive: true, mode: 0o700 });
+          await writeFile(path.join(staging, name), entry.data, { mode: 0o600 });
+          staged.push(name);
         }
       }
       if (!manifest || manifest.app !== 'mise') throw new BackupFailure('not_a_backup');
       if (manifest.format > FORMAT) throw new BackupFailure('too_new', manifest.version);
 
+      await mkdir(uploadDir, { recursive: true });
       const counts = await db.transaction(async (tx) => {
         await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-setup'))`);
         const [existing] = await tx.select({ count: sql<number>`count(*)::int` }).from(users);
@@ -574,32 +637,51 @@ export function createBackupService({
         const restored = await restoreTables(tx, tables);
         // A lockout from before the backup shouldn't follow anyone here.
         await tx.update(users).set({ lockedUntil: null });
+        // The key that opened this backup keeps opening the next ones.
+        await settings(tx);
+        await record({ recoveryKey: key, keyConfirmedAt: new Date(), lastFingerprint: null }, tx);
+        // Last, so everything that can fail has failed: a rename within one
+        // filesystem is atomic, and the commit follows straight after.
+        for (const name of staged) {
+          if (await moveIn(path.join(staging, name), path.join(uploadDir, name))) placed.push(name);
+        }
         return restored;
       });
-
-      // Photos second, streamed from the file, so they never all sit in memory.
-      await mkdir(uploadDir, { recursive: true });
-      let photos = 0;
-      for await (const entry of unpackEntries(plain)) {
-        if (!entry.name.startsWith('photo/')) continue;
-        const name = path.basename(entry.name);
-        if (!/^[\w-]+\.[a-z0-9]+$/i.test(name)) continue;
-        await writeFile(path.join(uploadDir, name), entry.data);
-        photos += 1;
-      }
-
-      // The key that opened this backup keeps opening the next ones.
-      await settings();
-      await record({ recoveryKey: key, keyConfirmedAt: new Date(), lastFingerprint: null });
 
       return {
         kitchenName: manifest.kitchenName,
         staff: counts.get('app_user') ?? 0,
         recipes: counts.get('recipe') ?? 0,
-        photos,
+        photos: staged.length,
       };
+    } catch (error) {
+      // Not restored after all: take back the photos this attempt put in.
+      for (const name of placed) await unlink(path.join(uploadDir, name)).catch(() => {});
+      throw error;
     } finally {
-      await unlink(plain).catch(() => {});
+      await remove(staging);
+    }
+  }
+
+  /**
+   * Whatever a crash left behind: half-finished restores and uploads in the
+   * backup folder, and photo staging folders. Run once, when the server starts,
+   * before anything can be using them.
+   */
+  async function cleanUp(): Promise<void> {
+    try {
+      await mkdir(backupDir, { recursive: true });
+      for (const name of await readdir(backupDir)) {
+        if (name.startsWith('.restore-') || name.startsWith('.upload-')) {
+          await remove(path.join(backupDir, name));
+        }
+      }
+      const prefix = stagingPrefix(uploadDir);
+      for (const name of await readdir(path.dirname(uploadDir))) {
+        if (name.startsWith(prefix)) await remove(path.join(path.dirname(uploadDir), name));
+      }
+    } catch (error) {
+      log.warn({ err: error }, 'could not clear leftovers of an interrupted restore');
     }
   }
 
@@ -616,6 +698,7 @@ export function createBackupService({
     filePath,
     testWebdav,
     restore,
+    cleanUp,
   };
 }
 

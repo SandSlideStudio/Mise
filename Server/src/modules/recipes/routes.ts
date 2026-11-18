@@ -26,7 +26,7 @@ import {
   type Quantity,
 } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
-import { ensureUnchanged } from '../../lib/conflict.js';
+import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { recipePhotos } from '../../db/schema.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
@@ -290,7 +290,18 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       await ensureUnchanged(request, before.updatedAt, async () =>
         serialise(before, await loadComponentNames(app.db, before.id)),
       );
-      const result = await svc.updateRecipe(request.params.id, request.body);
+      // The check above is the quick answer; this one is the one that counts,
+      // made inside the save with the recipe locked.
+      const result = await svc.updateRecipe(request.params.id, request.body, (updatedAt) =>
+        matchesBase(request, updatedAt),
+      );
+      if (result.outcome === 'changed') {
+        await changedMeanwhile(async () => {
+          const now = await svc.getRecipe(request.params.id);
+          if (!now) throw ApiError.notFound('That recipe');
+          return serialise(now, await loadComponentNames(app.db, now.id));
+        });
+      }
       if (result.outcome === 'not_found') throw ApiError.notFound('That recipe');
       if (result.outcome === 'cycle') throw cycleError(result.through);
       if (result.outcome === 'units') throw unitsError(result.problem);
