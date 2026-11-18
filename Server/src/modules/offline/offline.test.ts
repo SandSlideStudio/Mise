@@ -221,6 +221,18 @@ describe('the bundle for offline use', () => {
     await bundleFor(admin);
     expect(bookLoads.count).toBe(1);
   });
+
+  it('is built once for a chef and a cook taking turns', async () => {
+    await kitchenWith(3);
+    cook = await signInCook();
+    bookLoads.count = 0;
+    const versions = [];
+    for (const who of [admin, cook, admin, cook]) versions.push((await bundleFor(who)).version);
+    expect(bookLoads.count).toBe(1);
+    // Each still says whose it is.
+    expect(versions[0]).not.toBe(versions[1]);
+    expect(versions[0]).toBe(versions[2]);
+  });
 });
 
 describe('the data version', () => {
@@ -250,6 +262,20 @@ describe('the data version', () => {
     const before = await version();
     await send('PUT', '/api/running/note', { text: 'Fish at ten' });
     expect(await version()).toBe(before);
+  });
+
+  it('ignores adding from the checklist, and moves when the checklist is saved', async () => {
+    await kitchenWith(1);
+    await send('PATCH', '/api/kitchen', { prepChecklist: true });
+    const saved = await send('PUT', '/api/checklist', {
+      items: [{ stationId: null, name: 'Jus' }],
+    });
+    const before = await version();
+    const [item] = (saved as { items: { id: string }[] }).items;
+    await send('POST', '/api/checklist/add', { ids: [item!.id] });
+    expect(await version()).toBe(before);
+    await send('PUT', '/api/checklist', { items: [] });
+    expect(await version()).not.toBe(before);
   });
 
   it('differs between roles', async () => {

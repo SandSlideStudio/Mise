@@ -47,7 +47,9 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
    * each, so tablets asking while it is being built wait for it, and a
    * changed version replaces it rather than adding to it.
    */
-  const built = new Map<string, { version: string; result: Promise<Built> }>();
+  const built = new Map<string, { version: string; result: Promise<OfflineBundle> }>();
+  /** The same, written out with each role's version on it, plain and zipped. */
+  const encoded = new Map<string, Built & { version: string }>();
 
   async function build(version: string, withCards: boolean): Promise<OfflineBundle> {
     const [book, all, names, usedBy, stations, list, menuList, settings] = await Promise.all([
@@ -132,26 +134,35 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
 
   r.get('/offline/bundle', { onRequest: [app.requireUser] }, async (request, reply) => {
     const user = request.user!;
+    // The version first, then everything else: a write in between (cards
+    // made chefs-only, say) then shows as a newer version next time, and the
+    // tablet loads again rather than keep what it may no longer have.
+    const data = app.live.dataVersion();
+    const version = `${data}-${user.role}`;
     const settings = await dishCards.settings();
     const withCards = settings.access !== 'managers' || MANAGERS.includes(user.role);
 
-    // Read before building: a write during the build then shows as a newer
-    // version next time, and the tablet loads again rather than miss it.
-    const version = `${app.live.dataVersion()}-${user.role}`;
+    // One build per version and kind of reader, whatever the roles asking:
+    // only the version stamped on it differs between them.
     const kind = withCards ? 'cards' : 'plain';
     let current = built.get(kind);
-    if (!current || current.version !== version) {
-      const result = build(version, withCards).then((bundle) => ({
-        raw: Buffer.from(JSON.stringify(bundle)),
-      }));
+    if (!current || current.version !== data) {
+      const result = build(data, withCards);
       // A failed build must not be remembered.
       result.catch(() => {
         if (built.get(kind)?.result === result) built.delete(kind);
       });
-      current = { version, result };
+      current = { version: data, result };
       built.set(kind, current);
+      for (const key of encoded.keys()) if (key.startsWith(`${kind}|`)) encoded.delete(key);
     }
-    const body = await current.result;
+    const bundle = await current.result;
+    const key = `${kind}|${user.role}`;
+    let body = encoded.get(key);
+    if (!body || body.version !== version) {
+      body = { version, raw: Buffer.from(JSON.stringify({ ...bundle, version })) };
+      encoded.set(key, body);
+    }
 
     reply
       .header('content-type', 'application/json; charset=utf-8')

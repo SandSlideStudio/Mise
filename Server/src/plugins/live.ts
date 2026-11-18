@@ -76,8 +76,18 @@ const BUNDLE_ROUTES = [
   '/api/setup',
 ];
 
-function movesBundle(route: string | undefined): boolean {
-  return !!route && BUNDLE_ROUTES.some((p) => route === p || route.startsWith(`${p}/`));
+/** Under these, only the listed writes change what is loaded ahead. */
+const BUNDLE_ONLY: Record<string, string[]> = {
+  // Saving the list itself; adding from it only puts lines on the prep list.
+  '/api/checklist': ['PUT /api/checklist'],
+};
+
+function movesBundle(method: string, route: string | undefined): boolean {
+  if (!route) return false;
+  const prefix = BUNDLE_ROUTES.find((p) => route === p || route.startsWith(`${p}/`));
+  if (!prefix) return false;
+  const only = BUNDLE_ONLY[prefix];
+  return !only || only.includes(`${method} ${route}`);
 }
 
 const WRITES = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
@@ -118,7 +128,7 @@ const livePlugin: FastifyPluginAsync = async (app) => {
   app.addHook('onResponse', async (request, reply) => {
     if (!WRITES.has(request.method) || reply.statusCode >= 400) return;
     const route = request.routeOptions.url;
-    if (movesBundle(route)) changes += 1;
+    if (movesBundle(request.method, route)) changes += 1;
     const topic = topicFor(route);
     if (topic) app.live.publish(topic);
   });
