@@ -10,7 +10,7 @@ import type {
   UpdateStation,
   UpdateUser,
 } from '@mise/contracts';
-import type { Database } from '../../db/client.js';
+import type { Database, Executor, Transaction } from '../../db/client.js';
 import { kitchens, sessions, stations, users, writeReceipts } from '../../db/schema.js';
 import { hashSecret, verifySecret } from '../../lib/crypto.js';
 
@@ -119,12 +119,24 @@ export function createKitchenService(db: Database) {
     return user ?? null;
   }
 
-  async function countOtherActiveAdmins(exceptUserId: string): Promise<number> {
-    const [row] = await db
+  async function countOtherActiveAdmins(
+    exceptUserId: string,
+    exec: Executor = db,
+  ): Promise<number> {
+    const [row] = await exec
       .select({ count: sql<number>`count(*)::int` })
       .from(users)
       .where(and(eq(users.role, 'admin'), eq(users.active, true), ne(users.id, exceptUserId)));
     return row?.count ?? 0;
+  }
+
+  /**
+   * One change to the set of administrators at a time. Taken inside the
+   * transaction that writes the change, before counting who else is left, so
+   * two people stepping down at once can't both find the other still there.
+   */
+  async function lockAdmins(tx: Transaction): Promise<void> {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-last-admin'))`);
   }
 
   /** Sign-in ignores capitals, so "Chef@" and "chef@" are the same address. */
@@ -297,43 +309,63 @@ export function createKitchenService(db: Database) {
       current.pinSetAt !== null &&
       current.pinSetAt >= kitchen.pinOnlySince;
 
-    const [updated] = await db
-      .update(users)
-      .set({
-        ...(input.displayName !== undefined ? { displayName: input.displayName } : {}),
-        ...(input.email !== undefined ? { email: input.email } : {}),
-        ...(input.role !== undefined ? { role: input.role } : {}),
-        ...(input.defaultStationId !== undefined
-          ? { defaultStationId: input.defaultStationId }
-          : {}),
-        ...(input.active !== undefined ? { active: input.active } : {}),
-        passwordHash: nextPasswordHash,
-        pinHash: nextPinHash,
-        ...(input.pin !== undefined
-          ? { pinLength: input.pin?.length ?? null, pinSetAt: input.pin ? new Date() : null }
-          : {}),
-        ...(pinNowOld ? { pinSetAt: null } : {}),
-        // Any credential change also clears a standing lockout, which is what
-        // an administrator resetting a forgotten PIN actually wants.
-        ...(input.password || input.pin !== undefined ? { lockedUntil: null } : {}),
-        updatedAt: new Date(),
-      })
-      .where(eq(users.id, id))
-      .returning(userColumns);
+    const written = await db.transaction(async (tx) => {
+      // The check further up is the quick answer; this one counts. With the
+      // lock held the person is read again, since they may have changed while
+      // the password was being hashed.
+      if (current.role === 'admin') {
+        await lockAdmins(tx);
+        const [fresh] = await tx.select().from(users).where(eq(users.id, id)).limit(1);
+        if (!fresh) return null;
+        const stepsDown =
+          fresh.role === 'admin' &&
+          ((input.role !== undefined && input.role !== 'admin') || input.active === false);
+        if (stepsDown && (await countOtherActiveAdmins(id, tx)) === 0) {
+          return { lastAdmin: true as const };
+        }
+      }
 
-    if (!updated) return { ok: false, error: { kind: 'not_found' } };
+      const [row] = await tx
+        .update(users)
+        .set({
+          ...(input.displayName !== undefined ? { displayName: input.displayName } : {}),
+          ...(input.email !== undefined ? { email: input.email } : {}),
+          ...(input.role !== undefined ? { role: input.role } : {}),
+          ...(input.defaultStationId !== undefined
+            ? { defaultStationId: input.defaultStationId }
+            : {}),
+          ...(input.active !== undefined ? { active: input.active } : {}),
+          passwordHash: nextPasswordHash,
+          pinHash: nextPinHash,
+          ...(input.pin !== undefined
+            ? { pinLength: input.pin?.length ?? null, pinSetAt: input.pin ? new Date() : null }
+            : {}),
+          ...(pinNowOld ? { pinSetAt: null } : {}),
+          // Any credential change also clears a standing lockout, which is what
+          // an administrator resetting a forgotten PIN actually wants.
+          ...(input.password || input.pin !== undefined ? { lockedUntil: null } : {}),
+          updatedAt: new Date(),
+        })
+        .where(eq(users.id, id))
+        .returning(userColumns);
+      if (!row) return null;
 
-    // A new role, a new secret or a deactivation must take effect now rather
-    // than whenever a session happens to expire.
-    const invalidates =
-      input.role !== undefined ||
-      input.active === false ||
-      input.password !== undefined ||
-      input.pin !== undefined;
-    if (invalidates) {
-      await db.delete(sessions).where(eq(sessions.userId, id));
-    }
+      // A new role, a new secret or a deactivation must take effect now rather
+      // than whenever a session happens to expire.
+      const invalidates =
+        input.role !== undefined ||
+        input.active === false ||
+        input.password !== undefined ||
+        input.pin !== undefined;
+      if (invalidates) {
+        await tx.delete(sessions).where(eq(sessions.userId, id));
+      }
+      return { user: row };
+    });
 
+    if (!written) return { ok: false, error: { kind: 'not_found' } };
+    if ('lastAdmin' in written) return { ok: false, error: { kind: 'last_admin' } };
+    const updated = written.user;
     return { ok: true, user: updated };
   }
 
@@ -361,7 +393,16 @@ export function createKitchenService(db: Database) {
     }
     if (id === actor.id) return { ok: false, error: { kind: 'self_lockout' } };
 
-    await db.transaction(async (tx) => {
+    const removed = await db.transaction(async (tx) => {
+      // The check above is the quick answer; this one counts, with the lock held.
+      if (current.role === 'admin') {
+        await lockAdmins(tx);
+        const [fresh] = await tx.select().from(users).where(eq(users.id, id)).limit(1);
+        if (!fresh) return 'not_found' as const;
+        if (fresh.role === 'admin' && (await countOtherActiveAdmins(id, tx)) === 0) {
+          return 'last_admin' as const;
+        }
+      }
       // The note keeps the name as written, so a namesake's note loses its
       // signature too; better that than keeping a name that should be gone.
       await tx
@@ -370,7 +411,10 @@ export function createKitchenService(db: Database) {
         .where(eq(kitchens.handoverNoteBy, current.displayName));
       await tx.delete(writeReceipts).where(like(writeReceipts.key, `${id}:%`));
       await tx.delete(users).where(eq(users.id, id));
+      return 'removed' as const;
     });
+    if (removed === 'not_found') return { ok: false, error: { kind: 'not_found' } };
+    if (removed === 'last_admin') return { ok: false, error: { kind: 'last_admin' } };
     return { ok: true };
   }
 

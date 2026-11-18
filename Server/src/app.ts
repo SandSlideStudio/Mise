@@ -163,6 +163,7 @@ export async function buildApp(
     }),
   );
   app.addHook('onClose', async () => app.backups.close());
+  app.addHook('onReady', async () => app.backups.cleanUp());
   app.decorate(
     'updates',
     createUpdateChecker({

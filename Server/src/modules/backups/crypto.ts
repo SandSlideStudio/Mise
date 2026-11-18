@@ -114,14 +114,12 @@ export async function writeEncrypted(
 }
 
 /**
- * Decrypt a backup into a plain file. Nothing in the output may be trusted
- * until this returns: the tag is only checked at the very end.
+ * Decrypt a backup as a stream of plain chunks, without writing any of it
+ * down. AES-GCM only proves the file is intact at the very end, so what comes
+ * out here must not be acted on until the stream has finished without
+ * throwing: use verifySeal first, then read it again to use it.
  */
-export async function decryptToFile(
-  source: string,
-  destination: string,
-  recoveryKey: string,
-): Promise<void> {
+export async function* decryptChunks(source: string, recoveryKey: string): AsyncGenerator<Buffer> {
   const keyBytes = parseRecoveryKey(recoveryKey);
   const input = await open(source, 'r');
   try {
@@ -140,30 +138,35 @@ export async function decryptToFile(
     const decipher = createDecipheriv('aes-256-gcm', deriveKey(keyBytes, salt), iv);
     decipher.setAuthTag(tag);
 
-    const output = await open(destination, 'w');
+    const chunk = Buffer.alloc(1024 * 1024);
+    const end = size - TAG_BYTES;
+    for (let position = HEADER_BYTES; position < end;) {
+      const { bytesRead } = await input.read(
+        chunk,
+        0,
+        Math.min(chunk.length, end - position),
+        position,
+      );
+      if (bytesRead === 0) break;
+      yield decipher.update(chunk.subarray(0, bytesRead));
+      position += bytesRead;
+    }
     try {
-      const chunk = Buffer.alloc(1024 * 1024);
-      const end = size - TAG_BYTES;
-      for (let position = HEADER_BYTES; position < end;) {
-        const { bytesRead } = await input.read(
-          chunk,
-          0,
-          Math.min(chunk.length, end - position),
-          position,
-        );
-        if (bytesRead === 0) break;
-        await output.write(decipher.update(chunk.subarray(0, bytesRead)));
-        position += bytesRead;
-      }
-      try {
-        await output.write(decipher.final());
-      } catch {
-        throw new BackupFailure('wrong_key');
-      }
-    } finally {
-      await output.close();
+      yield decipher.final();
+    } catch {
+      throw new BackupFailure('wrong_key');
     }
   } finally {
     await input.close();
+  }
+}
+
+/**
+ * Check the seal: the right key, and not a byte changed. Reads the whole file
+ * and keeps none of it, so nothing unverified ever reaches the disk.
+ */
+export async function verifySeal(source: string, recoveryKey: string): Promise<void> {
+  for await (const _chunk of decryptChunks(source, recoveryKey)) {
+    // Only the end matters: the tag is checked there.
   }
 }

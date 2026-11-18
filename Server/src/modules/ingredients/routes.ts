@@ -1,4 +1,4 @@
-import { ensureUnchanged } from '../../lib/conflict.js';
+import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { and, asc, eq, ilike, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
@@ -153,13 +153,36 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
         .limit(1);
       if (!before) throw ApiError.notFound('That ingredient');
       await ensureUnchanged(request, before.updatedAt, () => serialise(before));
-      const [row] = await app.db
-        .update(ingredients)
-        .set({ ...request.body, updatedAt: new Date() })
-        .where(eq(ingredients.id, request.params.id))
-        .returning();
-      if (!row) throw ApiError.notFound('That ingredient');
-      return serialise(row);
+      // The check above is the quick answer. This is the one that counts: made
+      // with the row locked, in the same transaction as the write.
+      const saved = await app.db.transaction(async (tx) => {
+        const [locked] = await tx
+          .select({ updatedAt: ingredients.updatedAt })
+          .from(ingredients)
+          .where(eq(ingredients.id, request.params.id))
+          .for('update');
+        if (!locked) return null;
+        if (!matchesBase(request, locked.updatedAt)) return 'changed' as const;
+        const [row] = await tx
+          .update(ingredients)
+          .set({ ...request.body, updatedAt: new Date() })
+          .where(eq(ingredients.id, request.params.id))
+          .returning();
+        return row ?? null;
+      });
+      if (saved === 'changed') {
+        await changedMeanwhile(async () => {
+          const [now] = await app.db
+            .select()
+            .from(ingredients)
+            .where(eq(ingredients.id, request.params.id))
+            .limit(1);
+          if (!now) throw ApiError.notFound('That ingredient');
+          return serialise(now);
+        });
+      }
+      if (!saved || saved === 'changed') throw ApiError.notFound('That ingredient');
+      return serialise(saved);
     },
   );
 

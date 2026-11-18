@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { mkdtemp, readdir, rm } from 'node:fs/promises';
+import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import os from 'node:os';
@@ -22,7 +22,22 @@ import {
 } from '../../test/harness.js';
 import { formatRecoveryKey, generateRecoveryKey } from './crypto.js';
 import { BACKED_UP, NOT_BACKED_UP, restoreTables } from './data.js';
+import type * as DataModule from './data.js';
 import { isDue, problemOf } from './service.js';
+
+/** Lets a test make the restore fail once the tables are back, before it commits. */
+const failure = vi.hoisted(() => ({ afterTables: false }));
+vi.mock('./data.js', async (importActual) => {
+  const actual = await importActual<typeof DataModule>();
+  return {
+    ...actual,
+    restoreTables: async (...args: Parameters<typeof actual.restoreTables>) => {
+      const restored = await actual.restoreTables(...args);
+      if (failure.afterTables) throw new Error('forced failure after the tables');
+      return restored;
+    },
+  };
+});
 
 let client: PGlite;
 let db: Database;
@@ -49,6 +64,7 @@ async function emptyServer() {
   const server = await build(second.db, name);
   return {
     app: server,
+    root: path.join(dir, name),
     uploads: path.join(dir, name, 'uploads'),
     close: async () => {
       await server.close();
@@ -688,5 +704,104 @@ describe('the rules behind it', () => {
     expect(
       problemOf({ lastError: null, lastSuccessAt: null, keyConfirmedAt: now }, fresh, now),
     ).toBeNull();
+  });
+});
+
+describe('restoring safely', () => {
+  /** Everything in a folder, however deep, so a stray file can't hide. */
+  async function everything(folder: string): Promise<string[]> {
+    const found = await readdir(folder, { recursive: true }).catch(() => [] as string[]);
+    return found.sort();
+  }
+
+  it('refuses a backup that was changed, and leaves no plain file behind', async () => {
+    const { cookies } = await stockedKitchen();
+    const { file, key } = await backUp(cookies);
+    const tampered = Buffer.from(file);
+    tampered[Math.floor(tampered.length / 2)]! ^= 0x01;
+
+    const second = await emptyServer();
+    try {
+      const refused = await restore(second.app, tampered, key);
+      expect(refused.statusCode).toBe(400);
+      expect(refused.json().error.code).toBe('backup_wrong_key');
+
+      // Nothing was written but the upload itself, and that is gone too.
+      expect(await everything(second.root)).toEqual(['backups', 'uploads']);
+      const status = await second.app.inject({ method: 'GET', url: '/api/setup/status' });
+      expect(status.json().needsSetup).toBe(true);
+    } finally {
+      await second.close();
+    }
+  });
+
+  it('puts the photos in place, and leaves no staging folder', async () => {
+    const { cookies } = await stockedKitchen();
+    const { file, key } = await backUp(cookies);
+    const original = await readdir(path.join(dir, 'main', 'uploads'));
+
+    const second = await emptyServer();
+    try {
+      const restored = await restore(second.app, file, key);
+      expect(restored.statusCode).toBe(200);
+      expect(restored.json().photos).toBe(1);
+      expect(await readdir(second.uploads)).toEqual(original);
+      expect(await everything(second.root)).not.toContainEqual(expect.stringContaining('restore'));
+    } finally {
+      await second.close();
+    }
+  });
+
+  it('leaves the old photos and an empty database when it fails after the tables', async () => {
+    const { cookies } = await stockedKitchen();
+    const { file, key } = await backUp(cookies);
+
+    const second = await emptyServer();
+    try {
+      await mkdir(second.uploads, { recursive: true });
+      await writeFile(path.join(second.uploads, 'earlier.png'), 'earlier');
+
+      failure.afterTables = true;
+      const refused = await restore(second.app, file, key);
+      expect(refused.statusCode).toBeGreaterThanOrEqual(400);
+      failure.afterTables = false;
+
+      expect(await readdir(second.uploads)).toEqual(['earlier.png']);
+      expect(await everything(second.root)).toEqual(['backups', 'uploads', 'uploads/earlier.png']);
+      const status = await second.app.inject({ method: 'GET', url: '/api/setup/status' });
+      expect(status.json().needsSetup).toBe(true);
+
+      // And a second try, once whatever it was is fixed, goes through.
+      const again = await restore(second.app, file, key);
+      expect(again.statusCode).toBe(200);
+      expect(await readdir(second.uploads)).toHaveLength(2);
+    } finally {
+      failure.afterTables = false;
+      await second.close();
+    }
+  });
+
+  it('clears what an interrupted restore left behind when the server starts', async () => {
+    const name = `crashed-${randomUUID()}`;
+    const root = path.join(dir, name);
+    await mkdir(path.join(root, 'backups'), { recursive: true });
+    await mkdir(path.join(root, '.uploads-restore-abc'), { recursive: true });
+    await mkdir(path.join(root, 'uploads'), { recursive: true });
+    await writeFile(path.join(root, 'backups', '.restore-abc'), 'plain');
+    await writeFile(path.join(root, 'backups', '.upload-abc'), 'sealed');
+    await writeFile(path.join(root, '.uploads-restore-abc', 'photo.png'), 'photo');
+    await writeFile(path.join(root, 'uploads', 'kept.png'), 'kept');
+
+    const second = await createTestDatabase();
+    const server = await build(second.db, name);
+    try {
+      expect(await readdir(root, { recursive: true })).not.toContainEqual(
+        expect.stringContaining('abc'),
+      );
+      expect(await readdir(path.join(root, 'uploads'))).toEqual(['kept.png']);
+    } finally {
+      await server.close();
+      await second.client.close();
+    }
   });
 });

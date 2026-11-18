@@ -14,7 +14,8 @@ import {
 import { eq } from 'drizzle-orm';
 import { isUnitCode } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
-import { ensureUnchanged } from '../../lib/conflict.js';
+import type { Executor } from '../../db/client.js';
+import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { kitchens, recipes } from '../../db/schema.js';
 import { createPrepService } from './service.js';
@@ -102,8 +103,8 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
   // --- the handover note ---------------------------------------------------
 
   /** What the last shift left for this one. Anyone on the brigade can read, write or remove it. */
-  async function readNote() {
-    const [kitchen] = await app.db
+  async function readNote(exec: Executor = app.db) {
+    const [kitchen] = await exec
       .select({
         text: kitchens.handoverNote,
         byName: kitchens.handoverNoteBy,
@@ -124,7 +125,7 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireUser],
       schema: { response: { 200: handoverNoteSchema, 401: errorSchema } },
     },
-    readNote,
+    () => readNote(),
   );
 
   r.put(
@@ -140,16 +141,28 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
       const before = await readNote();
       await ensureUnchanged(request, before.at ? new Date(before.at) : null, () => before);
       const text = request.body.text;
-      await app.db.update(kitchens).set(
-        text
-          ? {
-              handoverNote: text,
-              handoverNoteBy: request.user!.displayName,
-              handoverNoteAt: new Date(),
-            }
-          : { handoverNote: null, handoverNoteBy: null, handoverNoteAt: null },
-      );
-      return readNote();
+      // The check above is the quick answer. This is the one that counts: made
+      // with the kitchen's row locked, in the same transaction as the write.
+      const saved = await app.db.transaction(async (tx) => {
+        const [locked] = await tx
+          .select({ at: kitchens.handoverNoteAt })
+          .from(kitchens)
+          .limit(1)
+          .for('update');
+        if (!matchesBase(request, locked?.at ?? null)) return null;
+        await tx.update(kitchens).set(
+          text
+            ? {
+                handoverNote: text,
+                handoverNoteBy: request.user!.displayName,
+                handoverNoteAt: new Date(),
+              }
+            : { handoverNote: null, handoverNoteBy: null, handoverNoteAt: null },
+        );
+        return readNote(tx);
+      });
+      if (!saved) return changedMeanwhile(readNote);
+      return saved;
     },
   );
 

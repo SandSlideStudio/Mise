@@ -283,3 +283,84 @@ describe('an edit made offline, when someone else changed the same thing', () =>
     expect(fine.statusCode).toBe(200);
   });
 });
+
+/**
+ * The version check and the write belong together: two edits that started
+ * from the same version, sent at the same moment, must not both go through.
+ * (The test database has one connection, so the two requests are interleaved
+ * rather than truly parallel; the row lock is what makes either order safe on
+ * a real server.)
+ */
+describe('two edits from the same version at the same moment', () => {
+  async function bothAtOnce(admin: string, url: string, a: object, b: object, base: string) {
+    const headers = { 'x-mise-base': base };
+    const [first, second] = await Promise.all([
+      send(admin, 'PATCH', url, a, headers),
+      send(admin, 'PATCH', url, b, headers),
+    ]);
+    return [first.statusCode, second.statusCode].sort();
+  }
+
+  it('lets one recipe edit through and refuses the other', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const recipe = (
+      await send(admin, 'POST', '/api/recipes', {
+        name: 'Pear tart',
+        type: 'prep',
+        yield: { value: 1, unit: 'kg' },
+      })
+    ).json() as { id: string; updatedAt: string };
+    expect(
+      await bothAtOnce(
+        admin,
+        `/api/recipes/${recipe.id}`,
+        { name: 'Tart one' },
+        { name: 'Tart two' },
+        recipe.updatedAt,
+      ),
+    ).toEqual([200, 409]);
+  });
+
+  it('lets one menu edit through and refuses the other', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const menu = (await send(admin, 'POST', '/api/menus', { name: 'Spring' })).json() as {
+      id: string;
+      updatedAt: string;
+    };
+    expect(
+      await bothAtOnce(
+        admin,
+        `/api/menus/${menu.id}`,
+        { name: 'Spring lunch' },
+        { name: 'Spring dinner' },
+        menu.updatedAt,
+      ),
+    ).toEqual([200, 409]);
+  });
+
+  it('lets one ingredient edit through and refuses the other', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const ingredient = (
+      await send(admin, 'POST', '/api/ingredients', { name: 'Shallot', baseUnit: 'g' })
+    ).json() as { id: string; updatedAt: string };
+    expect(
+      await bothAtOnce(
+        admin,
+        `/api/ingredients/${ingredient.id}`,
+        { name: 'Banana shallot' },
+        { name: 'Echalion' },
+        ingredient.updatedAt,
+      ),
+    ).toEqual([200, 409]);
+  });
+
+  it('lets one handover note through and refuses the other', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const headers = { 'x-mise-base': 'none' };
+    const [first, second] = await Promise.all([
+      send(admin, 'PUT', '/api/running/note', { text: 'Fish at 10' }, headers),
+      send(admin, 'PUT', '/api/running/note', { text: 'Low on cream' }, headers),
+    ]);
+    expect([first.statusCode, second.statusCode].sort()).toEqual([200, 409]);
+  });
+});

@@ -26,6 +26,7 @@ type StoredMenu = typeof menus.$inferSelect;
 export type MenuFailure =
   | { kind: 'not_found' }
   | { kind: 'duplicate_name' }
+  | { kind: 'changed' }
   | { kind: 'not_dishes'; names: string[] }
   | { kind: 'broken'; names: string[] };
 
@@ -202,9 +203,15 @@ export function createMenusService(db: Database) {
     return { ok: true, menu: await serialise(created) };
   }
 
+  /**
+   * unchanged says whether the edit started from the menu as it is now; it is
+   * asked under the row's lock, in the save itself, so two edits from the same
+   * version can't both go through.
+   */
   async function updateMenu(
     id: string,
     input: UpdateMenu,
+    unchanged: (updatedAt: Date) => boolean = () => true,
   ): Promise<{ ok: true; menu: Menu } | { ok: false; error: MenuFailure }> {
     const existing = await row(id);
     if (!existing) return { ok: false, error: { kind: 'not_found' } };
@@ -217,6 +224,9 @@ export function createMenusService(db: Database) {
     }
 
     const updated = await db.transaction(async (tx) => {
+      const [locked] = await tx.select().from(menus).where(eq(menus.id, id)).for('update');
+      if (!locked) return 'not_found' as const;
+      if (!unchanged(locked.updatedAt)) return 'changed' as const;
       const [changed] = await tx
         .update(menus)
         .set({
@@ -230,6 +240,8 @@ export function createMenusService(db: Database) {
       if (input.dishes) await replaceDishes(tx, id, input.dishes);
       return changed!;
     });
+    if (updated === 'not_found') return { ok: false, error: { kind: 'not_found' } };
+    if (updated === 'changed') return { ok: false, error: { kind: 'changed' } };
     return { ok: true, menu: await serialise(updated) };
   }
 
