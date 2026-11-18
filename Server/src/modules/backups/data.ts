@@ -120,7 +120,8 @@ export async function restoreTables(
     // value the older version behaved as.
     const older = AS_IN_OLDER_BACKUPS[name] ?? {};
     for (const row of rows) {
-      for (const [column, value] of Object.entries(older)) if (!(column in row)) row[column] = value;
+      for (const [column, value] of Object.entries(older))
+        if (!(column in row)) row[column] = value;
     }
     const inBackup = new Set(Object.keys(rows[0]!));
     const shared = columns.map((column) => column.name).filter((column) => inBackup.has(column));
