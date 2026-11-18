@@ -374,12 +374,30 @@ describe('a checklist line linked to a recipe', () => {
     expect((await read()).map((i) => [i.name, i.recipeId])).toEqual([['Fig gel', null]]);
   });
 
-  it('refuses a recipe that does not exist', async () => {
-    const response = await save([
-      { stationId: hot, name: 'Fig gel', recipeId: '33333333-3333-4333-8333-333333333333' },
+  it('tells every screen the list changed when a linked recipe is deleted', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const before = (await save([{ stationId: hot, name: 'Fig gel', recipeId: gel }])).json();
+    const heard: string[] = [];
+    ctx.app.live.subscribe((topic) => heard.push(topic));
+    await call(admin, 'DELETE', `/api/recipes/${gel}`);
+    expect(heard).toContain('prep');
+    expect((await checklist()).updatedAt).not.toBe(before.updatedAt);
+  });
+
+  it('saves a copy that still links a deleted recipe, without the link', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const before = (await save([{ stationId: hot, name: 'Fig gel', recipeId: gel }])).json();
+    await call(admin, 'DELETE', `/api/recipes/${gel}`);
+    // A tablet that was offline sends its edit of the old copy, link and all.
+    const current = await checklist();
+    const saved = await save([...before.items, { stationId: hot, name: 'Jus' }], admin, {
+      'x-mise-base': current.updatedAt,
+    });
+    expect(saved.statusCode).toBe(200);
+    expect((saved.json().items as Linked[]).map((i) => [i.name, i.recipeId])).toEqual([
+      ['Fig gel', null],
+      ['Jus', null],
     ]);
-    expect(response.statusCode).toBeGreaterThanOrEqual(400);
-    expect(response.statusCode).toBeLessThan(500);
   });
 });
 

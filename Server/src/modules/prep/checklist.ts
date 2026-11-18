@@ -12,7 +12,7 @@ import type { Executor } from '../../db/client.js';
 import { ApiError } from '../../lib/errors.js';
 import { ensureUnchanged } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
-import { kitchens, prepChecklistItems, stations } from '../../db/schema.js';
+import { kitchens, prepChecklistItems, recipes, stations } from '../../db/schema.js';
 import { createPrepService } from './service.js';
 
 /**
@@ -112,11 +112,27 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
               ).map((row) => row.id)
             : [],
         );
+        // A recipe deleted since this list was loaded: the database already let
+        // go of the link, so the save does too, instead of failing (and, from a
+        // tablet that was offline, losing the whole edit).
+        const recipeIds = [
+          ...new Set(request.body.items.flatMap((item) => (item.recipeId ? [item.recipeId] : []))),
+        ];
+        const liveRecipes = new Set(
+          recipeIds.length > 0
+            ? (
+                await tx
+                  .select({ id: recipes.id })
+                  .from(recipes)
+                  .where(inArray(recipes.id, recipeIds))
+              ).map((row) => row.id)
+            : [],
+        );
         for (const [index, item] of request.body.items.entries()) {
           const values = {
             stationId: item.stationId,
             name: item.name,
-            recipeId: item.recipeId ?? null,
+            recipeId: item.recipeId && liveRecipes.has(item.recipeId) ? item.recipeId : null,
             sortOrder: index,
           };
           if (item.id && known.has(item.id)) {

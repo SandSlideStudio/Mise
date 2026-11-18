@@ -28,7 +28,7 @@ import {
 import { ApiError } from '../../lib/errors.js';
 import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
-import { recipePhotos } from '../../db/schema.js';
+import { kitchens, prepChecklistItems, recipePhotos } from '../../db/schema.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
 import type { UnitProblem } from './service.js';
 import { createRecipesService } from './service.js';
@@ -355,8 +355,19 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
         .select({ path: recipePhotos.path })
         .from(recipePhotos)
         .where(eq(recipePhotos.recipeId, request.params.id));
+      const onChecklist = await app.db
+        .select({ id: prepChecklistItems.id })
+        .from(prepChecklistItems)
+        .where(eq(prepChecklistItems.recipeId, request.params.id))
+        .limit(1);
       const removed = await svc.deleteRecipe(request.params.id);
       if (!removed) throw ApiError.notFound('That recipe');
+      // Its checklist lines lost their link with it: a new version of the list,
+      // so every tablet fetches it instead of saving the old link back.
+      if (onChecklist.length > 0) {
+        await app.db.update(kitchens).set({ prepChecklistUpdatedAt: new Date() });
+        app.live.publish('prep');
+      }
 
       // The rows went with the recipe; the files would otherwise stay on disk.
       const uploadDir = path.resolve(app.config.UPLOAD_DIR);
