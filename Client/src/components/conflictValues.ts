@@ -4,6 +4,7 @@ import { formatQuantity, humanize, isUnitCode } from '@mise/domain';
 import {
   allergenName,
   courseName,
+  keptName,
   recipeStatusName,
   recipeTypeName,
   temperatureName,
@@ -55,7 +56,9 @@ const FIELD_NAMES: Record<string, MessageKey> = {
   prepMinutes: 'offline.field.prepMinutes',
   cookMinutes: 'offline.field.cookMinutes',
   shelfLifeHours: 'offline.field.keeps',
-  storage: 'recipe.storage',
+  kept: 'editor.kept',
+  // The note beside how it is kept, named as the editor names it.
+  storage: 'editor.storage',
   declaredAllergens: 'offline.field.allergens',
   allergens: 'offline.field.allergens',
   allergenDetails: 'offline.field.allergens',
@@ -139,6 +142,8 @@ export function showValue(
     }
     case 'servingTemperature':
       return temperatureName(t, String(value));
+    case 'kept':
+      return keptName(t, String(value));
     case 'course':
       return courseName(t, String(value));
     case 'allergenDetails': {

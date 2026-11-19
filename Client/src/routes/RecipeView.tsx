@@ -26,6 +26,7 @@ import {
   allergenName,
   errorMessage,
   inSentence,
+  keptWithNote,
   recipeStatusName,
   recipeTypeName,
   useT,
@@ -122,6 +123,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const station = stations.data?.find((s) => s.id === recipe.stationId);
   const scaled = Math.abs(factor - 1) > 0.001;
   const portions = recipe.portions ? round(recipe.portions * factor) : null;
+  const kept = keptWithNote(t, recipe);
   const size: Size = {
     note: scaled ? t('recipe.scaled', { factor: round(factor) }) : t('recipe.asWritten'),
     makes: `${t('recipe.makes', { amount: amount(recipe.yield.value * factor, recipe.yield.unit) })}${
@@ -235,7 +237,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
 
           <Plating photos={recipe.photos} recipeId={recipe.id} canManage={canManage} />
 
-          {recipe.method.length > 0 || recipe.storage ? (
+          {recipe.method.length > 0 || kept ? (
             <section className="border-line bg-surface-raised border-t px-4 py-5 sm:px-8 sm:py-6">
               {recipe.method.length > 0 ? (
                 <>
@@ -255,10 +257,10 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
                   </ol>
                 </>
               ) : null}
-              {recipe.storage ? (
+              {kept ? (
                 <p className="text-ink-soft mt-5 text-[15px]">
                   <span className="eyebrow mr-2">{t('recipe.storage')}</span>
-                  {recipe.storage}
+                  {kept}
                 </p>
               ) : null}
             </section>

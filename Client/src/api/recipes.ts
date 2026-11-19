@@ -198,6 +198,7 @@ const SHOWN_AS_IS = [
   'portions',
   'prepMinutes',
   'shelfLifeHours',
+  'kept',
   'storage',
   'method',
   'tags',

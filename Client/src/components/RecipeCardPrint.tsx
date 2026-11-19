@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import type { Allergen } from '@mise/domain';
 import { formatQuantity, humanize, isUnitCode } from '@mise/domain';
 import type { ExpandedRecipe } from '@mise/contracts';
-import { allergenName, recipeTypeName, useT } from '../i18n/index.js';
+import { allergenName, keptWithNote, recipeTypeName, useT } from '../i18n/index.js';
 import { CardIconMark } from './DishCardView.js';
 
 /**
@@ -62,7 +62,9 @@ export function RecipeCardPrint({
               },
             ]
           : []),
-        ...(recipe.storage ? [{ label: t('recipe.storage'), value: recipe.storage }] : []),
+        ...(keptWithNote(t, recipe)
+          ? [{ label: t('recipe.storage'), value: keptWithNote(t, recipe) }]
+          : []),
       ];
 
   const subtitle = [

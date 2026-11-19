@@ -21,9 +21,11 @@ import {
   ALLERGENS,
   ALL_UNITS,
   COURSES,
+  KEPT,
   ONE_PLATE,
   SERVING_TEMPERATURES,
   type Allergen,
+  type KeptAs,
   type UnitCode,
 } from '@mise/domain';
 import { isQueued, type Queued } from '../api/client.js';
@@ -40,6 +42,7 @@ import {
   allergenName,
   courseName,
   errorMessage,
+  keptName,
   recipeStatusName,
   recipeTypeName,
   temperatureName,
@@ -172,6 +175,8 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [shelfLifeHours, setShelfLifeHours] = useState(
     recipe?.shelfLifeHours ? String(recipe.shelfLifeHours) : '',
   );
+  // Left unchosen for a recipe that never had it: its labels then read the note.
+  const [kept, setKept] = useState<KeptAs | ''>(recipe?.kept ?? '');
   const [storage, setStorage] = useState(recipe?.storage ?? '');
   const [tags, setTags] = useState((recipe?.tags ?? []).join(', '));
   const [mayContain, setMayContain] = useState<Allergen[]>(
@@ -314,6 +319,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       portions: isDish ? dishSize.portions : null,
       prepMinutes: !isDish && prepMinutes ? Number(prepMinutes) : null,
       shelfLifeHours: !isDish && shelfLifeHours ? Number(shelfLifeHours) : null,
+      kept: (!isDish && kept) || null,
       storage: (!isDish && storage) || null,
       method: steps.filter((step) => step.trim()).map((text) => ({ text })),
       tags: splitList(tags),
@@ -681,6 +687,27 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                           onChange={(e) => setShelfLifeHours(e.target.value)}
                         />
                       </RailField>
+
+                      <RailField
+                        label={t('editor.kept')}
+                        htmlFor="kept"
+                        hint={t('editor.keptHint')}
+                        className="col-span-full"
+                      >
+                        <select
+                          id="kept"
+                          className="field min-h-10"
+                          value={kept}
+                          onChange={(e) => setKept(e.target.value as KeptAs | '')}
+                        >
+                          <option value="">{t('editor.notSet')}</option>
+                          {KEPT.map((value) => (
+                            <option key={value} value={value}>
+                              {keptName(t, value)}
+                            </option>
+                          ))}
+                        </select>
+                      </RailField>
                     </>
                   )}
                 </div>
@@ -709,7 +736,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                   </>
                 ) : (
                   <RailField
-                    label={t('recipe.storage')}
+                    label={t('editor.storage')}
                     htmlFor="storage"
                     hint={t('editor.storageHint')}
                   >
