@@ -19,7 +19,15 @@ import {
 } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
 import { ingredientPriceText } from '../components/Cost.js';
+import { DeliveryCheck } from '../components/DeliveryCheck.js';
+import {
+  LabelCheckForm,
+  LabelCheckHistory,
+  LabelCheckLine,
+  type LabelCheckOutcome,
+} from '../components/LabelCheck.js';
 import { LoadError } from '../components/LoadError.js';
+import { PendingLabelChecks } from '../components/PendingLabelChecks.js';
 import { Plate } from '../components/Plate.js';
 import { allergenName, errorMessage, useT, type Translator } from '../i18n/index.js';
 
@@ -29,7 +37,17 @@ import { allergenName, errorMessage, useT, type Translator } from '../i18n/index
  * Trim yield, density and weight per piece were left out from 2.2.4 while
  * nothing used them; they are back with costing, where they count. Prices
  * are for chefs and administrators: a cook's list comes without them.
+ *
+ * Cooks come here too, to check labels when a delivery comes in: whoever
+ * takes it reads the labels. A cook's check that finds a difference waits
+ * for a chef, listed at the top of this page.
  */
+
+const OUTCOME_MESSAGE: Record<LabelCheckOutcome, 'labelCheck.saved' | 'labelCheck.savedPending'> = {
+  same: 'labelCheck.saved',
+  applied: 'labelCheck.saved',
+  pending: 'labelCheck.savedPending',
+};
 
 export function Ingredients() {
   const { t } = useT();
@@ -44,6 +62,10 @@ export function Ingredients() {
   const currency: Currency = kitchen.data?.currency ?? 'EUR';
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
+  const [checking, setChecking] = useState<string | null>(null);
+  const [delivery, setDelivery] = useState(false);
+  const [outcome, setOutcome] = useState<LabelCheckOutcome | null>(null);
+  const all = everything.data ?? [];
 
   if (!user) return null;
   const canManage = user.role !== 'cook';
@@ -63,6 +85,16 @@ export function Ingredients() {
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder={t('ingredients.search')}
               />
+              <button
+                type="button"
+                className="btn-quiet min-h-11"
+                onClick={() => {
+                  setDelivery(true);
+                  setOutcome(null);
+                }}
+              >
+                {t('delivery.start')}
+              </button>
               {canManage ? (
                 <button
                   type="button"
@@ -73,7 +105,20 @@ export function Ingredients() {
                 </button>
               ) : null}
             </div>
+            {outcome ? (
+              <p role="status" className="text-ink-soft mt-2 text-sm">
+                {t(OUTCOME_MESSAGE[outcome])}
+              </p>
+            ) : null}
           </div>
+
+          {canManage ? <PendingLabelChecks ingredients={all} /> : null}
+
+          {delivery ? (
+            <div className="bg-surface border-line border-b px-4 py-5 sm:px-6">
+              <DeliveryCheck ingredients={all} onClose={() => setDelivery(false)} />
+            </div>
+          ) : null}
 
           {adding ? (
             <div className="bg-surface border-line border-b px-4 py-5 sm:px-6">
@@ -123,25 +168,60 @@ export function Ingredients() {
                           })}
                         </span>
                       ) : null}
+                      <LabelCheckLine ingredient={ingredient} />
                     </span>
                   </>
                 );
-                const rowClass = 'block w-full px-4 py-3 text-left sm:px-6';
+                const rowClass = 'block min-w-0 flex-1 px-4 py-3 text-left sm:px-6';
+                const labelOpen = checking === ingredient.id;
 
                 return (
                   <li key={ingredient.id} className="border-rule border-b">
-                    {canManage ? (
+                    <div className="flex items-start">
+                      {canManage ? (
+                        <button
+                          type="button"
+                          aria-expanded={open}
+                          className={`hover:bg-surface-sunk transition-colors ${rowClass}`}
+                          onClick={() => setEditing(open ? null : ingredient.id)}
+                        >
+                          {row}
+                        </button>
+                      ) : (
+                        <div className={rowClass}>{row}</div>
+                      )}
                       <button
                         type="button"
-                        aria-expanded={open}
-                        className={`hover:bg-surface-sunk w-full transition-colors ${rowClass}`}
-                        onClick={() => setEditing(open ? null : ingredient.id)}
+                        className="btn-small my-3 mr-4 shrink-0 sm:mr-6"
+                        aria-expanded={labelOpen}
+                        aria-label={`${t('labelCheck.check')}: ${ingredient.name}`}
+                        onClick={() => {
+                          setChecking(labelOpen ? null : ingredient.id);
+                          setOutcome(null);
+                        }}
                       >
-                        {row}
+                        {t('labelCheck.check')}
                       </button>
-                    ) : (
-                      <div className={rowClass}>{row}</div>
-                    )}
+                    </div>
+                    {ingredient.labelCheck ? (
+                      <div className="px-4 pb-3 sm:px-6">
+                        <LabelCheckHistory ingredientId={ingredient.id} />
+                      </div>
+                    ) : null}
+
+                    {labelOpen ? (
+                      <div className="bg-surface border-line border-t px-4 py-5 sm:px-6">
+                        <LabelCheckForm
+                          ingredient={ingredient}
+                          ingredients={all}
+                          onDone={(done) => {
+                            setChecking(null);
+                            setOutcome(done);
+                          }}
+                          onCancel={() => setChecking(null)}
+                        />
+                      </div>
+                    ) : null}
 
                     {open ? (
                       <div className="bg-surface border-line border-t px-4 py-5 sm:px-6">
