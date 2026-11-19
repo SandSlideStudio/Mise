@@ -150,6 +150,17 @@ underneath, and a menu's allergen overview says what date it is as of. **Print a
 on **Dishes** and on a menu's overview, prints the A4 or A5 sign that tells guests to ask staff
 about allergens, in the kitchen's language and in English.
 
+### Allergens at delivery
+
+Suppliers change products without telling anyone; the new label is seen at the back door. When a
+delivery comes in, **Check label** on an ingredient (or **Check a delivery** for several in a row)
+shows its allergens and may-contains as they are in Mise: set them as the label says, and before
+anything is saved Mise shows which dishes, and which menus, gain or lose an allergen. This works
+offline too, from what the tablet has loaded. A label that says the same is one tap on **No
+change**, and is still kept, so each ingredient says when its label was last checked and by whom.
+A chef's change is made at once and goes into every affected dish's allergen record as a label
+check; a cook's waits at the top of **Ingredients** for a chef to approve or reject.
+
 ## Menus
 
 Under **Menus**, group dishes into a menu for the floor. Choose **Allergen overview** to print
@@ -313,6 +324,9 @@ What is kept about people, and for how long:
 - **Allergen records:** each time a dish's allergens change, Mise notes what they became, which
   ingredient or recipe the change came through and who made it, for as long as the dish exists.
   This is the written record behind telling guests about allergens by word of mouth.
+- **Label checks:** each time someone checks an ingredient's label at delivery, Mise notes who did,
+  when, what Mise had, what the label said, their note (a supplier, a product code) and whether a
+  chef approved it, for as long as the ingredient exists.
 - **Sessions:** who is signed in, since when, last seen when, on which tablet and in which browser.
   A password sign-in lasts 14 days, a PIN sign-in 14 hours; then it's deleted.
 - **Kitchen tablets:** the name you gave each one, and when it was last used.
@@ -325,10 +339,10 @@ What is kept about people, and for how long:
 Under **Settings → Staff**, a head chef or administrator signed in with a password can download
 everything Mise holds about one person (**Their data**, readable or as JSON), or **Remove for
 good**: the account and sessions go, and the name comes off prep lines, the handover note,
-allergen records and devices they approved. Backups made before keep them until newer backups replace them (see below).
+allergen records, label checks and devices they approved. Backups made before keep them until newer backups replace them (see below).
 
 **Backups** hold the staff list (with the hashes, never a PIN or password), the recipes with their
-allergen records, the photos and the prep list, encrypted with the recovery key. The server keeps the last 7, and a NAS or
+allergen records, the label checks, the photos and the prep list, encrypted with the recovery key. The server keeps the last 7, and a NAS or
 OneDrive the last 30, unless you change that under **Settings → Backups**. A backup is made each
 night something changed, so the oldest can be older than that many nights. Sessions, outside
 devices and the backup settings are never in a backup. A backup someone downloaded is kept as long
