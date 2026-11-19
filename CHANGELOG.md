@@ -6,7 +6,7 @@ a change in the first number means you should read these notes before updating.
 ## 2.4.0
 
 Setup that knows about the checklist and PIN-only sign-in, a checklist that links to recipes and
-prints, allergen records and a notice for guests, privacy controls for staff data, and a stack of
+prints, use-by labels, allergen records and a notice for guests, privacy controls for staff data, and a stack of
 smaller fixes.
 
 **Setup**
@@ -40,6 +40,18 @@ smaller fixes.
 - **Print allergen notice** (on Dishes and the menu overview) gives a sheet for guests, A4 or A5,
   in the kitchen's language and English: "Allergies or intolerances? Ask our staff." In the
   Netherlands, allergens may only be told to guests by word of mouth when such a notice is up.
+
+**Labels**
+
+- A ticked prep line has a **Label** button, and every prep recipe can print labels by hand ("how
+  many"): what it is, when it was made and by whom, until when it may be used, how it is kept and
+  its allergens. It prints to the kitchen's label printer through the print dialog, on the roll
+  chosen under **Settings → Kitchen → Label size**, and works offline.
+- The use-by comes from the recipe's own shelf life. Without one, chilled prep gets the new
+  Hygiënecode's default: until the end of the second day after it was made (the third when kept at
+  4 °C or colder). Frozen or dry prep without a shelf life gets a line to write the date on.
+- **Print a label when a line is ticked** (Settings → Kitchen, off by default) opens the print
+  dialog straight away for lines that come from a recipe.
 
 **Privacy**
 
