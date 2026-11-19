@@ -56,13 +56,18 @@ const OUTCOME_MESSAGE: Record<LabelCheckOutcome, 'labelCheck.saved' | 'labelChec
 };
 
 export function Ingredients() {
-  const { t } = useT();
+  const { t, locale } = useT();
   const { data: user } = useCurrentUser();
   const [search, setSearch] = useState('');
-  const ingredients = useIngredients(search || undefined);
+  // The whole list, searched here rather than by Mise: it is the list kept
+  // on the tablet, so a delivery's labels can be found and checked offline.
+  const everything = useIngredients(undefined);
+  const term = search.trim().toLocaleLowerCase(locale);
+  const shown = everything.data?.filter(
+    (ingredient) => !term || ingredient.name.toLocaleLowerCase(locale).includes(term),
+  );
   // "No price yet" only means something once the kitchen prices its
   // ingredients; a kitchen that doesn't cost isn't told so on every line.
-  const everything = useIngredients(undefined);
   const costing = (everything.data ?? []).some((ingredient) => ingredient.price);
   const kitchen = useKitchen();
   const currency: Currency = kitchen.data?.currency ?? 'EUR';
@@ -132,22 +137,22 @@ export function Ingredients() {
           ) : null}
 
           <div className="bg-surface-raised">
-            {ingredients.isPending ? (
+            {everything.isPending ? (
               <p className="text-ink-soft px-6 py-6">{t('common.loading')}</p>
             ) : null}
 
-            {ingredients.isError && ingredients.data === undefined ? (
-              <LoadError className="m-4 sm:m-6" onRetry={() => void ingredients.refetch()} />
+            {everything.isError && everything.data === undefined ? (
+              <LoadError className="m-4 sm:m-6" onRetry={() => void everything.refetch()} />
             ) : null}
 
-            {ingredients.data?.length === 0 ? (
+            {shown?.length === 0 ? (
               <p className="text-ink-soft px-6 py-10 text-center">
                 {search ? t('ingredients.noMatch') : t('ingredients.empty')}
               </p>
             ) : null}
 
             <ul>
-              {ingredients.data?.map((ingredient) => {
+              {shown?.map((ingredient) => {
                 const open = editing === ingredient.id;
                 const row = (
                   <>
