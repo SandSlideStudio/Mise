@@ -1,5 +1,5 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { keptAs, useBy } from './useby.js';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { computeUseBy, keptAs } from './useby.js';
 
 /**
  * The use-by on a prep label. Counted in the kitchen's own days, so these run
@@ -7,14 +7,11 @@ import { keptAs, useBy } from './useby.js';
  * ends on the last Sunday of October.
  */
 
-let zone: string | undefined;
 beforeAll(() => {
-  zone = process.env.TZ;
-  process.env.TZ = 'Europe/Amsterdam';
+  vi.stubEnv('TZ', 'Europe/Amsterdam');
 });
 afterAll(() => {
-  if (zone === undefined) delete process.env.TZ;
-  else process.env.TZ = zone;
+  vi.unstubAllEnvs();
 });
 
 /** A local date and time, as the tablet's clock shows it. */
@@ -35,7 +32,7 @@ describe('the default use-by for chilled prep', () => {
   });
 
   it('is the end of the second day after the day it was made, at 7 °C', () => {
-    const result = useBy({
+    const result = computeUseBy({
       made: local(2027, 4, 5, 14, 30),
       shelfLifeHours: null,
       kept: 'chilled7',
@@ -49,28 +46,44 @@ describe('the default use-by for chilled prep', () => {
   });
 
   it('is the same day whether made early or late', () => {
-    const early = useBy({ made: local(2027, 4, 5, 6, 0), shelfLifeHours: null, kept: 'chilled7' });
-    const late = useBy({ made: local(2027, 4, 5, 23, 45), shelfLifeHours: null, kept: 'chilled7' });
+    const early = computeUseBy({
+      made: local(2027, 4, 5, 6, 0),
+      shelfLifeHours: null,
+      kept: 'chilled7',
+    });
+    const late = computeUseBy({
+      made: local(2027, 4, 5, 23, 45),
+      shelfLifeHours: null,
+      kept: 'chilled7',
+    });
     expect(early.kind === 'default' && shown(early.at)).toBe('2027-04-07 23:59');
     expect(late.kind === 'default' && shown(late.at)).toBe('2027-04-07 23:59');
   });
 
   it('gives a day more at 4 °C', () => {
-    const result = useBy({ made: local(2027, 4, 5, 9), shelfLifeHours: null, kept: 'chilled4' });
+    const result = computeUseBy({
+      made: local(2027, 4, 5, 9),
+      shelfLifeHours: null,
+      kept: 'chilled4',
+    });
     expect(result.kind === 'default' && shown(result.at)).toBe('2027-04-08 23:59');
   });
 
   it('carries over the end of a month and a year', () => {
-    const april = useBy({ made: local(2027, 4, 29, 12), shelfLifeHours: null, kept: 'chilled7' });
+    const april = computeUseBy({
+      made: local(2027, 4, 29, 12),
+      shelfLifeHours: null,
+      kept: 'chilled7',
+    });
     expect(april.kind === 'default' && shown(april.at)).toBe('2027-05-01 23:59');
-    const february = useBy({
+    const february = computeUseBy({
       made: local(2028, 2, 28, 12),
       shelfLifeHours: null,
       kept: 'chilled4',
     });
     // 2028 is a leap year.
     expect(february.kind === 'default' && shown(february.at)).toBe('2028-03-02 23:59');
-    const december = useBy({
+    const december = computeUseBy({
       made: local(2027, 12, 30, 20),
       shelfLifeHours: null,
       kept: 'chilled7',
@@ -80,39 +93,55 @@ describe('the default use-by for chilled prep', () => {
 
   it('counts days, not hours, across a change of the clocks', () => {
     // Summer time starts on Sunday 28 March 2027: that day has 23 hours.
-    const spring = useBy({ made: local(2027, 3, 27, 22), shelfLifeHours: null, kept: 'chilled7' });
+    const spring = computeUseBy({
+      made: local(2027, 3, 27, 22),
+      shelfLifeHours: null,
+      kept: 'chilled7',
+    });
     expect(spring.kind === 'default' && shown(spring.at)).toBe('2027-03-29 23:59');
     // And ends on Sunday 31 October 2027: that day has 25 hours.
-    const autumn = useBy({ made: local(2027, 10, 30, 1), shelfLifeHours: null, kept: 'chilled4' });
+    const autumn = computeUseBy({
+      made: local(2027, 10, 30, 1),
+      shelfLifeHours: null,
+      kept: 'chilled4',
+    });
     expect(autumn.kind === 'default' && shown(autumn.at)).toBe('2027-11-02 23:59');
   });
 });
 
 describe("the recipe's own shelf life", () => {
   it('wins over the default', () => {
-    const result = useBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 120, kept: 'chilled7' });
+    const result = computeUseBy({
+      made: local(2027, 4, 5, 10),
+      shelfLifeHours: 120,
+      kept: 'chilled7',
+    });
     expect(result.kind).toBe('shelfLife');
     expect(shown(result.kind === 'shelfLife' ? result.at : new Date(0))).toBe('2027-04-10 10:00');
   });
 
   it('prints the time under 48 hours, only the day from 48 on', () => {
-    const short = useBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 12, kept: null });
+    const short = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 12, kept: null });
     expect(short.kind === 'shelfLife' && short.withTime).toBe(true);
     expect(short.kind === 'shelfLife' && shown(short.at)).toBe('2027-04-05 22:00');
-    const almost = useBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 47, kept: null });
+    const almost = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 47, kept: null });
     expect(almost.kind === 'shelfLife' && almost.withTime).toBe(true);
-    const two = useBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 48, kept: null });
+    const two = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 48, kept: null });
     expect(two.kind === 'shelfLife' && two.withTime).toBe(false);
   });
 
   it('counts real hours across a change of the clocks', () => {
     // 24 hours from Saturday 22:00 before summer time is Sunday 23:00 on the new clock.
-    const result = useBy({ made: local(2027, 3, 27, 22), shelfLifeHours: 24, kept: null });
+    const result = computeUseBy({ made: local(2027, 3, 27, 22), shelfLifeHours: 24, kept: null });
     expect(result.kind === 'shelfLife' && shown(result.at)).toBe('2027-03-28 23:00');
   });
 
   it('applies to frozen and dry stock too', () => {
-    const frozen = useBy({ made: local(2027, 4, 5), shelfLifeHours: 24 * 90, kept: 'frozen' });
+    const frozen = computeUseBy({
+      made: local(2027, 4, 5),
+      shelfLifeHours: 24 * 90,
+      kept: 'frozen',
+    });
     expect(frozen.kind).toBe('shelfLife');
   });
 });
@@ -120,15 +149,15 @@ describe("the recipe's own shelf life", () => {
 describe('without a date', () => {
   it('leaves frozen, dry and unknown stock blank', () => {
     const made = local(2027, 4, 5);
-    expect(useBy({ made, shelfLifeHours: null, kept: 'frozen' })).toEqual({
+    expect(computeUseBy({ made, shelfLifeHours: null, kept: 'frozen' })).toEqual({
       kind: 'blank',
       reason: 'frozen',
     });
-    expect(useBy({ made, shelfLifeHours: null, kept: 'ambient' })).toEqual({
+    expect(computeUseBy({ made, shelfLifeHours: null, kept: 'ambient' })).toEqual({
       kind: 'blank',
       reason: 'ambient',
     });
-    expect(useBy({ made, shelfLifeHours: null, kept: null })).toEqual({
+    expect(computeUseBy({ made, shelfLifeHours: null, kept: null })).toEqual({
       kind: 'blank',
       reason: 'unknown',
     });

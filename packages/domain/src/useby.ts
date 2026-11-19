@@ -154,7 +154,7 @@ function endOfDayAfter(made: Date, days: number): Date {
  * 24 hours across a clock change is still 24 hours. Of 48 hours and more only
  * the day is printed, the way kitchens count days.
  */
-export function useBy(input: {
+export function computeUseBy(input: {
   made: Date;
   shelfLifeHours: number | null | undefined;
   kept: KeptAs | null;
