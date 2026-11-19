@@ -8,8 +8,6 @@ What's planned next, roughly in order. Nothing here has a date.
   only what went wrong written down, and an export to show an inspector. Linked to the prep
   checklist, so the cooling log sits next to the batch it belongs to. Waiting on the text of the new
   code itself before it gets a version.
-- **Allergens at delivery.** Note when a supplier changes an ingredient, and see straight away which
-  dishes' allergens change with it.
 
 Not planned: shared recipe libraries across several restaurants. That only makes sense once a
 second site exists.

@@ -42,6 +42,12 @@ staff data, and a stack of smaller fixes.
 - Every dish keeps a record of its allergens: the dish page says when they last changed, and
   **History** shows each change, what caused it (an ingredient or sub-recipe that was edited) and
   who made it. The menu's allergen overview says which date its information is from.
+- **Check label**, on each ingredient, and **Check a delivery** for several at once: set the
+  allergens as the label in front of you says them, and before anything is saved Mise shows which
+  dishes and menus that changes. A label that matches is one tap, and still recorded. Each
+  ingredient says when its label was last checked and by whom. A change a cook finds waits for a
+  chef to approve it; cooks now have the Ingredients tab for this, without prices and without
+  editing. Works offline.
 - **Print allergen notice** (on Dishes and the menu overview) gives a sheet for guests, A4 or A5,
   in the kitchen's language and English: "Allergies or intolerances? Ask our staff." In the
   Netherlands, allergens may only be told to guests by word of mouth when such a notice is up.
