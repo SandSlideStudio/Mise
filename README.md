@@ -142,6 +142,13 @@ anything still missing. Under the name, the card says which menu the dish is on:
 or the menu you're printing from. **Settings → Dish cards** sets the logo, address, which parts
 show and the warning printed at the foot of every card, in each language you print in.
 
+An ingredient can also say what it **may contain**, as the supplier's label warns ("may contain
+nuts"); every dish it goes into, however deep, then shows that as a may-contain. Each dish keeps a
+record of when its allergens changed and why: its page says when they last did, with the history
+underneath, and a menu's allergen overview says what date it is as of. **Print allergen notice**,
+on **Dishes** and on a menu's overview, prints the A4 or A5 sign that tells guests to ask staff
+about allergens, in the kitchen's language and in English.
+
 ## Menus
 
 Under **Menus**, group dishes into a menu for the floor. Choose **Allergen overview** to print
@@ -284,6 +291,9 @@ What is kept about people, and for how long:
   a year by default; the same setting chooses 30 days to two years, or for good.
 - **The handover note** keeps the name of whoever wrote it, until the next note replaces it.
 - **Recipes** remember who wrote them.
+- **Allergen records:** each time a dish's allergens change, Mise notes what they became, which
+  ingredient or recipe the change came through and who made it, for as long as the dish exists.
+  This is the written record behind telling guests about allergens by word of mouth.
 - **Sessions:** who is signed in, since when, last seen when, on which tablet and in which browser.
   A password sign-in lasts 14 days, a PIN sign-in 14 hours; then it's deleted.
 - **Kitchen tablets:** the name you gave each one, and when it was last used.
@@ -295,11 +305,11 @@ What is kept about people, and for how long:
 
 Under **Settings → Staff**, a head chef or administrator signed in with a password can download
 everything Mise holds about one person (**Their data**, readable or as JSON), or **Remove for
-good**: the account and sessions go, and the name comes off prep lines, the handover note and
-devices they approved. Backups made before keep them until newer backups replace them (see below).
+good**: the account and sessions go, and the name comes off prep lines, the handover note,
+allergen records and devices they approved. Backups made before keep them until newer backups replace them (see below).
 
-**Backups** hold the staff list (with the hashes, never a PIN or password), the recipes, the photos
-and the prep list, encrypted with the recovery key. The server keeps the last 7, and a NAS or
+**Backups** hold the staff list (with the hashes, never a PIN or password), the recipes with their
+allergen records, the photos and the prep list, encrypted with the recovery key. The server keeps the last 7, and a NAS or
 OneDrive the last 30, unless you change that under **Settings → Backups**. A backup is made each
 night something changed, so the oldest can be older than that many nights. Sessions, outside
 devices and the backup settings are never in a backup. A backup someone downloaded is kept as long
