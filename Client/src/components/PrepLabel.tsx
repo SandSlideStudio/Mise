@@ -37,6 +37,18 @@ const TYPE: Record<Tier, { name: number; useBy: number; line: number; pad: numbe
   large: { name: 20, useBy: 20, line: 12, pad: 4 },
 };
 
+/**
+ * The small sizes are set for the shortest roll, 25 mm; a 29 or 32 mm roll
+ * gets the same layout with the type grown to fill it, so the use-by reads
+ * from further off.
+ */
+function typeFor(tier: Tier, height: number) {
+  const base = TYPE[tier];
+  if (tier !== 'small') return base;
+  const grow = height / 25;
+  return { ...base, name: base.name * grow, useBy: base.useBy * grow, line: base.line * grow };
+}
+
 function tierOf(size: LabelSize): Tier {
   const { height } = labelMillimetres(size);
   return height <= 32 ? 'small' : height <= 51 ? 'medium' : 'large';
@@ -112,7 +124,7 @@ export function PrepLabel({ label, size }: { label: LabelContent; size: LabelSiz
   const { t, locale } = useT();
   const { width, height } = labelMillimetres(size);
   const tier = tierOf(size);
-  const type = TYPE[tier];
+  const type = typeFor(tier, height);
   const { useBy: until, kept } = labelUseBy(label);
   const keptText = kept ? t(KEPT[kept]) : (label.recipe?.storage?.trim() ?? '');
 
