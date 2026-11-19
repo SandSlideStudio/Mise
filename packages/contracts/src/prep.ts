@@ -31,6 +31,12 @@ export const prepTaskSchema = z.object({
   createdByName: z.string().nullable(),
   /** Whether it came from the chef's checklist rather than being typed in. */
   fromChecklist: z.boolean(),
+  /**
+   * For a line from a checklist item with a par: the par and what was there
+   * when it was added, so the line can say why it asks for its amount. Null
+   * otherwise, and once the amount has been changed or added to by hand.
+   */
+  par: z.object({ par: quantitySchema, onHand: quantitySchema }).nullable().optional(),
 });
 
 export const createPrepTaskSchema = z.object({

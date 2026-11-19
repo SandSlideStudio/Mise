@@ -144,6 +144,12 @@ export const prepChecklistItems = pgTable(
     name: text('name').notNull(),
     /** The recipe the line is made from, if any: the prep line it adds links to it. */
     recipeId: uuid('recipe_id').references(() => recipes.id, { onDelete: 'set null' }),
+    /**
+     * The par: how much the chef wants ready, kept in the unit the chef chose
+     * so "2 dozen" stays 2 dozen. Both null: no par.
+     */
+    parValue: numeric('par_value', { precision: 14, scale: 4, mode: 'number' }),
+    parUnit: text('par_unit'),
     sortOrder: integer('sort_order').notNull().default(0),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -472,6 +478,12 @@ export const prepTasks = pgTable(
     /** Who put it on the list, and whether it came from the chef's checklist. */
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     fromChecklist: boolean('from_checklist').notNull().default(false),
+    /**
+     * For a line made up to a par: the par and what was there, in the same
+     * base unit as the quantity, so the line can say why it asks for that much.
+     */
+    parBase: numeric('par_base', { precision: 14, scale: 4, mode: 'number' }),
+    onHandBase: numeric('on_hand_base', { precision: 14, scale: 4, mode: 'number' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

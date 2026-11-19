@@ -1,6 +1,6 @@
 import { and, asc, eq, gte, inArray, isNull, lt, ne, or, sql } from 'drizzle-orm';
 import type { CreatePrepTask, TickedRetention, UpdatePrepTask } from '@mise/contracts';
-import { baseUnitOf, toBase, type UnitCode } from '@mise/domain';
+import { baseUnitOf, toBase, toMakeForPar, type Quantity, type UnitCode } from '@mise/domain';
 import type { Database, Executor } from '../../db/client.js';
 import { prepTasks, stations, users } from '../../db/schema.js';
 
@@ -43,6 +43,8 @@ const TASK_ORDER = [asc(stations.sortOrder), asc(prepTasks.sortOrder), asc(prepT
 interface Origin {
   createdBy: string;
   fromChecklist?: boolean;
+  /** For a line made up to a par: the par and what was there, in base units. */
+  par?: { parBase: number; onHandBase: number };
 }
 
 export function createPrepService(db: Database) {
@@ -71,6 +73,8 @@ export function createPrepService(db: Database) {
         sortOrder: prepTasks.sortOrder,
         createdByName: creator.displayName,
         fromChecklist: prepTasks.fromChecklist,
+        parBase: prepTasks.parBase,
+        onHandBase: prepTasks.onHandBase,
       })
       .from(prepTasks)
       .leftJoin(assignee, eq(assignee.id, prepTasks.assignedUserId))
@@ -131,6 +135,8 @@ export function createPrepService(db: Database) {
         sortOrder: await nextSortOrder(exec),
         createdBy: origin.createdBy,
         fromChecklist: origin.fromChecklist ?? false,
+        parBase: origin.par?.parBase ?? null,
+        onHandBase: origin.par?.onHandBase ?? null,
       })
       .returning({ id: prepTasks.id });
     return row?.id ?? null;
@@ -167,7 +173,10 @@ export function createPrepService(db: Database) {
       .set({
         ...(input.description !== undefined ? { description: input.description } : {}),
         ...(input.stationId !== undefined ? { stationId: input.stationId } : {}),
-        ...(input.quantity !== undefined ? toBaseQuantity(input.quantity) : {}),
+        // A new amount is no longer the par less what was there, so the line stops saying so.
+        ...(input.quantity !== undefined
+          ? { ...toBaseQuantity(input.quantity), parBase: null, onHandBase: null }
+          : {}),
         ...(input.assignedUserId !== undefined ? { assignedUserId: input.assignedUserId } : {}),
         ...(input.status !== undefined ? { status: input.status } : {}),
         ...(input.sortOrder !== undefined ? { sortOrder: input.sortOrder } : {}),
@@ -280,6 +289,9 @@ export function createPrepService(db: Database) {
                   // Added in the database, to what is there now.
                   quantityBase: sql`coalesce(${prepTasks.quantityBase}, 0) + ${added.quantityBase}`,
                   quantityUnit: sql`coalesce(${prepTasks.quantityUnit}, ${added.quantityUnit})`,
+                  // More on top of a par line: it no longer adds up to the par.
+                  parBase: null,
+                  onHandBase: null,
                 }
               : {}),
             // Typed by hand first and picked from the book later: keep the link.
@@ -299,10 +311,19 @@ export function createPrepService(db: Database) {
    * capitals ignored) is already an open or in-progress line on the same
    * station is skipped, so ticking "Chicken stock" twice in a day, or two
    * cooks ticking it at once, makes one line. Unlike a typed line, nothing is
-   * merged: the checklist has no amounts to add up.
+   * merged: two counts of what is there don't add up to anything.
+   *
+   * An item with a par goes on for the par less what is there, and not at all
+   * when there is enough; its name is then in `enough`.
    */
   async function addFromChecklist(
-    items: { name: string; stationId: string | null; recipeId?: string | null }[],
+    items: {
+      name: string;
+      stationId: string | null;
+      recipeId?: string | null;
+      par?: Quantity | null;
+      onHand?: Quantity | null;
+    }[],
     createdBy: string,
   ) {
     return db.transaction(async (tx) => {
@@ -310,7 +331,13 @@ export function createPrepService(db: Database) {
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-prep-add'))`);
       let added = 0;
       let alreadyThere = 0;
+      const enough: string[] = [];
       for (const item of items) {
+        const outcome = item.par ? toMakeForPar(item.par, item.onHand ?? null) : null;
+        if (outcome?.kind === 'enough') {
+          enough.push(item.name);
+          continue;
+        }
         const [existing] = await tx
           .select({ id: prepTasks.id })
           .from(prepTasks)
@@ -328,17 +355,26 @@ export function createPrepService(db: Database) {
           alreadyThere += 1;
           continue;
         }
+        const make = outcome?.kind === 'make' ? outcome : null;
         await insertTask(
-          { description: item.name, stationId: item.stationId, recipeId: item.recipeId ?? null },
+          {
+            description: item.name,
+            stationId: item.stationId,
+            recipeId: item.recipeId ?? null,
+            quantity: make?.make ?? null,
+          },
           tx,
           {
             createdBy,
             fromChecklist: true,
+            ...(make
+              ? { par: { parBase: toBase(make.par), onHandBase: toBase(make.onHand) } }
+              : {}),
           },
         );
         added += 1;
       }
-      return { added, alreadyThere };
+      return { added, alreadyThere, enough };
     });
   }
 

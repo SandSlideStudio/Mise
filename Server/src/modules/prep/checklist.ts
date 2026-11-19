@@ -8,6 +8,7 @@ import {
   updateChecklistSchema,
 } from '@mise/contracts';
 import { asc, eq, inArray, notInArray, sql } from 'drizzle-orm';
+import { isUnitCode } from '@mise/domain';
 import type { Executor } from '../../db/client.js';
 import { ApiError } from '../../lib/errors.js';
 import { ensureUnchanged } from '../../lib/conflict.js';
@@ -40,10 +41,22 @@ export function createChecklistReader(db: Executor) {
         stationId: prepChecklistItems.stationId,
         name: prepChecklistItems.name,
         recipeId: prepChecklistItems.recipeId,
+        parValue: prepChecklistItems.parValue,
+        parUnit: prepChecklistItems.parUnit,
       })
       .from(prepChecklistItems)
       .leftJoin(stations, eq(stations.id, prepChecklistItems.stationId))
-      .orderBy(...ITEM_ORDER);
+      .orderBy(...ITEM_ORDER)
+      .then((rows) =>
+        rows.map(({ parValue, parUnit, ...item }) => ({
+          ...item,
+          // The unit is plain text, so it is checked: one Mise doesn't know is no par.
+          par:
+            parValue !== null && parUnit !== null && isUnitCode(parUnit)
+              ? { value: parValue, unit: parUnit }
+              : null,
+        })),
+      );
   }
 
   async function readChecklist(exec: Executor = db) {
@@ -139,6 +152,10 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
             stationId: item.stationId,
             name: item.name,
             recipeId: item.recipeId && liveRecipes.has(item.recipeId) ? item.recipeId : null,
+            // Left out (a tablet from before pars) keeps the par the item has.
+            ...(item.par === undefined
+              ? {}
+              : { parValue: item.par?.value ?? null, parUnit: item.par?.unit ?? null }),
             sortOrder: index,
           };
           if (item.id && known.has(item.id)) {
@@ -177,7 +194,10 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
       // In the checklist's own order, so the lines go on the way the chef laid them out.
       // An item the chef removed since it was ticked is simply not there any more.
       const wanted = new Set(request.body.ids);
-      const items = (await readItems()).filter((item) => wanted.has(item.id));
+      const onHand = request.body.onHand ?? {};
+      const items = (await readItems())
+        .filter((item) => wanted.has(item.id))
+        .map((item) => ({ ...item, onHand: onHand[item.id] ?? null }));
       return prep.addFromChecklist(items, request.user!.id);
     },
   );
