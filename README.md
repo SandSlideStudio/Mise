@@ -88,8 +88,9 @@ Cooks don't always remember everything the kitchen needs. Turn on **Prep checkli
 **Settings → Kitchen**, and the chef keeps a list of what the kitchen makes, by station, under
 **Edit checklist** on the prep list. Anyone opens the checklist, ticks what's needed and taps
 **Add to prep list**: what isn't on the list yet goes on, and what already is gets skipped. Each line
-says who put it there, and whether it came from the checklist. Like everything else, it works
-offline.
+says who put it there, and whether it came from the checklist. A line can have a **par**, how much
+the kitchen wants ready: adding it asks how much is there, and the prep list only asks for the
+rest. Like everything else, it works offline.
 
 ## From outside the kitchen
 
@@ -164,7 +165,7 @@ a prep recipe's page prints as many as you need. Labels go to the kitchen's labe
 the print dialog (Brother, Dymo, Zebra or any other); **Settings → Kitchen** sets the roll size and
 whether ticking a line prints its label straight away. The use-by comes from the recipe's shelf
 life, or for chilled prep without one, the Hygiënecode's default of the end of the second day
-after it was made.
+after it was made (the third at 4 °C or colder), going by how the recipe says it is kept.
 
 ## Food cost
 

@@ -22,7 +22,12 @@ staff data, and a stack of smaller fixes.
 
 - A checklist line can be linked to a recipe; the line it puts on the prep list then has the
   Recipe link, like one added from the book.
-- **Print checklist** gives a sheet by station with a box per line, for kitchens that tick on paper.
+- A checklist line can have a **par**: how much the kitchen wants ready (3 l, 40 each). Adding it
+  asks how much is already there, and the prep list only asks for the rest ("Make 1.8 l — par 3 l,
+  1.2 l there"); a line with enough there isn't added at all. The recipe link opens the recipe at
+  that amount.
+- **Print checklist** gives a sheet by station with a box per line, for kitchens that tick on paper,
+  and each line's par with a box to write what's there.
 - Ticking no longer makes the page jump: the "not sent yet" notice only shows once a tick has
   waited a second, at the bottom of the screen. Notices there stack instead of covering each
   other.
@@ -52,6 +57,13 @@ staff data, and a stack of smaller fixes.
   4 °C or colder). Frozen or dry prep without a shelf life gets a line to write the date on.
 - **Print a label when a line is ticked** (Settings → Kitchen, off by default) opens the print
   dialog straight away for lines that come from a recipe.
+
+**How it is kept**
+
+- A recipe says how it is kept: chilled at 7 °C or colder, chilled at 4 °C or colder, frozen, dry,
+  or kept hot, with the old storage field kept as a note ("Labelled tubs, walk-in"). Updating fills
+  it in from what the note already says ("Koelcel, 4 °C" becomes chilled at 4 °C or colder), so
+  labels get their use-by from a choice rather than from reading the note.
 
 **Food cost**
 

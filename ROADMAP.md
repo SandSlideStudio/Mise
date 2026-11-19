@@ -10,7 +10,6 @@ What's planned next, roughly in order. Nothing here has a date.
   code itself before it gets a version.
 - **Allergens at delivery.** Note when a supplier changes an ingredient, and see straight away which
   dishes' allergens change with it.
-- **Par levels.** Record what's already made, so the prep list only asks for the rest.
 
 Not planned: shared recipe libraries across several restaurants. That only makes sense once a
 second site exists.
