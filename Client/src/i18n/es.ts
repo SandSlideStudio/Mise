@@ -1546,6 +1546,7 @@ export const es: Record<MessageKey, string> = {
   'ingredients.densityHint': 'Solo para pasar de peso a volumen. El aceite ronda 0,92.',
   'ingredients.eachLabel': 'Gramos por unidad',
   'ingredients.eachHint': 'Solo para pasar de unidades a peso. Un huevo ronda 50.',
+  'ingredients.addConversions': 'Añadir peso por litro o por pieza',
   'kitchen.currency': 'Moneda',
   'kitchen.currencyHint':
     'En la que se introducen y se muestran los precios. Cambiarla no convierte los precios ya introducidos.',

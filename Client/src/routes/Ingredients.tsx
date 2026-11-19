@@ -263,8 +263,13 @@ function IngredientForm({
   // Density and weight per piece only when the purchase needs them to reach
   // how it is measured, or when one was entered before.
   const crossing = new Set<Dimension>([dimensionOf(priceUnit), DIMENSION_OF_BASE[baseUnit]]);
-  const showDensity = (crossing.size > 1 && crossing.has('volume')) || density !== '';
-  const showItemWeight = (crossing.size > 1 && crossing.has('count')) || itemWeight !== '';
+  // Or when asked for: a recipe may measure it in a way the purchase doesn't
+  // need, and its cost then asks for one of these.
+  const [conversions, setConversions] = useState(false);
+  const showDensity =
+    conversions || (crossing.size > 1 && crossing.has('volume')) || density !== '';
+  const showItemWeight =
+    conversions || (crossing.size > 1 && crossing.has('count')) || itemWeight !== '';
 
   const pending = create.isPending || update.isPending;
   const error = create.error ?? update.error ?? remove.error;
@@ -469,6 +474,13 @@ function IngredientForm({
               <p id="itemWeightHint" className="text-ink-soft mt-1.5 text-sm">
                 {t('ingredients.eachHint')}
               </p>
+            </div>
+          ) : null}
+          {!showDensity || !showItemWeight ? (
+            <div className="self-end">
+              <button type="button" className="btn-small" onClick={() => setConversions(true)}>
+                {t('ingredients.addConversions')}
+              </button>
             </div>
           ) : null}
         </div>

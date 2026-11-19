@@ -1565,6 +1565,7 @@ export const de: Record<MessageKey, string> = {
   'ingredients.densityHint': 'Nur zum Umrechnen zwischen Gewicht und Volumen. Öl etwa 0,92.',
   'ingredients.eachLabel': 'Gramm pro Stück',
   'ingredients.eachHint': 'Nur zum Umrechnen zwischen Stückzahl und Gewicht. Ein Ei etwa 50.',
+  'ingredients.addConversions': 'Gewicht pro Liter oder pro Stück hinzufügen',
   'kitchen.currency': 'Währung',
   'kitchen.currencyHint':
     'In der Preise eingegeben und angezeigt werden. Ein Wechsel rechnet eingegebene Preise nicht um.',

@@ -1550,6 +1550,7 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.eachLabel': 'Gram per stuk',
   'ingredients.eachHint':
     'Alleen om tussen aantal en gewicht om te rekenen. Een ei is ongeveer 50.',
+  'ingredients.addConversions': 'Gewicht per liter of per stuk toevoegen',
   'kitchen.currency': 'Valuta',
   'kitchen.currencyHint':
     'Waarin prijzen worden ingevoerd en getoond. Wisselen rekent ingevoerde prijzen niet om.',

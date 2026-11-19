@@ -1570,6 +1570,7 @@ export const fr: Record<MessageKey, string> = {
   'ingredients.densityHint': 'Seulement pour passer du poids au volume. L’huile, environ 0,92.',
   'ingredients.eachLabel': 'Grammes la pièce',
   'ingredients.eachHint': 'Seulement pour passer du nombre au poids. Un œuf, environ 50.',
+  'ingredients.addConversions': 'Ajouter le poids par litre ou par pièce',
   'kitchen.currency': 'Devise',
   'kitchen.currencyHint':
     'Celle dans laquelle les prix sont saisis et affichés. En changer ne convertit pas les prix déjà saisis.',

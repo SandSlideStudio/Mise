@@ -1510,6 +1510,7 @@ export const en = {
   'ingredients.densityHint': 'Only to convert between weight and volume. Oil is about 0.92.',
   'ingredients.eachLabel': 'Grams each',
   'ingredients.eachHint': 'Only to convert between count and weight. An egg is about 50.',
+  'ingredients.addConversions': 'Add weight per litre or per piece',
   'kitchen.currency': 'Currency',
   'kitchen.currencyHint':
     'What prices are entered and shown in. Changing it doesn’t convert prices already entered.',
