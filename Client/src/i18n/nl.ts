@@ -765,6 +765,9 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.nutsPlaceholder': 'bijv. hazelnoot, walnoot',
   'ingredients.detailsHint':
     'Volgens de wet moeten graan en noot op een gerechtenkaart bij naam genoemd worden.',
+  'ingredients.mayContain': 'Kan sporen bevatten (zoals op het etiket van de leverancier)',
+  'ingredients.mayContainHint':
+    'Alleen waar het etiket voor waarschuwt. Elk gerecht waar dit in gaat, toont het als ‘kan sporen bevatten’. Wat het bevat, staat hierboven, niet hier.',
   'card.title': 'Gerechtenkaart',
   'card.back': '← Het gerecht',
   'card.language': 'Taal van de kaart',
@@ -925,6 +928,7 @@ export const nl: Record<MessageKey, string> = {
   'menus.delete': 'Menu verwijderen',
   'menus.backToMenu': '← Het menu',
   'menus.overviewTitle': 'Allergenenoverzicht',
+  'menus.allergensAsOf': 'Allergeneninformatie bijgewerkt op {date}',
   'menus.dish': 'Gerecht',
   'access.title': 'Vraag toegang',
   'access.body':
@@ -1368,6 +1372,7 @@ export const nl: Record<MessageKey, string> = {
   'personData.lineOnIt': 'Hun naam staat erbij',
   'personData.lineTicked': 'Vinkte hem af',
   'personData.recipes': 'Recepten die ze schreven',
+  'personData.allergenChanges': 'Wijzigingen in de allergenen van een gerecht die ze maakten',
   'personData.note': 'Overdrachtsnotitie met hun naam eronder',
   'personData.sessions': 'Ingelogd',
   'personData.session': 'Sinds {started}, laatst gezien {seen}, loopt af {ends}',
@@ -1390,6 +1395,8 @@ export const nl: Record<MessageKey, string> = {
   'privacy.keptNote':
     'De naam van wie de overdrachtsnotitie schreef, tot de volgende notitie hem vervangt.',
   'privacy.keptRecipes': 'Wie elk recept schreef.',
+  'privacy.keptAllergenChanges':
+    'Wie elke wijziging in de allergenen van een gerecht maakte, zolang het gerecht bestaat: de schriftelijke vastlegging achter mondelinge informatie aan gasten.',
   'privacy.keptSessions':
     'Wie er ingelogd is: sinds wanneer, wanneer laatst gezien, op welke tablet en in welke browser.',
   'privacy.keptSessionsHow':
@@ -1439,4 +1446,26 @@ export const nl: Record<MessageKey, string> = {
   'privacy.sentNothingElse':
     'Verder niets. Geen statistieken, geen tracking en geen advertenties, en geen lettertypen of scripts van ergens anders.',
   'about.licences': 'Licenties',
+
+  'allergenHistory.lastChanged': 'Allergenen laatst gewijzigd op {date}',
+  'allergenHistory.history': 'Geschiedenis',
+  'allergenHistory.added': 'Bevat nu: {allergens}',
+  'allergenHistory.removed': 'Bevat niet meer: {allergens}',
+  'allergenHistory.mayAdded': 'Kan nu sporen bevatten van: {allergens}',
+  'allergenHistory.mayRemoved': 'Niet meer ‘kan sporen bevatten’: {allergens}',
+  'allergenHistory.first': 'Voor het eerst vastgelegd',
+  'allergenHistory.contains': 'Bevat: {allergens}',
+  'allergenHistory.mayContain': 'Kan sporen bevatten van: {allergens}',
+  'allergenHistory.none': 'Geen allergenen',
+  'allergenHistory.cause': 'Na een wijziging in {cause}',
+  'allergenHistory.onDish': 'Gewijzigd in het gerecht zelf',
+  'allergenHistory.by': 'Door {name}',
+  'notice.open': 'Allergenenbord afdrukken',
+  'notice.title': 'Allergenenbord',
+  'notice.explain':
+    'Gasten mogen alleen mondeling over allergenen worden geïnformeerd als een duidelijk zichtbaar bord ze vraagt ernaar te vragen. Druk dit af en hang het op waar elke gast het ziet, bij de deur of op de tafels.',
+  'notice.paper': 'Papier',
+  'notice.heading': 'Allergieën of intoleranties?',
+  'notice.body':
+    'Vraag het onze medewerkers. Wij vertellen precies welke allergenen er in elk gerecht zitten.',
 };

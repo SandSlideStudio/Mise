@@ -33,6 +33,7 @@ const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
     ['recipe'],
     ['recipe-expanded'],
     ['recipe-allergens'],
+    ['recipe-allergen-history'],
     ['recipe-used-by'],
     ['ingredients'],
     ['ingredient'],

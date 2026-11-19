@@ -34,6 +34,7 @@ export function PrivacySettings() {
         <Item text={t('privacy.keptLines')} detail={linesKept(translator, data)} />
         <Item text={t('privacy.keptNote')} />
         <Item text={t('privacy.keptRecipes')} />
+        <Item text={t('privacy.keptAllergenChanges')} />
         <Item
           text={t('privacy.keptSessions')}
           detail={t('privacy.keptSessionsHow', {

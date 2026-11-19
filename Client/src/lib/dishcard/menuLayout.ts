@@ -39,7 +39,7 @@ export function layoutMenuOverview(
     overview.kitchenName,
     overview.kitchenName,
   );
-  const { t, p, shows, upper, wrap, text, block, width, footer, eyebrow } = kit;
+  const { t, locale, p, shows, upper, wrap, text, block, width, footer, eyebrow } = kit;
   const x = MARGIN;
   const right = PAGE_W - MARGIN;
   const w = right - x;
@@ -116,6 +116,18 @@ export function layoutMenuOverview(
       p.faint,
     );
     y = baseline + 5.5;
+    // What the sheet is true as of: an inspector, or a guest, asks.
+    if (overview.allergensAsOf) {
+      const asOf = t('menus.allergensAsOf', {
+        date: new Date(overview.allergensAsOf).toLocaleDateString(locale, {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+        }),
+      });
+      text(ops, asOf, x, y - 2 + ascentMm(8.5), 'regular', 8.5, p.soft);
+      y += lineMm(8.5, 1.3) + 1;
+    }
     return y;
   }
 

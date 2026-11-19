@@ -138,7 +138,10 @@ function OverviewView({ overview }: { overview: Overview }) {
             ))}
           </div>
         </fieldset>
-        <div className="flex gap-2.5">
+        <div className="flex flex-wrap gap-2.5">
+          <Link to="/dishes/allergen-notice" className="btn-quiet min-h-11">
+            {t('notice.open')}
+          </Link>
           <button type="button" className="btn-quiet min-h-11" disabled={!pages} onClick={print}>
             {t('card.print')}
           </button>

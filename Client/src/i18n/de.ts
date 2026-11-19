@@ -778,6 +778,9 @@ export const de: Record<MessageKey, string> = {
   'ingredients.nutsPlaceholder': 'z. B. Haselnuss, Walnuss',
   'ingredients.detailsHint':
     'Das Gesetz verlangt, dass Getreide und Nuss auf einer Gerichtekarte beim Namen genannt werden.',
+  'ingredients.mayContain': 'Kann Spuren enthalten (wie auf dem Etikett des Lieferanten)',
+  'ingredients.mayContainHint':
+    'Nur, wovor das Etikett warnt. Jedes Gericht, in das dies kommt, zeigt es als „Kann Spuren enthalten“. Was es enthält, wird oben angekreuzt, nicht hier.',
   'card.title': 'Gerichtekarte',
   'card.back': '← Das Gericht',
   'card.language': 'Sprache der Karte',
@@ -940,6 +943,7 @@ export const de: Record<MessageKey, string> = {
   'menus.delete': 'Menü löschen',
   'menus.backToMenu': '← Das Menü',
   'menus.overviewTitle': 'Allergenübersicht',
+  'menus.allergensAsOf': 'Allergeninformation, Stand {date}',
   'menus.dish': 'Gericht',
   'access.title': 'Zugang anfragen',
   'access.body':
@@ -1382,6 +1386,7 @@ export const de: Record<MessageKey, string> = {
   'personData.lineOnIt': 'Der Name der Person steht dabei',
   'personData.lineTicked': 'Hat sie abgehakt',
   'personData.recipes': 'Rezepte, die die Person geschrieben hat',
+  'personData.allergenChanges': 'Änderungen an den Allergenen eines Gerichts durch diese Person',
   'personData.note': 'Übergabenotiz mit ihrem Namen',
   'personData.sessions': 'Angemeldet',
   'personData.session': 'Seit {started}, zuletzt gesehen {seen}, endet {ends}',
@@ -1404,6 +1409,8 @@ export const de: Record<MessageKey, string> = {
   'privacy.keptNote':
     'Der Name der Person, die die Übergabenotiz geschrieben hat, bis die nächste Notiz sie ersetzt.',
   'privacy.keptRecipes': 'Wer jedes Rezept geschrieben hat.',
+  'privacy.keptAllergenChanges':
+    'Wer jede Änderung an den Allergenen eines Gerichts vorgenommen hat, solange es das Gericht gibt: die schriftliche Grundlage für mündliche Auskunft an Gäste.',
   'privacy.keptSessions':
     'Wer angemeldet ist: seit wann, zuletzt gesehen wann, auf welchem Tablet und in welchem Browser.',
   'privacy.keptSessionsHow':
@@ -1455,4 +1462,26 @@ export const de: Record<MessageKey, string> = {
   'privacy.sentNothingElse':
     'Sonst nichts. Keine Statistik, kein Tracking und keine Werbung, und keine Schriften oder Skripte von woanders.',
   'about.licences': 'Lizenzen',
+
+  'allergenHistory.lastChanged': 'Allergene zuletzt geändert am {date}',
+  'allergenHistory.history': 'Verlauf',
+  'allergenHistory.added': 'Enthält jetzt: {allergens}',
+  'allergenHistory.removed': 'Enthält nicht mehr: {allergens}',
+  'allergenHistory.mayAdded': 'Kann jetzt Spuren enthalten von: {allergens}',
+  'allergenHistory.mayRemoved': 'Nicht mehr „Kann Spuren enthalten“: {allergens}',
+  'allergenHistory.first': 'Zuerst erfasst',
+  'allergenHistory.contains': 'Enthält: {allergens}',
+  'allergenHistory.mayContain': 'Kann Spuren enthalten von: {allergens}',
+  'allergenHistory.none': 'Keine Allergene',
+  'allergenHistory.cause': 'Nach einer Änderung an {cause}',
+  'allergenHistory.onDish': 'Am Gericht selbst geändert',
+  'allergenHistory.by': 'Von {name}',
+  'notice.open': 'Allergen-Hinweis drucken',
+  'notice.title': 'Allergen-Hinweis',
+  'notice.explain':
+    'Gäste dürfen nur dann mündlich über Allergene informiert werden, wenn ein gut sichtbarer Hinweis sie bittet, danach zu fragen. Drucken Sie diesen aus und hängen Sie ihn dort auf, wo jeder Gast ihn sieht, am Eingang oder auf den Tischen.',
+  'notice.paper': 'Papier',
+  'notice.heading': 'Allergien oder Unverträglichkeiten?',
+  'notice.body':
+    'Fragen Sie unser Personal. Wir sagen Ihnen genau, welche Allergene in jedem Gericht stecken.',
 };

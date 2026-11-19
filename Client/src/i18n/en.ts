@@ -751,6 +751,9 @@ export const en = {
   'ingredients.cerealsPlaceholder': 'e.g. wheat, rye',
   'ingredients.nutsPlaceholder': 'e.g. hazelnut, walnut',
   'ingredients.detailsHint': 'The law wants the cereal and the nut named on a dish card.',
+  'ingredients.mayContain': 'May contain (traces, as on the supplier’s label)',
+  'ingredients.mayContainHint':
+    'Only what the label warns of. Every dish this goes into shows it as “may contain”. What it contains is ticked above, not here.',
   'card.title': 'Dish card',
   'card.back': '← The dish',
   'card.language': 'Card language',
@@ -907,6 +910,7 @@ export const en = {
   'menus.delete': 'Delete the menu',
   'menus.backToMenu': '← The menu',
   'menus.overviewTitle': 'Allergen overview',
+  'menus.allergensAsOf': 'Allergen information as of {date}',
   'menus.dish': 'Dish',
   'access.title': 'Ask for access',
   'access.body':
@@ -1335,6 +1339,7 @@ export const en = {
   'personData.lineOnIt': 'Their name is on it',
   'personData.lineTicked': 'Ticked it off',
   'personData.recipes': 'Recipes they wrote',
+  'personData.allergenChanges': 'Changes to a dish’s allergens they made',
   'personData.note': 'Handover note signed with their name',
   'personData.sessions': 'Signed in',
   'personData.session': 'Since {started}, last seen {seen}, ends {ends}',
@@ -1357,6 +1362,8 @@ export const en = {
   'privacy.keptNote':
     'The name of whoever wrote the handover note, until the next note replaces it.',
   'privacy.keptRecipes': 'Who wrote each recipe.',
+  'privacy.keptAllergenChanges':
+    'Who made each change to a dish’s allergens, for as long as the dish is kept: the written record behind telling guests by word of mouth.',
   'privacy.keptSessions':
     'Who is signed in: since when, last seen when, on which tablet and in which browser.',
   'privacy.keptSessionsHow':
@@ -1403,6 +1410,27 @@ export const en = {
   'privacy.sentNothingElse':
     'Nothing else. No analytics, no tracking and no advertising, and no fonts or scripts from anywhere else.',
   'about.licences': 'Licences',
+
+  'allergenHistory.lastChanged': 'Allergens last changed on {date}',
+  'allergenHistory.history': 'History',
+  'allergenHistory.added': 'Now contains: {allergens}',
+  'allergenHistory.removed': 'No longer contains: {allergens}',
+  'allergenHistory.mayAdded': 'Now may contain: {allergens}',
+  'allergenHistory.mayRemoved': 'No longer “may contain”: {allergens}',
+  'allergenHistory.first': 'First recorded',
+  'allergenHistory.contains': 'Contains: {allergens}',
+  'allergenHistory.mayContain': 'May contain: {allergens}',
+  'allergenHistory.none': 'No allergens',
+  'allergenHistory.cause': 'After a change to {cause}',
+  'allergenHistory.onDish': 'Changed on the dish itself',
+  'allergenHistory.by': 'By {name}',
+  'notice.open': 'Print allergen notice',
+  'notice.title': 'Allergen notice',
+  'notice.explain':
+    'Guests may be told about allergens by word of mouth only if a notice they can clearly see tells them to ask. Print this one and put it up where every guest sees it, by the door or on the tables.',
+  'notice.paper': 'Paper',
+  'notice.heading': 'Allergies or intolerances?',
+  'notice.body': 'Ask our staff. We can tell you exactly which allergens are in every dish.',
 } as const;
 
 export type MessageKey = keyof typeof en;

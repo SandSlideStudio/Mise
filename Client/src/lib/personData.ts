@@ -57,6 +57,16 @@ export function readablePersonData(translator: Translator, data: PersonData): st
   none(data.recipes);
   for (const recipe of data.recipes) out.push(`• ${recipe.name} (${when(recipe.createdAt)})`);
 
+  heading(t('personData.allergenChanges'));
+  // Older servers don't send these.
+  const changes = data.allergenChanges ?? [];
+  none(changes);
+  for (const change of changes) {
+    out.push(
+      `• ${change.dish} (${when(change.changedAt)})${change.cause ? ` · ${t('allergenHistory.cause', { cause: change.cause })}` : ''}`,
+    );
+  }
+
   heading(t('personData.note'));
   if (data.handoverNote) {
     out.push(when(data.handoverNote.at), data.handoverNote.text ?? '');
