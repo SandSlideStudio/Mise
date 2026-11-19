@@ -111,7 +111,9 @@ export function LabelCheckHistory({ ingredientId }: { ingredientId: string }) {
     });
   return (
     <details className="text-sm" onToggle={(e) => setOpen(e.currentTarget.open)}>
-      <summary className="text-ink cursor-pointer font-medium">{t('labelCheck.history')}</summary>
+      <summary className="text-ink cursor-pointer py-2.5 font-medium">
+        {t('labelCheck.history')}
+      </summary>
       {checks.isPending && open ? (
         <p className="text-ink-soft mt-2">{t('common.loading')}</p>
       ) : null}

@@ -62,7 +62,7 @@ export function AllergenRecordView({ history }: { history: AllergenChange[] }) {
         {t('allergenHistory.lastChanged', { date: day(latest.changedAt) })}
       </p>
       <details className="mt-1">
-        <summary className="text-ink cursor-pointer font-medium">
+        <summary className="text-ink cursor-pointer py-2.5 font-medium">
           {t('allergenHistory.history')}
         </summary>
         <ol className="border-line mt-2 flex flex-col border-l pl-4">
