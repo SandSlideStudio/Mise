@@ -118,6 +118,9 @@ export const kitchens = pgTable('kitchen', {
   /** The labels for containers of prep: which roll, and whether ticking a line prints one. */
   labelSize: labelSizeEnum('label_size').notNull().default('62x29'),
   labelOnTick: boolean('label_on_tick').notNull().default(false),
+  /** Costing: the one currency prices are in, and the VAT on food sold, in per cent. */
+  currency: text('currency').notNull().default('EUR'),
+  foodVatPercent: real('food_vat_percent').notNull().default(9),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -283,8 +286,8 @@ export const ingredients = pgTable(
      */
     mayContain: jsonb('may_contain').$type<string[]>().notNull().default([]),
     /** Grams per millilitre. Needed to convert between weight and volume. */
-    // Density, weight per piece and trim yield: not asked for since 2.2.4, until
-    // something uses them (costing). Kept, with what was entered, for then.
+    // Density, weight per piece and trim yield were not asked for from 2.2.4
+    // until costing used them; what was entered before was kept for it.
     densityGPerMl: real('density_g_per_ml'),
     /** Grams for one item. Needed to convert between count and weight. */
     itemWeightG: real('item_weight_g'),
@@ -298,6 +301,17 @@ export const ingredients = pgTable(
       .notNull()
       .default({}),
     notes: text('notes'),
+    /**
+     * What it costs, as read off the invoice: the price, and the amount and
+     * unit it buys ("12.50 for 5 kg"). The amount stays as entered and is
+     * turned into the base unit when a cost is worked out, so changing how
+     * the ingredient is measured never leaves a stale conversion behind.
+     * Null: nobody has said, which no cost ever counts as free.
+     */
+    price: numeric('price', { precision: 12, scale: 4, mode: 'number' }),
+    purchaseQuantity: numeric('purchase_quantity', { precision: 14, scale: 4, mode: 'number' }),
+    purchaseUnit: text('purchase_unit'),
+    priceUpdatedAt: timestamp('price_updated_at', { withTimezone: true }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
@@ -338,6 +352,8 @@ export const recipes = pgTable(
     course: courseEnum('course'),
     drinkPairings: jsonb('drink_pairings').$type<string[]>().notNull().default([]),
     cutlery: jsonb('cutlery').$type<string[]>().notNull().default([]),
+    /** What a guest pays for a dish, VAT included as on the menu. Null: not sold, or not said. */
+    sellPrice: numeric('sell_price', { precision: 12, scale: 4, mode: 'number' }),
     version: integer('version').notNull().default(1),
     createdBy: uuid('created_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
