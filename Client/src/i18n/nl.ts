@@ -1321,6 +1321,23 @@ export const nl: Record<MessageKey, string> = {
   'checklistPrint.title': 'Prepchecklist',
   'checklistPrint.print': 'Checklist printen',
   'checklistPrint.empty': 'De checklist is leeg.',
+  // Parniveaus: hoeveel de chef klaar wil hebben, en wat er al aanwezig is
+  'checklist.par': 'Par',
+  'checklist.parFor': 'Par voor {name}',
+  'checklist.parUnitFor': 'Eenheid van de par voor {name}',
+  'checklist.parHint':
+    'De par is hoeveel je klaar wilt hebben. Wie de regel op de lijst zet, zegt wat er aanwezig is, en de lijst vraagt om de rest. Leeg laten: geen par.',
+  'checklist.onHandTitle': 'Hoeveel is er aanwezig?',
+  'checklist.onHandHint':
+    'Laat een vak leeg als er niets is. De lijst vraagt om wat er tot de par ontbreekt.',
+  'checklist.onHandFor': 'Hoeveel {name} is er aanwezig, in {unit}',
+  'checklist.parIs': 'par {amount}',
+  'checklist.back': 'Terug',
+  'checklist.enough': '{name}: genoeg aanwezig.',
+  'task.parNote': 'Par {par}, {onHand} aanwezig',
+  'task.parNoteNone': 'Par {par}, niets aanwezig',
+  'checklistPrint.par': 'par {amount}',
+  'checklistPrint.there': 'aanwezig',
   // Privacy: wat bewaard wordt, hoe lang, en de gegevens van één persoon
   'settings.tabPrivacy': 'Privacy',
   'kitchen.keepFor': 'Bewaren voor',

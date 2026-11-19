@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { PrepTask, PrepTaskStatus, Station } from '@mise/contracts';
-import { formatQuantity, humanize, isUnitCode } from '@mise/domain';
+import { formatQuantity, humanize, isUnitCode, type UnitCode } from '@mise/domain';
 import { useT, type Translator } from '../i18n/index.js';
 import { useCurrentUser } from '../api/session.js';
 
@@ -28,6 +28,20 @@ export function formatTaskQuantity(task: PrepTask): string | null {
   if (!task.quantity || !isUnitCode(task.quantity.unit)) return null;
   // Stored in base units, so 2000 g reads back as 2 kg.
   return formatQuantity(humanize({ value: task.quantity.value, unit: task.quantity.unit }));
+}
+
+/**
+ * Why a line made up to a par asks for its amount: "Par 3 l, 1 l there".
+ * Nothing for any other line.
+ */
+export function parNote(t: Translator['t'], task: PrepTask): string | null {
+  const par = task.par;
+  if (!par || !isUnitCode(par.par.unit) || !isUnitCode(par.onHand.unit)) return null;
+  const show = (value: number, unit: UnitCode) => formatQuantity(humanize({ value, unit }));
+  const target = show(par.par.value, par.par.unit);
+  return par.onHand.value > 0
+    ? t('task.parNote', { par: target, onHand: show(par.onHand.value, par.onHand.unit) })
+    : t('task.parNoteNone', { par: target });
 }
 
 export function PrepTaskRow({
@@ -57,6 +71,7 @@ export function PrepTaskRow({
   const quantity = formatTaskQuantity(task);
   const soft = done ? 'text-ink-faint' : 'text-ink-soft';
   const added = addedNote(t, task);
+  const par = parNote(t, task);
 
   return (
     <li className="border-rule flex items-stretch border-b">
@@ -94,6 +109,7 @@ export function PrepTaskRow({
           >
             {task.description}
           </span>
+          {par ? <span className={`text-lg md:text-xl ${soft}`}>{par}</span> : null}
           {note ? <span className={`text-lg md:text-xl ${soft}`}>{note}</span> : null}
           {added ? <span className={`text-[15px] md:text-base ${soft}`}>{added}</span> : null}
         </span>

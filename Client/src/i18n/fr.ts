@@ -1343,6 +1343,23 @@ export const fr: Record<MessageKey, string> = {
   'checklistPrint.title': 'Checklist de prep',
   'checklistPrint.print': 'Imprimer la checklist',
   'checklistPrint.empty': 'La checklist est vide.',
+  // Pars : ce que le chef veut avoir de prêt, et ce qu’il y a déjà
+  'checklist.par': 'Par',
+  'checklist.parFor': 'Par pour {name}',
+  'checklist.parUnitFor': 'Unité du par pour {name}',
+  'checklist.parHint':
+    'Le par est la quantité que vous voulez avoir de prête. Qui ajoute la ligne dit ce qu’il y a, et la liste demande le reste. Laissez vide pour aucun.',
+  'checklist.onHandTitle': 'Combien y en a-t-il ?',
+  'checklist.onHandHint':
+    'Laissez une case vide quand il n’y en a pas. La liste demande ce qui manque pour atteindre le par.',
+  'checklist.onHandFor': '{name} : combien y en a-t-il, en {unit}',
+  'checklist.parIs': 'par {amount}',
+  'checklist.back': 'Retour',
+  'checklist.enough': '{name} : il y en a assez.',
+  'task.parNote': 'Par {par}, {onHand} déjà là',
+  'task.parNoteNone': 'Par {par}, il n’y en a pas',
+  'checklistPrint.par': 'par {amount}',
+  'checklistPrint.there': 'déjà là',
   // Confidentialité : ce qui est gardé, combien de temps, et les données d’une personne
   'settings.tabPrivacy': 'Confidentialité',
   'kitchen.keepFor': 'Les garder',
