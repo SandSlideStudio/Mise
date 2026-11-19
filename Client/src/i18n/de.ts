@@ -1481,6 +1481,7 @@ export const de: Record<MessageKey, string> = {
   'notice.explain':
     'Gäste dürfen nur dann mündlich über Allergene informiert werden, wenn ein gut sichtbarer Hinweis sie bittet, danach zu fragen. Drucken Sie diesen aus und hängen Sie ihn dort auf, wo jeder Gast ihn sieht, am Eingang oder auf den Tischen.',
   'notice.paper': 'Papier',
+  'notice.languages': 'Sprachen',
   'notice.heading': 'Allergien oder Unverträglichkeiten?',
   'notice.body':
     'Fragen Sie unser Personal. Wir sagen Ihnen genau, welche Allergene in jedem Gericht stecken.',

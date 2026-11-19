@@ -1429,6 +1429,7 @@ export const en = {
   'notice.explain':
     'Guests may be told about allergens by word of mouth only if a notice they can clearly see tells them to ask. Print this one and put it up where every guest sees it, by the door or on the tables.',
   'notice.paper': 'Paper',
+  'notice.languages': 'Languages',
   'notice.heading': 'Allergies or intolerances?',
   'notice.body': 'Ask our staff. We can tell you exactly which allergens are in every dish.',
 } as const;

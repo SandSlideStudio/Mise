@@ -1488,6 +1488,7 @@ export const fr: Record<MessageKey, string> = {
   'notice.explain':
     'Vous ne pouvez informer les clients des allergènes de vive voix que si une affiche bien visible les invite à demander. Imprimez celle-ci et placez-la là où chaque client la voit, à l’entrée ou sur les tables.',
   'notice.paper': 'Papier',
+  'notice.languages': 'Langues',
   'notice.heading': 'Allergies ou intolérances ?',
   'notice.body':
     'Demandez à notre équipe. Nous pouvons vous dire exactement quels allergènes contient chaque plat.',

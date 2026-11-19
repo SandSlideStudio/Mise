@@ -1464,6 +1464,7 @@ export const es: Record<MessageKey, string> = {
   'notice.explain':
     'Solo puedes informar a los clientes de los alérgenos de palabra si un aviso bien visible les invita a preguntar. Imprime este y ponlo donde todos los clientes lo vean, en la entrada o en las mesas.',
   'notice.paper': 'Papel',
+  'notice.languages': 'Idiomas',
   'notice.heading': '¿Alergias o intolerancias?',
   'notice.body':
     'Pregunta a nuestro equipo. Podemos decirte exactamente qué alérgenos lleva cada plato.',

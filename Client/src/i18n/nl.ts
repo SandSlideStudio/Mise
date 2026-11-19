@@ -1465,6 +1465,7 @@ export const nl: Record<MessageKey, string> = {
   'notice.explain':
     'Gasten mogen alleen mondeling over allergenen worden geïnformeerd als een duidelijk zichtbaar bord ze vraagt ernaar te vragen. Druk dit af en hang het op waar elke gast het ziet, bij de deur of op de tafels.',
   'notice.paper': 'Papier',
+  'notice.languages': 'Talen',
   'notice.heading': 'Allergieën of intoleranties?',
   'notice.body':
     'Vraag het onze medewerkers. Wij vertellen precies welke allergenen er in elk gerecht zitten.',

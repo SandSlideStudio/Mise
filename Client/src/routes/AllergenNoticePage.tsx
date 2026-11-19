@@ -52,7 +52,10 @@ export function AllergenNoticePage() {
               ))}
             </div>
           </fieldset>
-          <p className="text-ink-soft mr-auto self-center">{languages}</p>
+          <div className="mr-auto flex flex-col gap-1">
+            <span className="eyebrow">{t('notice.languages')}</span>
+            <span className="flex min-h-11 items-center">{languages}</span>
+          </div>
           <button type="button" className="btn-primary min-h-11" onClick={print}>
             {t('card.print')}
           </button>
