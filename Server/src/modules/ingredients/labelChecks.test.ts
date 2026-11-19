@@ -282,3 +282,74 @@ describe('who checked a label', () => {
     ]);
   });
 });
+
+describe('a check sent after someone changed the ingredient', () => {
+  // Read against Pesto with milk; sesame added in the editor before it arrived.
+  const base = { allergens: ['milk'], mayContain: [] };
+
+  async function sesameAdded(id: string) {
+    await ok('PATCH', `/api/ingredients/${id}`, { allergens: ['milk', 'sesame'] });
+  }
+
+  it('changes nothing when it found no change', async () => {
+    const { pesto, pasta } = await kitchen();
+    await sesameAdded(pesto.id);
+    const check = await ok('POST', `/api/ingredients/${pesto.id}/label-checks`, {
+      allergens: ['milk'],
+      mayContain: [],
+      base,
+    });
+    expect(check).toMatchObject({ changed: false, status: 'applied', before: base });
+    expect((await ok('GET', `/api/ingredients/${pesto.id}`)).allergens).toEqual(['milk', 'sesame']);
+    expect((await history(pasta.id))[0].contains).toEqual(['milk', 'sesame']);
+  });
+
+  it('waits for a chef when it found a difference, shown against what is there now', async () => {
+    const { pesto } = await kitchen();
+    await sesameAdded(pesto.id);
+    // Sent by a chef, and still not applied over the sesame unseen.
+    const check = await ok('POST', `/api/ingredients/${pesto.id}/label-checks`, {
+      allergens: ['milk', 'nuts'],
+      mayContain: [],
+      base,
+    });
+    expect(check).toMatchObject({
+      changed: true,
+      status: 'pending',
+      before: { allergens: ['milk', 'sesame'], mayContain: [] },
+      after: { allergens: ['milk', 'nuts'], mayContain: [] },
+    });
+    expect((await ok('GET', `/api/ingredients/${pesto.id}`)).allergens).toEqual(['milk', 'sesame']);
+  });
+
+  it('applies straight away when nothing changed in between', async () => {
+    const { pesto } = await kitchen();
+    const check = await ok('POST', `/api/ingredients/${pesto.id}/label-checks`, {
+      allergens: ['milk', 'nuts'],
+      mayContain: [],
+      base,
+    });
+    expect(check).toMatchObject({ changed: true, status: 'applied' });
+  });
+
+  it('may not be approved once the ingredient changed after it came in', async () => {
+    const { pesto } = await kitchen();
+    const cook = await signInCook();
+    const check = await ok(
+      'POST',
+      `/api/ingredients/${pesto.id}/label-checks`,
+      { allergens: ['milk', 'nuts'], mayContain: [], base },
+      cook,
+    );
+    expect(check.status).toBe('pending');
+    await sesameAdded(pesto.id);
+    const approve = await call('POST', `/api/ingredients/label-checks/${check.id}/approve`);
+    expect(approve.statusCode).toBe(409);
+    expect(approve.json().error.code).toBe('label_check_outdated');
+    expect((await ok('GET', `/api/ingredients/${pesto.id}`)).allergens).toEqual(['milk', 'sesame']);
+    // Still there to reject.
+    expect((await ok('POST', `/api/ingredients/label-checks/${check.id}/reject`)).status).toBe(
+      'rejected',
+    );
+  });
+});

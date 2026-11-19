@@ -1637,6 +1637,8 @@ export const es: Record<MessageKey, string> = {
   'delivery.finish': 'Listo',
   'offline.label.labelCheck': 'la revisión de la etiqueta «{name}»',
   'error.labelCheckDecided': 'Alguien ya ha aprobado o rechazado ese cambio de etiqueta.',
+  'error.labelCheckOutdated':
+    'El ingrediente ha cambiado desde que se leyó esta etiqueta. Recházala y vuelve a leer la etiqueta.',
   'allergenHistory.labelCause': 'Tras revisar la etiqueta de {name}',
   'privacy.keptLabelChecks':
     'Quién revisó la etiqueta de cada ingrediente en la entrega, cuándo y qué encontró, mientras el ingrediente exista.',

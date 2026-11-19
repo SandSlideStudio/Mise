@@ -92,6 +92,9 @@ export function useCheckLabel() {
           note: note.trim() || null,
           // When the label was read, not when the check reached Mise.
           checkedAt: new Date(serverNow()).toISOString(),
+          // What it was read against: if someone changes the ingredient
+          // before this arrives, their change isn't undone by it.
+          base: { allergens: ingredient.allergens, mayContain: ingredient.mayContain },
         },
         { label: { key: 'offline.label.labelCheck', vars: { name: ingredient.name } } },
       ),

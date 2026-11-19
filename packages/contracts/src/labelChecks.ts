@@ -50,6 +50,13 @@ export const createLabelCheckSchema = z.object({
    * server keeps it only within the last week and never in the future.
    */
   checkedAt: z.iso.datetime({ offset: true }).optional(),
+  /**
+   * What Mise had when the label was read against it. A check sent later
+   * (offline, or from a page left open) may find the ingredient changed by
+   * someone else since; then it is not applied over their change but waits
+   * for a chef. Left out, the check is compared with the ingredient as it is.
+   */
+  base: labelAllergensSchema.optional(),
 });
 
 /** The last time an ingredient's label was read, for its line in the list. */

@@ -31,6 +31,13 @@ import { applyIngredientEdit, tracesOnly, type IngredientRow } from './save.js';
  * Applying goes through the same save as an edit in the editor, so every
  * dish the ingredient reaches gets a line in its allergen record, with the
  * label check as its cause.
+ *
+ * A check carries what Mise had when the label was read (its base). If
+ * someone changed the ingredient's allergens since, a check sent later must
+ * not undo that: a "no change" changes nothing, and a difference waits for a
+ * chef, shown against the ingredient as it is now, even when a chef sent it.
+ * Approving refuses once the ingredient changed after the check came in, so
+ * what the chef approves is what they saw.
  */
 
 /** A check made offline and sent later keeps its time, within the week the device keeps it. */
@@ -150,10 +157,18 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
           .where(eq(ingredients.id, request.params.id))
           .for('update');
         if (!locked) return null;
-        const before = asLabel(locked.allergens, locked.mayContain);
+        const now = asLabel(locked.allergens, locked.mayContain);
+        const base = request.body.base
+          ? asLabel(request.body.base.allergens, request.body.base.mayContain)
+          : now;
+        const outdated = !sameLabel(base, now);
+        // Read against an older version and found the same: the person saw
+        // nothing new, so someone's change since stays as it is.
+        const before = outdated && sameLabel(base, label) ? base : now;
         const changed = !sameLabel(before, label);
-        // Whoever may edit the ingredient changes it; anyone else asks a chef.
-        const applies = !changed || MANAGERS.includes(user.role);
+        // Whoever may edit the ingredient changes it; anyone else asks a chef,
+        // and so does anyone whose check started from an older version.
+        const applies = !changed || (MANAGERS.includes(user.role) && !outdated);
         const [check] = await tx
           .insert(ingredientLabelChecks)
           .values({
@@ -203,7 +218,9 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
 
   /**
    * Decide on a waiting change. Approving puts what the label said on the
-   * ingredient, whatever it holds now: the label is what is in the box.
+   * ingredient, but only while it still holds what the check was compared
+   * with: the chef approves the difference they were shown, and a change
+   * made since is not undone unseen. Then the label is read again.
    */
   async function decide(checkId: string, approve: boolean, userId: string): Promise<LabelCheck> {
     const outcome = await app.db.transaction(async (tx) => {
@@ -221,9 +238,11 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
           .where(eq(ingredients.id, check.ingredientId))
           .for('update');
         if (!locked) return 'gone' as const;
+        const now = asLabel(locked.allergens, locked.mayContain);
+        if (!sameLabel(now, asLabel(check.beforeAllergens, check.beforeMayContain)))
+          return 'outdated' as const;
         const label = asLabel(check.afterAllergens, check.afterMayContain);
-        if (!sameLabel(asLabel(locked.allergens, locked.mayContain), label))
-          await applyLabel(tx, locked, label, userId);
+        if (!sameLabel(now, label)) await applyLabel(tx, locked, label, userId);
       }
       await tx
         .update(ingredientLabelChecks)
@@ -237,6 +256,13 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
         409,
         'label_check_decided',
         'Someone already approved or rejected that label change.',
+      );
+    }
+    if (outcome === 'outdated') {
+      throw new ApiError(
+        409,
+        'label_check_outdated',
+        'The ingredient changed since this label was read. Reject it and read the label again.',
       );
     }
     return readCheck(app.db, checkId);

@@ -58,7 +58,13 @@ describe('a label checked offline', () => {
     expect(entry).toMatchObject({
       method: 'POST',
       path: `/ingredients/${PESTO.id}/label-checks`,
-      body: { allergens: ['milk', 'nuts'], mayContain: [], note: 'Supplier B' },
+      body: {
+        allergens: ['milk', 'nuts'],
+        mayContain: [],
+        note: 'Supplier B',
+        // What it was read against, so a change made before it is sent stays.
+        base: { allergens: ['milk'], mayContain: [] },
+      },
       label: { key: 'offline.label.labelCheck', vars: { name: 'Pesto' } },
     });
     expect(typeof (entry!.body as { checkedAt: string }).checkedAt).toBe('string');

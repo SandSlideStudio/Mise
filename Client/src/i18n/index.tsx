@@ -282,6 +282,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   already_exists: 'error.alreadyExists',
   still_referenced: 'error.stillReferenced',
   label_check_decided: 'error.labelCheckDecided',
+  label_check_outdated: 'error.labelCheckOutdated',
   bad_origin: 'error.badOrigin',
   changed_meanwhile: 'error.changedMeanwhile',
   certificate_failed: 'error.certificateFailed',

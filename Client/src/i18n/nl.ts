@@ -1640,6 +1640,8 @@ export const nl: Record<MessageKey, string> = {
   'delivery.finish': 'Klaar',
   'offline.label.labelCheck': 'de etiketcontrole van “{name}”',
   'error.labelCheckDecided': 'Iemand heeft die etiketwijziging al goedgekeurd of afgewezen.',
+  'error.labelCheckOutdated':
+    'Het ingrediënt is gewijzigd sinds dit etiket werd gelezen. Wijs het af en lees het etiket opnieuw.',
   'allergenHistory.labelCause': 'Na controle van het etiket van {name}',
   'privacy.keptLabelChecks':
     'Wie het etiket van elk ingrediënt bij levering controleerde, wanneer, en wat die vond, zolang het ingrediënt bestaat.',

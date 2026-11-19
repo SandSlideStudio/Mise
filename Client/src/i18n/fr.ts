@@ -1661,6 +1661,8 @@ export const fr: Record<MessageKey, string> = {
   'delivery.finish': 'Terminé',
   'offline.label.labelCheck': 'la vérification de l’étiquette « {name} »',
   'error.labelCheckDecided': 'Quelqu’un a déjà validé ou refusé ce changement d’étiquette.',
+  'error.labelCheckOutdated':
+    'L’ingrédient a changé depuis la lecture de cette étiquette. Refusez-la et relisez l’étiquette.',
   'allergenHistory.labelCause': 'Après vérification de l’étiquette de {name}',
   'privacy.keptLabelChecks':
     'Qui a vérifié l’étiquette de chaque ingrédient à la livraison, quand, et ce qu’il a trouvé, tant que l’ingrédient existe.',

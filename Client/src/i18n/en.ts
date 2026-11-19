@@ -1600,6 +1600,8 @@ export const en = {
   'delivery.finish': 'Done',
   'offline.label.labelCheck': 'the label check of “{name}”',
   'error.labelCheckDecided': 'Someone already approved or rejected that label change.',
+  'error.labelCheckOutdated':
+    'The ingredient changed since this label was read. Reject it and read the label again.',
   'allergenHistory.labelCause': 'After the label of {name} was checked',
   'privacy.keptLabelChecks':
     'Who checked each ingredient’s label at delivery, when, and what they found, for as long as the ingredient is kept.',
