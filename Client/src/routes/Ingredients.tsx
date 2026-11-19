@@ -1,5 +1,11 @@
 import { useState, type FormEvent } from 'react';
-import type { BaseUnit, Currency, Ingredient } from '@mise/contracts';
+import type {
+  BaseUnit,
+  Currency,
+  Ingredient,
+  IngredientPrice,
+  IngredientPriceInput,
+} from '@mise/contracts';
 import {
   ALL_UNITS,
   ALLERGENS,
@@ -281,6 +287,16 @@ function splitNames(value: string): string[] {
 
 const DIMENSION_OF_BASE: Record<BaseUnit, Dimension> = { g: 'mass', ml: 'volume', each: 'count' };
 
+/** Whether the price in the form is still the one it was shown. */
+function samePrice(price: IngredientPriceInput | null, shown: IngredientPrice | null): boolean {
+  if (!price || !shown) return price === shown;
+  return (
+    price.amount === shown.amount &&
+    price.quantity.value === shown.quantity.value &&
+    price.quantity.unit === shown.quantity.unit
+  );
+}
+
 /** What a new price is most likely for: weighed things by the kilo, liquids by the litre. */
 function defaultPurchaseUnit(baseUnit: BaseUnit): UnitCode {
   if (baseUnit === 'g') return 'kg';
@@ -294,7 +310,7 @@ function unitLabel(t: Translator['t'], baseUnit: BaseUnit): string {
   return t('ingredients.weighed');
 }
 
-function IngredientForm({
+export function IngredientForm({
   ingredient,
   onDone,
   onCancel,
@@ -355,6 +371,16 @@ function IngredientForm({
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    // Unknown unless both are filled in: half a price is no price.
+    const price =
+      priceAmount && priceQuantity
+        ? {
+            amount: Number(priceAmount),
+            quantity: { value: Number(priceQuantity), unit: priceUnit },
+          }
+        : null;
+    const shown = ingredient?.price;
+    const priceTouched = !ingredient || (shown !== undefined && !samePrice(price, shown));
     const payload = {
       name,
       category: category || null,
@@ -371,19 +397,12 @@ function IngredientForm({
       yieldPercent: yieldPercent ? Number(yieldPercent) : 100,
       densityGPerMl: density ? Number(density) : null,
       itemWeightG: itemWeight ? Number(itemWeight) : null,
-      // Unknown unless both are filled in: half a price is no price. Not sent
-      // at all when the price wasn't shown here, so it can't be wiped unseen.
-      ...(ingredient && ingredient.price === undefined
-        ? {}
-        : {
-            price:
-              priceAmount && priceQuantity
-                ? {
-                    amount: Number(priceAmount),
-                    quantity: { value: Number(priceQuantity), unit: priceUnit },
-                  }
-                : null,
-          }),
+      // Only a price changed here is sent: not one this form wasn't shown, so
+      // it can't be wiped unseen, and not the one it was shown, which would
+      // undo a new price someone entered meanwhile. A new price alone keeps
+      // the ingredient's version, so it goes with the price it replaces.
+      ...(priceTouched ? { price } : {}),
+      ...(priceTouched && shown !== undefined ? { priceBase: shown?.updatedAt ?? null } : {}),
     };
     if (ingredient)
       update.mutate(

@@ -61,7 +61,15 @@ export const createIngredientSchema = ingredientFields.extend({
 });
 
 // Built from the fields without defaults: a field left out of an update stays as it is.
-export const updateIngredientSchema = ingredientFields.partial();
+export const updateIngredientSchema = ingredientFields.partial().extend({
+  /**
+   * With a price: when the price the editor showed was last changed (its
+   * price.updatedAt; null: there was none). A new price alone keeps the
+   * ingredient's version, so this is how an edit sees that someone changed
+   * the price since, and doesn't undo it unseen.
+   */
+  priceBase: z.string().nullable().optional(),
+});
 
 export const listIngredientsQuerySchema = z.object({
   search: z.string().max(160).optional(),

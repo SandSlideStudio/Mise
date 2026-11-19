@@ -1,4 +1,4 @@
-import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
+import { changedMeanwhile, editBase, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { and, asc, eq, ilike, sql } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
@@ -22,6 +22,7 @@ import labelCheckRoutes from './labelChecks.js';
 import {
   applyIngredientEdit,
   lastLabelChecks,
+  priceChangedSince,
   priceColumns,
   tracesOnly,
   type IngredientRow,
@@ -201,7 +202,13 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           .where(eq(ingredients.id, request.params.id))
           .for('update');
         if (!locked) return null;
-        if (!matchesBase(request, locked.updatedAt)) return 'changed' as const;
+        // A new price alone keeps the version, so the price is checked by its own.
+        // Sent without a base ("keep mine"), the edit goes over whatever is there.
+        if (
+          !matchesBase(request, locked.updatedAt) ||
+          (editBase(request) !== undefined && priceChangedSince(locked, request.body))
+        )
+          return 'changed' as const;
         return applyIngredientEdit(tx, locked, request.body, { userId: request.user?.id ?? null });
       });
       if (saved === 'changed') {

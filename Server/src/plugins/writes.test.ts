@@ -258,6 +258,52 @@ describe('an edit made offline, when someone else changed the same thing', () =>
     expect(mine.json().error.details.current.name).toBe('Banana shallot');
   });
 
+  it('checks an ingredient’s price by its own date, since a new price keeps the version', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const butter = (
+      await send(admin, 'POST', '/api/ingredients', {
+        name: 'Butter',
+        baseUnit: 'g',
+        price: { amount: 5, quantity: { value: 1, unit: 'kg' } },
+      })
+    ).json() as { id: string; updatedAt: string; price: { updatedAt: string } };
+    // Someone enters the new invoice price.
+    await send(admin, 'PATCH', `/api/ingredients/${butter.id}`, {
+      price: { amount: 6, quantity: { value: 1, unit: 'kg' } },
+    });
+    const opened = { 'x-mise-base': butter.updatedAt };
+    // An edit opened before it, with a price of its own: refused, not undone unseen.
+    const mine = await send(
+      admin,
+      'PATCH',
+      `/api/ingredients/${butter.id}`,
+      {
+        price: { amount: 4, quantity: { value: 1, unit: 'kg' } },
+        priceBase: butter.price.updatedAt,
+      },
+      opened,
+    );
+    expect(mine.statusCode).toBe(409);
+    expect(mine.json().error.details.current.price.amount).toBe(6);
+    // The same edit without touching the price goes through and leaves it.
+    const named = await send(
+      admin,
+      'PATCH',
+      `/api/ingredients/${butter.id}`,
+      { name: 'Unsalted butter' },
+      opened,
+    );
+    expect(named.statusCode).toBe(200);
+    expect(named.json().price.amount).toBe(6);
+    // Keep mine: sent without a version, it goes over what is there.
+    const kept = await send(admin, 'PATCH', `/api/ingredients/${butter.id}`, {
+      price: { amount: 4, quantity: { value: 1, unit: 'kg' } },
+      priceBase: butter.price.updatedAt,
+    });
+    expect(kept.statusCode).toBe(200);
+    expect(kept.json().price.amount).toBe(4);
+  });
+
   it('checks the handover note, including one written where there was none', async () => {
     const admin = await setUpKitchen(ctx.app);
     // Written offline when there was no note, but someone left one meanwhile.

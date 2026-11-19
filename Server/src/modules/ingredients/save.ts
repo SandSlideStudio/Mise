@@ -22,7 +22,7 @@ export function priceColumns(price: IngredientPriceInput | null) {
   };
 }
 
-function samePrice(row: IngredientRow, price: IngredientPriceInput | null): boolean {
+export function samePrice(row: IngredientRow, price: IngredientPriceInput | null): boolean {
   const next = priceColumns(price);
   return (
     row.price === next.price &&
@@ -63,9 +63,22 @@ function changesMoreThanPrice(row: IngredientRow, body: UpdateIngredient): boole
   return Object.entries(body).some(
     ([key, value]) =>
       key !== 'price' &&
+      key !== 'priceBase' &&
       value !== undefined &&
       JSON.stringify(value) !== JSON.stringify(stored[key]),
   );
+}
+
+/**
+ * Whether an edit would put its price over one someone changed after the
+ * editor loaded it. Only for an edit that says which price it saw; the same
+ * price sent again changes nothing, so it is never in the way.
+ */
+export function priceChangedSince(row: IngredientRow, body: UpdateIngredient): boolean {
+  if (body.price === undefined || body.priceBase === undefined) return false;
+  if (samePrice(row, body.price)) return false;
+  const seen = body.priceBase === null ? null : Date.parse(body.priceBase);
+  return (row.priceUpdatedAt?.getTime() ?? null) !== seen;
 }
 
 /**
@@ -80,7 +93,7 @@ export async function applyIngredientEdit(
   body: UpdateIngredient,
   cause: AllergenCause,
 ): Promise<IngredientRow | null> {
-  const { mayContain, price, ...rest } = body;
+  const { mayContain, price, priceBase: _seen, ...rest } = body;
   const priceChanged = price !== undefined && !samePrice(locked, price);
   const [row] = await tx
     .update(ingredients)

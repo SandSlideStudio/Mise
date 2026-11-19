@@ -44,6 +44,18 @@ function versionOf(answer: unknown): string | null {
   return null;
 }
 
+/**
+ * An ingredient edit's price goes with the price it replaces (priceBase),
+ * since a new price alone keeps the version. A later edit from this device
+ * moves that on too, to the price the earlier one left.
+ */
+function withPriceBase(body: unknown, answer: unknown): { body?: unknown } {
+  if (!body || typeof body !== 'object' || !('priceBase' in body)) return {};
+  if (!answer || typeof answer !== 'object' || !('price' in answer)) return {};
+  const price = (answer as { price: { updatedAt?: string | null } | null }).price;
+  return { body: { ...body, priceBase: price?.updatedAt ?? null } };
+}
+
 /** A refusal that came back for a change made earlier, shown once. */
 export interface DroppedChange {
   entry: OutboxEntry;
@@ -138,7 +150,7 @@ async function flushHere(userId: string): Promise<boolean> {
         if (now) {
           for (const later of entriesFor(userId)) {
             if (later.path === entry.path && later.base && !later.conflict) {
-              update(later.id, { base: now });
+              update(later.id, { base: now, ...withPriceBase(later.body, answer) });
             }
           }
         }

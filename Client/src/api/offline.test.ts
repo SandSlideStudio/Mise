@@ -297,6 +297,26 @@ describe('sending what waited', () => {
     expect(entriesFor(ME)).toHaveLength(0);
   });
 
+  it('lets a later price build on the price just sent, which keeps the version', async () => {
+    const base = '2026-01-01T00:00:00.000Z';
+    const price = (amount: number) => ({ amount, quantity: { value: 1, unit: 'kg' } });
+    await waiting(
+      ['PATCH', '/ingredients/i1', { price: price(6), priceBase: null }, base],
+      ['PATCH', '/ingredients/i1', { price: price(7), priceBase: null }, base],
+    );
+    fetchMock
+      .mockResolvedValueOnce(
+        answer(200, {
+          updatedAt: base,
+          price: { ...price(6), updatedAt: '2026-01-02T00:00:00.000Z' },
+        }),
+      )
+      .mockResolvedValueOnce(answer(200, { updatedAt: base }));
+    await flush(ME);
+    const second = JSON.parse(fetchMock.mock.calls[1]![1]!.body as string);
+    expect(second.priceBase).toBe('2026-01-02T00:00:00.000Z');
+  });
+
   it('hands ticks made on a line added offline to the line it became', async () => {
     await waiting(['POST', '/running/tasks', { description: 'Stock' }]);
     const line = entriesFor(ME)[0]!;
