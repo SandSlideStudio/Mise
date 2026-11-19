@@ -169,8 +169,8 @@ test('a chef sets a par; the cook says what is there and the list asks for the r
   ] as const) {
     await anywhere.getByLabel('New item').fill(name);
     await anywhere.getByRole('button', { name: 'Add', exact: true }).click();
-    await page.getByLabel(`Par for ${name}`).fill(par);
-    await page.getByLabel(`Unit of the par for ${name}`).selectOption('l');
+    await page.getByLabel(`Par for ${name}`, { exact: true }).fill(par);
+    await page.getByLabel(`Unit of the par for ${name}`, { exact: true }).selectOption('l');
   }
   await page.getByRole('button', { name: 'Save checklist' }).click();
 
