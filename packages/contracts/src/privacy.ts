@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
 import { languageSchema, roleSchema } from './auth.js';
+import { labelCheckStatusSchema } from './labelChecks.js';
 import { prepTaskStatusSchema, tickedRetentionSchema } from './prep.js';
 
 /**
@@ -80,6 +81,18 @@ export const personDataSchema = z.object({
   allergenChanges: z.array(
     z.object({ dish: z.string(), changedAt: z.string(), cause: z.string().nullable() }),
   ),
+  /** Labels they read at delivery. Left out by older servers. */
+  labelChecks: z
+    .array(
+      z.object({
+        ingredient: z.string(),
+        checkedAt: z.string(),
+        changed: z.boolean(),
+        status: labelCheckStatusSchema,
+        note: z.string().nullable(),
+      }),
+    )
+    .optional(),
   /** The note for the next shift, when it is signed with their name. */
   handoverNote: z.object({ text: z.string().nullable(), at: z.string().nullable() }).nullable(),
   sessions: z.array(

@@ -286,6 +286,65 @@ describe('backing up and restoring', () => {
     }
   });
 
+  it('brings back the labels checked at delivery, with who checked them', async () => {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    const post = async (url: string, payload: Record<string, unknown>) => {
+      const response = await app.inject({ method: 'POST', url, cookies, payload });
+      expect(response.statusCode, response.body).toBe(200);
+      return response.json();
+    };
+    const mayo = await post('/api/ingredients', { name: 'Mayonaise', baseUnit: 'g' });
+    await post(`/api/ingredients/${mayo.id}/label-checks`, {
+      allergens: ['eggs', 'mustard'],
+      mayContain: [],
+      note: 'Leverancier B, art. 4471',
+    });
+    await post(`/api/ingredients/${mayo.id}/label-checks`, {
+      allergens: ['eggs', 'mustard'],
+      mayContain: [],
+    });
+    const { file, key } = await backUp(cookies);
+
+    const second = await emptyServer();
+    try {
+      expect((await restore(second.app, file, key)).statusCode).toBe(200);
+      const signIn = await second.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password: ADMIN.password },
+      });
+      const restoredCookies = { mise_session: cookieFrom(signIn, 'mise_session')! };
+      const checks = await second.app.inject({
+        method: 'GET',
+        url: `/api/ingredients/${mayo.id}/label-checks`,
+        cookies: restoredCookies,
+      });
+      expect(checks.json()).toEqual([
+        expect.objectContaining({
+          changed: false,
+          status: 'applied',
+          checkedBy: ADMIN.displayName,
+        }),
+        expect.objectContaining({
+          changed: true,
+          status: 'applied',
+          note: 'Leverancier B, art. 4471',
+          before: { allergens: [], mayContain: [] },
+          after: { allergens: ['eggs', 'mustard'], mayContain: [] },
+          checkedBy: ADMIN.displayName,
+        }),
+      ]);
+      const ingredient = await second.app.inject({
+        method: 'GET',
+        url: `/api/ingredients/${mayo.id}`,
+        cookies: restoredCookies,
+      });
+      expect(ingredient.json().labelCheck).toMatchObject({ by: ADMIN.displayName, pending: false });
+    } finally {
+      await second.close();
+    }
+  });
+
   it('brings back the dish card settings, logo and label settings', async () => {
     const { cookies } = await stockedKitchen();
     const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), randomBytes(64)]);
