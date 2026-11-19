@@ -61,7 +61,8 @@ const TOPIC_BY_ROUTE: [prefix: string, topic: LiveTopic][] = [
  * dishes, stations, the checklist and card settings. Deliberately not prep
  * ticks or sign-ins, which happen all day and are kept current by the live
  * signals above. Backups and setup are here because a restore or a first-run
- * replaces the lot.
+ * replaces the lot. Staff, because the bundle names who changed a dish's
+ * allergens: someone renamed or removed for good must not stay named in it.
  */
 const BUNDLE_ROUTES = [
   '/api/recipes',
@@ -74,12 +75,15 @@ const BUNDLE_ROUTES = [
   '/api/checklist',
   '/api/backups',
   '/api/setup',
+  '/api/users',
 ];
 
 /** Under these, only the listed writes change what is loaded ahead. */
 const BUNDLE_ONLY: Record<string, string[]> = {
   // Saving the list itself; adding from it only puts lines on the prep list.
   '/api/checklist': ['PUT /api/checklist'],
+  // Someone new isn't named anywhere yet, and a lock lifted names no one.
+  '/api/users': ['PATCH /api/users/:id', 'DELETE /api/users/:id'],
 };
 
 function movesBundle(method: string, route: string | undefined): boolean {

@@ -289,6 +289,47 @@ describe('the data version', () => {
     expect(await version()).not.toBe(before);
   });
 
+  it('moves when someone is renamed or removed, so their old name leaves the bundle', async () => {
+    await kitchenWith(1);
+    const chef = await post('/api/users', {
+      displayName: 'Gusteau',
+      role: 'sous_chef',
+      email: 'gusteau@example.com',
+      password: 'a-long-enough-password',
+    });
+    const signIn = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'gusteau@example.com', password: 'a-long-enough-password' },
+    });
+    const flour = (
+      await ctx.app.inject({ method: 'GET', url: '/api/ingredients', cookies: admin })
+    ).json<{ id: string; name: string }[]>()[0]!;
+    // Their name goes on every dish's allergen record.
+    await send(
+      'PATCH',
+      `/api/ingredients/${flour.id}`,
+      { allergens: ['gluten', 'milk'] },
+      {
+        mise_session: cookieFrom(signIn, 'mise_session')!,
+      },
+    );
+    expect(JSON.stringify(await bundleFor(admin))).toContain('Gusteau');
+
+    await send('PATCH', `/api/users/${chef.id}`, { displayName: 'Auguste' });
+    const renamed = JSON.stringify(await bundleFor(admin));
+    expect(renamed).not.toContain('Gusteau');
+    expect(renamed).toContain('Auguste');
+
+    const removed = await ctx.app.inject({
+      method: 'DELETE',
+      url: `/api/users/${chef.id}`,
+      cookies: admin,
+    });
+    expect(removed.statusCode).toBe(204);
+    expect(JSON.stringify(await bundleFor(admin))).not.toContain('Auguste');
+  });
+
   it('differs between roles', async () => {
     cook = await signInCook();
     expect(await version(cook)).not.toBe(await version());
