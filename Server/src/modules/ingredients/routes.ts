@@ -5,17 +5,41 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
   createIngredientSchema,
+  type IngredientPriceInput,
+  type UpdateIngredient,
   errorSchema,
   idSchema,
   ingredientSchema,
   listIngredientsQuerySchema,
   updateIngredientSchema,
 } from '@mise/contracts';
-import { isAllergen, type Allergen } from '@mise/domain';
+import { costPerBaseUnit, isAllergen, type Allergen } from '@mise/domain';
 import { ingredients } from '../../db/schema.js';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { recordAllergenChanges } from '../recipes/allergenHistory.js';
+import { domainIngredient } from '../recipes/book.js';
+import { seesCosts } from '../recipes/costs.js';
+
+type IngredientRow = typeof ingredients.$inferSelect;
+
+/** The columns a price is kept in; null clears it. */
+function priceColumns(price: IngredientPriceInput | null) {
+  return {
+    price: price?.amount ?? null,
+    purchaseQuantity: price?.quantity.value ?? null,
+    purchaseUnit: price?.quantity.unit ?? null,
+  };
+}
+
+function samePrice(row: IngredientRow, price: IngredientPriceInput | null): boolean {
+  const next = priceColumns(price);
+  return (
+    row.price === next.price &&
+    row.purchaseQuantity === next.purchaseQuantity &&
+    row.purchaseUnit === next.purchaseUnit
+  );
+}
 
 /**
  * A "may contain" next to a "contains" of the same allergen says nothing the
@@ -23,6 +47,35 @@ import { recordAllergenChanges } from '../recipes/allergenHistory.js';
  */
 function tracesOnly(mayContain: Allergen[], contains: readonly Allergen[]): Allergen[] {
   return mayContain.filter((allergen) => !contains.includes(allergen));
+}
+
+/**
+ * Whether an edit changes anything but the price, comparing with what is
+ * stored the way the editor sends it. When unsure, it counts as a change.
+ */
+function changesMoreThanPrice(row: IngredientRow, body: UpdateIngredient): boolean {
+  const stored: Record<string, unknown> = {
+    name: row.name,
+    category: row.category,
+    baseUnit: row.baseUnit,
+    allergens: row.allergens,
+    mayContain: row.mayContain,
+    vegan: row.vegan,
+    allergenDetails: {
+      gluten: row.allergenDetails.gluten ?? [],
+      nuts: row.allergenDetails.nuts ?? [],
+    },
+    notes: row.notes,
+    densityGPerMl: row.densityGPerMl,
+    itemWeightG: row.itemWeightG,
+    yieldPercent: row.yieldPercent,
+  };
+  return Object.entries(body).some(
+    ([key, value]) =>
+      key !== 'price' &&
+      value !== undefined &&
+      JSON.stringify(value) !== JSON.stringify(stored[key]),
+  );
 }
 
 /**
@@ -37,7 +90,10 @@ function tracesOnly(mayContain: Allergen[], contains: readonly Allergen[]): Alle
 const ingredientRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
 
-  function serialise(row: typeof ingredients.$inferSelect) {
+  /** withCosts: whether the reader may see the price. Off unless said. */
+  function serialise(row: IngredientRow, withCosts = false) {
+    const domain = domainIngredient(row);
+    const perBase = costPerBaseUnit(domain);
     return {
       id: row.id,
       name: row.name,
@@ -51,7 +107,21 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
         nuts: row.allergenDetails.nuts ?? [],
       },
       notes: row.notes,
+      densityGPerMl: row.densityGPerMl,
+      itemWeightG: row.itemWeightG,
+      yieldPercent: row.yieldPercent,
       updatedAt: row.updatedAt.toISOString(),
+      ...(withCosts
+        ? {
+            price: domain.price
+              ? {
+                  ...domain.price,
+                  updatedAt: row.priceUpdatedAt?.toISOString() ?? null,
+                  perBase: perBase.ok ? perBase.value : null,
+                }
+              : null,
+          }
+        : {}),
     };
   }
 
@@ -75,7 +145,8 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
         .from(ingredients)
         .where(conditions.length > 0 ? and(...conditions) : undefined)
         .orderBy(asc(ingredients.name));
-      return rows.map(serialise);
+      const withCosts = seesCosts(request.user);
+      return rows.map((row) => serialise(row, withCosts));
     },
   );
 
@@ -117,10 +188,15 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           vegan: request.body.vegan ?? null,
           allergenDetails: request.body.allergenDetails ?? {},
           notes: request.body.notes ?? null,
+          densityGPerMl: request.body.densityGPerMl ?? null,
+          itemWeightG: request.body.itemWeightG ?? null,
+          yieldPercent: request.body.yieldPercent ?? 100,
+          ...priceColumns(request.body.price ?? null),
+          priceUpdatedAt: request.body.price ? new Date() : null,
         })
         .returning();
       if (!row) throw new ApiError(500, 'internal_error', 'Could not save that ingredient.');
-      return serialise(row);
+      return serialise(row, true);
     },
   );
 
@@ -140,7 +216,7 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
         .where(eq(ingredients.id, request.params.id))
         .limit(1);
       if (!row) throw ApiError.notFound('That ingredient');
-      return serialise(row);
+      return serialise(row, seesCosts(request.user));
     },
   );
 
@@ -163,7 +239,7 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
         .where(eq(ingredients.id, request.params.id))
         .limit(1);
       if (!before) throw ApiError.notFound('That ingredient');
-      await ensureUnchanged(request, before.updatedAt, () => serialise(before));
+      await ensureUnchanged(request, before.updatedAt, () => serialise(before, true));
       // The check above is the quick answer. This is the one that counts: made
       // with the row locked, in the same transaction as the write.
       const saved = await app.db.transaction(async (tx) => {
@@ -174,11 +250,13 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           .for('update');
         if (!locked) return null;
         if (!matchesBase(request, locked.updatedAt)) return 'changed' as const;
-        const { mayContain, ...rest } = request.body;
+        const { mayContain, price, ...rest } = request.body;
+        const priceChanged = price !== undefined && !samePrice(locked, price);
         const [row] = await tx
           .update(ingredients)
           .set({
             ...rest,
+            ...(priceChanged ? { ...priceColumns(price), priceUpdatedAt: new Date() } : {}),
             // Saved either way when either list changed, so the two never overlap.
             ...(mayContain !== undefined || rest.allergens !== undefined
               ? {
@@ -188,7 +266,10 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
                   ),
                 }
               : {}),
-            updatedAt: new Date(),
+            // A new price changes nothing a dish card says, so a price alone
+            // keeps the version: menus would otherwise ask for every card to be
+            // printed again each time an invoice comes in.
+            ...(changesMoreThanPrice(locked, request.body) ? { updatedAt: new Date() } : {}),
           })
           .where(eq(ingredients.id, request.params.id))
           .returning();
@@ -205,11 +286,11 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
             .where(eq(ingredients.id, request.params.id))
             .limit(1);
           if (!now) throw ApiError.notFound('That ingredient');
-          return serialise(now);
+          return serialise(now, true);
         });
       }
       if (!saved || saved === 'changed') throw ApiError.notFound('That ingredient');
-      return serialise(saved);
+      return serialise(saved, true);
     },
   );
 

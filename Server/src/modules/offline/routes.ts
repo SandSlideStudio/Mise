@@ -11,6 +11,7 @@ import { createMenusService } from '../menus/service.js';
 import { createChecklistReader } from '../prep/checklist.js';
 import { historyOf } from '../recipes/allergenHistory.js';
 import { loadComponentNames, loadRecipeBook } from '../recipes/book.js';
+import { costAgainst, loadCostSettings, seesCosts } from '../recipes/costs.js';
 import { createRecipesService } from '../recipes/service.js';
 import { expandAgainst, serialise, summarise } from '../recipes/shape.js';
 
@@ -25,7 +26,8 @@ import { expandAgainst, serialise, summarise } from '../recipes/shape.js';
  *
  * Every part is what the individual endpoint would answer for the person
  * asking: where cards are for chefs only, a cook gets no cards or overviews,
- * just as they would be refused one by one.
+ * just as they would be refused one by one, and a cook's bundle carries no
+ * costs or selling prices at all, since those answers leave them out.
  */
 
 const gzipped = promisify(gzip);
@@ -44,27 +46,53 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
   const checklist = createChecklistReader(app.db);
 
   /**
-   * The last build, per kind of reader (with or without cards). One promise
-   * each, so tablets asking while it is being built wait for it, and a
-   * changed version replaces it rather than adding to it.
+   * The last build, per kind of reader (with or without cards, with or
+   * without costs). One promise each, so tablets asking while it is being
+   * built wait for it, and a changed version replaces it rather than adding
+   * to it.
    */
   const built = new Map<string, { version: string; result: Promise<OfflineBundle> }>();
   /** The same, written out with each role's version on it, plain and zipped. */
   const encoded = new Map<string, Built & { version: string }>();
 
-  async function build(version: string, withCards: boolean): Promise<OfflineBundle> {
-    const [book, all, names, usedBy, stations, list, menuList, settings, history] =
-      await Promise.all([
-        loadRecipeBook(app.db),
-        recipes.allRecipes(),
-        loadComponentNames(app.db),
-        recipes.usedByAll(),
-        kitchen.listStations(),
-        checklist.readChecklist(),
-        menus.listMenus(),
-        dishCards.settings(),
-        historyOf(app.db),
-      ]);
+  /**
+   * What every kind of bundle is made from, read once per version: a chef and
+   * a cook get different bundles, but from one reading of the book.
+   */
+  let sources: { version: string; result: ReturnType<typeof readSources> } | null = null;
+  function readSources() {
+    return Promise.all([
+      loadRecipeBook(app.db),
+      recipes.allRecipes(),
+      loadComponentNames(app.db),
+      recipes.usedByAll(),
+      kitchen.listStations(),
+      checklist.readChecklist(),
+      menus.listMenus(),
+      dishCards.settings(),
+      historyOf(app.db),
+      loadCostSettings(app.db),
+    ]);
+  }
+  function sourcesAt(version: string) {
+    if (!sources || sources.version !== version) {
+      const result = readSources();
+      // A failed reading must not be remembered.
+      result.catch(() => {
+        if (sources?.result === result) sources = null;
+      });
+      sources = { version, result };
+    }
+    return sources.result;
+  }
+
+  async function build(
+    version: string,
+    withCards: boolean,
+    withCosts: boolean,
+  ): Promise<OfflineBundle> {
+    const [book, all, names, usedBy, stations, list, menuList, settings, history, costSettings] =
+      await sourcesAt(version);
     const dishes = await dishCards.summaries(book);
 
     const recipeEntries: OfflineBundle['recipeEntries'] = [];
@@ -76,6 +104,10 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
         // Answered with 422 one by one: what can't be worked out is not handed out.
       }
       const expanded = allergens ? expandAgainst(row.id, {}, book) : null;
+      const cost =
+        withCosts && expanded?.ok
+          ? costAgainst(row.id, expanded.value.factor, book, costSettings, row.sellPrice)
+          : null;
       let card: OfflineBundle['recipeEntries'][number]['card'] = null;
       if (withCards && row.type === 'dish') {
         const result = await dishCards.card(row.id, book);
@@ -85,10 +117,10 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
         }
       }
       recipeEntries.push({
-        recipe: serialise(row, names),
+        recipe: serialise(row, names, withCosts),
         usedBy: usedBy.get(row.id) ?? [],
         allergens,
-        expanded: expanded?.ok ? expanded.value : null,
+        expanded: expanded?.ok ? { ...expanded.value, ...(cost ? { cost } : {}) } : null,
         card,
         allergenHistory: row.type === 'dish' ? (history.get(row.id) ?? []) : null,
       });
@@ -96,8 +128,9 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
 
     const menuEntries: OfflineBundle['menuEntries'] = [];
     for (const { id } of menuList) {
-      const menu = await menus.getMenu(id);
-      if (!menu) continue;
+      const found = await menus.getMenu(id);
+      if (!found) continue;
+      const menu = withCosts ? await menus.withCosts(found, book) : found;
       let overview: OfflineBundle['menuEntries'][number]['overview'] = null;
       if (withCards) {
         const result = await menus.overview(id, book);
@@ -145,13 +178,14 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     const version = `${data}-${user.role}`;
     const settings = await dishCards.settings();
     const withCards = settings.access !== 'managers' || MANAGERS.includes(user.role);
+    const withCosts = seesCosts(user);
 
     // One build per version and kind of reader, whatever the roles asking:
     // only the version stamped on it differs between them.
-    const kind = withCards ? 'cards' : 'plain';
+    const kind = withCosts ? 'costs' : withCards ? 'cards' : 'plain';
     let current = built.get(kind);
     if (!current || current.version !== data) {
-      const result = build(data, withCards);
+      const result = build(data, withCards, withCosts);
       // A failed build must not be remembered.
       result.catch(() => {
         if (built.get(kind)?.result === result) built.delete(kind);

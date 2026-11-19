@@ -17,6 +17,7 @@ import {
 } from '@mise/contracts';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
+import { currencyOf } from '../recipes/costs.js';
 import { createKitchenService, type KitchenFailure } from './service.js';
 
 /**
@@ -97,6 +98,8 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       tickedKeepDays: row.tickedKeepDays,
       labelSize: row.labelSize,
       labelOnTick: row.labelOnTick,
+      currency: currencyOf(row.currency),
+      foodVatPercent: row.foodVatPercent,
     };
   }
 

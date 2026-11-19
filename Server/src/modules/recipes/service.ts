@@ -314,6 +314,8 @@ export function createRecipesService(db: Database) {
           course: input.course,
           drinkPairings: input.drinkPairings,
           cutlery: input.cutlery,
+          // Only a dish is sold.
+          sellPrice: input.type === 'dish' ? (input.sellPrice ?? null) : null,
           createdBy,
         })
         .returning();
@@ -396,6 +398,7 @@ export function createRecipesService(db: Database) {
           ...(input.course !== undefined ? { course: input.course } : {}),
           ...(input.drinkPairings !== undefined ? { drinkPairings: input.drinkPairings } : {}),
           ...(input.cutlery !== undefined ? { cutlery: input.cutlery } : {}),
+          ...(input.sellPrice !== undefined ? { sellPrice: input.sellPrice } : {}),
           version: sql`${recipes.version} + 1`,
           updatedAt: new Date(),
         })
@@ -449,6 +452,7 @@ export function createRecipesService(db: Database) {
           course: source.course,
           drinkPairings: source.drinkPairings,
           cutlery: source.cutlery,
+          sellPrice: source.sellPrice,
           createdBy: source.createdBy,
         })
         .returning();

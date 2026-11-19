@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { allergenSchema, idSchema } from './common.js';
+import { ingredientPriceInputSchema, ingredientPriceSchema } from './costing.js';
 
 /**
  * The raw material catalogue. Density and item weight are what make
@@ -25,6 +26,13 @@ export const ingredientSchema = z.object({
   vegan: z.boolean().nullable(),
   allergenDetails: allergenDetailsSchema,
   notes: z.string().nullable(),
+  /** Grams per millilitre, and grams for one: what lets amounts cross from one kind of unit to another. */
+  densityGPerMl: z.number().nullable(),
+  itemWeightG: z.number().nullable(),
+  /** Edible portion as a percentage of what is bought. */
+  yieldPercent: z.number(),
+  /** What it costs. Null: nobody has said. Left out altogether for a cook. */
+  price: ingredientPriceSchema.nullable().optional(),
   /** When it last changed: the version an edit starts from. */
   updatedAt: z.string(),
 });
@@ -38,6 +46,10 @@ const ingredientFields = z.object({
   vegan: z.boolean().nullable().optional(),
   allergenDetails: allergenDetailsSchema.optional(),
   notes: z.string().max(2000).nullable().optional(),
+  densityGPerMl: z.number().positive().max(30).nullable().optional(),
+  itemWeightG: z.number().positive().max(100_000).nullable().optional(),
+  yieldPercent: z.number().gt(0).max(100).optional(),
+  price: ingredientPriceInputSchema.nullable().optional(),
 });
 
 export const createIngredientSchema = ingredientFields.extend({

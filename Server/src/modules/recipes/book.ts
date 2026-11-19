@@ -69,7 +69,12 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
     mayContain: toAllergens(row.mayContain),
   }));
 
-  const domainIngredients: DomainIngredient[] = ingredientRows.map((row) => ({
+  return createRecipeBook(domainRecipes, ingredientRows.map(domainIngredient));
+}
+
+/** One ingredient as the domain works with it, price and all. */
+export function domainIngredient(row: typeof ingredients.$inferSelect): DomainIngredient {
+  return {
     id: row.id,
     name: row.name,
     baseUnit: row.baseUnit,
@@ -77,9 +82,18 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
     mayContain: toAllergens(row.mayContain),
     vegan: row.vegan,
     allergenDetails: row.allergenDetails,
-  }));
+    densityGPerMl: row.densityGPerMl,
+    itemWeightG: row.itemWeightG,
+    yieldPercent: row.yieldPercent,
+    price: priceOf(row),
+  };
+}
 
-  return createRecipeBook(domainRecipes, domainIngredients);
+/** A price is only a price with what it buys; anything less is unknown. */
+function priceOf(row: typeof ingredients.$inferSelect): DomainIngredient['price'] {
+  if (row.price === null || row.purchaseQuantity === null || !row.purchaseUnit) return null;
+  if (!isUnitCode(row.purchaseUnit)) return null;
+  return { amount: row.price, quantity: { value: row.purchaseQuantity, unit: row.purchaseUnit } };
 }
 
 /**

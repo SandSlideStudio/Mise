@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { COURSES, SERVING_TEMPERATURES } from '@mise/domain';
 import { allergenSchema, idSchema, quantitySchema, unitCodeSchema } from './common.js';
+import { recipeCostSchema } from './costing.js';
 
 /**
  * A recipe is a list of components, and a component points at either an
@@ -70,6 +71,8 @@ export const recipeSchema = z.object({
   cutlery: z.array(z.string()),
   components: z.array(recipeComponentSchema),
   photos: z.array(recipePhotoSchema),
+  /** What a guest pays for a dish, VAT included. Left out altogether for a cook. */
+  sellPrice: z.number().nonnegative().nullable().optional(),
   version: z.number().int(),
   updatedAt: z.string(),
 });
@@ -116,6 +119,7 @@ const recipeFields = z.object({
   drinkPairings: shortList,
   cutlery: shortList,
   components: z.array(createRecipeComponentSchema),
+  sellPrice: z.number().finite().nonnegative().max(100_000).nullable().optional(),
 });
 
 export const createRecipeSchema = recipeFields.extend({
@@ -191,6 +195,8 @@ export const expandedRecipeSchema = z.object({
   factor: z.number(),
   lines: z.array(expandedLineSchema),
   allergens: allergenProfileSchema,
+  /** What the size asked for costs. Left out altogether for a cook. */
+  cost: recipeCostSchema.optional(),
 });
 
 export type Recipe = z.infer<typeof recipeSchema>;

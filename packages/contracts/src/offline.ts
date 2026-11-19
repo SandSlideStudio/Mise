@@ -33,7 +33,8 @@ export interface OfflineBundle {
     usedBy: { id: string; name: string }[];
     /** Null when the tree can't be worked out; the individual endpoint answers 422. */
     allergens: AllergenProfile | null;
-    expanded: Pick<ExpandedRecipe, 'factor' | 'lines'> | null;
+    /** With its cost for a chef; a cook's carries none. */
+    expanded: Pick<ExpandedRecipe, 'factor' | 'lines' | 'cost'> | null;
     /** Null for what is not a dish, and for a cook where cards are for chefs only. */
     card: Omit<DishCard, 'settings'> | null;
     /** A dish's allergen record, newest first. Null for what is not a dish. */

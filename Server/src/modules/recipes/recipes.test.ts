@@ -50,23 +50,16 @@ async function addRecipe(app: FastifyInstance, cookie: string, payload: Record<s
 }
 
 describe('the ingredient catalogue', () => {
-  it('no longer asks for trim yield, density or weight per piece, and keeps what was entered', async () => {
-    // Sent by an app from before 2.2.4: ignored, not an error.
+  it('asks for trim yield, density and weight per piece again, and keeps them through an edit', async () => {
+    // Not asked for from 2.2.4 until costing needed them; sent again now.
     const onion = await addIngredient(ctx.app, admin, {
       name: 'Onion',
       yieldPercent: 90,
       densityGPerMl: 1.1,
       itemWeightG: 150,
     });
-    expect(onion).not.toHaveProperty('yieldPercent');
-    expect(onion).not.toHaveProperty('densityGPerMl');
-    expect(onion).not.toHaveProperty('itemWeightG');
+    expect(onion).toMatchObject({ yieldPercent: 90, densityGPerMl: 1.1, itemWeightG: 150 });
 
-    // Entered before 2.2.4: still in the database after an edit.
-    await ctx.db
-      .update(ingredients)
-      .set({ yieldPercent: 90, itemWeightG: 150 })
-      .where(eq(ingredients.id, onion.id));
     await ctx.app.inject({
       method: 'PATCH',
       url: `/api/ingredients/${onion.id}`,

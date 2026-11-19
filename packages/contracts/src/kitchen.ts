@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
+import { currencySchema } from './costing.js';
 import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js';
 import { labelSizeSchema } from './labels.js';
 import { tickedRetentionSchema } from './prep.js';
@@ -95,6 +96,9 @@ export const kitchenSchema = z.object({
   labelSize: labelSizeSchema,
   /** Print a label by itself when a line from a recipe is ticked. Off unless chosen. */
   labelOnTick: z.boolean(),
+  /** What prices are in, and the VAT on food sold, in per cent. */
+  currency: currencySchema,
+  foodVatPercent: z.number(),
 });
 
 export const updateKitchenSchema = z.object({
@@ -107,6 +111,8 @@ export const updateKitchenSchema = z.object({
   tickedKeepDays: z.number().int().min(1).max(3650).nullable().optional(),
   labelSize: labelSizeSchema.optional(),
   labelOnTick: z.boolean().optional(),
+  currency: currencySchema.optional(),
+  foodVatPercent: z.number().min(0).max(50).optional(),
 });
 
 /**

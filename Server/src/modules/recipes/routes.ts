@@ -25,6 +25,7 @@ import { MANAGERS } from '../../plugins/auth.js';
 import { kitchens, prepChecklistItems, recipePhotos } from '../../db/schema.js';
 import { allergenHistory } from './allergenHistory.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
+import { costAgainst, loadCostSettings, seesCosts } from './costs.js';
 import { expandAgainst, serialise, summarise } from './shape.js';
 import type { UnitProblem } from './service.js';
 import { createRecipesService } from './service.js';
@@ -89,7 +90,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
 
       const full = await svc.getRecipe(result.recipe.id);
       if (!full) throw new ApiError(500, 'internal_error', 'Could not read that recipe back.');
-      return serialise(full, await loadComponentNames(app.db, full.id));
+      return serialise(full, await loadComponentNames(app.db, full.id), true);
     },
   );
 
@@ -105,7 +106,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const row = await svc.getRecipe(request.params.id);
       if (!row) throw ApiError.notFound('That recipe');
-      return serialise(row, await loadComponentNames(app.db, row.id));
+      return serialise(row, await loadComponentNames(app.db, row.id), seesCosts(request.user));
     },
   );
 
@@ -178,17 +179,26 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       const row = await svc.getRecipe(request.params.id);
       if (!row) throw ApiError.notFound('That recipe');
 
-      const expanded = expandAgainst(
-        request.params.id,
-        request.query,
-        await loadRecipeBook(app.db),
-      );
+      const book = await loadRecipeBook(app.db);
+      const expanded = expandAgainst(request.params.id, request.query, book);
       if (!expanded.ok) throw scaleError(expanded.error);
 
+      // The cost of what was asked for, so it follows the scaler.
+      const withCosts = seesCosts(request.user);
+      const cost = withCosts
+        ? costAgainst(
+            row.id,
+            expanded.value.factor,
+            book,
+            await loadCostSettings(app.db),
+            row.sellPrice,
+          )
+        : null;
       return {
-        recipe: serialise(row, await loadComponentNames(app.db, row.id)),
+        recipe: serialise(row, await loadComponentNames(app.db, row.id), withCosts),
         ...expanded.value,
-        allergens: await svc.allergensFor(request.params.id),
+        allergens: await svc.allergensFor(request.params.id, book),
+        ...(cost ? { cost } : {}),
       };
     },
   );
@@ -230,7 +240,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       const before = await svc.getRecipe(request.params.id);
       if (!before) throw ApiError.notFound('That recipe');
       await ensureUnchanged(request, before.updatedAt, async () =>
-        serialise(before, await loadComponentNames(app.db, before.id)),
+        serialise(before, await loadComponentNames(app.db, before.id), true),
       );
       // The check above is the quick answer; this one is the one that counts,
       // made inside the save with the recipe locked.
@@ -244,7 +254,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
         await changedMeanwhile(async () => {
           const now = await svc.getRecipe(request.params.id);
           if (!now) throw ApiError.notFound('That recipe');
-          return serialise(now, await loadComponentNames(app.db, now.id));
+          return serialise(now, await loadComponentNames(app.db, now.id), true);
         });
       }
       if (result.outcome === 'not_found') throw ApiError.notFound('That recipe');
@@ -253,7 +263,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
 
       const full = await svc.getRecipe(request.params.id);
       if (!full) throw ApiError.notFound('That recipe');
-      return serialise(full, await loadComponentNames(app.db, full.id));
+      return serialise(full, await loadComponentNames(app.db, full.id), true);
     },
   );
 
@@ -276,7 +286,7 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       if (!copy) throw ApiError.notFound('That recipe');
       const full = await svc.getRecipe(copy.id);
       if (!full) throw new ApiError(500, 'internal_error', 'Could not read the copy back.');
-      return serialise(full, await loadComponentNames(app.db, full.id));
+      return serialise(full, await loadComponentNames(app.db, full.id), true);
     },
   );
 

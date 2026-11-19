@@ -348,6 +348,83 @@ describe('backing up and restoring', () => {
     }
   });
 
+  it('brings back prices, selling prices and the kitchen’s currency and VAT', async () => {
+    const { cookies } = await stockedKitchen();
+    const butter = await app.inject({
+      method: 'POST',
+      url: '/api/ingredients',
+      cookies,
+      payload: {
+        name: 'Butter',
+        baseUnit: 'g',
+        allergens: ['milk'],
+        yieldPercent: 95,
+        price: { amount: 12.5, quantity: { value: 2.5, unit: 'kg' } },
+      },
+    });
+    expect(butter.statusCode).toBe(200);
+    const dish = await app.inject({
+      method: 'POST',
+      url: '/api/recipes',
+      cookies,
+      payload: {
+        name: 'Toast',
+        type: 'dish',
+        yield: { value: 1, unit: 'each' },
+        portions: 1,
+        sellPrice: 8.5,
+        components: [
+          {
+            sortOrder: 0,
+            quantity: { value: 20, unit: 'g' },
+            ref: { kind: 'ingredient', ingredientId: butter.json().id },
+          },
+        ],
+      },
+    });
+    expect(dish.statusCode).toBe(200);
+    await app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      cookies,
+      payload: { currency: 'GBP', foodVatPercent: 20 },
+    });
+    const { file, key } = await backUp(cookies);
+
+    const second = await emptyServer();
+    try {
+      expect((await restore(second.app, file, key)).statusCode).toBe(200);
+      const signIn = await second.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password: ADMIN.password },
+      });
+      const restoredCookies = { mise_session: cookieFrom(signIn, 'mise_session')! };
+      const get = (url: string) =>
+        second.app.inject({ method: 'GET', url, cookies: restoredCookies });
+
+      expect((await get(`/api/ingredients/${butter.json().id}`)).json()).toMatchObject({
+        yieldPercent: 95,
+        price: {
+          amount: 12.5,
+          quantity: { value: 2.5, unit: 'kg' },
+          updatedAt: butter.json().price.updatedAt,
+        },
+      });
+      expect((await get('/api/kitchen')).json()).toMatchObject({
+        currency: 'GBP',
+        foodVatPercent: 20,
+      });
+      const expanded = (await get(`/api/recipes/${dish.json().id}/expanded`)).json();
+      expect(expanded.recipe.sellPrice).toBe(8.5);
+      // 20 g of butter at 12.50 for 2.5 kg, 95 % of it usable.
+      expect(expanded.cost.total).toBeCloseTo((12.5 / 2375) * 20);
+      expect(expanded.cost.currency).toBe('GBP');
+    } finally {
+      await second.close();
+    }
+  });
+
   it('refuses a wrong key, a file that is not a backup, and a server already in use', async () => {
     const { cookies } = await stockedKitchen();
     const { file, key } = await backUp(cookies);

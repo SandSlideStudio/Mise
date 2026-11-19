@@ -10,11 +10,13 @@ import {
   menuSchema,
   menuSummarySchema,
   updateMenuSchema,
+  type Menu,
 } from '@mise/contracts';
 import { ApiError } from '../../lib/errors.js';
 import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService } from '../dishcards/service.js';
+import { seesCosts } from '../recipes/costs.js';
 import { createMenusService, type MenuFailure } from './service.js';
 
 /**
@@ -57,6 +59,11 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
   const svc = createMenusService(app.db);
   const dishCards = createDishCardService(app.db);
 
+  /** What each dish costs is for chefs: a cook's answer leaves it out. */
+  async function present(menu: Menu, request: FastifyRequest): Promise<Menu> {
+    return seesCosts(request.user) ? svc.withCosts(menu) : menu;
+  }
+
   async function mayOpenCards(request: FastifyRequest) {
     if (!request.user) throw new ApiError(401, 'not_authenticated', 'Sign in to continue.');
     const settings = await dishCards.settings();
@@ -88,7 +95,7 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const result = await svc.createMenu(request.body);
       if (!result.ok) throw failureToError(result.error);
-      return result.menu;
+      return present(result.menu, request);
     },
   );
 
@@ -101,7 +108,7 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const menu = await svc.getMenu(request.params.id);
       if (!menu) throw ApiError.notFound('That menu');
-      return menu;
+      return present(menu, request);
     },
   );
 
@@ -124,17 +131,20 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const before = await svc.getMenu(request.params.id);
       if (!before) throw ApiError.notFound('That menu');
-      await ensureUnchanged(request, new Date(before.updatedAt), () => before);
+      await ensureUnchanged(request, new Date(before.updatedAt), () => present(before, request));
       // The check above is the quick answer; this one is the one that counts,
       // made inside the save with the menu locked.
       const result = await svc.updateMenu(request.params.id, request.body, (updatedAt) =>
         matchesBase(request, updatedAt),
       );
       if (!result.ok && result.error.kind === 'changed') {
-        await changedMeanwhile(() => svc.getMenu(request.params.id));
+        await changedMeanwhile(async () => {
+          const now = await svc.getMenu(request.params.id);
+          return now ? present(now, request) : now;
+        });
       }
       if (!result.ok) throw failureToError(result.error);
-      return result.menu;
+      return present(result.menu, request);
     },
   );
 
@@ -163,7 +173,7 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const result = await svc.duplicateMenu(request.params.id, request.body.name);
       if (!result.ok) throw failureToError(result.error);
-      return result.menu;
+      return present(result.menu, request);
     },
   );
 
@@ -177,7 +187,7 @@ const menuRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       const menu = await svc.markCardsPrinted(request.params.id);
       if (!menu) throw ApiError.notFound('That menu');
-      return menu;
+      return present(menu, request);
     },
   );
 

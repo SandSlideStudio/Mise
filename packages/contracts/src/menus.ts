@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
+import { menuCostSchema, menuDishCostSchema } from './costing.js';
 import { dishCardFactsSchema, dishCardSettingsSchema } from './dishcards.js';
 import { courseSchema, recipeStatusSchema } from './recipes.js';
 
@@ -27,12 +28,16 @@ export const menuDishSchema = z.object({
   status: recipeStatusSchema,
   /** The dish, or anything in it, changed after the menu's cards were last downloaded. */
   changedSinceCards: z.boolean(),
+  /** Left out altogether for a cook. */
+  cost: menuDishCostSchema.optional(),
 });
 
 export const menuSchema = menuSummarySchema.extend({
   /** In menu order: by course, then as the chef arranged them. */
   dishes: z.array(menuDishSchema),
   cardsPrintedAt: z.string().nullable(),
+  /** Left out altogether for a cook. */
+  cost: menuCostSchema.optional(),
 });
 
 const menuFields = z.object({

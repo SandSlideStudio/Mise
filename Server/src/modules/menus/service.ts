@@ -12,6 +12,7 @@ import {
 } from '../../db/schema.js';
 import { allergensAsOf } from '../recipes/allergenHistory.js';
 import { loadRecipeBook } from '../recipes/book.js';
+import { costAgainst, loadCostSettings } from '../recipes/costs.js';
 import { createDishCardService, serialiseSettings } from '../dishcards/service.js';
 
 /**
@@ -325,7 +326,56 @@ export function createMenusService(db: Database) {
     };
   }
 
+  /**
+   * A menu with what each dish costs a portion and its food cost, and the
+   * averages over the dishes that have one. For chefs only: the routes and
+   * the offline bundle ask for it only for them.
+   */
+  async function withCosts(menu: Menu, loaded?: Awaited<ReturnType<typeof loadRecipeBook>>) {
+    const ids = menu.dishes.map((dish) => dish.recipeId);
+    const [book, settings, prices] = await Promise.all([
+      loaded ?? loadRecipeBook(db),
+      loadCostSettings(db),
+      ids.length > 0
+        ? db
+            .select({ id: recipes.id, sellPrice: recipes.sellPrice })
+            .from(recipes)
+            .where(inArray(recipes.id, ids))
+        : Promise.resolve([]),
+    ]);
+    const sellPrice = new Map(prices.map((row) => [row.id, row.sellPrice]));
+
+    const dishes = menu.dishes.map((dish) => {
+      const price = sellPrice.get(dish.recipeId) ?? null;
+      const cost = costAgainst(dish.recipeId, 1, book, settings, price);
+      return {
+        ...dish,
+        cost: {
+          perPortion: cost?.perPortion ?? null,
+          sellPrice: price,
+          foodCostPercent: cost?.foodCostPercent ?? null,
+          gaps: cost ? cost.gaps.length : 0,
+        },
+      };
+    });
+    const average = (values: (number | null)[]) => {
+      const known = values.filter((value): value is number => value !== null);
+      return known.length > 0 ? known.reduce((sum, value) => sum + value, 0) / known.length : null;
+    };
+    return {
+      ...menu,
+      dishes,
+      cost: {
+        currency: settings.currency,
+        averagePerPortion: average(dishes.map((dish) => dish.cost.perPortion)),
+        averageFoodCostPercent: average(dishes.map((dish) => dish.cost.foodCostPercent)),
+        incomplete: dishes.some((dish) => dish.cost.gaps > 0),
+      },
+    };
+  }
+
   return {
+    withCosts,
     listMenus,
     getMenu,
     createMenu,

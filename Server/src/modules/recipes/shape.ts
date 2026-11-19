@@ -20,7 +20,11 @@ export type StoredRecipe = NonNullable<
   Awaited<ReturnType<ReturnType<typeof createRecipesService>['getRecipe']>>
 >;
 
-export function serialise(row: StoredRecipe, names: Map<string, string>) {
+/**
+ * withCosts: whether the reader may see what a dish sells for. Off unless
+ * said, so an answer never carries a price by forgetting to ask.
+ */
+export function serialise(row: StoredRecipe, names: Map<string, string>, withCosts = false) {
   return {
     id: row.id,
     name: row.name,
@@ -67,6 +71,7 @@ export function serialise(row: StoredRecipe, names: Map<string, string>) {
     })),
     version: row.version,
     updatedAt: row.updatedAt.toISOString(),
+    ...(withCosts ? { sellPrice: row.sellPrice } : {}),
   };
 }
 
