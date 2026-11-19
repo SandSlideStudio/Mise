@@ -2,6 +2,7 @@ import type { FastifyPluginAsync, FastifyReply } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
+  DEFAULT_LABEL_SIZE,
   deviceSchema,
   enrollDeviceRequestSchema,
   enrollDeviceResponseSchema,
@@ -14,6 +15,7 @@ import {
   rosterSchema,
   sessionUserSchema,
   updateMeSchema,
+  type LabelSize,
   type Language,
   type Role,
 } from '@mise/contracts';
@@ -75,7 +77,7 @@ function describeUser(
     tourSeen: boolean;
     deviceId: string | null;
   },
-  kitchen: { name: string; language: Language } | null,
+  kitchen: { name: string; language: Language; labelSize: LabelSize; labelOnTick: boolean } | null,
 ) {
   return {
     id: user.id,
@@ -86,6 +88,10 @@ function describeUser(
     kitchenName: kitchen?.name ?? 'Mise',
     language: user.language,
     kitchenLanguage: kitchen?.language ?? 'en',
+    labels: {
+      size: kitchen?.labelSize ?? DEFAULT_LABEL_SIZE,
+      onTick: kitchen?.labelOnTick ?? false,
+    },
     tourSeen: user.tourSeen,
     onTablet: user.deviceId !== null,
   };

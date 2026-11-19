@@ -691,6 +691,75 @@ describe('kitchen settings', () => {
   });
 });
 
+describe('label settings', () => {
+  it('start on the small Brother roll, printing only when asked', async () => {
+    const kitchen = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/kitchen',
+      cookies: as(admin),
+    });
+    expect(kitchen.json()).toMatchObject({ labelSize: '62x29', labelOnTick: false });
+    const me = await ctx.app.inject({ method: 'GET', url: '/api/auth/me', cookies: as(admin) });
+    expect(me.json().user.labels).toEqual({ size: '62x29', onTick: false });
+  });
+
+  it('are kept, and reach everyone signed in with who they are', async () => {
+    const response = await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { labelSize: '89x36', labelOnTick: true },
+      cookies: as(admin),
+    });
+    expect(response.statusCode).toBe(200);
+    expect(response.json()).toMatchObject({ labelSize: '89x36', labelOnTick: true });
+
+    // The tablets print offline from what they were told at sign-in.
+    const me = await ctx.app.inject({ method: 'GET', url: '/api/auth/me', cookies: as(admin) });
+    expect(me.json().user.labels).toEqual({ size: '89x36', onTick: true });
+
+    // Changing one leaves the other.
+    const again = await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { labelOnTick: false },
+      cookies: as(admin),
+    });
+    expect(again.json()).toMatchObject({ labelSize: '89x36', labelOnTick: false });
+  });
+
+  it('refuses a size no printer has', async () => {
+    const response = await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { labelSize: '10x10' },
+      cookies: as(admin),
+    });
+    expect(response.statusCode).toBe(400);
+  });
+
+  it('are an administrator’s to change, like the rest of the kitchen', async () => {
+    await addStaff(ctx.app, admin, {
+      displayName: 'Ana',
+      email: 'ana@example.com',
+      role: 'head_chef',
+      password: 'a long enough password',
+    });
+    const signIn = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'ana@example.com', password: 'a long enough password' },
+    });
+    const chef = cookieFrom(signIn, 'mise_session')!;
+    const response = await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { labelOnTick: true },
+      cookies: as(chef),
+    });
+    expect(response.statusCode).toBe(403);
+  });
+});
+
 describe('email addresses', () => {
   it('treat capitals as the same address, since sign-in does', async () => {
     const response = await ctx.app.inject({

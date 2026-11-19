@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import type { FastifyRequest } from 'fastify';
 import {
+  DEFAULT_LABEL_SIZE,
   errorSchema,
   onedriveStatusSchema,
   sessionUserSchema,
@@ -267,6 +268,8 @@ const setupRoutes: FastifyPluginAsync = async (app) => {
           kitchenName: request.body.kitchenName,
           language: null,
           kitchenLanguage: request.body.language ?? 'en',
+          // A new kitchen starts with the defaults the database gives it.
+          labels: { size: DEFAULT_LABEL_SIZE, onTick: false },
           // Brand new, so the tour is offered once they land in the app.
           tourSeen: false,
           onTablet: false,

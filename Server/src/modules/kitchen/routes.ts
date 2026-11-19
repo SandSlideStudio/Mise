@@ -95,6 +95,8 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       pinOnly: await kitchen.pinOnlyState(row),
       idleSignOutMinutes: row.idleSignOutMinutes,
       tickedKeepDays: row.tickedKeepDays,
+      labelSize: row.labelSize,
+      labelOnTick: row.labelOnTick,
     };
   }
 

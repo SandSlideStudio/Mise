@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
+import { labelSettingsSchema } from './labels.js';
 
 /**
  * Two ways in. Managers use email and password from anywhere. Line cooks tap a
@@ -75,6 +76,8 @@ export const sessionUserSchema = z.object({
   /** Their own choice, or null to follow the kitchen. */
   language: languageSchema.nullable(),
   kitchenLanguage: languageSchema,
+  /** The kitchen's labels, here so a tablet has them offline along with the name. */
+  labels: labelSettingsSchema,
   /** Whether they have been offered the tour, so each person is asked exactly once. */
   tourSeen: z.boolean(),
   /** Signed in by PIN on an enrolled tablet, so signing out goes back to the names. */

@@ -286,7 +286,7 @@ describe('backing up and restoring', () => {
     }
   });
 
-  it('brings back the dish card settings and logo', async () => {
+  it('brings back the dish card settings, logo and label settings', async () => {
     const { cookies } = await stockedKitchen();
     const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), randomBytes(64)]);
     const logo = await app.inject({
@@ -301,6 +301,13 @@ describe('backing up and restoring', () => {
       url: '/api/dish-cards/settings',
       cookies,
       payload: { warnings: { nl: 'Eigendom van de keuken.' }, theme: 'night' },
+    });
+    // Label settings sit on the kitchen, so they come back with it.
+    await app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      cookies,
+      payload: { labelSize: '102x51', labelOnTick: true },
     });
     const { file, key } = await backUp(cookies);
 
@@ -330,6 +337,12 @@ describe('backing up and restoring', () => {
         cookies: restoredCookies,
       });
       expect(image.rawPayload.equals(png)).toBe(true);
+      const kitchen = await second.app.inject({
+        method: 'GET',
+        url: '/api/kitchen',
+        cookies: restoredCookies,
+      });
+      expect(kitchen.json()).toMatchObject({ labelSize: '102x51', labelOnTick: true });
     } finally {
       await second.close();
     }

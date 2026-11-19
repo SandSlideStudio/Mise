@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
 import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js';
+import { labelSizeSchema } from './labels.js';
 import { tickedRetentionSchema } from './prep.js';
 
 /** Stations are how every prep list is grouped, so they exist from day one. */
@@ -90,6 +91,10 @@ export const kitchenSchema = z.object({
   idleSignOutMinutes: z.number().int().nullable(),
   /** Kept ticked lines are deleted once this many days old. Null: kept for good. */
   tickedKeepDays: z.number().int().nullable(),
+  /** The roll in the label printer. */
+  labelSize: labelSizeSchema,
+  /** Print a label by itself when a line from a recipe is ticked. Off unless chosen. */
+  labelOnTick: z.boolean(),
 });
 
 export const updateKitchenSchema = z.object({
@@ -100,6 +105,8 @@ export const updateKitchenSchema = z.object({
   pinOnly: z.boolean().optional(),
   idleSignOutMinutes: z.number().int().min(1).max(240).nullable().optional(),
   tickedKeepDays: z.number().int().min(1).max(3650).nullable().optional(),
+  labelSize: labelSizeSchema.optional(),
+  labelOnTick: z.boolean().optional(),
 });
 
 /**

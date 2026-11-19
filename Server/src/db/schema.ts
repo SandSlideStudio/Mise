@@ -42,6 +42,15 @@ export const prepTaskStatusEnum = pgEnum('prep_task_status', [
 export const languageEnum = pgEnum('language', ['en', 'nl', 'fr', 'es', 'de']);
 /** What becomes of a line ticked off the running list once it has gone. */
 export const tickedRetentionEnum = pgEnum('ticked_retention', ['keep', 'delete']);
+/** Mirrors LABEL_SIZES in @mise/contracts: the roll in the kitchen's label printer. */
+export const labelSizeEnum = pgEnum('label_size', [
+  '62x29',
+  '62x100',
+  '54x25',
+  '57x32',
+  '89x36',
+  '102x51',
+]);
 /** Mirror SERVING_TEMPERATURES and COURSES in @mise/domain. */
 export const servingTemperatureEnum = pgEnum('serving_temperature', [
   'cold',
@@ -106,6 +115,9 @@ export const kitchens = pgTable('kitchen', {
    * days, so the record doesn't grow forever with who did what. Null: never.
    */
   tickedKeepDays: integer('ticked_keep_days').default(365),
+  /** The labels for containers of prep: which roll, and whether ticking a line prints one. */
+  labelSize: labelSizeEnum('label_size').notNull().default('62x29'),
+  labelOnTick: boolean('label_on_tick').notNull().default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
