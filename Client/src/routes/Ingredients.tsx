@@ -36,6 +36,10 @@ export function Ingredients() {
   const { data: user } = useCurrentUser();
   const [search, setSearch] = useState('');
   const ingredients = useIngredients(search || undefined);
+  // "No price yet" only means something once the kitchen prices its
+  // ingredients; a kitchen that doesn't cost isn't told so on every line.
+  const everything = useIngredients(undefined);
+  const costing = (everything.data ?? []).some((ingredient) => ingredient.price);
   const kitchen = useKitchen();
   const currency: Currency = kitchen.data?.currency ?? 'EUR';
   const [adding, setAdding] = useState(false);
@@ -100,7 +104,7 @@ export function Ingredients() {
                     <span className="min-w-0">
                       <span className="text-[19px] font-medium">{ingredient.name}</span>
                       <span className="text-ink-soft block text-sm">{describe(t, ingredient)}</span>
-                      <PriceLine ingredient={ingredient} currency={currency} />
+                      <PriceLine ingredient={ingredient} currency={currency} costing={costing} />
                       {ingredient.allergens.length > 0 ? (
                         <span className="mt-1 flex flex-wrap gap-1">
                           {ingredient.allergens.map((allergen) => (
@@ -160,9 +164,18 @@ export function Ingredients() {
 }
 
 /** What it costs, for chefs; nothing at all for a cook, whose list has no prices. */
-function PriceLine({ ingredient, currency }: { ingredient: Ingredient; currency: Currency }) {
+function PriceLine({
+  ingredient,
+  currency,
+  costing,
+}: {
+  ingredient: Ingredient;
+  currency: Currency;
+  costing: boolean;
+}) {
   const translator = useT();
   if (ingredient.price === undefined) return null;
+  if (ingredient.price === null && !costing) return null;
   return (
     <span className="text-ink-soft qty block text-sm">
       {ingredient.price === null
