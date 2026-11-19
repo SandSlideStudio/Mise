@@ -43,6 +43,7 @@ import { createUpdateChecker, type UpdateChecker } from './modules/updates/servi
 import { kitchens } from './db/schema.js';
 import { createBackupService, type BackupService } from './modules/backups/service.js';
 import { createOnedrive } from './modules/backups/onedrive.js';
+import { recordAllergenChanges } from './modules/recipes/allergenHistory.js';
 import privacyRoutes from './modules/privacy/routes.js';
 import { createPrivacyService, type PrivacyService } from './modules/privacy/service.js';
 
@@ -165,6 +166,14 @@ export async function buildApp(
   );
   app.addHook('onClose', async () => app.backups.close());
   app.addHook('onReady', async () => app.backups.cleanUp());
+  // A dish with no allergen record yet (just updated to 2.4, say) gets its
+  // first entry, so "last changed" always has a date. Not being able to
+  // write it doesn't keep the kitchen from starting.
+  app.addHook('onReady', async () => {
+    await app.db
+      .transaction((tx) => recordAllergenChanges(tx))
+      .catch((error: unknown) => app.log.warn({ error }, 'could not start the allergen record'));
+  });
   app.decorate(
     'updates',
     createUpdateChecker({

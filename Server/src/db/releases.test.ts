@@ -217,6 +217,13 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
 
         const card = await get(`/api/recipes/${DISH}/card`);
         expect(card.whole.contains).toEqual(['fish', 'milk']);
+        // Started at the first start on this version, so it is never empty.
+        const history = await get(`/api/recipes/${DISH}/allergen-history`);
+        expect(history).toEqual([
+          expect.objectContaining({ contains: ['fish', 'milk'], mayContain: [], cause: null }),
+        ]);
+        // Ingredients from before 2.4 have no traces on them.
+        expect((await get(`/api/ingredients/${BUTTER}`)).mayContain).toEqual([]);
         expect(card.dish.menus).toEqual(last >= '0013' ? ['Herfstmenu'] : []);
         // A hidden season on 1.1 and 2.0 is a hidden menu now.
         if (last >= '0009') expect(card.settings.hidden).toEqual(['menu']);
@@ -261,6 +268,12 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
           settings!.recovery_key,
         );
         expect(restored).toMatchObject({ kitchenName: 'De Proefkeuken', staff: 2, recipes: 2 });
+        // A backup from before 2.4 has no allergen record; the restore starts one.
+        const [record] = await rows<{ n: number }>(
+          empty.db,
+          sql`select count(*)::int as n from dish_allergen_change where recipe_id = ${DISH}`,
+        );
+        expect(record!.n).toBe(1);
         // Restored onto this version, the older kitchen still keeps its lines for good.
         const [kitchen] = await rows<{ days: number | null }>(
           empty.db,

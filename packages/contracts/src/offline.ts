@@ -2,7 +2,13 @@ import type { Checklist } from './checklist.js';
 import type { DishCard, DishCardSettings, DishSummary } from './dishcards.js';
 import type { Station } from './kitchen.js';
 import type { Menu, MenuOverview, MenuSummary } from './menus.js';
-import type { AllergenProfile, ExpandedRecipe, Recipe, RecipeSummary } from './recipes.js';
+import type {
+  AllergenChange,
+  AllergenProfile,
+  ExpandedRecipe,
+  Recipe,
+  RecipeSummary,
+} from './recipes.js';
 
 /**
  * Everything a tablet loads ahead for offline use, in one answer.
@@ -30,6 +36,8 @@ export interface OfflineBundle {
     expanded: Pick<ExpandedRecipe, 'factor' | 'lines'> | null;
     /** Null for what is not a dish, and for a cook where cards are for chefs only. */
     card: Omit<DishCard, 'settings'> | null;
+    /** A dish's allergen record, newest first. Null for what is not a dish. */
+    allergenHistory: AllergenChange[] | null;
   }[];
   menuEntries: {
     menu: Menu;
@@ -60,6 +68,9 @@ export function unpackOfflineBundle(bundle: OfflineBundle): UnpackedEntry[] {
           { recipe: entry.recipe, ...entry.expanded, allergens: entry.allergens },
         ]);
       }
+    }
+    if (entry.allergenHistory) {
+      entries.push([['recipe-allergen-history', id], entry.allergenHistory]);
     }
     if (entry.card) {
       entries.push([['dish-card', id], { ...entry.card, settings: bundle.dishCardSettings }]);

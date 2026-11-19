@@ -41,6 +41,8 @@ async function kitchenWith(dishes: number) {
     name: 'Flour',
     baseUnit: 'g',
     allergens: ['gluten'],
+    // Traces on the label: carried into every part of the bundle like the rest.
+    mayContain: ['sesame'],
     vegan: true,
     allergenDetails: { gluten: ['wheat'], nuts: [] },
   });
@@ -131,6 +133,7 @@ function pathFor(key: readonly unknown[]): string {
     'recipe-expanded': `/api/recipes/${id}/expanded`,
     'recipe-allergens': `/api/recipes/${id}/allergens`,
     'recipe-used-by': `/api/recipes/${id}/used-by`,
+    'recipe-allergen-history': `/api/recipes/${id}/allergen-history`,
     'dish-card': `/api/recipes/${id}/card`,
     menu: `/api/menus/${id}`,
     'menu-overview': `/api/menus/${id}/overview`,
@@ -168,6 +171,7 @@ describe('the bundle for offline use', () => {
         'menu-overview',
         'menus',
         'recipe',
+        'recipe-allergen-history',
         'recipe-allergens',
         'recipe-expanded',
         'recipe-used-by',
@@ -178,6 +182,13 @@ describe('the bundle for offline use', () => {
     // 5 recipes, 4 of them dishes.
     expect(entries.filter(([key]) => key[0] === 'recipe-expanded')).toHaveLength(5);
     expect(entries.filter(([key]) => key[0] === 'dish-card')).toHaveLength(4);
+    expect(entries.filter(([key]) => key[0] === 'recipe-allergen-history')).toHaveLength(4);
+    const overview = entries.find(([key]) => key[0] === 'menu-overview')![1] as {
+      dishes: { mayContain: string[] }[];
+      allergensAsOf: string | null;
+    };
+    expect(overview.dishes[0]!.mayContain).toEqual(['sesame']);
+    expect(overview.allergensAsOf).not.toBeNull();
   });
 
   it('holds exactly what each endpoint gives a cook, and nothing they would be refused', async () => {

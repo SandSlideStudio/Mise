@@ -11,10 +11,19 @@ import {
   listIngredientsQuerySchema,
   updateIngredientSchema,
 } from '@mise/contracts';
-import { isAllergen } from '@mise/domain';
+import { isAllergen, type Allergen } from '@mise/domain';
 import { ingredients } from '../../db/schema.js';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
+import { recordAllergenChanges } from '../recipes/allergenHistory.js';
+
+/**
+ * A "may contain" next to a "contains" of the same allergen says nothing the
+ * label doesn't already say louder, so it isn't kept.
+ */
+function tracesOnly(mayContain: Allergen[], contains: readonly Allergen[]): Allergen[] {
+  return mayContain.filter((allergen) => !contains.includes(allergen));
+}
 
 /**
  * The raw material catalogue.
@@ -35,6 +44,7 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       category: row.category,
       baseUnit: row.baseUnit,
       allergens: row.allergens.filter(isAllergen),
+      mayContain: row.mayContain.filter(isAllergen),
       vegan: row.vegan,
       allergenDetails: {
         gluten: row.allergenDetails.gluten ?? [],
@@ -103,6 +113,7 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
           category: request.body.category ?? null,
           baseUnit: request.body.baseUnit,
           allergens: request.body.allergens,
+          mayContain: tracesOnly(request.body.mayContain, request.body.allergens),
           vegan: request.body.vegan ?? null,
           allergenDetails: request.body.allergenDetails ?? {},
           notes: request.body.notes ?? null,
@@ -157,18 +168,34 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       // with the row locked, in the same transaction as the write.
       const saved = await app.db.transaction(async (tx) => {
         const [locked] = await tx
-          .select({ updatedAt: ingredients.updatedAt })
+          .select()
           .from(ingredients)
           .where(eq(ingredients.id, request.params.id))
           .for('update');
         if (!locked) return null;
         if (!matchesBase(request, locked.updatedAt)) return 'changed' as const;
+        const { mayContain, ...rest } = request.body;
         const [row] = await tx
           .update(ingredients)
-          .set({ ...request.body, updatedAt: new Date() })
+          .set({
+            ...rest,
+            // Saved either way when either list changed, so the two never overlap.
+            ...(mayContain !== undefined || rest.allergens !== undefined
+              ? {
+                  mayContain: tracesOnly(
+                    mayContain ?? locked.mayContain.filter(isAllergen),
+                    rest.allergens ?? locked.allergens.filter(isAllergen),
+                  ),
+                }
+              : {}),
+            updatedAt: new Date(),
+          })
           .where(eq(ingredients.id, request.params.id))
           .returning();
-        return row ?? null;
+        if (!row) return null;
+        // Every dish it goes into, however deep, gets a line in its allergen record.
+        await recordAllergenChanges(tx, { name: row.name, userId: request.user?.id ?? null });
+        return row;
       });
       if (saved === 'changed') {
         await changedMeanwhile(async () => {

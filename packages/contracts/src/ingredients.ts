@@ -19,6 +19,8 @@ export const ingredientSchema = z.object({
   category: z.string().nullable(),
   baseUnit: baseUnitSchema,
   allergens: z.array(allergenSchema),
+  /** Traces the supplier's label warns about: "may contain", never "contains". */
+  mayContain: z.array(allergenSchema),
   /** Null until somebody says, and null is never shown as vegan. */
   vegan: z.boolean().nullable(),
   allergenDetails: allergenDetailsSchema,
@@ -32,6 +34,7 @@ const ingredientFields = z.object({
   category: z.string().max(80).nullable().optional(),
   baseUnit: baseUnitSchema,
   allergens: z.array(allergenSchema),
+  mayContain: z.array(allergenSchema),
   vegan: z.boolean().nullable().optional(),
   allergenDetails: allergenDetailsSchema.optional(),
   notes: z.string().max(2000).nullable().optional(),
@@ -39,6 +42,7 @@ const ingredientFields = z.object({
 
 export const createIngredientSchema = ingredientFields.extend({
   allergens: z.array(allergenSchema).default([]),
+  mayContain: z.array(allergenSchema).default([]),
 });
 
 // Built from the fields without defaults: a field left out of an update stays as it is.

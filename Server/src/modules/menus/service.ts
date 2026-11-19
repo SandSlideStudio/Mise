@@ -10,6 +10,7 @@ import {
   recipeComponents,
   recipes,
 } from '../../db/schema.js';
+import { allergensAsOf } from '../recipes/allergenHistory.js';
 import { loadRecipeBook } from '../recipes/book.js';
 import { createDishCardService, serialiseSettings } from '../dishcards/service.js';
 
@@ -316,6 +317,10 @@ export function createMenusService(db: Database) {
         menu: { id: found.id, name: found.name, description: found.description },
         dishes: rows,
         settings: serialiseSettings(await dishCards.settings()),
+        allergensAsOf: await allergensAsOf(
+          db,
+          dishes.map((dish) => dish.recipeId),
+        ),
       },
     };
   }

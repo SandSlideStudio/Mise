@@ -265,6 +265,11 @@ export const ingredients = pgTable(
     category: text('category'),
     baseUnit: baseUnitEnum('base_unit').notNull().default('g'),
     allergens: jsonb('allergens').$type<string[]>().notNull().default([]),
+    /**
+     * Traces the supplier's label warns about ("may contain nuts"): what
+     * cross-contact at the supplier means for every dish it goes into.
+     */
+    mayContain: jsonb('may_contain').$type<string[]>().notNull().default([]),
     /** Grams per millilitre. Needed to convert between weight and volume. */
     // Density, weight per piece and trim yield: not asked for since 2.2.4, until
     // something uses them (costing). Kept, with what was entered, for then.
@@ -387,6 +392,32 @@ export const recipePhotos = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index('recipe_photo_recipe_idx').on(t.recipeId)],
+);
+
+/**
+ * What a dish's allergens were, each time they changed: the written record
+ * front of house and an inspector can be shown, and the date the menu's
+ * allergen overview is as of. A row is added only when the computed profile
+ * differs from the dish's last one.
+ */
+export const dishAllergenChanges = pgTable(
+  'dish_allergen_change',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    recipeId: uuid('recipe_id')
+      .notNull()
+      .references(() => recipes.id, { onDelete: 'cascade' }),
+    changedAt: timestamp('changed_at', { withTimezone: true }).notNull().defaultNow(),
+    contains: jsonb('contains').$type<string[]>().notNull().default([]),
+    mayContain: jsonb('may_contain').$type<string[]>().notNull().default([]),
+    /** The ingredient or recipe whose edit made the change; null for the dish itself or the first row. */
+    cause: text('cause'),
+    changedBy: uuid('changed_by').references(() => users.id, { onDelete: 'set null' }),
+  },
+  (t) => [
+    index('dish_allergen_change_recipe_idx').on(t.recipeId, t.changedAt),
+    index('dish_allergen_change_changed_by_idx').on(t.changedBy),
+  ],
 );
 
 // --- mise en place --------------------------------------------------------

@@ -162,6 +162,19 @@ export const allergenProfileSchema = z.object({
   mayContain: z.array(allergenSchema),
 });
 
+/**
+ * One entry in a dish's allergen record: what its allergens became, and when.
+ * What was added or taken away is the difference with the entry before it.
+ */
+export const allergenChangeSchema = allergenProfileSchema.extend({
+  id: idSchema,
+  changedAt: z.string(),
+  /** The ingredient or recipe whose edit made the change. Null for the dish itself, and for the first entry. */
+  cause: z.string().nullable(),
+  /** Who made it. Null when nobody did (the first entry) or they are no longer on the staff. */
+  changedBy: z.string().nullable(),
+});
+
 /** One line of a fully expanded recipe, ready to print. */
 export const expandedLineSchema = z.object({
   depth: z.number().int(),
@@ -186,6 +199,7 @@ export type RecipeComponent = z.infer<typeof recipeComponentSchema>;
 export type CreateRecipe = z.infer<typeof createRecipeSchema>;
 export type ExpandedRecipe = z.infer<typeof expandedRecipeSchema>;
 export type AllergenProfile = z.infer<typeof allergenProfileSchema>;
+export type AllergenChange = z.infer<typeof allergenChangeSchema>;
 
 export type RecipeType = z.infer<typeof recipeTypeSchema>;
 export type RecipeStatus = z.infer<typeof recipeStatusSchema>;

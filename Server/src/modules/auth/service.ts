@@ -19,6 +19,7 @@ import {
   verifySecret,
 } from '../../lib/crypto.js';
 import { createKitchenService } from '../kitchen/service.js';
+import { recordAllergenChanges } from '../recipes/allergenHistory.js';
 import { createLockout, LOCKOUT_MINUTES, type Lockout } from './lockout.js';
 
 /**
@@ -540,6 +541,8 @@ export function createAuthService(db: Database) {
             createdBy: user.id,
           })),
         );
+        // Each dish starts its allergen record, empty as it is so far.
+        await recordAllergenChanges(tx, { userId: user.id });
       }
 
       if (input.prepChecklist && input.checklist && input.checklist.length > 0) {

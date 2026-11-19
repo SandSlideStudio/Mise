@@ -169,6 +169,13 @@
       "when": 1794999654047,
       "tag": "0023_checklist_recipe_and_retention",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1795051293918,
+      "tag": "0024_allergen_traces_and_history",
+      "breakpoints": true
     }
   ]
 }

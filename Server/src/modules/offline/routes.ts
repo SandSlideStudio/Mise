@@ -9,6 +9,7 @@ import { createDishCardService, serialiseSettings } from '../dishcards/service.j
 import { createKitchenService } from '../kitchen/service.js';
 import { createMenusService } from '../menus/service.js';
 import { createChecklistReader } from '../prep/checklist.js';
+import { historyOf } from '../recipes/allergenHistory.js';
 import { loadComponentNames, loadRecipeBook } from '../recipes/book.js';
 import { createRecipesService } from '../recipes/service.js';
 import { expandAgainst, serialise, summarise } from '../recipes/shape.js';
@@ -52,16 +53,18 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
   const encoded = new Map<string, Built & { version: string }>();
 
   async function build(version: string, withCards: boolean): Promise<OfflineBundle> {
-    const [book, all, names, usedBy, stations, list, menuList, settings] = await Promise.all([
-      loadRecipeBook(app.db),
-      recipes.allRecipes(),
-      loadComponentNames(app.db),
-      recipes.usedByAll(),
-      kitchen.listStations(),
-      checklist.readChecklist(),
-      menus.listMenus(),
-      dishCards.settings(),
-    ]);
+    const [book, all, names, usedBy, stations, list, menuList, settings, history] =
+      await Promise.all([
+        loadRecipeBook(app.db),
+        recipes.allRecipes(),
+        loadComponentNames(app.db),
+        recipes.usedByAll(),
+        kitchen.listStations(),
+        checklist.readChecklist(),
+        menus.listMenus(),
+        dishCards.settings(),
+        historyOf(app.db),
+      ]);
     const dishes = await dishCards.summaries(book);
 
     const recipeEntries: OfflineBundle['recipeEntries'] = [];
@@ -87,6 +90,7 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
         allergens,
         expanded: expanded?.ok ? expanded.value : null,
         card,
+        allergenHistory: row.type === 'dish' ? (history.get(row.id) ?? []) : null,
       });
     }
 

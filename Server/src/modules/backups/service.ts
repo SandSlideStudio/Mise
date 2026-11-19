@@ -39,6 +39,7 @@ import {
   verifySeal,
   writeEncrypted,
 } from './crypto.js';
+import { recordAllergenChanges } from '../recipes/allergenHistory.js';
 import { exportTables, restoreTables } from './data.js';
 import { BackupFailure, failureCode } from './failure.js';
 import type { DeviceCode, Onedrive } from './onedrive.js';
@@ -636,6 +637,8 @@ export function createBackupService({
         const [existing] = await tx.select({ count: sql<number>`count(*)::int` }).from(users);
         if ((existing?.count ?? 0) > 0) throw new AlreadySetUpError();
         const restored = await restoreTables(tx, tables);
+        // A backup from before 2.4 has no allergen record: start one.
+        await recordAllergenChanges(tx);
         // A lockout from before the backup shouldn't follow anyone here.
         await tx.update(users).set({ lockedUntil: null });
         // The key that opened this backup keeps opening the next ones.
