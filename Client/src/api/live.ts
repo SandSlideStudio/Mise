@@ -37,6 +37,9 @@ const KEYS_BY_TOPIC: Record<Topic, string[][]> = {
     ['recipe-used-by'],
     ['ingredients'],
     ['ingredient'],
+    // A cook's label check waiting for a chef shows on the chef's screen at once.
+    ['label-checks'],
+    ['label-checks-pending'],
     ['dish-card'],
     ['dishes'],
     ['menu'],
