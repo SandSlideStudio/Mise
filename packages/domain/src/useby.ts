@@ -105,9 +105,15 @@ const WORDS: Record<'chilled' | 'frozen' | 'ambient', string[]> = {
 /**
  * "4 °C", "4°", "-18C", "3 graden": a temperature written in the storage note.
  * A typed minus can be a hyphen, a real minus sign or a dash: −18 °C is frozen.
+ * Straight after a digit it is not a minus but a range: "2-7 °C" is 2 to 7.
+ * A range is read by its upper end, the warmest it may be: "2-8 °C" is not
+ * chilled as the code means it, so it is no 4 °C either.
  */
-const TEMPERATURE =
-  /([-\u2212\u2013]?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\b|graden|grad\b|degrees|degres|grados)/iu;
+const NUMBER = String.raw`(?:(?<!\d)[-\u2212\u2013])?\d+(?:[.,]\d+)?`;
+const TEMPERATURE = new RegExp(
+  String.raw`(?:${NUMBER}\s*[-\u2212\u2013]\s*)?(${NUMBER})\s*(?:°\s*c?|c\b|graden|grad\b|degrees|degres|grados)`,
+  'iu',
+);
 
 /** Lower case and without accents: "Kühlraum" reads as "kuhlraum". */
 function plain(text: string): string {

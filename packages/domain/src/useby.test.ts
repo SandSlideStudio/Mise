@@ -234,6 +234,15 @@ describe('reading how a recipe is kept', () => {
     expect(keptAs('kept at 12 graden')).toBe(null);
   });
 
+  it('reads a range by its warmest end, not as a temperature below zero', () => {
+    expect(keptAs('2-7 °C')).toBe('chilled_7');
+    expect(keptAs('Koelcel 0–4°C')).toBe('chilled_4');
+    // Warmer than 7 °C at its warmest: not chilled by the code.
+    expect(keptAs('fridge 2-8°C')).toBe(null);
+    expect(keptAs('0 - 7 °C')).toBe('chilled_7');
+    expect(keptAs('Vriezer -22 - -18 °C')).toBe('frozen');
+  });
+
   it('takes chilled when both are said, which gives the shorter date', () => {
     expect(keptAs('Frozen, thaw in the fridge')).toBe('chilled_7');
   });

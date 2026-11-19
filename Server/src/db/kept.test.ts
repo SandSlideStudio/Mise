@@ -65,6 +65,12 @@ const NOTES = [
   '20 grados, en despensa',
   '3 Grad',
   '2 degrees',
+  // A range, by its warmest end: not a temperature below zero.
+  '2-7 °C',
+  'Koelcel 0–4°C',
+  'fridge 2-8°C',
+  '0 - 7 °C',
+  'Vriezer -22 - -18 °C',
   // Both said: the shorter date.
   'Frozen, thaw in the fridge',
   // Nothing to place.
@@ -118,6 +124,8 @@ describe('filling in how recipes are kept', () => {
     expect(of('-18C')).toBe('frozen');
     expect(of('\u221218 °C')).toBe('frozen');
     expect(of('Droog en donker')).toBe('ambient');
+    expect(of('2-7 °C')).toBe('chilled_7');
+    expect(of('fridge 2-8°C')).toBeNull();
     expect(of('Labelled tubs')).toBeNull();
     expect(of(null)).toBeNull();
   });

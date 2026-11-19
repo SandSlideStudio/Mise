@@ -1,10 +1,10 @@
 -- How a recipe's batches are kept, chosen on the recipe, for the use-by on
 -- their labels. Until now Mise read it from the storage note; the recipes a
 -- kitchen already has get the choice that note gave, by the same rules as
--- keptAs() in packages/domain/src/useby.ts (a temperature decides, then
--- chilled, frozen, dry, each word on its own or at the start of one, in any
--- case and without accents). A note it can't place stays unchosen (null), and
--- its labels still go by the note.
+-- keptAs() in packages/domain/src/useby.ts (a temperature decides, a range
+-- by its upper end, then chilled, frozen, dry, each word on its own or at the
+-- start of one, in any case and without accents). A note it can't place stays
+-- unchosen (null), and its labels still go by the note.
 CREATE TYPE "public"."kept" AS ENUM('chilled_7', 'chilled_4', 'frozen', 'ambient', 'hot');--> statement-breakpoint
 ALTER TABLE "recipe" ADD COLUMN "kept" "kept";--> statement-breakpoint
 WITH "plain" AS (
@@ -16,7 +16,9 @@ WITH "plain" AS (
 	WHERE "kept" IS NULL AND btrim(coalesce("storage", '')) <> ''
 ), "read" AS (
 	SELECT "id", "note",
-		translate(substring("note" FROM '([-−–]?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\y|graden|grad\y|degrees|degres|grados)'), ',−–', '.--')::numeric AS "degrees",
+		-- A minus straight after a digit is a range ("2-7 °C"), read by its
+		-- upper end, the warmest it may be: the only part captured.
+		translate(substring("note" FROM '(?:(?:(?<!\d)[-−–])?\d+(?:[.,]\d+)?\s*[-−–]\s*)?((?:(?<!\d)[-−–])?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\y|graden|grad\y|degrees|degres|grados)'), ',−–', '.--')::numeric AS "degrees",
 		"note" ~ '(?<![[:alpha:]])(chill|fridge|walk-in|walk in|cold room|cool room|koel|gekoeld|kuhl|gekuhlt|refrig|frigo|chambre froide|nevera|camara|frigorific)' AS "chilled",
 		"note" ~ '(?<![[:alpha:]])(freez|frozen|vriez|vries|diepvries|invries|ingevroren|bevroren|tiefkuhl|gefror|gefrier|congel|surgel)' AS "frozen",
 		"note" ~ '(?<![[:alpha:]])(dry|ambient|room temp|pantry|droog|kamertemperatuur|trocken|raumtemperatur|au sec|ambiante|seco|ambiente|despensa)' AS "ambient"
