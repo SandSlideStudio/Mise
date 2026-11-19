@@ -9,3 +9,4 @@ export * from './dishcard.js';
 export * from './pin.js';
 export * from './useby.js';
 export * from './par.js';
+export * from './labelCheck.js';
