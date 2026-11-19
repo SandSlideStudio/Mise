@@ -105,11 +105,10 @@ export function Ingredients() {
                 </button>
               ) : null}
             </div>
-            {outcome ? (
-              <p role="status" className="text-ink-soft mt-2 text-sm">
-                {t(OUTCOME_MESSAGE[outcome])}
-              </p>
-            ) : null}
+            {/* Always there, so a screen reader hears it when it fills. */}
+            <p role="status" className={outcome ? 'text-ink-soft mt-2 text-sm' : 'sr-only'}>
+              {outcome ? t(OUTCOME_MESSAGE[outcome]) : null}
+            </p>
           </div>
 
           {canManage ? <PendingLabelChecks ingredients={all} /> : null}
