@@ -8,10 +8,6 @@ What's planned next, roughly in order. Nothing here has a date.
   only what went wrong written down, and an export to show an inspector. Linked to the prep
   checklist, so the cooling log sits next to the batch it belongs to. Waiting on the text of the new
   code itself before it gets a version.
-- **Labels.** Print prep date, use-by and allergens to a label printer when a line is ticked, with
-  the use-by worked out from how the batch is kept.
-- **Costing.** Ingredient prices and purchase units, and a food cost per portion, per dish and per
-  menu, through every sub-recipe.
 - **Allergens at delivery.** Note when a supplier changes an ingredient, and see straight away which
   dishes' allergens change with it.
 - **Par levels.** Record what's already made, so the prep list only asks for the rest.

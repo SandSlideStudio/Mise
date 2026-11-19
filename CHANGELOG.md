@@ -6,8 +6,8 @@ a change in the first number means you should read these notes before updating.
 ## 2.4.0
 
 Setup that knows about the checklist and PIN-only sign-in, a checklist that links to recipes and
-prints, use-by labels, allergen records and a notice for guests, privacy controls for staff data,
-and a stack of smaller fixes.
+prints, use-by labels, food cost, allergen records and a notice for guests, privacy controls for
+staff data, and a stack of smaller fixes.
 
 **Setup**
 
@@ -52,6 +52,18 @@ and a stack of smaller fixes.
   4 °C or colder). Frozen or dry prep without a shelf life gets a line to write the date on.
 - **Print a label when a line is ticked** (Settings → Kitchen, off by default) opens the print
   dialog straight away for lines that come from a recipe.
+
+**Food cost**
+
+- An ingredient can have a purchase price, as on the invoice ("12.50 for a 5 kg bag"), and a trim
+  yield. Mise works out what each recipe costs through every sub-recipe, per batch, per litre or
+  kilo and per portion, and follows the size asked for.
+- A dish can have a selling price: its page shows the cost per portion and the food cost %, worked
+  out without VAT (**Settings → Kitchen** sets the currency and the VAT rate on food). The menu page
+  shows it for every dish, and the menu's average.
+- An ingredient without a price is never counted as free: the cost says "so far" and names what is
+  missing. A price older than six months says so.
+- Costs are for chefs and administrators. Cooks never see a price, on any screen or tablet.
 
 **Privacy**
 

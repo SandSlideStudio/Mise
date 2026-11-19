@@ -156,6 +156,24 @@ one sheet with every dish and its allergens, or download all the menu's dish car
 PDF. A menu marks the dishes that have changed since its cards were last downloaded, so you know
 which ones to reprint.
 
+## Labels
+
+Every container of prep gets a label: what it is, when it was made and by whom, until when it may
+be used, how it is kept and its allergens. A ticked line on **Today** has a **Label** button, and
+a prep recipe's page prints as many as you need. Labels go to the kitchen's label printer through
+the print dialog (Brother, Dymo, Zebra or any other); **Settings → Kitchen** sets the roll size and
+whether ticking a line prints its label straight away. The use-by comes from the recipe's shelf
+life, or for chilled prep without one, the Hygiënecode's default of the end of the second day
+after it was made.
+
+## Food cost
+
+Give an ingredient its purchase price, as on the invoice, and its trim yield, and every recipe
+shows what it costs through all its sub-recipes: per batch, per litre or kilo and per portion, at
+the size asked for. Give a dish a selling price to see its food cost %, without VAT; the menu page
+shows it for every dish and the menu as a whole. Anything without a price is named, never counted
+as free. Prices are only shown to chefs and administrators, never to cooks.
+
 ## When the network drops
 
 A tablet keeps working when the wifi drops or the server is off. It shows everything it had
