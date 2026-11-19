@@ -56,6 +56,11 @@ export function useChecklist(enabled = true) {
             stationId: item.stationId,
             name: item.name,
             recipeId: item.recipeId ?? null,
+            // Left out by a save from before pars: the item keeps the par it had.
+            par:
+              item.par !== undefined
+                ? item.par
+                : (checklist.items.find((other) => other.id === item.id)?.par ?? null),
           })),
         };
       },

@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import type { ChecklistItem, PrepTask, Station } from '@mise/contracts';
+import type { AddFromChecklist, ChecklistItem, PrepTask, Station } from '@mise/contracts';
 import { groupChecklist, newItemId } from './checklist.js';
 import { applyWaiting, isWaitingChecklistLine } from './running.js';
 import { WAITING, type OutboxEntry } from '../lib/outbox.js';
 import { createTranslator } from '../i18n/index.js';
-import { addedNote } from '../components/PrepTaskRow.js';
+import { addedNote, parNote } from '../components/PrepTaskRow.js';
 
 /** The checklist offline: lines show as waiting, the way the server will make them. */
 
@@ -102,5 +102,48 @@ describe('the checklist as drawn', () => {
     expect(newItemId()).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/,
     );
+  });
+});
+
+describe('items with a par ticked while Mise could not be reached', () => {
+  const { t } = createTranslator('en');
+  const withPar: ChecklistItem[] = [
+    { id: 'i-gel', stationId: HOT, name: 'Fig gel', recipeId: null, par: { value: 3, unit: 'l' } },
+    {
+      id: 'i-eggs',
+      stationId: HOT,
+      name: 'Eggs',
+      recipeId: null,
+      par: { value: 40, unit: 'each' },
+    },
+  ];
+  const counted = (onHand: AddFromChecklist['onHand']): OutboxEntry => ({
+    ...entry(['i-gel', 'i-eggs']),
+    body: { ids: ['i-gel', 'i-eggs'], onHand },
+  });
+
+  it('show what is short of the par, and why, the way the server will', () => {
+    const list = applyWaiting([], counted({ 'i-gel': { value: 1200, unit: 'ml' } }), {
+      me: null,
+      items: withPar,
+    });
+    expect(list.map((l) => [l.description, l.quantity])).toEqual([
+      ['Fig gel', { value: 1.8, unit: 'l' }],
+      ['Eggs', { value: 40, unit: 'each' }],
+    ]);
+    expect(parNote(t, list[0]!)).toBe('Par 3 l, 1.2 l there');
+    expect(parNote(t, list[1]!)).toBe('Par 40, none there');
+  });
+
+  it('leave out what there is enough of', () => {
+    const list = applyWaiting([], counted({ 'i-eggs': { value: 48, unit: 'each' } }), {
+      me: null,
+      items: withPar,
+    });
+    expect(list.map((l) => l.description)).toEqual(['Fig gel']);
+  });
+
+  it('say nothing about a par on a line without one', () => {
+    expect(parNote(t, line({ quantity: { value: 2000, unit: 'ml' } }))).toBeNull();
   });
 });

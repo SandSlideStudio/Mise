@@ -11,6 +11,7 @@ import type {
   UpdatePrepTask,
 } from '@mise/contracts';
 import { useCallback } from 'react';
+import { toMakeForPar } from '@mise/domain';
 import { api, isQueued, sendOrQueue } from './client.js';
 import { isRefusal, sendTick, usePendingOverlay } from './ticks.js';
 import { useCurrentUser } from './session.js';
@@ -113,11 +114,16 @@ export function applyWaiting(
     ];
   }
   if (entry.method === 'POST' && entry.path === '/checklist/add') {
-    // The server's rule: what is already open on that station isn't added again.
-    const wanted = new Set((entry.body as AddFromChecklist).ids);
+    // The server's rules: what is already open on that station isn't added
+    // again, and what has a par goes on for what is short of it, if anything.
+    const body = entry.body as AddFromChecklist;
+    const wanted = new Set(body.ids);
     let list = tasks;
     for (const item of context.items) {
       if (!wanted.has(item.id)) continue;
+      const outcome = item.par ? toMakeForPar(item.par, body.onHand?.[item.id] ?? null) : null;
+      if (outcome?.kind === 'enough') continue;
+      const make = outcome?.kind === 'make' ? outcome : null;
       const there = list.some(
         (line) =>
           (line.status === 'open' || line.status === 'in_progress') &&
@@ -132,7 +138,7 @@ export function applyWaiting(
           stationId: item.stationId,
           recipeId: item.recipeId,
           description: item.name,
-          quantity: null,
+          quantity: make?.make ?? null,
           status: 'open',
           assignedUserId: null,
           assignedUserName: null,
@@ -141,6 +147,7 @@ export function applyWaiting(
           sortOrder: Number.MAX_SAFE_INTEGER,
           createdByName: context.me,
           fromChecklist: true,
+          par: make ? { par: make.par, onHand: make.onHand } : null,
         },
       ];
     }
@@ -336,9 +343,11 @@ function dropWaitingLine(id: string, queryClient: QueryClient): void {
   const userId = queryClient.getQueryData<SessionUser | null>(['me'])?.id;
   const entry = userId ? entriesFor(userId).find((other) => other.id === entryId) : undefined;
   if (!entry) return;
-  const rest = (entry.body as AddFromChecklist).ids.filter((other) => other !== itemId);
+  const body = entry.body as AddFromChecklist;
+  const rest = body.ids.filter((other) => other !== itemId);
   if (rest.length === 0) removeFromOutbox(entryId);
-  else updateOutbox(entryId, { body: { ids: rest } });
+  // What was counted for the others still goes with them.
+  else updateOutbox(entryId, { body: { ...body, ids: rest } });
 }
 
 function invalidateTasks(queryClient: ReturnType<typeof useQueryClient>): void {

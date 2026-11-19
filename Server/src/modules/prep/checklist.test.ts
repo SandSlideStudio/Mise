@@ -192,7 +192,7 @@ describe('adding from the checklist', () => {
   it('lets a cook tick items onto the list, with who added them and where from', async () => {
     const response = await call(cook, 'POST', '/api/checklist/add', { ids: ids('Jus', 'Slaw') });
     expect(response.statusCode).toBe(200);
-    expect(response.json()).toEqual({ added: 2, alreadyThere: 0 });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 0, enough: [] });
 
     const list = await lines();
     expect(list.map((line) => line.description).sort()).toEqual(['Jus', 'Slaw']);
@@ -218,7 +218,7 @@ describe('adding from the checklist', () => {
       ids: ids('Chicken stock', 'Jus', 'Slaw'),
     });
     // Two on the hot station were there; the same name with no station is another line.
-    expect(response.json()).toEqual({ added: 2, alreadyThere: 2 });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 2, enough: [] });
     expect(await lines()).toHaveLength(4);
   });
 
@@ -228,13 +228,13 @@ describe('adding from the checklist', () => {
     await call(cook, 'PATCH', `/api/tasks/${line!.id}`, { status: 'done' });
 
     const again = await call(cook, 'POST', '/api/checklist/add', { ids: ids('Jus') });
-    expect(again.json()).toEqual({ added: 1, alreadyThere: 0 });
+    expect(again.json()).toEqual({ added: 1, alreadyThere: 0, enough: [] });
   });
 
   it('counts the same item ticked twice in one go as already there', async () => {
     const [jus] = ids('Jus');
     const response = await call(cook, 'POST', '/api/checklist/add', { ids: [jus, jus] });
-    expect(response.json()).toEqual({ added: 1, alreadyThere: 0 });
+    expect(response.json()).toEqual({ added: 1, alreadyThere: 0, enough: [] });
     expect(await lines()).toHaveLength(1);
   });
 
@@ -256,9 +256,9 @@ describe('adding from the checklist', () => {
     const body = { ids: ids('Jus', 'Slaw') };
     const first = await call(cook, 'POST', '/api/checklist/add', body, write);
     const again = await call(cook, 'POST', '/api/checklist/add', body, write);
-    expect(first.json()).toEqual({ added: 2, alreadyThere: 0 });
+    expect(first.json()).toEqual({ added: 2, alreadyThere: 0, enough: [] });
     // The first answer, not "2 already there".
-    expect(again.json()).toEqual({ added: 2, alreadyThere: 0 });
+    expect(again.json()).toEqual({ added: 2, alreadyThere: 0, enough: [] });
     expect(again.headers['x-mise-replayed']).toBe('1');
     expect(await lines()).toHaveLength(2);
   });
@@ -267,7 +267,7 @@ describe('adding from the checklist', () => {
     const [jus] = ids('Jus');
     await save(items.filter((item) => item.id !== jus));
     const response = await call(cook, 'POST', '/api/checklist/add', { ids: [jus] });
-    expect(response.json()).toEqual({ added: 0, alreadyThere: 0 });
+    expect(response.json()).toEqual({ added: 0, alreadyThere: 0, enough: [] });
   });
 });
 
@@ -349,7 +349,7 @@ describe('a checklist line linked to a recipe', () => {
     const response = await call(cook, 'POST', '/api/checklist/add', {
       ids: items.map((i) => i.id),
     });
-    expect(response.json()).toEqual({ added: 2, alreadyThere: 0 });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 0, enough: [] });
     const list = (await call(admin, 'GET', '/api/running/tasks')).json() as {
       description: string;
       recipeId: string | null;
@@ -364,7 +364,7 @@ describe('a checklist line linked to a recipe', () => {
     const [item] = await read();
     await call(cook, 'POST', '/api/checklist/add', { ids: [item!.id] });
     const again = await call(cook, 'POST', '/api/checklist/add', { ids: [item!.id] });
-    expect(again.json()).toEqual({ added: 0, alreadyThere: 1 });
+    expect(again.json()).toEqual({ added: 0, alreadyThere: 1, enough: [] });
   });
 
   it('leaves the line without a link when the recipe is deleted', async () => {
@@ -411,5 +411,151 @@ describe('live updates', () => {
     await call(cook, 'POST', '/api/checklist/add', { ids: [item!.id] });
     await new Promise((resolve) => setTimeout(resolve, 50));
     expect(heard).toContain('prep');
+  });
+});
+
+describe('pars', () => {
+  type ParItem = Item & { par: { value: number; unit: string } | null };
+  type Line = {
+    id: string;
+    description: string;
+    quantity: { value: number; unit: string } | null;
+    par: { par: { value: number; unit: string }; onHand: { value: number; unit: string } } | null;
+  };
+  const list = async () => (await call(admin, 'GET', '/api/running/tasks')).json() as Line[];
+  const line = async (name: string) => (await list()).find((l) => l.description === name);
+
+  let gel: ParItem;
+  let eggs: ParItem;
+  let jus: ParItem;
+
+  beforeEach(async () => {
+    await setSwitch(true);
+    const saved = (
+      await save([
+        { stationId: hot, name: 'Fig gel', par: { value: 3, unit: 'l' } },
+        { stationId: cold, name: 'Eggs', par: { value: 40, unit: 'each' } },
+        { stationId: hot, name: 'Jus' },
+      ])
+    ).json().items as ParItem[];
+    const named = (name: string) => saved.find((item) => item.name === name)!;
+    gel = named('Fig gel');
+    eggs = named('Eggs');
+    jus = named('Jus');
+  });
+
+  it('are kept in the unit the chef chose, and an item without one has none', async () => {
+    expect((await checklist()).items.map((i) => [i.name, (i as ParItem).par])).toEqual([
+      ['Fig gel', { value: 3, unit: 'l' }],
+      ['Jus', null],
+      ['Eggs', { value: 40, unit: 'each' }],
+    ]);
+  });
+
+  it('are set by a chef only', async () => {
+    const refused = await save([{ ...gel, par: { value: 9, unit: 'l' } }], cook);
+    expect(refused.statusCode).toBe(403);
+    expect(((await checklist()).items[0] as ParItem).par).toEqual({ value: 3, unit: 'l' });
+  });
+
+  it('are more than nothing, in a unit Mise knows', async () => {
+    expect((await save([{ ...gel, par: { value: 0, unit: 'l' } }])).statusCode).toBe(400);
+    expect((await save([{ ...gel, par: { value: 2, unit: 'trays' } }])).statusCode).toBe(400);
+  });
+
+  it('stay when a save leaves them out, and go when it says null', async () => {
+    // A tablet from before pars sends the items without them.
+    const kept = await save([
+      { id: gel.id, stationId: hot, name: 'Fig gel' },
+      { id: eggs.id, stationId: cold, name: 'Eggs', par: null },
+    ]);
+    expect((kept.json().items as ParItem[]).map((i) => [i.name, i.par])).toEqual([
+      ['Fig gel', { value: 3, unit: 'l' }],
+      ['Eggs', null],
+    ]);
+  });
+
+  it('ask for the par less what is there, and say both on the line', async () => {
+    const response = await call(cook, 'POST', '/api/checklist/add', {
+      ids: [gel.id, eggs.id],
+      onHand: { [gel.id]: { value: 1, unit: 'l' }, [eggs.id]: { value: 12, unit: 'each' } },
+    });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 0, enough: [] });
+    // Stored in base units: 2 l is 2000 ml.
+    expect(await line('Fig gel')).toMatchObject({
+      quantity: { value: 2000, unit: 'ml' },
+      par: { par: { value: 3000, unit: 'ml' }, onHand: { value: 1000, unit: 'ml' } },
+    });
+    expect((await line('Eggs'))!.quantity).toEqual({ value: 28, unit: 'each' });
+  });
+
+  it('take what is there in another unit of the same kind', async () => {
+    await call(cook, 'POST', '/api/checklist/add', {
+      ids: [gel.id],
+      onHand: { [gel.id]: { value: 1200, unit: 'ml' } },
+    });
+    expect((await line('Fig gel'))!.quantity).toEqual({ value: 1800, unit: 'ml' });
+  });
+
+  it('ask for the whole par when nothing is said, as from a tablet from before pars', async () => {
+    const response = await call(cook, 'POST', '/api/checklist/add', { ids: [gel.id, jus.id] });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 0, enough: [] });
+    expect(await line('Fig gel')).toMatchObject({
+      quantity: { value: 3000, unit: 'ml' },
+      par: { onHand: { value: 0, unit: 'ml' } },
+    });
+    // No par: no amount, as before.
+    expect(await line('Jus')).toMatchObject({ quantity: null, par: null });
+  });
+
+  it('leave a line off when there is enough, and say which', async () => {
+    const response = await call(cook, 'POST', '/api/checklist/add', {
+      ids: [gel.id, eggs.id],
+      onHand: { [gel.id]: { value: 3.5, unit: 'l' }, [eggs.id]: { value: 40, unit: 'each' } },
+    });
+    expect(response.json()).toEqual({ added: 0, alreadyThere: 0, enough: ['Fig gel', 'Eggs'] });
+    expect(await list()).toHaveLength(0);
+  });
+
+  it('guess nothing from what is there in a unit that can’t be compared', async () => {
+    await call(cook, 'POST', '/api/checklist/add', {
+      ids: [gel.id],
+      onHand: { [gel.id]: { value: 500, unit: 'g' } },
+    });
+    expect(await line('Fig gel')).toMatchObject({ quantity: null, par: null });
+  });
+
+  it('ignore an amount for an item that was not ticked', async () => {
+    const response = await call(cook, 'POST', '/api/checklist/add', {
+      ids: [jus.id],
+      onHand: { [gel.id]: { value: 1, unit: 'l' } },
+    });
+    expect(response.json()).toEqual({ added: 1, alreadyThere: 0, enough: [] });
+    expect((await list()).map((l) => l.description)).toEqual(['Jus']);
+  });
+
+  it('refuse an amount that isn’t one, and anyone not signed in', async () => {
+    const response = await call(cook, 'POST', '/api/checklist/add', {
+      ids: [gel.id],
+      onHand: { [gel.id]: { value: -1, unit: 'l' } },
+    });
+    expect(response.statusCode).toBe(400);
+    const anonymous = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/checklist/add',
+      payload: { ids: [gel.id] },
+    });
+    expect(anonymous.statusCode).toBe(401);
+    expect(await list()).toHaveLength(0);
+  });
+
+  it('stop being said on the line once its amount is changed by hand', async () => {
+    await call(cook, 'POST', '/api/checklist/add', { ids: [gel.id] });
+    const made = (await line('Fig gel'))!;
+    await call(admin, 'PATCH', `/api/tasks/${made.id}`, { quantity: { value: 4, unit: 'l' } });
+    expect(await line('Fig gel')).toMatchObject({
+      quantity: { value: 4000, unit: 'ml' },
+      par: null,
+    });
   });
 });

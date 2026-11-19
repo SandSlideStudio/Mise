@@ -147,3 +147,55 @@ test('the chef switches the checklist on and builds it by station; a cook ticks 
   await page.reload();
   await expect(prepLine(page, chimichurri)).toContainText('From the checklist, by');
 });
+
+test('a chef sets a par; the cook says what is there and the list asks for the rest', async ({
+  page,
+}) => {
+  await signIn(page);
+  const on = await page.request.patch('/api/kitchen', { data: { prepChecklist: true } });
+  expect(on.ok(), await on.text()).toBe(true);
+  const gel = unique('Fig gel');
+  const stock = unique('Veal stock');
+
+  await page.goto('/');
+  await openChecklist(page);
+  await page.getByRole('button', { name: 'Edit checklist' }).click();
+  const anywhere = page.locator('form section', {
+    has: page.getByRole('heading', { name: 'Anywhere' }),
+  });
+  for (const [name, par] of [
+    [gel, '3'],
+    [stock, '2'],
+  ] as const) {
+    await anywhere.getByLabel('New item').fill(name);
+    await anywhere.getByRole('button', { name: 'Add', exact: true }).click();
+    await page.getByLabel(`Par for ${name}`).fill(par);
+    await page.getByLabel(`Unit of the par for ${name}`).selectOption('l');
+  }
+  await page.getByRole('button', { name: 'Save checklist' }).click();
+
+  await page.getByRole('checkbox', { name: gel }).check();
+  await page.getByRole('checkbox', { name: stock }).check();
+  await page.getByRole('button', { name: 'Add to prep list (2)' }).click();
+  await expect(page.getByRole('heading', { name: 'How much is there?' })).toBeVisible();
+  await page.getByLabel(`How much ${gel} is there, in l`).fill('1');
+  await page.getByLabel(`How much ${stock} is there, in l`).fill('2.5');
+  await page.getByRole('button', { name: 'Add to prep list (2)' }).click();
+
+  await expect(page.getByRole('status').filter({ hasText: 'enough there' })).toHaveText(
+    `1 line added to the prep list. ${stock}: enough there.`,
+  );
+  const line = prepLine(page, gel);
+  await expect(line).toContainText('2 l');
+  await expect(line).toContainText('Par 3 l, 1 l there');
+  await expect(prepLine(page, stock)).toHaveCount(0);
+
+  // The checklist is shared by these tests: take the two items off again.
+  const current = await (await page.request.get('/api/checklist')).json();
+  const put = await page.request.put('/api/checklist', {
+    data: {
+      items: current.items.filter((item: { name: string }) => ![gel, stock].includes(item.name)),
+    },
+  });
+  expect(put.ok(), await put.text()).toBe(true);
+});

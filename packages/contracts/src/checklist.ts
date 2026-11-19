@@ -1,10 +1,16 @@
 import { z } from 'zod';
-import { idSchema } from './common.js';
+import { idSchema, quantitySchema } from './common.js';
 
 /**
  * The chef's checklist for the prep list: names, organised by station, that
- * anyone can tick to put on the list. Names, with an optional recipe from the book: no amounts.
+ * anyone can tick to put on the list. Names, with an optional recipe from the
+ * book and an optional par: how much the chef wants ready.
  */
+
+/** A par is an amount to have ready, so it is more than nothing. */
+export const parSchema = quantitySchema.refine((q) => q.value > 0, {
+  message: 'A par is more than nothing.',
+});
 
 export const checklistItemSchema = z.object({
   id: idSchema,
@@ -13,6 +19,12 @@ export const checklistItemSchema = z.object({
   name: z.string(),
   /** The recipe the line is made from: the prep line it adds links to it. Null: none. */
   recipeId: idSchema.nullable(),
+  /**
+   * How much the chef wants ready, in the unit the chef chose. Null: no par,
+   * the line goes on the list without an amount. Optional so a checklist
+   * kept on a tablet from before pars still reads.
+   */
+  par: quantitySchema.nullable().optional(),
 });
 
 export const checklistSchema = z.object({
@@ -37,6 +49,11 @@ export const updateChecklistSchema = z.object({
         stationId: idSchema.nullable(),
         name: z.string().trim().min(1).max(120),
         recipeId: idSchema.nullable().optional(),
+        /**
+         * Null takes the par away. Left out keeps the one the item has, so a
+         * save from a tablet that predates pars doesn't wipe them.
+         */
+        par: parSchema.nullable().optional(),
       }),
     )
     .max(500),
@@ -44,6 +61,17 @@ export const updateChecklistSchema = z.object({
 
 export const addFromChecklistSchema = z.object({
   ids: z.array(idSchema).min(1).max(500),
+  /**
+   * How much is already there, by item id, for items with a par. An item
+   * with a par and nothing said here has nothing there, so the whole par is
+   * made. Left out altogether by tablets from before pars.
+   */
+  onHand: z
+    .record(idSchema, quantitySchema)
+    .refine((onHand) => Object.keys(onHand).length <= 500, {
+      message: 'Too many amounts.',
+    })
+    .optional(),
 });
 
 export const addFromChecklistResponseSchema = z.object({
@@ -51,6 +79,8 @@ export const addFromChecklistResponseSchema = z.object({
   added: z.number().int(),
   /** Ticked items that were skipped because the same line is already open on that station. */
   alreadyThere: z.number().int(),
+  /** Names of ticked items left off because what is there already reaches the par. */
+  enough: z.array(z.string()).default([]),
 });
 
 export type ChecklistItem = z.infer<typeof checklistItemSchema>;

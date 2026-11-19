@@ -45,6 +45,21 @@ describe('the printed checklist', () => {
     expect(container.querySelectorAll('section p > span[aria-hidden]')).toHaveLength(4);
   });
 
+  it('shows a line’s par, with a box to write how much is there', () => {
+    const withPars: ChecklistItem[] = [
+      { id: '1', stationId: 'hot', name: 'Fig gel', recipeId: null, par: { value: 3, unit: 'l' } },
+      { id: '2', stationId: 'hot', name: 'Eggs', recipeId: null, par: { value: 40, unit: 'each' } },
+      { id: '3', stationId: 'hot', name: 'Jus', recipeId: null, par: null },
+    ];
+    const { container } = render(
+      <ChecklistPrint kitchenName="K" items={withPars} stations={stations} />,
+    );
+    const lines = [...container.querySelectorAll('section p')].map((p) => p.textContent);
+    // A bare count needs no unit, the same as on the screen.
+    expect(lines).toEqual(['Fig gelpar 3 ltherel', 'Eggspar 40there', 'Jus']);
+    expect(container.querySelectorAll('[data-there]')).toHaveLength(2);
+  });
+
   it('says so when there is nothing on the checklist', () => {
     render(<ChecklistPrint kitchenName="K" items={[]} stations={stations} />);
     expect(screen.getByText('The checklist is empty.')).toBeTruthy();

@@ -51,6 +51,17 @@ function serialiseTask(task: TaskRow) {
     sortOrder: task.sortOrder,
     createdByName: task.createdByName,
     fromChecklist: task.fromChecklist,
+    // In the quantity's own base unit, so it is only said alongside a quantity.
+    par:
+      task.parBase !== null &&
+      task.onHandBase !== null &&
+      task.quantityUnit !== null &&
+      isUnitCode(task.quantityUnit)
+        ? {
+            par: { value: task.parBase, unit: task.quantityUnit },
+            onHand: { value: task.onHandBase, unit: task.quantityUnit },
+          }
+        : null,
   };
 }
 

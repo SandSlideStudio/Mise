@@ -1298,6 +1298,23 @@ export const en = {
   'checklistPrint.title': 'Prep checklist',
   'checklistPrint.print': 'Print checklist',
   'checklistPrint.empty': 'The checklist is empty.',
+  // Par levels: how much the chef wants ready, and what is there already
+  'checklist.par': 'Par',
+  'checklist.parFor': 'Par for {name}',
+  'checklist.parUnitFor': 'Unit of the par for {name}',
+  'checklist.parHint':
+    'A par is how much you want ready. The cook who adds the line says what is there, and the list asks for the rest. Leave it empty for none.',
+  'checklist.onHandTitle': 'How much is there?',
+  'checklist.onHandHint':
+    'Leave a box empty when there is none. The list asks for what is short of the par.',
+  'checklist.onHandFor': 'How much {name} is there, in {unit}',
+  'checklist.parIs': 'par {amount}',
+  'checklist.back': 'Back',
+  'checklist.enough': '{name}: enough there.',
+  'task.parNote': 'Par {par}, {onHand} there',
+  'task.parNoteNone': 'Par {par}, none there',
+  'checklistPrint.par': 'par {amount}',
+  'checklistPrint.there': 'there',
   // Privacy: what is kept, for how long, and one person's data
   'settings.tabPrivacy': 'Privacy',
   'kitchen.keepFor': 'Keep them for',

@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import type { ChecklistItem, RecipeSummary, Station } from '@mise/contracts';
+import type { ChecklistItem, Quantity, RecipeSummary, Station } from '@mise/contracts';
+import { ALL_UNITS, formatQuantity, unit as unitDef, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
 import {
   groupChecklist,
@@ -30,7 +31,18 @@ export function PrepChecklist() {
   return <Panel />;
 }
 
-type Outcome = { kind: 'added'; added: number; alreadyThere: number } | { kind: 'queued' } | null;
+type Outcome =
+  | { kind: 'added'; added: number; alreadyThere: number; enough: string[] }
+  | { kind: 'queued' }
+  | null;
+
+/** A number typed on a tablet, with a comma or a point. Empty, or not a number: null. */
+export function typedAmount(text: string): number | null {
+  const trimmed = text.trim();
+  if (trimmed === '') return null;
+  const value = Number(trimmed.replace(',', '.'));
+  return Number.isFinite(value) && value >= 0 ? value : null;
+}
 
 function Panel() {
   const translator = useT();
@@ -43,12 +55,16 @@ function Panel() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(false);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
+  // Asking how much is there of the ticked items with a par, before they go on.
+  const [counting, setCounting] = useState(false);
   const [outcome, setOutcome] = useState<Outcome>(null);
   const [printing, print] = usePrintChecklist();
 
   const items = checklist.data?.items ?? [];
   // An item the chef has removed since it was ticked isn't ticked any more.
-  const chosen = items.filter((item) => ticked.has(item.id)).map((item) => item.id);
+  const chosenItems = items.filter((item) => ticked.has(item.id));
+  const chosen = chosenItems.map((item) => item.id);
+  const withPar = chosenItems.filter((item) => item.par);
 
   function toggle(id: string) {
     setOutcome(null);
@@ -58,21 +74,37 @@ function Panel() {
     setTicked(next);
   }
 
-  function send() {
+  function send(onHand?: Record<string, Quantity>) {
     add.mutate(
-      { ids: chosen },
+      // Without a par there is nothing to count, and the payload stays as it always was.
+      onHand ? { ids: chosen, onHand } : { ids: chosen },
       {
         onSuccess: (result) => {
           // Cleared once it has gone, or been kept on the tablet to go later.
           setTicked(new Set());
+          setCounting(false);
           setOutcome(
             isQueued(result)
               ? { kind: 'queued' }
-              : { kind: 'added', added: result.added, alreadyThere: result.alreadyThere },
+              : {
+                  kind: 'added',
+                  added: result.added,
+                  alreadyThere: result.alreadyThere,
+                  // A server from before pars doesn't say.
+                  enough: result.enough ?? [],
+                },
           );
         },
       },
     );
+  }
+
+  /** Straight on, unless something ticked has a par: then first ask what is there. */
+  function onAdd() {
+    if (withPar.length > 0) {
+      setOutcome(null);
+      setCounting(true);
+    } else send();
   }
 
   return (
@@ -90,7 +122,18 @@ function Panel() {
         {!open ? <span className="text-ink-soft text-[15px]">{t('checklist.hint')}</span> : null}
       </div>
 
-      {open && !editing ? (
+      {open && !editing && counting && withPar.length > 0 ? (
+        <OnHand
+          items={withPar}
+          count={chosen.length}
+          pending={add.isPending}
+          error={add.error ? errorMessage(translator, add.error) : null}
+          onSend={send}
+          onBack={() => setCounting(false)}
+        />
+      ) : null}
+
+      {open && !editing && !(counting && withPar.length > 0) ? (
         <div className="px-4 pb-4 sm:px-7">
           {checklist.isError && !checklist.data ? (
             <p role="alert" className="text-danger">
@@ -118,7 +161,7 @@ function Panel() {
                 type="button"
                 className="btn-primary min-h-12"
                 disabled={chosen.length === 0 || add.isPending}
-                onClick={send}
+                onClick={onAdd}
               >
                 {add.isPending
                   ? t('common.saving')
@@ -155,6 +198,7 @@ function Panel() {
                     outcome.alreadyThere > 0
                       ? plural('checklist.alreadyThere', outcome.alreadyThere)
                       : null,
+                    ...outcome.enough.map((name) => t('checklist.enough', { name })),
                   ]
                     .filter(Boolean)
                     .join(' ')}
@@ -181,6 +225,98 @@ function Panel() {
       ) : null}
     </section>
   );
+}
+
+/**
+ * How much is there of each ticked item with a par, in the par's own unit.
+ * Big boxes with a number pad, one under the other, so a cook walking the
+ * fridge can fill them in with a thumb. An empty box is nothing there.
+ */
+function OnHand({
+  items,
+  count,
+  pending,
+  error,
+  onSend,
+  onBack,
+}: {
+  items: ChecklistItem[];
+  /** Everything ticked, with a par or without: what the button adds. */
+  count: number;
+  pending: boolean;
+  error: string | null;
+  onSend: (onHand: Record<string, Quantity>) => void;
+  onBack: () => void;
+}) {
+  const { t } = useT();
+  const [typed, setTyped] = useState<Record<string, string>>({});
+
+  function onSubmit(event: FormEvent) {
+    event.preventDefault();
+    const onHand: Record<string, Quantity> = {};
+    for (const item of items) {
+      const value = typedAmount(typed[item.id] ?? '');
+      if (item.par && value !== null) onHand[item.id] = { value, unit: item.par.unit };
+    }
+    onSend(onHand);
+  }
+
+  return (
+    <form onSubmit={onSubmit} className="px-4 pb-4 sm:px-7">
+      <h3 className="text-xl">{t('checklist.onHandTitle')}</h3>
+      <p className="text-ink-soft mb-3 text-[15px]">{t('checklist.onHandHint')}</p>
+      <fieldset disabled={pending}>
+        <ul className="grid gap-x-6 lg:grid-cols-2">
+          {items.map((item, index) => {
+            const par = item.par!;
+            const abbr = unitDef(par.unit as UnitCode).abbr;
+            return (
+              <li key={item.id} className="border-rule flex items-center gap-3 border-b py-2">
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="text-lg break-words">{item.name}</span>
+                  <span className="text-ink-soft text-[15px]">
+                    {t('checklist.parIs', { amount: formatParAmount(par) })}
+                  </span>
+                </span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min={0}
+                  autoFocus={index === 0}
+                  aria-label={t('checklist.onHandFor', { name: item.name, unit: abbr })}
+                  className="field qty h-14 w-28 text-right text-[24px]"
+                  value={typed[item.id] ?? ''}
+                  onChange={(e) => setTyped({ ...typed, [item.id]: e.target.value })}
+                />
+                <span aria-hidden className="text-ink-soft w-10 text-lg">
+                  {abbr}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </fieldset>
+      {error ? (
+        <p role="alert" className="text-danger mt-2 text-[15px]">
+          {error}
+        </p>
+      ) : null}
+      <div className="mt-3 flex flex-wrap gap-3">
+        <button type="submit" className="btn-primary min-h-12" disabled={pending}>
+          {pending ? t('common.saving') : t('checklist.addCount', { count })}
+        </button>
+        <button type="button" className="btn-quiet min-h-12" disabled={pending} onClick={onBack}>
+          {t('checklist.back')}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/** A par as the chef set it: "3 l", "2 dz", "40". */
+export function formatParAmount(par: Quantity): string {
+  return formatQuantity({ value: par.value, unit: par.unit as UnitCode });
 }
 
 /** What can be ticked: the items by station, each row a whole-row target. */
@@ -244,7 +380,12 @@ function Editor({
   const translator = useT();
   const { t } = translator;
   const save = useSaveChecklist();
+  const recipes = useRecipes();
   const [draft, setDraft] = useState<ChecklistItem[]>(items);
+  // A par as it is being typed, and the unit picked for it, by item id. The
+  // par itself is only worked out on saving, so a half-typed "1," is no bother.
+  const [parText, setParText] = useState<Record<string, string>>({});
+  const [parUnit, setParUnit] = useState<Record<string, UnitCode>>({});
   // The version this was opened from stays, however the list refreshes meanwhile.
   const [opened] = useState(base);
 
@@ -258,7 +399,7 @@ function Editor({
       ...draft.filter((item) => item.id === id).map((item) => ({ ...item, stationId })),
     ]);
   const append = (stationId: string | null, name: string) =>
-    setDraft([...draft, { id: newItemId(), stationId, name, recipeId: null }]);
+    setDraft([...draft, { id: newItemId(), stationId, name, recipeId: null, par: null }]);
   const link = (id: string, recipeId: string | null) =>
     setDraft(draft.map((item) => (item.id === id ? { ...item, recipeId } : item)));
 
@@ -277,10 +418,29 @@ function Editor({
     }
   }
 
+  /**
+   * The unit a par is in: the one the chef picked, the one it had, or for a
+   * line made from a recipe the unit the recipe yields, so "Fig gel" asks in
+   * litres without anyone choosing it.
+   */
+  function unitFor(item: ChecklistItem): UnitCode {
+    const linked = item.recipeId
+      ? (recipes.data ?? []).find((recipe) => recipe.id === item.recipeId)
+      : undefined;
+    return (parUnit[item.id] ?? item.par?.unit ?? linked?.yield.unit ?? 'each') as UnitCode;
+  }
+  const textFor = (item: ChecklistItem) =>
+    parText[item.id] ?? (item.par ? String(item.par.value) : '');
+
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     const named = draft
-      .map((item) => ({ ...item, name: item.name.trim() }))
+      .map((item) => {
+        const value = typedAmount(textFor(item));
+        // Empty, or nothing at all: no par.
+        const par = value !== null && value > 0 ? { value, unit: unitFor(item) } : null;
+        return { ...item, name: item.name.trim(), par };
+      })
       .filter((item) => item.name !== '');
     save.mutate({ items: named, base: opened }, { onSuccess: onDone });
   }
@@ -300,7 +460,8 @@ function Editor({
   return (
     <form onSubmit={onSubmit} className="px-4 pb-4 sm:px-7">
       <h3 className="text-xl">{t('checklist.editTitle')}</h3>
-      <p className="text-ink-soft mb-3 text-[15px]">{t('checklist.editHint')}</p>
+      <p className="text-ink-soft mb-1 text-[15px]">{t('checklist.editHint')}</p>
+      <p className="text-ink-soft mb-3 text-[15px]">{t('checklist.parHint')}</p>
 
       <div className="flex flex-col gap-5">
         {groups.map((group) => (
@@ -358,6 +519,37 @@ function Editor({
                   >
                     <span aria-hidden>✕</span>
                   </button>
+                  <div className="flex basis-full items-center gap-2">
+                    <span className="eyebrow">{t('checklist.par')}</span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      step="any"
+                      min={0}
+                      aria-label={t('checklist.parFor', { name: item.name })}
+                      className="field qty h-11 w-24 text-right"
+                      value={textFor(item)}
+                      onChange={(e) => setParText({ ...parText, [item.id]: e.target.value })}
+                      onKeyDown={(e) => {
+                        // Enter is for the next box, not for saving the whole checklist.
+                        if (e.key === 'Enter') e.preventDefault();
+                      }}
+                    />
+                    <select
+                      aria-label={t('checklist.parUnitFor', { name: item.name })}
+                      className="field h-11 w-auto"
+                      value={unitFor(item)}
+                      onChange={(e) =>
+                        setParUnit({ ...parUnit, [item.id]: e.target.value as UnitCode })
+                      }
+                    >
+                      {ALL_UNITS.map((u) => (
+                        <option key={u.code} value={u.code}>
+                          {u.code}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                   <RecipeLinkField
                     name={item.name}
                     recipeId={item.recipeId}
