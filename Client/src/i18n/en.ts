@@ -1432,6 +1432,42 @@ export const en = {
   'notice.languages': 'Languages',
   'notice.heading': 'Allergies or intolerances?',
   'notice.body': 'Ask our staff. We can tell you exactly which allergens are in every dish.',
+  // Labels for containers of prep.
+  'label.button': 'Label',
+  'label.printFor': 'Print a label for {task}',
+  'label.title': 'Label for the container',
+  'label.useBy': 'Use by',
+  'label.made': 'Made',
+  'label.by': 'By',
+  'label.allergens': 'Allergens',
+  'label.contains': 'Contains: {allergens}',
+  'label.mayContain': 'May contain: {allergens}',
+  'label.noAllergens': 'None of the 14 allergens',
+  'label.keptChilled7': 'Chilled ≤7 °C',
+  'label.keptChilled4': 'Chilled ≤4 °C',
+  'label.keptFrozen': 'Frozen',
+  'label.keptAmbient': 'Dry store',
+  'label.noteDefault':
+    'The use-by is the Hygiënecode default for chilled prep: the day it was made plus {days} days. Set a shelf life on the recipe to print its own.',
+  'label.noteFrozen':
+    'No use-by printed: it is kept frozen and the recipe has no shelf life. Write it on the label, or set a shelf life on the recipe.',
+  'label.noteAmbient':
+    'No use-by printed: it is kept dry and the recipe has no shelf life. Write it on the label, or set a shelf life on the recipe.',
+  'label.noteUnknown':
+    'No use-by printed: the recipe says neither how long it keeps nor that it is kept chilled. Write it on the label, or fill in its shelf life or storage.',
+  'label.noteNoRecipe':
+    'Not made from a recipe, so the use-by and allergens are left to write on the label.',
+  'label.howMany': 'How many',
+  'label.print_one': 'Print {count} label',
+  'label.print_other': 'Print {count} labels',
+  'label.sizeHint':
+    'Prints on the label size chosen in Settings, Kitchen. In the print dialog, pick the label printer.',
+  'kitchen.labelSize': 'Label size',
+  'kitchen.labelSizeHint':
+    'The roll in the label printer. Labels go through the print dialog, so any label printer the tablet can print to will do.',
+  'kitchen.labelOnTick': 'Print a label when a line is ticked',
+  'kitchen.labelOnTickHint':
+    'Opens the print dialog by itself when a line made from a recipe is ticked off. Otherwise a ticked line offers a Label button.',
 } as const;
 
 export type MessageKey = keyof typeof en;

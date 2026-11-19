@@ -671,3 +671,36 @@
     height: 210mm;
   }
 }
+
+/*
+ * Labels for containers of prep, one to a page the size of the label. Only
+ * there while they print, so the rest of the app never goes to the label
+ * printer. Black only: label printers are thermal.
+ */
+.print-label {
+  display: none;
+}
+
+@media print {
+  html.printing-label body > :not(.print-label) {
+    display: none !important;
+  }
+
+  html.printing-label body {
+    background: white;
+  }
+
+  html.printing-label .print-label {
+    display: block;
+  }
+
+  .print-label-page {
+    overflow: hidden;
+    break-after: page;
+    color: black;
+  }
+
+  .print-label-page:last-child {
+    break-after: auto;
+  }
+}

@@ -1485,4 +1485,40 @@ export const de: Record<MessageKey, string> = {
   'notice.heading': 'Allergien oder Unverträglichkeiten?',
   'notice.body':
     'Fragen Sie unser Personal. Wir sagen Ihnen genau, welche Allergene in jedem Gericht stecken.',
+  // Labels for containers of prep.
+  'label.button': 'Etikett',
+  'label.printFor': 'Etikett für {task} drucken',
+  'label.title': 'Etikett für den Behälter',
+  'label.useBy': 'Verbrauchen bis',
+  'label.made': 'Hergestellt',
+  'label.by': 'Von',
+  'label.allergens': 'Allergene',
+  'label.contains': 'Enthält: {allergens}',
+  'label.mayContain': 'Kann Spuren enthalten: {allergens}',
+  'label.noAllergens': 'Keines der 14 Allergene',
+  'label.keptChilled7': 'Gekühlt ≤7 °C',
+  'label.keptChilled4': 'Gekühlt ≤4 °C',
+  'label.keptFrozen': 'Tiefgekühlt',
+  'label.keptAmbient': 'Trocken lagern',
+  'label.noteDefault':
+    'Das Datum ist der Standard des Hygiënecode für gekühlte eigene Zubereitungen: der Tag der Herstellung plus {days} Tage. Trag im Rezept eine Haltbarkeit ein, um diese zu drucken.',
+  'label.noteFrozen':
+    'Kein Datum gedruckt: Es wird tiefgekühlt, und das Rezept hat keine Haltbarkeit. Schreib es auf das Etikett oder trag im Rezept eine Haltbarkeit ein.',
+  'label.noteAmbient':
+    'Kein Datum gedruckt: Es wird trocken gelagert, und das Rezept hat keine Haltbarkeit. Schreib es auf das Etikett oder trag im Rezept eine Haltbarkeit ein.',
+  'label.noteUnknown':
+    'Kein Datum gedruckt: Das Rezept sagt weder, wie lange es haltbar ist, noch dass es gekühlt gelagert wird. Schreib es auf das Etikett oder trag Haltbarkeit oder Lagerung ein.',
+  'label.noteNoRecipe':
+    'Nicht nach einem Rezept gemacht, also kommen Datum und Allergene von Hand auf das Etikett.',
+  'label.howMany': 'Wie viele',
+  'label.print_one': '{count} Etikett drucken',
+  'label.print_other': '{count} Etiketten drucken',
+  'label.sizeHint':
+    'Druckt im Etikettenformat aus Einstellungen, Küche. Wähl im Druckdialog den Etikettendrucker.',
+  'kitchen.labelSize': 'Etikettenformat',
+  'kitchen.labelSizeHint':
+    'Die Rolle im Etikettendrucker. Etiketten gehen über den Druckdialog, also passt jeder Etikettendrucker, auf dem das Tablet drucken kann.',
+  'kitchen.labelOnTick': 'Etikett drucken, wenn eine Zeile abgehakt wird',
+  'kitchen.labelOnTickHint':
+    'Öffnet von selbst den Druckdialog, wenn eine Zeile aus einem Rezept abgehakt wird. Sonst bietet eine abgehakte Zeile einen Knopf Etikett.',
 };

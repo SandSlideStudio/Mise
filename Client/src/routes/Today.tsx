@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { PrepTask, PrepTaskStatus, RecipeSummary } from '@mise/contracts';
 import { ALL_UNITS, formatQuantity, isUnitCode, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
@@ -15,6 +16,7 @@ import {
   useUpdatePrepTask,
 } from '../api/running.js';
 import { useRecipes } from '../api/recipes.js';
+import { labelForLine, labelSettingsOf } from '../api/labels.js';
 import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { PrepListPrint } from '../components/PrepListPrint.js';
@@ -22,6 +24,8 @@ import { PrepChecklist } from '../components/PrepChecklist.js';
 import { useWaitingAccess } from '../api/access.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
+import { BottomNotice } from '../components/BottomNotice.js';
+import { LabelSheets, useByNote, usePrintLabels } from '../components/PrepLabel.js';
 import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
 import { useNight } from '../lib/theme.js';
 import { serverNow } from '../lib/serverClock.js';
@@ -160,6 +164,24 @@ function RunningPrep() {
   const update = useUpdatePrepTask();
   const remove = useDeletePrepTask();
   const canManage = user?.role !== 'cook';
+  const queryClient = useQueryClient();
+  const [labelJob, printLabels] = usePrintLabels();
+  // What to write on the label by hand, said once it has gone to the printer.
+  const [labelNote, setLabelNote] = useState<{ name: string; text: string } | null>(null);
+
+  useEffect(() => {
+    if (!labelNote) return;
+    const timer = window.setTimeout(() => setLabelNote(null), 12_000);
+    return () => window.clearTimeout(timer);
+  }, [labelNote]);
+
+  async function printLabel(task: PrepTask) {
+    if (!user) return;
+    const label = await labelForLine(queryClient, task, user);
+    printLabels({ labels: [label], size: labelSettingsOf(user).size });
+    const text = useByNote(t, label);
+    setLabelNote(text ? { name: label.name, text } : null);
+  }
 
   // Lines drop off on the clock, not only when someone taps, so keep time:
   // the server's, since the tablet's own clock may be off.
@@ -195,21 +217,44 @@ function RunningPrep() {
       tasks={visible}
       failed={tasks.isError ? () => void tasks.refetch() : undefined}
       emptyText={t('running.empty')}
-      onToggle={(id, status) =>
+      onToggle={(id, status) => {
         // Starting a job puts your name on it, so the kitchen sees who has it.
         update.mutate(
           status === 'in_progress'
             ? { id, status, assignedUserId: user?.id ?? null }
             : { id, status },
-        )
-      }
+        );
+        // A kitchen that labels everything it makes can have the label come
+        // up by itself, but only for what was made from a recipe: a ticked
+        // "mop the walk-in" needs no label.
+        const task = tasks.data?.find((line) => line.id === id);
+        if (status === 'done' && task?.recipeId && labelSettingsOf(user).onTick) {
+          void printLabel({ ...task, completedAt: null, completedByName: null });
+        }
+      }}
       noteFor={noteFor}
       onRemove={canManage ? (id) => remove.mutate(id) : undefined}
+      onLabel={(task) => void printLabel(task)}
       header={
         <>
           <Handover />
           <PrepChecklist />
           {canManage ? <AddRunningLine /> : null}
+        </>
+      }
+      footer={
+        <>
+          {labelJob ? <LabelSheets job={labelJob} /> : null}
+          {labelNote ? (
+            <BottomNotice>
+              <p
+                role="status"
+                className="bg-surface-raised border-accent text-ink max-w-xl border-2 border-l-[6px] px-4 py-3 text-[17px] shadow-lg"
+              >
+                <strong className="font-semibold">{labelNote.name}</strong> · {labelNote.text}
+              </p>
+            </BottomNotice>
+          ) : null}
         </>
       }
     />
@@ -534,7 +579,9 @@ function Board({
   onToggle,
   noteFor,
   onRemove,
+  onLabel,
   header,
+  footer,
 }: {
   title: string;
   subtitle: string | null;
@@ -545,7 +592,11 @@ function Board({
   onToggle: (id: string, status: PrepTaskStatus) => void;
   noteFor?: (task: PrepTask) => string | null;
   onRemove?: (id: string) => void;
+  /** Print a label for a line that is done. */
+  onLabel?: (task: PrepTask) => void;
   header?: ReactNode;
+  /** Drawn outside the list, such as the labels while they print. */
+  footer?: ReactNode;
 }) {
   const { data: user } = useCurrentUser();
   const { t } = useT();
@@ -655,6 +706,7 @@ function Board({
                     onToggle={(next) => onToggle(task.id, next)}
                     onProgress={(next) => onToggle(task.id, next)}
                     onRemove={onRemove ? () => onRemove(task.id) : undefined}
+                    onLabel={onLabel ? () => onLabel(task) : undefined}
                   />
                 ))}
               </ul>
@@ -662,6 +714,7 @@ function Board({
           ))}
         </div>
       )}
+      {footer}
     </section>
   );
 }

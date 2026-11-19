@@ -1469,4 +1469,40 @@ export const nl: Record<MessageKey, string> = {
   'notice.heading': 'Allergieën of intoleranties?',
   'notice.body':
     'Vraag het onze medewerkers. Wij vertellen precies welke allergenen er in elk gerecht zitten.',
+  // Labels for containers of prep.
+  'label.button': 'Etiket',
+  'label.printFor': 'Etiket printen voor {task}',
+  'label.title': 'Etiket voor de bak',
+  'label.useBy': 'Te gebruiken tot',
+  'label.made': 'Gemaakt',
+  'label.by': 'Door',
+  'label.allergens': 'Allergenen',
+  'label.contains': 'Bevat: {allergens}',
+  'label.mayContain': 'Kan sporen bevatten: {allergens}',
+  'label.noAllergens': 'Geen van de 14 allergenen',
+  'label.keptChilled7': 'Gekoeld ≤7 °C',
+  'label.keptChilled4': 'Gekoeld ≤4 °C',
+  'label.keptFrozen': 'Diepvries',
+  'label.keptAmbient': 'Droog bewaren',
+  'label.noteDefault':
+    'De datum is de standaard uit de Hygiënecode voor gekoelde eigen bereidingen: de dag van bereiden plus {days} dagen. Zet een houdbaarheid op het recept om die te printen.',
+  'label.noteFrozen':
+    'Geen datum geprint: het gaat de diepvries in en het recept heeft geen houdbaarheid. Schrijf hem op het etiket, of zet een houdbaarheid op het recept.',
+  'label.noteAmbient':
+    'Geen datum geprint: het wordt droog bewaard en het recept heeft geen houdbaarheid. Schrijf hem op het etiket, of zet een houdbaarheid op het recept.',
+  'label.noteUnknown':
+    'Geen datum geprint: het recept zegt niet hoe lang het houdbaar is, en ook niet dat het gekoeld bewaard wordt. Schrijf hem op het etiket, of vul de houdbaarheid of het bewaren in.',
+  'label.noteNoRecipe':
+    'Niet van een recept gemaakt, dus de datum en de allergenen schrijf je zelf op het etiket.',
+  'label.howMany': 'Hoeveel',
+  'label.print_one': '{count} etiket printen',
+  'label.print_other': '{count} etiketten printen',
+  'label.sizeHint':
+    'Print op het etiketformaat uit Instellingen, Keuken. Kies in het printvenster de etikettenprinter.',
+  'kitchen.labelSize': 'Etiketformaat',
+  'kitchen.labelSizeHint':
+    'De rol in de etikettenprinter. Etiketten gaan via het printvenster, dus elke etikettenprinter waar de tablet naar kan printen werkt.',
+  'kitchen.labelOnTick': 'Etiket printen als een regel is afgevinkt',
+  'kitchen.labelOnTickHint':
+    'Opent vanzelf het printvenster als een regel van een recept wordt afgevinkt. Anders krijgt een afgevinkte regel een knop Etiket.',
 };

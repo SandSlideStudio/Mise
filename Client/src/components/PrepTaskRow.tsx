@@ -17,7 +17,8 @@ import { useCurrentUser } from '../api/session.js';
  *
  * Beside the row sits a Start button. It puts the name of whoever tapped it on
  * the line, so two cooks do not both start the stock. A chef also gets a way
- * to take a line off the list again.
+ * to take a line off the list again. Once a line is done, the same place
+ * offers a label for the container it went into.
  */
 
 /** Starting a job, or putting it back. */
@@ -35,6 +36,7 @@ export function PrepTaskRow({
   onToggle,
   onProgress,
   onRemove,
+  onLabel,
   disabled,
 }: {
   task: PrepTask;
@@ -45,6 +47,8 @@ export function PrepTaskRow({
   onProgress?: (next: ProgressChange) => void;
   /** Take the line off the list. Only offered to chefs. */
   onRemove?: () => void;
+  /** Print a label for what was made. Offered once the line is done. */
+  onLabel?: () => void;
   disabled?: boolean;
 }) {
   const { t } = useT();
@@ -105,11 +109,19 @@ export function PrepTaskRow({
 
       {onProgress ? (
         done ? (
-          // Keep the column, so finished rows line up with the rest.
-          <span
-            className="bg-done border-rule no-print w-[109px] shrink-0 border-l sm:w-[121px]"
-            aria-hidden
-          />
+          // The same column, so finished rows line up with the rest.
+          <span className="bg-done border-rule no-print flex w-[109px] shrink-0 items-center border-l px-2.5 sm:w-[121px] sm:px-3">
+            {onLabel ? (
+              <button
+                type="button"
+                onClick={onLabel}
+                aria-label={t('label.printFor', { task: task.description })}
+                className="btn-quiet min-h-11 w-full px-3 text-base"
+              >
+                {t('label.button')}
+              </button>
+            ) : null}
+          </span>
         ) : (
           <ProgressTick task={task} making={making} onProgress={onProgress} disabled={disabled} />
         )

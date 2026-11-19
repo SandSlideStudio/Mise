@@ -1468,4 +1468,40 @@ export const es: Record<MessageKey, string> = {
   'notice.heading': '¿Alergias o intolerancias?',
   'notice.body':
     'Pregunta a nuestro equipo. Podemos decirte exactamente qué alérgenos lleva cada plato.',
+  // Labels for containers of prep.
+  'label.button': 'Etiqueta',
+  'label.printFor': 'Imprimir una etiqueta para {task}',
+  'label.title': 'Etiqueta para el recipiente',
+  'label.useBy': 'Consumir antes de',
+  'label.made': 'Hecho',
+  'label.by': 'Por',
+  'label.allergens': 'Alérgenos',
+  'label.contains': 'Contiene: {allergens}',
+  'label.mayContain': 'Puede contener: {allergens}',
+  'label.noAllergens': 'Ninguno de los 14 alérgenos',
+  'label.keptChilled7': 'Refrigerado ≤7 °C',
+  'label.keptChilled4': 'Refrigerado ≤4 °C',
+  'label.keptFrozen': 'Congelado',
+  'label.keptAmbient': 'En seco',
+  'label.noteDefault':
+    'La fecha es la que el Hygiënecode da por defecto para elaboraciones propias refrigeradas: el día en que se hizo más {days} días. Pon una vida útil en la receta para imprimir la suya.',
+  'label.noteFrozen':
+    'Sin fecha impresa: se guarda congelado y la receta no tiene vida útil. Escríbela en la etiqueta, o pon una vida útil en la receta.',
+  'label.noteAmbient':
+    'Sin fecha impresa: se guarda en seco y la receta no tiene vida útil. Escríbela en la etiqueta, o pon una vida útil en la receta.',
+  'label.noteUnknown':
+    'Sin fecha impresa: la receta no dice cuánto dura ni que se guarde refrigerado. Escríbela en la etiqueta, o rellena su vida útil o su conservación.',
+  'label.noteNoRecipe':
+    'No se hizo con una receta, así que la fecha y los alérgenos se escriben a mano en la etiqueta.',
+  'label.howMany': 'Cuántas',
+  'label.print_one': 'Imprimir {count} etiqueta',
+  'label.print_other': 'Imprimir {count} etiquetas',
+  'label.sizeHint':
+    'Se imprime en el tamaño elegido en Ajustes, Cocina. En el diálogo de impresión, elige la impresora de etiquetas.',
+  'kitchen.labelSize': 'Tamaño de etiqueta',
+  'kitchen.labelSizeHint':
+    'El rollo de la impresora de etiquetas. Las etiquetas van por el diálogo de impresión, así que sirve cualquier impresora de etiquetas a la que la tableta pueda imprimir.',
+  'kitchen.labelOnTick': 'Imprimir una etiqueta al marcar una línea',
+  'kitchen.labelOnTickHint':
+    'Abre sola el diálogo de impresión cuando se marca una línea hecha con una receta. Si no, una línea marcada ofrece un botón Etiqueta.',
 };

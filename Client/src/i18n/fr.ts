@@ -1492,4 +1492,40 @@ export const fr: Record<MessageKey, string> = {
   'notice.heading': 'Allergies ou intolérances ?',
   'notice.body':
     'Demandez à notre équipe. Nous pouvons vous dire exactement quels allergènes contient chaque plat.',
+  // Labels for containers of prep.
+  'label.button': 'Étiquette',
+  'label.printFor': 'Imprimer une étiquette pour {task}',
+  'label.title': 'Étiquette pour le bac',
+  'label.useBy': 'À consommer jusqu’au',
+  'label.made': 'Fait le',
+  'label.by': 'Par',
+  'label.allergens': 'Allergènes',
+  'label.contains': 'Contient : {allergens}',
+  'label.mayContain': 'Peut contenir : {allergens}',
+  'label.noAllergens': 'Aucun des 14 allergènes',
+  'label.keptChilled7': 'Réfrigéré ≤7 °C',
+  'label.keptChilled4': 'Réfrigéré ≤4 °C',
+  'label.keptFrozen': 'Congelé',
+  'label.keptAmbient': 'Au sec',
+  'label.noteDefault':
+    'La date est celle que le Hygiënecode prévoit par défaut pour les préparations maison réfrigérées : le jour de fabrication plus {days} jours. Indiquez une durée de conservation sur la recette pour imprimer la sienne.',
+  'label.noteFrozen':
+    'Aucune date imprimée : il est congelé et la recette n’a pas de durée de conservation. Écrivez-la sur l’étiquette, ou indiquez une durée de conservation sur la recette.',
+  'label.noteAmbient':
+    'Aucune date imprimée : il se garde au sec et la recette n’a pas de durée de conservation. Écrivez-la sur l’étiquette, ou indiquez une durée de conservation sur la recette.',
+  'label.noteUnknown':
+    'Aucune date imprimée : la recette ne dit ni combien de temps il se garde, ni qu’il est réfrigéré. Écrivez-la sur l’étiquette, ou indiquez sa conservation sur la recette.',
+  'label.noteNoRecipe':
+    'Pas fait d’après une recette : la date et les allergènes sont à écrire sur l’étiquette.',
+  'label.howMany': 'Combien',
+  'label.print_one': 'Imprimer {count} étiquette',
+  'label.print_other': 'Imprimer {count} étiquettes',
+  'label.sizeHint':
+    'S’imprime au format choisi dans Réglages, Cuisine. Dans la fenêtre d’impression, choisissez l’imprimante d’étiquettes.',
+  'kitchen.labelSize': 'Format d’étiquette',
+  'kitchen.labelSizeHint':
+    'Le rouleau dans l’imprimante d’étiquettes. Les étiquettes passent par la fenêtre d’impression, donc toute imprimante d’étiquettes accessible depuis la tablette convient.',
+  'kitchen.labelOnTick': 'Imprimer une étiquette quand une ligne est cochée',
+  'kitchen.labelOnTickHint':
+    'Ouvre d’elle-même la fenêtre d’impression quand une ligne faite d’après une recette est cochée. Sinon, une ligne cochée propose un bouton Étiquette.',
 };

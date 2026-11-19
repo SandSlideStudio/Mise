@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Link, useNavigate, useParams, useSearch } from '@tanstack/react-router';
 import { sectionPath, useRightSection } from '../lib/section.js';
 import { RecipeCardPrint } from '../components/RecipeCardPrint.js';
+import { RecipeLabel } from '../components/RecipeLabel.js';
 import { RequestFailed } from '../api/client.js';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
 import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
@@ -65,6 +66,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const duplicate = useDuplicateRecipe();
   const remove = useDeleteRecipe();
   const [confirming, setConfirming] = useState(false);
+  const [labelling, setLabelling] = useState(false);
   const cardSettings = useDishCardSettings();
   const awaiting = useAwaiting();
 
@@ -283,6 +285,16 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
             >
               {t('recipe.print')}
             </button>
+            {recipe.type !== 'dish' ? (
+              <button
+                type="button"
+                className="btn-quiet grow sm:grow-0"
+                aria-expanded={labelling}
+                onClick={() => setLabelling((open) => !open)}
+              >
+                {t('label.button')}
+              </button>
+            ) : null}
             {recipe.type === 'dish' && (canManage || cardSettings.data?.access === 'everyone') ? (
               <Link
                 to="/dishes/$dishId/card"
@@ -334,6 +346,9 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
               </p>
             ) : null}
           </div>
+          {labelling && recipe.type !== 'dish' ? (
+            <RecipeLabel recipe={recipe} allergens={allergens} />
+          ) : null}
         </Plate>
 
         {(usedBy.data ?? []).length > 0 ? (

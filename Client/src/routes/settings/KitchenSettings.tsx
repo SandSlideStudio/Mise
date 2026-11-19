@@ -1,5 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { LANGUAGES, type Language, type TickedRetention } from '@mise/contracts';
+import {
+  LABEL_SIZES,
+  LANGUAGES,
+  type LabelSize,
+  type Language,
+  type TickedRetention,
+} from '@mise/contracts';
 import { useKitchen, usePinOnlyStatus, useUpdateKitchen } from '../../api/kitchen.js';
 import { useCurrentUser } from '../../api/session.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
@@ -14,6 +20,19 @@ function keepChoices(current: number | null): number[] {
     ? KEEP_CHOICES
     : [...KEEP_CHOICES, current].sort((a, b) => a - b);
 }
+
+/**
+ * The rolls, by size as printed on the box, with the printer they come for.
+ * Not translated: millimetres and model numbers read the same everywhere.
+ */
+export const LABEL_SIZE_NAMES: Record<LabelSize, string> = {
+  '62x29': '62 × 29 mm · Brother QL',
+  '62x100': '62 × 100 mm · Brother QL',
+  '54x25': '54 × 25 mm · Dymo 11352',
+  '57x32': '57 × 32 mm',
+  '89x36': '89 × 36 mm · Dymo 99012',
+  '102x51': '102 × 51 mm',
+};
 
 /** The usual choices, plus whatever is set already if it was set some other way. */
 function idleChoices(current: number | null): number[] {
@@ -37,6 +56,8 @@ export function KitchenSettings() {
   const [idleMinutes, setIdleMinutes] = useState<number | null>(null);
   const [keepDays, setKeepDays] = useState<number | null>(365);
   const [prepChecklist, setPrepChecklist] = useState(false);
+  const [labelSize, setLabelSize] = useState<LabelSize>('62x29');
+  const [labelOnTick, setLabelOnTick] = useState(false);
 
   // Seed the form once the current settings arrive.
   useEffect(() => {
@@ -47,6 +68,8 @@ export function KitchenSettings() {
       setIdleMinutes(kitchen.data.idleSignOutMinutes);
       setKeepDays(kitchen.data.tickedKeepDays);
       setPrepChecklist(kitchen.data.prepChecklist);
+      setLabelSize(kitchen.data.labelSize);
+      setLabelOnTick(kitchen.data.labelOnTick);
     }
   }, [kitchen.data]);
 
@@ -63,6 +86,8 @@ export function KitchenSettings() {
       tickedKeepDays: keepDays,
       idleSignOutMinutes: idleMinutes,
       prepChecklist,
+      labelSize,
+      labelOnTick,
     });
   }
 
@@ -137,6 +162,39 @@ export function KitchenSettings() {
           <span>
             <span className="font-medium">{t('kitchen.prepChecklist')}</span>
             <span className="text-ink-soft block text-sm">{t('kitchen.prepChecklistHint')}</span>
+          </span>
+        </label>
+
+        <div>
+          <label className="label" htmlFor="labelSize">
+            {t('kitchen.labelSize')}
+          </label>
+          <select
+            id="labelSize"
+            className="field"
+            value={labelSize}
+            onChange={(e) => setLabelSize(e.target.value as LabelSize)}
+          >
+            {LABEL_SIZES.map((size) => (
+              <option key={size} value={size}>
+                {LABEL_SIZE_NAMES[size]}
+              </option>
+            ))}
+          </select>
+          <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.labelSizeHint')}</p>
+        </div>
+
+        <label className="flex cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            role="switch"
+            className="accent-accent mt-1 h-5 w-5 shrink-0"
+            checked={labelOnTick}
+            onChange={(e) => setLabelOnTick(e.target.checked)}
+          />
+          <span>
+            <span className="font-medium">{t('kitchen.labelOnTick')}</span>
+            <span className="text-ink-soft block text-sm">{t('kitchen.labelOnTickHint')}</span>
           </span>
         </label>
 
