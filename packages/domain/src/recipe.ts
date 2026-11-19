@@ -36,6 +36,11 @@ export interface Ingredient {
   /** The unit this ingredient is normally counted in. */
   baseUnit: BaseUnit;
   allergens: Allergen[];
+  /**
+   * Traces the supplier's label warns about ("may contain nuts"). Rolls up into
+   * a dish's may-contain, never into what it contains.
+   */
+  mayContain?: Allergen[];
   /** True or false when someone has said; null or absent when nobody has. */
   vegan?: boolean | null;
   /** Which gluten cereals and which nuts, for the ones that contain them. */
@@ -245,7 +250,7 @@ export function rollUpAllergens(
           onPath.delete(id);
           return err({ kind: 'missing_ingredient', ingredientId: component.ref.ingredientId });
         }
-        parts.push({ contains: ingredient.allergens, mayContain: [] });
+        parts.push({ contains: ingredient.allergens, mayContain: ingredient.mayContain ?? [] });
       } else {
         const child = visit(component.ref.recipeId);
         if (!child.ok) {

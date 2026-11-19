@@ -275,7 +275,7 @@ export function dishCardMatrix(
       hasDirect = true;
       direct.allergens = mergeProfiles(direct.allergens, {
         contains: ingredient.allergens,
-        mayContain: [],
+        mayContain: ingredient.mayContain ?? [],
       });
       direct.vegan.push(veganOf(ingredient.vegan, ingredient.allergens));
       direct.details.push(mergeAllergenDetails(ingredient.allergenDetails));

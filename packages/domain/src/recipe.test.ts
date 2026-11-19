@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import type { Allergen } from './allergens.js';
 import { book, cyclicBook } from './fixtures.js';
 import {
   factorForPortions,
@@ -94,5 +95,38 @@ describe('allergen roll-up', () => {
     const profile = unwrap(rollUpAllergens('r-stock', localBook));
     expect(profile.contains).toEqual([]);
     expect(profile.mayContain).toEqual(['celery']);
+  });
+
+  // An ingredient's "may contain" (the supplier's label) climbs through every
+  // sub-recipe the same way a recipe's own does.
+  function withTraces(ingredientId: string, mayContain: Allergen[]) {
+    return {
+      recipe: book.recipe,
+      ingredient: (id: string) => {
+        const found = book.ingredient(id);
+        return found && id === ingredientId ? { ...found, mayContain } : found;
+      },
+    };
+  }
+
+  it('carries an ingredient may-contain up through two levels of sub-recipe', () => {
+    // Onion is only in the stock, which is in the velouté, which is in the fricassée.
+    const profile = unwrap(rollUpAllergens('r-fricassee', withTraces('i-onion', ['celery'])));
+    expect(profile.contains).toEqual(['gluten', 'milk']);
+    expect(profile.mayContain).toEqual(['celery']);
+  });
+
+  it('drops an ingredient may-contain the dish contains anyway', () => {
+    // Traces of milk mean nothing next to the butter and cream that are milk.
+    const profile = unwrap(
+      rollUpAllergens('r-fricassee', withTraces('i-onion', ['milk', 'sesame'])),
+    );
+    expect(profile.contains).toEqual(['gluten', 'milk']);
+    expect(profile.mayContain).toEqual(['sesame']);
+  });
+
+  it('treats an ingredient without a may-contain as none', () => {
+    const profile = unwrap(rollUpAllergens('r-stock', book));
+    expect(profile.mayContain).toEqual([]);
   });
 });
