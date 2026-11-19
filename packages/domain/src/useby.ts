@@ -36,9 +36,6 @@ export const DEFAULT_CHILLED_DAYS: Record<'chilled_7' | 'chilled_4', number> = {
   chilled_4: 3,
 };
 
-/** Below this, a shelf life in hours is printed with the time it ends, not only the day. */
-export const SHOW_TIME_UNDER_HOURS = 48;
-
 /**
  * Reading the note is mirrored in SQL by the migration that added the choice
  * (Server/drizzle/0027_recipe_kept.sql), which filled it in for the recipes a
@@ -164,8 +161,8 @@ export function keptFor(recipe: { kept?: KeptAs | null; storage?: string | null 
 }
 
 export type UseBy =
-  /** From the recipe's own shelf life. */
-  | { kind: 'shelfLife'; at: Date; withTime: boolean }
+  /** From the recipe's own shelf life: always with the time, since it can end at any hour. */
+  | { kind: 'shelfLife'; at: Date; withTime: true }
   /** The Hygiënecode default for chilled prep; the chef can override it with a shelf life. */
   | { kind: 'default'; at: Date; withTime: false; days: number }
   /** No date to print: written in by hand. */
@@ -182,8 +179,11 @@ function endOfDayAfter(made: Date, days: number): Date {
  * Until when a batch made at `made` may be used.
  *
  * A shelf life in hours is counted in real hours from when it was made, so
- * 24 hours across a clock change is still 24 hours. Of 48 hours and more only
- * the day is printed, the way kitchens count days.
+ * 24 hours across a clock change is still 24 hours. It ends at the hour it
+ * was made, not at the end of a day, so the time is printed too: made Monday
+ * 20:00 and kept 48 hours, "Wednesday" alone would read as good until
+ * Wednesday night, a day past it. Only the default, which runs to the end of
+ * a day, is printed as a day alone.
  */
 export function computeUseBy(input: {
   made: Date;
@@ -195,7 +195,7 @@ export function computeUseBy(input: {
     return {
       kind: 'shelfLife',
       at: new Date(made.getTime() + shelfLifeHours * 60 * 60 * 1000),
-      withTime: shelfLifeHours < SHOW_TIME_UNDER_HOURS,
+      withTime: true,
     };
   }
   if (kept === 'chilled_7' || kept === 'chilled_4') {

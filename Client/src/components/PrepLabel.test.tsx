@@ -120,7 +120,7 @@ describe('a label on a larger roll', () => {
     expect(screen.getByTestId('use-by').textContent).toMatch(/Thu.*8 Apr/);
   });
 
-  it("prints the recipe's own shelf life, with the time under two days", () => {
+  it("prints the recipe's own shelf life with the time it ends", () => {
     render(
       <PrepLabel
         label={{ ...figGel, recipe: { shelfLifeHours: 12, storage: 'Koelcel' } }}
@@ -128,6 +128,16 @@ describe('a label on a larger roll', () => {
       />,
     );
     expect(screen.getByTestId('use-by').textContent).toMatch(/Tue.*6 Apr 02:30/);
+  });
+
+  it('prints the time with a shelf life of days too, not only the day it ends', () => {
+    render(
+      <PrepLabel
+        label={{ ...figGel, recipe: { shelfLifeHours: 48, storage: 'Koelcel' } }}
+        size="102x51"
+      />,
+    );
+    expect(screen.getByTestId('use-by').textContent).toMatch(/Wed.*7 Apr 14:30/);
   });
 });
 

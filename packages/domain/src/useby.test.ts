@@ -120,14 +120,16 @@ describe("the recipe's own shelf life", () => {
     expect(shown(result.kind === 'shelfLife' ? result.at : new Date(0))).toBe('2027-04-10 10:00');
   });
 
-  it('prints the time under 48 hours, only the day from 48 on', () => {
+  it('prints the time it ends, however long it keeps', () => {
     const short = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 12, kept: null });
     expect(short.kind === 'shelfLife' && short.withTime).toBe(true);
     expect(short.kind === 'shelfLife' && shown(short.at)).toBe('2027-04-05 22:00');
-    const almost = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 47, kept: null });
-    expect(almost.kind === 'shelfLife' && almost.withTime).toBe(true);
-    const two = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 48, kept: null });
-    expect(two.kind === 'shelfLife' && two.withTime).toBe(false);
+    // Made Monday 20:00, 48 hours: Wednesday 20:00, not Wednesday night.
+    const two = computeUseBy({ made: local(2027, 4, 5, 20), shelfLifeHours: 48, kept: null });
+    expect(two.kind === 'shelfLife' && two.withTime).toBe(true);
+    expect(two.kind === 'shelfLife' && shown(two.at)).toBe('2027-04-07 20:00');
+    const week = computeUseBy({ made: local(2027, 4, 5, 10), shelfLifeHours: 168, kept: null });
+    expect(week.kind === 'shelfLife' && week.withTime).toBe(true);
   });
 
   it('counts real hours across a change of the clocks', () => {
