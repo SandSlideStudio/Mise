@@ -10,19 +10,28 @@ import {
 } from '@mise/contracts';
 import type { LabelContent } from '../components/PrepLabel.js';
 import { isReachable } from '../lib/connectivity.js';
-import { api } from './client.js';
+import { RequestFailed, api } from './client.js';
 
 /**
  * What a label needs, found where the tablet already has it.
  *
  * Every recipe and its allergens are loaded ahead for offline use, and the
  * kitchen's label settings come with whoever is signed in, so a label prints
- * with Mise out of reach. Only something the tablet has never seen is asked
- * for, and then not for long: a label without a date is better than none.
+ * with Mise out of reach. With Mise there, it is asked first: what was loaded
+ * ahead may be half an hour old, and a label with yesterday's allergens on it
+ * is worse than none. Only for a moment, though: no answer in time, and the
+ * label prints with what the tablet has.
  */
 
 /** How long to wait for Mise before printing with what is known. */
 const ASK_FOR_MS = 3_000;
+
+/**
+ * How recent an answer may be and still not be asked again: printing a run
+ * of labels for the same recipe asks once, not once a label. A change Mise
+ * signals in the meantime makes it stale at once.
+ */
+const FRESH_FOR_MS = 10_000;
 
 export function labelSettingsOf(user: SessionUser | null | undefined): LabelSettings {
   return user?.labels ?? { size: DEFAULT_LABEL_SIZE, onTick: false };
@@ -34,20 +43,27 @@ async function cachedOrAsked<T>(
   path: string,
   fallback: () => T | undefined,
 ): Promise<T | null> {
-  const known = queryClient.getQueryData<T>(queryKey) ?? fallback();
-  if (known !== undefined) return known;
-  if (!isReachable()) return null;
+  const known = () => queryClient.getQueryData<T>(queryKey) ?? fallback() ?? null;
+  if (!isReachable()) return known();
   let timer: ReturnType<typeof setTimeout> | undefined;
   try {
-    return await Promise.race([
-      queryClient.fetchQuery({ queryKey, queryFn: () => api.get<T>(path) }),
-      new Promise<null>((resolve) => {
-        timer = setTimeout(() => resolve(null), ASK_FOR_MS);
+    const asked = await Promise.race([
+      queryClient.fetchQuery({
+        queryKey,
+        queryFn: () => api.get<T>(path),
+        staleTime: FRESH_FOR_MS,
+      }),
+      new Promise<undefined>((resolve) => {
+        timer = setTimeout(() => resolve(undefined), ASK_FOR_MS);
       }),
     ]);
-  } catch {
-    // Deleted since, or its allergens can't be worked out: printed blank.
-    return null;
+    return asked === undefined ? known() : asked;
+  } catch (error) {
+    // Mise answered no: deleted since, or its allergens can't be worked out.
+    // Printed blank, rather than with what it said before. A proxy saying
+    // Mise is down leaves it marked out of reach: as good as no answer.
+    if (error instanceof RequestFailed && isReachable()) return null;
+    return known();
   } finally {
     clearTimeout(timer);
   }
