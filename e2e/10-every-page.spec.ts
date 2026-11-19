@@ -46,7 +46,8 @@ const TABS = [
   { name: 'Ingredients', path: '/ingredients', heading: 'Ingredients' },
   { name: 'Settings', path: '/settings', heading: 'Settings' },
 ] as const;
-const COOK_TABS = TABS.filter((tab) => !['Ingredients', 'Settings'].includes(tab.name));
+// Cooks have Ingredients too: whoever takes a delivery checks the labels there.
+const COOK_TABS = TABS.filter((tab) => tab.name !== 'Settings');
 
 test.describe.configure({ timeout: 180_000 });
 // A link that is not there fails in seconds, not at the end of the test.
@@ -260,6 +261,7 @@ function cookPages(s: Seed): Record<string, PageSpec> {
     menus: all.menus!,
     menu: all.menu!,
     'menu overview': all['menu overview']!,
+    ingredients: all.ingredients!,
     settings: all.settings!,
   };
 }
@@ -778,7 +780,7 @@ for (const { label, viewport } of WIDTHS) {
       const s = seed;
       const pages = cookPages(s);
 
-      // A cook sees four tabs, not Ingredients or Settings.
+      // A cook sees five tabs, not Settings.
       await expect(nav(page).getByRole('link')).toHaveText(COOK_TABS.map((tab) => tab.name));
 
       // Every page draws itself, and the tabs from every page: only the tabs a cook has.
@@ -818,12 +820,15 @@ for (const { label, viewport } of WIDTHS) {
       ).toBeVisible();
       await expect(page.getByRole('tab')).toHaveCount(0);
 
-      // The ingredient list is readable, nothing more, and without prices.
+      // The ingredient list is readable, without prices, and labels can be
+      // checked from it; adding or editing an ingredient is for a chef.
       await page.goto('/ingredients');
       await expect(page.getByRole('heading', { name: 'Ingredients', level: 1 })).toBeVisible();
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
       await expect(page.getByText('Loading…')).toHaveCount(0);
       await expect(page.getByText(/per kg|No price yet/)).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'New ingredient' })).toHaveCount(0);
+      await expect(page.getByRole('button', { name: 'Check a delivery' })).toBeVisible();
 
       // The editors are not for a cook: typing the address shows the same calm
       // refusal as Settings, with no editor and no Save to press.
