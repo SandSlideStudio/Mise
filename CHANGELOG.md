@@ -103,6 +103,8 @@ staff data, and a stack of smaller fixes.
 - Settings remembers its tab in the address: a reload stays put and Back steps between tabs.
 - A cook who opens a recipe or dish editor by its address sees that it's for chefs, instead of a
   form that can't be saved.
+- Searching **Ingredients** works offline too, so a label at the back door can be found and checked
+  with Mise out of reach. It said it couldn't load before.
 - **Turn down all waiting** clears every outside device waiting to be let in, in one go.
 - The footer links to "GitHub", and **Licences** next to it lists every open-source package and
   font that ships with Mise, offline too.

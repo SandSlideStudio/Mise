@@ -21,7 +21,7 @@ vi.mock('../components/AppShell.js', () => ({
   PageHeader: ({ title }: { title: string }) => <h1>{title}</h1>,
 }));
 
-const { IngredientForm } = await import('./Ingredients.js');
+const { IngredientForm, Ingredients } = await import('./Ingredients.js');
 
 const butter = {
   id: 'i-butter',
@@ -102,5 +102,47 @@ describe('the price in the ingredient editor', () => {
       price: { amount: 6, quantity: { value: 1, unit: 'kg' } },
       priceBase: '2027-04-01T08:00:00.000Z',
     });
+  });
+});
+
+/**
+ * Found by the browser tests: searching the list asked Mise for each search,
+ * and those answers are not kept on the tablet, so with Mise out of reach a
+ * search said it couldn't load, and a label at the back door couldn't be
+ * found to check. The list the tablet has is searched instead.
+ */
+describe('searching the ingredients', () => {
+  it('finds them in the list the tablet has, with Mise out of reach', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch');
+      }),
+    );
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false, staleTime: Infinity } },
+    });
+    client.setQueryData(['me'], {
+      id: 'u1',
+      displayName: 'Teun',
+      role: 'admin',
+      language: 'en',
+      kitchenName: 'Test Kitchen',
+    });
+    const shallots = { ...butter, id: 'i-shallots', name: 'Shallots', allergens: [] };
+    client.setQueryData(['ingredients', ''], [butter, shallots]);
+    render(
+      <QueryClientProvider client={client}>
+        <Ingredients />
+      </QueryClientProvider>,
+    );
+    await act(async () => {
+      fireEvent.change(screen.getAllByLabelText('Search ingredients')[0]!, {
+        target: { value: 'shal' },
+      });
+    });
+    expect(screen.getByText('Shallots')).toBeTruthy();
+    expect(screen.queryByText('Butter')).toBeNull();
+    expect(screen.queryByText(/Couldn’t load this/)).toBeNull();
   });
 });
