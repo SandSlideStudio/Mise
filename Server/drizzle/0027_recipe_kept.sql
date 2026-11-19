@@ -16,7 +16,7 @@ WITH "plain" AS (
 	WHERE "kept" IS NULL AND btrim(coalesce("storage", '')) <> ''
 ), "read" AS (
 	SELECT "id", "note",
-		replace(substring("note" FROM '(-?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\y|graden|grad\y|degrees|degres|grados)'), ',', '.')::numeric AS "degrees",
+		translate(substring("note" FROM '([-−–]?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\y|graden|grad\y|degrees|degres|grados)'), ',−–', '.--')::numeric AS "degrees",
 		"note" ~ '(?<![[:alpha:]])(chill|fridge|walk-in|walk in|cold room|cool room|koel|gekoeld|kuhl|gekuhlt|refrig|frigo|chambre froide|nevera|camara|frigorific)' AS "chilled",
 		"note" ~ '(?<![[:alpha:]])(freez|frozen|vriez|vries|diepvries|invries|ingevroren|bevroren|tiefkuhl|gefror|gefrier|congel|surgel)' AS "frozen",
 		"note" ~ '(?<![[:alpha:]])(dry|ambient|room temp|pantry|droog|kamertemperatuur|trocken|raumtemperatur|au sec|ambiante|seco|ambiente|despensa)' AS "ambient"

@@ -228,6 +228,9 @@ describe('reading how a recipe is kept', () => {
     expect(keptAs('fridge at 4°C')).toBe('chilled_4');
     expect(keptAs('Walk-in, 6 °C')).toBe('chilled_7');
     expect(keptAs('-18 °C')).toBe('frozen');
+    // A real minus sign, or a dash, as a phone or a word processor types it.
+    expect(keptAs('\u221218 °C')).toBe('frozen');
+    expect(keptAs('Vriezer \u201320°C')).toBe('frozen');
     expect(keptAs('kept at 12 graden')).toBe(null);
   });
 

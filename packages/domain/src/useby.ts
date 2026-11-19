@@ -102,8 +102,12 @@ const WORDS: Record<'chilled' | 'frozen' | 'ambient', string[]> = {
   ],
 };
 
-/** "4 °C", "4°", "-18C", "3 graden": a temperature written in the storage note. */
-const TEMPERATURE = /(-?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\b|graden|grad\b|degrees|degres|grados)/iu;
+/**
+ * "4 °C", "4°", "-18C", "3 graden": a temperature written in the storage note.
+ * A typed minus can be a hyphen, a real minus sign or a dash: −18 °C is frozen.
+ */
+const TEMPERATURE =
+  /([-\u2212\u2013]?\d+(?:[.,]\d+)?)\s*(?:°\s*c?|c\b|graden|grad\b|degrees|degres|grados)/iu;
 
 /** Lower case and without accents: "Kühlraum" reads as "kuhlraum". */
 function plain(text: string): string {
@@ -131,7 +135,7 @@ export function keptAs(storage: string | null | undefined): Exclude<KeptAs, 'hot
   if (!text) return null;
   const degrees = TEMPERATURE.exec(plain(text));
   if (degrees) {
-    const value = Number(degrees[1]!.replace(',', '.'));
+    const value = Number(degrees[1]!.replace(',', '.').replace(/[\u2212\u2013]/u, '-'));
     if (value <= -12) return 'frozen';
     if (value <= 4) return 'chilled_4';
     if (value <= 7) return 'chilled_7';

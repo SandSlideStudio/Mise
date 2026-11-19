@@ -59,6 +59,8 @@ const NOTES = [
   'Walk-in, 7.5 °C',
   '-18 °C',
   '-18C',
+  '\u221218 °C',
+  'Vriezer \u201320°C',
   'kept at 12 graden',
   '20 grados, en despensa',
   '3 Grad',
@@ -114,6 +116,7 @@ describe('filling in how recipes are kept', () => {
     expect(of('Koelcel, 4 °C')).toBe('chilled_4');
     expect(of('Koelcel')).toBe('chilled_7');
     expect(of('-18C')).toBe('frozen');
+    expect(of('\u221218 °C')).toBe('frozen');
     expect(of('Droog en donker')).toBe('ambient');
     expect(of('Labelled tubs')).toBeNull();
     expect(of(null)).toBeNull();
