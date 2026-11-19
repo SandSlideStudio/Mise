@@ -17,6 +17,7 @@ import type { Executor, Transaction } from '../../db/client.js';
 import { ingredientLabelChecks, ingredients, users } from '../../db/schema.js';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
+import { lockRecipeGraph } from '../recipes/allergenHistory.js';
 import { applyIngredientEdit, tracesOnly, type IngredientRow } from './save.js';
 
 /**
@@ -150,6 +151,8 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
       const user = request.user!;
       const label = asLabel(request.body.allergens, request.body.mayContain);
       const id = await app.db.transaction(async (tx) => {
+        // The recipe graph before the row, in the order recipe saves take them.
+        await lockRecipeGraph(tx);
         // Locked, so what it is compared with is what it still is when saved.
         const [locked] = await tx
           .select()
@@ -224,6 +227,8 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
    */
   async function decide(checkId: string, approve: boolean, userId: string): Promise<LabelCheck> {
     const outcome = await app.db.transaction(async (tx) => {
+      // Before any row, as for a check sent in: approving may change the ingredient.
+      await lockRecipeGraph(tx);
       const [check] = await tx
         .select()
         .from(ingredientLabelChecks)

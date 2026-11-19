@@ -16,6 +16,7 @@ import { costPerBaseUnit, isAllergen } from '@mise/domain';
 import { ingredients } from '../../db/schema.js';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
+import { lockRecipeGraph } from '../recipes/allergenHistory.js';
 import { domainIngredient } from '../recipes/book.js';
 import { seesCosts } from '../recipes/costs.js';
 import labelCheckRoutes from './labelChecks.js';
@@ -196,6 +197,8 @@ const ingredientRoutes: FastifyPluginAsync = async (app) => {
       // The check above is the quick answer. This is the one that counts: made
       // with the row locked, in the same transaction as the write.
       const saved = await app.db.transaction(async (tx) => {
+        // The recipe graph before the row, in the order recipe saves take them.
+        await lockRecipeGraph(tx);
         const [locked] = await tx
           .select()
           .from(ingredients)

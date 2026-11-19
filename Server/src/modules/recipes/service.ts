@@ -13,7 +13,7 @@ import {
 } from '@mise/domain';
 import type { Database, Executor } from '../../db/client.js';
 import { recipeComponents, recipePhotos, recipes } from '../../db/schema.js';
-import { recordAllergenChanges } from './allergenHistory.js';
+import { lockRecipeGraph, recordAllergenChanges } from './allergenHistory.js';
 import { loadRecipeBook } from './book.js';
 
 /**
@@ -262,7 +262,7 @@ export function createRecipesService(db: Database) {
 
   /** One edit to the recipe graph at a time, so two can't make a loop together. */
   async function lockGraph(tx: Executor): Promise<void> {
-    await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-recipe-graph'))`);
+    await lockRecipeGraph(tx);
   }
 
   async function replaceComponents(

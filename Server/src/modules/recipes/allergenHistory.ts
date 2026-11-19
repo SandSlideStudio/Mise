@@ -35,6 +35,16 @@ function sameList(a: readonly string[], b: readonly string[]): boolean {
 }
 
 /**
+ * The lock every write to the recipe graph takes, one at a time. A write that
+ * also locks an ingredient row takes this first, as recipe saves do: a recipe
+ * save holds it while its lines check their ingredient rows, so the other
+ * order would leave each waiting for the other.
+ */
+export async function lockRecipeGraph(exec: Executor): Promise<void> {
+  await exec.execute(sql`select pg_advisory_xact_lock(hashtext('mise-recipe-graph'))`);
+}
+
+/**
  * Add a row for every dish whose allergens changed, and the first row for a
  * dish that has none. Returns how many rows were added. A dish whose
  * allergens can't be worked out (a missing part, a loop) is left until they
@@ -46,7 +56,7 @@ export async function recordAllergenChanges(
 ): Promise<number> {
   // The same lock as edits to the recipe graph: two writes at once take turns
   // here, so the second sees the first one's rows and doesn't add them again.
-  await exec.execute(sql`select pg_advisory_xact_lock(hashtext('mise-recipe-graph'))`);
+  await lockRecipeGraph(exec);
 
   const [book, dishes, latest] = await Promise.all([
     loadRecipeBook(exec),
