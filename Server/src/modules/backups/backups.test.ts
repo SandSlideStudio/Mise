@@ -348,7 +348,7 @@ describe('backing up and restoring', () => {
     }
   });
 
-  it('brings back prices, selling prices and the kitchen’s currency and VAT', async () => {
+  it('brings back prices, selling prices, how prep is kept and the kitchen’s currency and VAT', async () => {
     const { cookies } = await stockedKitchen();
     const butter = await app.inject({
       method: 'POST',
@@ -383,6 +383,19 @@ describe('backing up and restoring', () => {
       },
     });
     expect(dish.statusCode).toBe(200);
+    const frozen = await app.inject({
+      method: 'POST',
+      url: '/api/recipes',
+      cookies,
+      payload: {
+        name: 'Brown butter',
+        type: 'prep',
+        yield: { value: 1, unit: 'kg' },
+        kept: 'frozen',
+        storage: 'Vac-packed, in portions',
+      },
+    });
+    expect(frozen.statusCode).toBe(200);
     await app.inject({
       method: 'PATCH',
       url: '/api/kitchen',
@@ -417,6 +430,10 @@ describe('backing up and restoring', () => {
       });
       const expanded = (await get(`/api/recipes/${dish.json().id}/expanded`)).json();
       expect(expanded.recipe.sellPrice).toBe(8.5);
+      expect((await get(`/api/recipes/${frozen.json().id}`)).json()).toMatchObject({
+        kept: 'frozen',
+        storage: 'Vac-packed, in portions',
+      });
       // 20 g of butter at 12.50 for 2.5 kg, 95 % of it usable.
       expect(expanded.cost.total).toBeCloseTo((12.5 / 2375) * 20);
       expect(expanded.cost.currency).toBe('GBP');

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { COURSES, SERVING_TEMPERATURES } from '@mise/domain';
+import { COURSES, KEPT, SERVING_TEMPERATURES } from '@mise/domain';
 import { allergenSchema, idSchema, quantitySchema, unitCodeSchema } from './common.js';
 import { recipeCostSchema } from './costing.js';
 
@@ -12,6 +12,8 @@ import { recipeCostSchema } from './costing.js';
 /** What a dish card says about a dish. Fixed lists, so the card can translate them. */
 export const servingTemperatureSchema = z.enum(SERVING_TEMPERATURES);
 export const courseSchema = z.enum(COURSES);
+/** How a batch is kept, for the use-by on its label. */
+export const keptSchema = z.enum(KEPT);
 
 /** Short things a chef types: a flavour, a wine, a spoon. */
 const shortList = z.array(z.string().trim().min(1).max(80)).max(12);
@@ -59,6 +61,9 @@ export const recipeSchema = z.object({
   prepMinutes: z.number().int().nonnegative().nullable(),
   cookMinutes: z.number().int().nonnegative().nullable(),
   shelfLifeHours: z.number().int().positive().nullable(),
+  /** Null: not chosen yet; the label then goes by what the storage note says. */
+  kept: keptSchema.nullable(),
+  /** Where and how, in the chef's own words. */
   storage: z.string().nullable(),
   method: z.array(recipeStepSchema),
   tags: z.array(z.string()),
@@ -108,6 +113,7 @@ const recipeFields = z.object({
   prepMinutes: z.number().int().nonnegative().nullable().optional(),
   cookMinutes: z.number().int().nonnegative().nullable().optional(),
   shelfLifeHours: z.number().int().positive().nullable().optional(),
+  kept: keptSchema.nullable().optional(),
   storage: z.string().max(1000).nullable().optional(),
   method: z.array(recipeStepSchema),
   tags: z.array(z.string().max(60)),
@@ -224,3 +230,4 @@ export const duplicateRecipeSchema = z.object({
 export type ScaleQuery = z.infer<typeof scaleQuerySchema>;
 export type ServingTemperature = z.infer<typeof servingTemperatureSchema>;
 export type Course = z.infer<typeof courseSchema>;
+export type Kept = z.infer<typeof keptSchema>;

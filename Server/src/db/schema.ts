@@ -51,6 +51,8 @@ export const labelSizeEnum = pgEnum('label_size', [
   '89x36',
   '102x51',
 ]);
+/** Mirrors KEPT in @mise/domain: how a recipe's batches are kept, for their use-by. */
+export const keptEnum = pgEnum('kept', ['chilled_7', 'chilled_4', 'frozen', 'ambient', 'hot']);
 /** Mirror SERVING_TEMPERATURES and COURSES in @mise/domain. */
 export const servingTemperatureEnum = pgEnum('serving_temperature', [
   'cold',
@@ -338,6 +340,9 @@ export const recipes = pgTable(
     prepMinutes: integer('prep_minutes'),
     cookMinutes: integer('cook_minutes'),
     shelfLifeHours: integer('shelf_life_hours'),
+    /** Null: not chosen yet, and the use-by goes by what the storage note says. */
+    kept: keptEnum('kept'),
+    /** Where and how, in the chef's words: "labelled tubs, walk-in". */
     storage: text('storage'),
     method: jsonb('method')
       .$type<{ text: string; minutes?: number | null }[]>()

@@ -39,6 +39,7 @@ export function serialise(row: StoredRecipe, names: Map<string, string>, withCos
     prepMinutes: row.prepMinutes,
     cookMinutes: row.cookMinutes,
     shelfLifeHours: row.shelfLifeHours,
+    kept: row.kept,
     storage: row.storage,
     method: row.method,
     tags: row.tags,

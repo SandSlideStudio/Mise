@@ -604,6 +604,62 @@ describe('finding a recipe', () => {
   });
 });
 
+describe('how a recipe is kept', () => {
+  it('is stored with the note, kept through a partial save and copied with a duplicate', async () => {
+    const tubs = await addRecipe(ctx.app, admin, {
+      name: 'Fig gel',
+      shelfLifeHours: 120,
+      kept: 'chilled_4',
+      storage: 'Labelled tubs, walk-in',
+    });
+    expect(tubs).toMatchObject({ kept: 'chilled_4', storage: 'Labelled tubs, walk-in' });
+
+    const patched = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${tubs.id}`,
+      payload: { shelfLifeHours: 96 },
+      cookies: as(admin),
+    });
+    expect(patched.json()).toMatchObject({ shelfLifeHours: 96, kept: 'chilled_4' });
+
+    const copy = await ctx.app.inject({
+      method: 'POST',
+      url: `/api/recipes/${tubs.id}/duplicate`,
+      payload: { name: 'Fig gel, second pass' },
+      cookies: as(admin),
+    });
+    expect(copy.json()).toMatchObject({ kept: 'chilled_4', storage: 'Labelled tubs, walk-in' });
+
+    const hot = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${tubs.id}`,
+      payload: { kept: 'hot' },
+      cookies: as(admin),
+    });
+    expect(hot.json().kept).toBe('hot');
+    const cleared = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${tubs.id}`,
+      payload: { kept: null },
+      cookies: as(admin),
+    });
+    expect(cleared.json()).toMatchObject({ kept: null, storage: 'Labelled tubs, walk-in' });
+  });
+
+  it('starts unchosen, and refuses a way of keeping Mise does not know', async () => {
+    const stock = await addRecipe(ctx.app, admin, { name: 'Chicken stock' });
+    expect(stock.kept).toBeNull();
+
+    const response = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${stock.id}`,
+      payload: { kept: 'lukewarm' },
+      cookies: as(admin),
+    });
+    expect(response.statusCode).toBe(400);
+  });
+});
+
 describe('saving part of a record', () => {
   it('changes only the fields that were sent on a recipe', async () => {
     const butter = await addIngredient(ctx.app, admin, { name: 'Butter', allergens: ['milk'] });

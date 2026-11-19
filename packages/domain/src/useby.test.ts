@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
-import { computeUseBy, keptAs } from './useby.js';
+import { computeUseBy, keptAs, keptFor } from './useby.js';
 
 /**
  * The use-by on a prep label. Counted in the kitchen's own days, so these run
@@ -35,7 +35,7 @@ describe('the default use-by for chilled prep', () => {
     const result = computeUseBy({
       made: local(2027, 4, 5, 14, 30),
       shelfLifeHours: null,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     expect(result.kind).toBe('default');
     if (result.kind !== 'default') return;
@@ -49,12 +49,12 @@ describe('the default use-by for chilled prep', () => {
     const early = computeUseBy({
       made: local(2027, 4, 5, 6, 0),
       shelfLifeHours: null,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     const late = computeUseBy({
       made: local(2027, 4, 5, 23, 45),
       shelfLifeHours: null,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     expect(early.kind === 'default' && shown(early.at)).toBe('2027-04-07 23:59');
     expect(late.kind === 'default' && shown(late.at)).toBe('2027-04-07 23:59');
@@ -64,7 +64,7 @@ describe('the default use-by for chilled prep', () => {
     const result = computeUseBy({
       made: local(2027, 4, 5, 9),
       shelfLifeHours: null,
-      kept: 'chilled4',
+      kept: 'chilled_4',
     });
     expect(result.kind === 'default' && shown(result.at)).toBe('2027-04-08 23:59');
   });
@@ -73,20 +73,20 @@ describe('the default use-by for chilled prep', () => {
     const april = computeUseBy({
       made: local(2027, 4, 29, 12),
       shelfLifeHours: null,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     expect(april.kind === 'default' && shown(april.at)).toBe('2027-05-01 23:59');
     const february = computeUseBy({
       made: local(2028, 2, 28, 12),
       shelfLifeHours: null,
-      kept: 'chilled4',
+      kept: 'chilled_4',
     });
     // 2028 is a leap year.
     expect(february.kind === 'default' && shown(february.at)).toBe('2028-03-02 23:59');
     const december = computeUseBy({
       made: local(2027, 12, 30, 20),
       shelfLifeHours: null,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     expect(december.kind === 'default' && shown(december.at)).toBe('2028-01-01 23:59');
   });
@@ -96,14 +96,14 @@ describe('the default use-by for chilled prep', () => {
     const spring = computeUseBy({
       made: local(2027, 3, 27, 22),
       shelfLifeHours: null,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     expect(spring.kind === 'default' && shown(spring.at)).toBe('2027-03-29 23:59');
     // And ends on Sunday 31 October 2027: that day has 25 hours.
     const autumn = computeUseBy({
       made: local(2027, 10, 30, 1),
       shelfLifeHours: null,
-      kept: 'chilled4',
+      kept: 'chilled_4',
     });
     expect(autumn.kind === 'default' && shown(autumn.at)).toBe('2027-11-02 23:59');
   });
@@ -114,7 +114,7 @@ describe("the recipe's own shelf life", () => {
     const result = computeUseBy({
       made: local(2027, 4, 5, 10),
       shelfLifeHours: 120,
-      kept: 'chilled7',
+      kept: 'chilled_7',
     });
     expect(result.kind).toBe('shelfLife');
     expect(shown(result.kind === 'shelfLife' ? result.at : new Date(0))).toBe('2027-04-10 10:00');
@@ -147,7 +147,7 @@ describe("the recipe's own shelf life", () => {
 });
 
 describe('without a date', () => {
-  it('leaves frozen, dry and unknown stock blank', () => {
+  it('leaves frozen, dry, hot-held and unknown stock blank', () => {
     const made = local(2027, 4, 5);
     expect(computeUseBy({ made, shelfLifeHours: null, kept: 'frozen' })).toEqual({
       kind: 'blank',
@@ -157,10 +157,29 @@ describe('without a date', () => {
       kind: 'blank',
       reason: 'ambient',
     });
+    // Hot holding is limited by hours on the pass, not by a date.
+    expect(computeUseBy({ made, shelfLifeHours: null, kept: 'hot' })).toEqual({
+      kind: 'blank',
+      reason: 'hot',
+    });
     expect(computeUseBy({ made, shelfLifeHours: null, kept: null })).toEqual({
       kind: 'blank',
       reason: 'unknown',
     });
+  });
+});
+
+describe('the choice on the recipe', () => {
+  it('wins over what the storage note says', () => {
+    expect(keptFor({ kept: 'chilled_4', storage: 'Freezer' })).toBe('chilled_4');
+    expect(keptFor({ kept: 'hot', storage: 'Koelcel' })).toBe('hot');
+  });
+
+  it('falls back on the note when nobody has chosen yet', () => {
+    expect(keptFor({ kept: null, storage: 'Koelcel, 4 °C' })).toBe('chilled_4');
+    // An offline copy from before the choice existed has no field at all.
+    expect(keptFor({ storage: 'Diepvries' })).toBe('frozen');
+    expect(keptFor({ kept: null, storage: null })).toBe(null);
   });
 });
 
@@ -178,7 +197,7 @@ describe('reading how a recipe is kept', () => {
       'En la nevera',
       'cámara frigorífica',
     ]) {
-      expect(keptAs(note), note).toBe('chilled7');
+      expect(keptAs(note), note).toBe('chilled_7');
     }
   });
 
@@ -205,15 +224,15 @@ describe('reading how a recipe is kept', () => {
   });
 
   it('goes by a temperature when there is one', () => {
-    expect(keptAs('Koelcel, 3 °C')).toBe('chilled4');
-    expect(keptAs('fridge at 4°C')).toBe('chilled4');
-    expect(keptAs('Walk-in, 6 °C')).toBe('chilled7');
+    expect(keptAs('Koelcel, 3 °C')).toBe('chilled_4');
+    expect(keptAs('fridge at 4°C')).toBe('chilled_4');
+    expect(keptAs('Walk-in, 6 °C')).toBe('chilled_7');
     expect(keptAs('-18 °C')).toBe('frozen');
     expect(keptAs('kept at 12 graden')).toBe(null);
   });
 
   it('takes chilled when both are said, which gives the shorter date', () => {
-    expect(keptAs('Frozen, thaw in the fridge')).toBe('chilled7');
+    expect(keptAs('Frozen, thaw in the fridge')).toBe('chilled_7');
   });
 
   it("says nothing it can't place", () => {

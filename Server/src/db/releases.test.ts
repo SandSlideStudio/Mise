@@ -107,6 +107,8 @@ async function fill(db: Database, last: string) {
              ('${SAUCE}', 0, 250, 250, 'g', '${BUTTER}', null),
              ('${DISH}', 0, 1500, 1500, 'g', '${COD}', null),
              ('${DISH}', 1, 500, 0.5, 'l', null, '${SAUCE}')`);
+  // How it is kept, written by hand: the only way before 2.4.
+  await run(`update recipe set storage = 'Koelcel, 4 °C' where id = '${SAUCE}'`);
   // Before 2.1.1 backups went to one place; since, to any. Either way, a NAS.
   await run(
     at('0016')
@@ -215,6 +217,12 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
           'Kabeljauw, beurre blanc',
         ]);
 
+        // The note's 4 °C became the choice, and the note itself is still there.
+        const sauce = await get(`/api/recipes/${SAUCE}`);
+        expect(sauce).toMatchObject({ kept: 'chilled_4', storage: 'Koelcel, 4 °C' });
+        // Nothing said how the dish is kept, so nothing is chosen for it.
+        expect((await get(`/api/recipes/${DISH}`)).kept).toBeNull();
+
         const card = await get(`/api/recipes/${DISH}/card`);
         expect(card.whole.contains).toEqual(['fish', 'milk']);
         // Started at the first start on this version, so it is never empty.
@@ -280,6 +288,12 @@ describe.each(RELEASES)('a kitchen on $version', ({ version, last }) => {
           sql`select ticked_keep_days as days from kitchen`,
         );
         expect(kitchen!.days).toBeNull();
+        // A backup from before the choice has none; its labels still read the note.
+        const [sauce] = await rows<{ kept: string | null; storage: string | null }>(
+          empty.db,
+          sql`select kept, storage from recipe where id = ${SAUCE}`,
+        );
+        expect(sauce).toEqual({ kept: null, storage: 'Koelcel, 4 °C' });
       } finally {
         await target.close();
         await empty.client.close();
