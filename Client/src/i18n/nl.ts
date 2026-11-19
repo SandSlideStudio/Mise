@@ -1335,18 +1335,18 @@ export const nl: Record<MessageKey, string> = {
   'checklist.parFor': 'Par voor {name}',
   'checklist.parUnitFor': 'Eenheid van de par voor {name}',
   'checklist.parHint':
-    'De par is hoeveel je klaar wilt hebben. Wie de regel op de lijst zet, zegt wat er aanwezig is, en de lijst vraagt om de rest. Leeg laten: geen par.',
-  'checklist.onHandTitle': 'Hoeveel is er aanwezig?',
+    'De par is hoeveel je klaar wilt hebben. De kok die de regel toevoegt, zegt wat er in huis is, en de lijst vraagt om de rest. Leeg laten: geen par.',
+  'checklist.onHandTitle': 'Hoeveel is er in huis?',
   'checklist.onHandHint':
-    'Laat een vak leeg als er niets is. De lijst vraagt om wat er tot de par ontbreekt.',
-  'checklist.onHandFor': 'Hoeveel {name} is er aanwezig, in {unit}',
+    'Laat een vak leeg als er niets is. De lijst vraagt om wat er nog aan de par ontbreekt.',
+  'checklist.onHandFor': 'Hoeveel {name} is er in huis, in {unit}',
   'checklist.parIs': 'par {amount}',
   'checklist.back': 'Terug',
-  'checklist.enough': '{name}: genoeg aanwezig.',
-  'task.parNote': 'Par {par}, {onHand} aanwezig',
-  'task.parNoteNone': 'Par {par}, niets aanwezig',
+  'checklist.enough': '{name}: genoeg in huis.',
+  'task.parNote': 'Par {par}, {onHand} in huis',
+  'task.parNoteNone': 'Par {par}, niets in huis',
   'checklistPrint.par': 'par {amount}',
-  'checklistPrint.there': 'aanwezig',
+  'checklistPrint.there': 'in huis',
   // Privacy: wat bewaard wordt, hoe lang, en de gegevens van één persoon
   'settings.tabPrivacy': 'Privacy',
   'kitchen.keepFor': 'Bewaren voor',
@@ -1422,7 +1422,7 @@ export const nl: Record<MessageKey, string> = {
     'De naam van wie de overdrachtsnotitie schreef, tot de volgende notitie hem vervangt.',
   'privacy.keptRecipes': 'Wie elk recept schreef.',
   'privacy.keptAllergenChanges':
-    'Wie elke wijziging in de allergenen van een gerecht maakte, zolang het gerecht bestaat: de schriftelijke vastlegging achter mondelinge informatie aan gasten.',
+    'Wie elke wijziging in de allergenen van een gerecht maakte, zolang het gerecht bestaat: de schriftelijke vastlegging achter wat gasten mondeling te horen krijgen.',
   'privacy.keptSessions':
     'Wie er ingelogd is: sinds wanneer, wanneer laatst gezien, op welke tablet en in welke browser.',
   'privacy.keptSessionsHow':
@@ -1478,7 +1478,7 @@ export const nl: Record<MessageKey, string> = {
   'allergenHistory.added': 'Bevat nu: {allergens}',
   'allergenHistory.removed': 'Bevat niet meer: {allergens}',
   'allergenHistory.mayAdded': 'Kan nu sporen bevatten van: {allergens}',
-  'allergenHistory.mayRemoved': 'Niet meer ‘kan sporen bevatten’: {allergens}',
+  'allergenHistory.mayRemoved': 'Kan geen sporen meer bevatten van: {allergens}',
   'allergenHistory.first': 'Voor het eerst vastgelegd',
   'allergenHistory.contains': 'Bevat: {allergens}',
   'allergenHistory.mayContain': 'Kan sporen bevatten van: {allergens}',
@@ -1489,7 +1489,7 @@ export const nl: Record<MessageKey, string> = {
   'notice.open': 'Allergenenbord afdrukken',
   'notice.title': 'Allergenenbord',
   'notice.explain':
-    'Gasten mogen alleen mondeling over allergenen worden geïnformeerd als een duidelijk zichtbaar bord ze vraagt ernaar te vragen. Druk dit af en hang het op waar elke gast het ziet, bij de deur of op de tafels.',
+    'Gasten mogen alleen mondeling over allergenen worden geïnformeerd als een goed zichtbaar bord ze vraagt ernaar te vragen. Druk dit af en hang het op waar elke gast het ziet, bij de deur of op de tafels.',
   'notice.paper': 'Papier',
   'notice.languages': 'Talen',
   'notice.heading': 'Allergieën of intoleranties?',
@@ -1514,13 +1514,13 @@ export const nl: Record<MessageKey, string> = {
   'label.noteDefault':
     'De datum is de standaard uit de Hygiënecode voor gekoelde eigen bereidingen: de dag van bereiden plus {days} dagen. Zet een houdbaarheid op het recept om die te printen.',
   'label.noteFrozen':
-    'Geen datum geprint: het gaat de diepvries in en het recept heeft geen houdbaarheid. Schrijf hem op het etiket, of zet een houdbaarheid op het recept.',
+    'Geen datum geprint: het gaat de diepvries in en het recept heeft geen houdbaarheid. Schrijf de datum zelf op het etiket, of zet een houdbaarheid op het recept.',
   'label.noteAmbient':
-    'Geen datum geprint: het wordt droog bewaard en het recept heeft geen houdbaarheid. Schrijf hem op het etiket, of zet een houdbaarheid op het recept.',
+    'Geen datum geprint: het wordt droog bewaard en het recept heeft geen houdbaarheid. Schrijf de datum zelf op het etiket, of zet een houdbaarheid op het recept.',
   'label.noteHot':
-    'Geen datum geprint: het wordt warm gehouden, en dat gaat per uur, niet per datum. Schrijf hem op het etiket als dat nodig is.',
+    'Geen datum geprint: het wordt warm gehouden, en dat gaat per uur, niet per datum. Schrijf de datum op het etiket als dat nodig is.',
   'label.noteUnknown':
-    'Geen datum geprint: het recept zegt niet hoe lang het houdbaar is en ook niet hoe het bewaard wordt. Schrijf hem op het etiket, of vul de houdbaarheid of het bewaren in.',
+    'Geen datum geprint: het recept zegt niet hoe lang het houdbaar is en ook niet hoe het bewaard wordt. Schrijf de datum zelf op het etiket, of vul de houdbaarheid of de bewaarwijze in.',
   'label.noteNoRecipe':
     'Niet van een recept gemaakt, dus de datum en de allergenen schrijf je zelf op het etiket.',
   'label.howMany': 'Hoeveel',
@@ -1551,9 +1551,9 @@ export const nl: Record<MessageKey, string> = {
   'cost.noPrice_one': '{count} ingrediënt zonder prijs: {names}',
   'cost.noPrice_other': '{count} ingrediënten zonder prijs: {names}',
   'cost.cantConvert_one':
-    '{count} hoeveelheid die niet om te rekenen is naar waarin het wordt ingekocht: {names}',
+    '{count} ingrediënt kan niet worden omgerekend naar de inkoopeenheid: {names}',
   'cost.cantConvert_other':
-    '{count} hoeveelheden die niet om te rekenen zijn naar waarin ze worden ingekocht: {names}',
+    '{count} ingrediënten kunnen niet worden omgerekend naar de inkoopeenheid: {names}',
   'cost.cantConvertHint':
     'Geef het ingrediënt een soortelijk gewicht of een gewicht per stuk, of gebruik het in het soort eenheid waarin het wordt ingekocht.',
   'cost.menuAverage': 'Gemiddeld op deze kaart: {amount} per portie',
@@ -1569,10 +1569,10 @@ export const nl: Record<MessageKey, string> = {
   'ingredients.priceFor': 'Voor',
   'ingredients.priceUnit': 'Eenheid',
   'ingredients.priceHint':
-    'Zoals op de factuur: 12,50 voor een zak van 5 kg. Laat het leeg als je het niet weet: een kostprijs zegt dat dan, in plaats van het als gratis te tellen.',
-  'ingredients.yieldLabel': 'Rendement, procent',
+    'Zoals op de factuur: 12,50 voor een zak van 5 kg. Laat leeg als je het niet weet: de kostprijs meldt dat dan, in plaats van het als gratis mee te rekenen.',
+  'ingredients.yieldLabel': 'Rendement na schoonmaken, procent',
   'ingredients.yieldHint':
-    'Wat er overblijft na schillen en schoonmaken, en dus wat een kostprijs als bruikbaar telt. Uien zijn ongeveer 90.',
+    'Wat er overblijft na schillen en schoonmaken, en dus wat de kostprijs als bruikbaar meetelt. Uien zijn ongeveer 90.',
   'ingredients.densityLabel': 'Gram per milliliter',
   'ingredients.densityHint':
     'Alleen om tussen gewicht en volume om te rekenen. Olie is ongeveer 0,92.',
@@ -1590,10 +1590,11 @@ export const nl: Record<MessageKey, string> = {
   'labelCheck.check': 'Etiket controleren',
   'labelCheck.title': 'Etiket controleren: {name}',
   'labelCheck.intro':
-    'Zet de allergenen zoals het etiket voor je ze noemt. Mise laat zien wat dat verandert voordat er iets wordt opgeslagen.',
+    'Vul de allergenen in zoals op het etiket in je hand staat. Mise laat zien wat dat verandert voordat er iets wordt opgeslagen.',
   'labelCheck.note': 'Leverancier of artikelcode (niet verplicht)',
   'labelCheck.noChange': 'Geen wijziging',
-  'labelCheck.same': 'Het etiket zegt wat Mise heeft. Eén tik legt vast dat het gecontroleerd is.',
+  'labelCheck.same':
+    'Het etiket komt overeen met Mise. Eén tik legt vast dat het gecontroleerd is.',
   'labelCheck.save': 'Nieuw etiket opslaan',
   'labelCheck.sendToChef': 'Naar een chef sturen',
   'labelCheck.cookNote': 'Een chef keurt dit goed voordat de allergenen veranderen.',
@@ -1608,7 +1609,7 @@ export const nl: Record<MessageKey, string> = {
   'labelCheck.unknown_one':
     '{count} gerecht is op dit apparaat niet uit te rekenen, dus het kan in deze lijst ontbreken.',
   'labelCheck.unknown_other':
-    '{count} gerechten zijn op dit apparaat niet uit te rekenen, dus er kunnen er in deze lijst ontbreken.',
+    '{count} gerechten zijn op dit apparaat niet uit te rekenen, dus deze lijst kan onvolledig zijn.',
   'labelCheck.working': 'Uitrekenen welke gerechten veranderen…',
   'labelCheck.saved': 'Etiketcontrole opgeslagen.',
   'labelCheck.savedPending': 'Naar een chef gestuurd om goed te keuren.',
@@ -1625,7 +1626,7 @@ export const nl: Record<MessageKey, string> = {
   'labelCheck.pending_one': '{count} etiketwijziging wacht',
   'labelCheck.pending_other': '{count} etiketwijzigingen wachten',
   'labelCheck.pendingIntro':
-    'Een kok vond een etiket dat iets anders zegt dan Mise heeft. Goedkeuren zet de allergenen van het etiket op het ingrediënt.',
+    'Een kok zag een etiket dat afwijkt van wat Mise heeft. Bij goedkeuren worden de allergenen van het etiket bij het ingrediënt overgenomen.',
   'labelCheck.approve': 'Goedkeuren',
   'labelCheck.reject': 'Afwijzen',
   'labelCheck.checkedBy': 'Gecontroleerd door {name}, {date}',
@@ -1644,6 +1645,6 @@ export const nl: Record<MessageKey, string> = {
     'Het ingrediënt is gewijzigd sinds dit etiket werd gelezen. Wijs het af en lees het etiket opnieuw.',
   'allergenHistory.labelCause': 'Na controle van het etiket van {name}',
   'privacy.keptLabelChecks':
-    'Wie het etiket van elk ingrediënt bij levering controleerde, wanneer, en wat die vond, zolang het ingrediënt bestaat.',
+    'Wie het etiket van elk ingrediënt bij levering controleerde, wanneer, en wat daaruit bleek, zolang het ingrediënt bestaat.',
   'personData.labelChecks': 'Etiketten gecontroleerd bij levering',
 };
