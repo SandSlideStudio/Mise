@@ -1,7 +1,7 @@
 import type { AllergenChange } from '@mise/contracts';
 import { DISH_CARD_ALLERGEN_ORDER, type Allergen } from '@mise/domain';
 import { useAllergenHistory } from '../api/recipes.js';
-import { allergenName, useT, type Translator } from '../i18n/index.js';
+import { allergenName, causeText, useT, type Translator } from '../i18n/index.js';
 
 /**
  * When a dish's allergens last changed, and each change before that: what
@@ -97,7 +97,7 @@ export function AllergenRecordView({ history }: { history: AllergenChange[] }) {
             }
             const why = before
               ? entry.cause
-                ? t('allergenHistory.cause', { cause: entry.cause })
+                ? causeText(t, entry.cause)
                 : t('allergenHistory.onDish')
               : t('allergenHistory.first');
             return (

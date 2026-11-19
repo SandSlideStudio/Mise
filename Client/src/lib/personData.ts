@@ -1,5 +1,5 @@
 import type { PersonData } from '@mise/contracts';
-import { LANGUAGE_NAMES, roleName, type Translator } from '../i18n/index.js';
+import { causeText, LANGUAGE_NAMES, roleName, type Translator } from '../i18n/index.js';
 
 /**
  * One person's data as a page they can read, in the kitchen's language. The
@@ -63,7 +63,24 @@ export function readablePersonData(translator: Translator, data: PersonData): st
   none(changes);
   for (const change of changes) {
     out.push(
-      `• ${change.dish} (${when(change.changedAt)})${change.cause ? ` · ${t('allergenHistory.cause', { cause: change.cause })}` : ''}`,
+      `• ${change.dish} (${when(change.changedAt)})${change.cause ? ` · ${causeText(t, change.cause)}` : ''}`,
+    );
+  }
+
+  heading(t('personData.labelChecks'));
+  // Older servers don't send these.
+  const labels = data.labelChecks ?? [];
+  none(labels);
+  for (const check of labels) {
+    const found = check.changed ? t('labelCheck.entryChanged') : t('labelCheck.entryNoChange');
+    const status =
+      check.status === 'pending'
+        ? ` · ${t('labelCheck.statusPending')}`
+        : check.status === 'rejected'
+          ? ` · ${t('labelCheck.statusRejected')}`
+          : '';
+    out.push(
+      `• ${check.ingredient} (${when(check.checkedAt)}) · ${found}${status}${check.note ? ` · ${check.note}` : ''}`,
     );
   }
 
