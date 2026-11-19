@@ -45,8 +45,8 @@ const TYPE: Record<Tier, { name: number; useBy: number; line: number; pad: numbe
 function typeFor(tier: Tier, height: number) {
   const base = TYPE[tier];
   if (tier !== 'small') return base;
-  const grow = height / 25;
-  return { ...base, name: base.name * grow, useBy: base.useBy * grow, line: base.line * grow };
+  const grow = (points: number) => Math.round(((points * height) / 25) * 10) / 10;
+  return { ...base, name: grow(base.name), useBy: grow(base.useBy), line: grow(base.line) };
 }
 
 function tierOf(size: LabelSize): Tier {

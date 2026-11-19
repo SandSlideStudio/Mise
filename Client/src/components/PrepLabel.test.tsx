@@ -43,10 +43,17 @@ describe('a label on the smallest roll', () => {
   });
 
   it('uses the larger type set for small rolls', () => {
-    const { container } = render(<PrepLabel label={figGel} size="62x29" />);
+    const { container } = render(<PrepLabel label={figGel} size="54x25" />);
     const label = container.querySelector('article')!;
     expect(label.style.fontSize).toBe('7.5pt');
     expect(screen.getByRole('heading', { level: 2 }).getAttribute('style')).toContain('11pt');
+  });
+
+  it('grows that type to fill a taller small roll', () => {
+    const { container } = render(<PrepLabel label={figGel} size="62x29" />);
+    const label = container.querySelector('article')!;
+    expect(label.style.fontSize).toBe('8.7pt');
+    expect(screen.getByRole('heading', { level: 2 }).getAttribute('style')).toContain('12.8pt');
   });
 
   it('prints black on white only', () => {

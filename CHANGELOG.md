@@ -6,8 +6,8 @@ a change in the first number means you should read these notes before updating.
 ## 2.4.0
 
 Setup that knows about the checklist and PIN-only sign-in, a checklist that links to recipes and
-prints, use-by labels, allergen records and a notice for guests, privacy controls for staff data, and a stack of
-smaller fixes.
+prints, use-by labels, allergen records and a notice for guests, privacy controls for staff data,
+and a stack of smaller fixes.
 
 **Setup**
 
