@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ChecklistItem, Station } from '@mise/contracts';
+import { formatQuantity, unit } from '@mise/domain';
 import { groupChecklist } from '../api/checklist.js';
 import { useT } from '../i18n/index.js';
 
 /**
  * The checklist on paper, for kitchens that tick on paper: a box and a name
- * per line, by station, with the kitchen and the day. The same look as the
- * printed prep list, so as little ink as it can be.
+ * per line, by station, with the kitchen and the day. A line with a par says
+ * it, with a space to write how much is there, so the sheet is also the
+ * morning count. The same look as the printed prep list, so as little ink as
+ * it can be.
  */
 export function ChecklistPrint({
   kitchenName,
@@ -46,7 +49,24 @@ export function ChecklistPrint({
                 aria-hidden
                 className="h-[4.6mm] w-[4.6mm] shrink-0 border-[0.6px] border-black"
               />
-              {item.name}
+              <span className="min-w-0 flex-1">{item.name}</span>
+              {item.par ? (
+                <>
+                  <span className="text-[10pt]">
+                    {t('checklistPrint.par', { amount: formatQuantity(item.par) })}
+                  </span>
+                  <span className="flex items-end gap-[1.5mm] text-[10pt]">
+                    {t('checklistPrint.there')}
+                    <span
+                      data-there
+                      aria-hidden
+                      className="h-[6mm] w-[18mm] border-[0.6px] border-black"
+                    />
+                    {/* A bare count needs no unit, the same as on the screen. */}
+                    {item.par.unit === 'each' ? '' : unit(item.par.unit).abbr}
+                  </span>
+                </>
+              ) : null}
             </p>
           ))}
         </section>
