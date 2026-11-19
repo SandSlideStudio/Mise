@@ -6,7 +6,8 @@ a change in the first number means you should read these notes before updating.
 ## 2.4.0
 
 Setup that knows about the checklist and PIN-only sign-in, a checklist that links to recipes and
-prints, privacy controls for staff data, and a stack of smaller fixes.
+prints, allergen records and a notice for guests, privacy controls for staff data, and a stack of
+smaller fixes.
 
 **Setup**
 
@@ -28,6 +29,17 @@ prints, privacy controls for staff data, and a stack of smaller fixes.
 - Deleting a recipe that a checklist line links to no longer stops the next checklist save: the
   line simply loses its link, on every screen. A tablet that changed the checklist offline
   meanwhile asks which version to keep, instead of losing its change.
+
+**Allergens**
+
+- An ingredient can say what it **may contain**, as on the supplier's label ("may contain nuts").
+  It carries through every sub-recipe into each dish, its card and the menu's allergen overview.
+- Every dish keeps a record of its allergens: the dish page says when they last changed, and
+  **History** shows each change, what caused it (an ingredient or sub-recipe that was edited) and
+  who made it. The menu's allergen overview says which date its information is from.
+- **Print allergen notice** (on Dishes and the menu overview) gives a sheet for guests, A4 or A5,
+  in the kitchen's language and English: "Allergies or intolerances? Ask our staff." In the
+  Netherlands, allergens may only be told to guests by word of mouth when such a notice is up.
 
 **Privacy**
 
