@@ -43,6 +43,7 @@ function bundle(): OfflineBundle {
         } as unknown as OfflineBundle['recipeEntries'][number]['allergens'],
         expanded: { factor: 1, lines: [] },
         card: null,
+        allergenHistory: null,
       },
     ],
     menuEntries: [],

@@ -138,6 +138,40 @@ describe('downloading one person’s data', () => {
     expect(data.approvedDevices).toEqual([expect.objectContaining({ name: 'Sam’s phone' })]);
   });
 
+  it('lists the changes to dish allergens their edits made', async () => {
+    const [me] = await ctx.db.select().from(users).limit(1);
+    const post = async (url: string, payload: Record<string, unknown>, method = 'POST') => {
+      const response = await ctx.app.inject({
+        method: method as 'POST' | 'PATCH',
+        url,
+        payload,
+        cookies: as(admin),
+      });
+      expect(response.statusCode, response.body).toBe(200);
+      return response.json();
+    };
+    const panko = await post('/api/ingredients', { name: 'Panko', baseUnit: 'g' });
+    await post('/api/recipes', {
+      name: 'Kroket',
+      type: 'dish',
+      yield: { value: 1, unit: 'each' },
+      portions: 1,
+      components: [
+        {
+          sortOrder: 0,
+          quantity: { value: 20, unit: 'g' },
+          ref: { kind: 'ingredient', ingredientId: panko.id },
+        },
+      ],
+    });
+    await post(`/api/ingredients/${panko.id}`, { allergens: ['gluten'] }, 'PATCH');
+    const data = (await dataOf(me!.id)).json();
+    expect(data.allergenChanges).toEqual([
+      expect.objectContaining({ dish: 'Kroket', cause: null }),
+      expect.objectContaining({ dish: 'Kroket', cause: 'Panko' }),
+    ]);
+  });
+
   it('needs a password sign-in and the rank to manage them', async () => {
     const cook = await signInCook();
     expect((await dataOf(cook.id, cook.cookie)).statusCode).toBe(403);

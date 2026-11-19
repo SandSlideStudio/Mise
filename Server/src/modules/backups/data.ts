@@ -16,6 +16,8 @@ export const BACKED_UP: PgTable[] = [
   schema.recipes,
   schema.recipeComponents,
   schema.recipePhotos,
+  // After recipes and staff: each entry is a dish's, and says who changed it.
+  schema.dishAllergenChanges,
   // After recipes: a checklist line can point at one.
   schema.prepChecklistItems,
   schema.prepTasks,

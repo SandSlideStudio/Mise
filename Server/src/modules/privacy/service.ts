@@ -5,6 +5,7 @@ import {
   backupSettings,
   connectionSettings,
   devices,
+  dishAllergenChanges,
   kitchens,
   prepTasks,
   recipes,
@@ -151,6 +152,17 @@ export function createPrivacyService(db: Database, access: AccessService) {
       .where(eq(recipes.createdBy, id))
       .orderBy(asc(recipes.name));
 
+    const allergenChanges = await db
+      .select({
+        dish: recipes.name,
+        changedAt: dishAllergenChanges.changedAt,
+        cause: dishAllergenChanges.cause,
+      })
+      .from(dishAllergenChanges)
+      .innerJoin(recipes, eq(recipes.id, dishAllergenChanges.recipeId))
+      .where(eq(dishAllergenChanges.changedBy, id))
+      .orderBy(asc(dishAllergenChanges.changedAt), asc(recipes.name));
+
     const signedIn = await db
       .select({
         createdAt: sessions.createdAt,
@@ -201,6 +213,10 @@ export function createPrivacyService(db: Database, access: AccessService) {
         ticked: line.completedBy === id,
       })),
       recipes: written.map((recipe) => ({ ...recipe, createdAt: recipe.createdAt.toISOString() })),
+      allergenChanges: allergenChanges.map((change) => ({
+        ...change,
+        changedAt: change.changedAt.toISOString(),
+      })),
       handoverNote: signedNote
         ? { text: kitchen.handoverNote, at: iso(kitchen.handoverNoteAt) }
         : null,

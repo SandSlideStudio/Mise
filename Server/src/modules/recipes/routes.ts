@@ -5,6 +5,7 @@ import { eq } from 'drizzle-orm';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
+  allergenChangeSchema,
   allergenProfileSchema,
   createRecipeSchema,
   duplicateRecipeSchema,
@@ -22,6 +23,7 @@ import { ApiError } from '../../lib/errors.js';
 import { changedMeanwhile, ensureUnchanged, matchesBase } from '../../lib/conflict.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { kitchens, prepChecklistItems, recipePhotos } from '../../db/schema.js';
+import { allergenHistory } from './allergenHistory.js';
 import { loadComponentNames, loadRecipeBook } from './book.js';
 import { expandAgainst, serialise, summarise } from './shape.js';
 import type { UnitProblem } from './service.js';
@@ -130,6 +132,27 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
   );
 
   /**
+   * When a dish's allergens changed and what to, newest first: the written
+   * record behind telling guests by word of mouth. Readable by everyone who
+   * can read the recipe, because a cook answering a guest needs it too.
+   */
+  r.get(
+    '/recipes/:id/allergen-history',
+    {
+      onRequest: [app.requireUser],
+      schema: {
+        params: z.object({ id: idSchema }),
+        response: { 200: z.array(allergenChangeSchema), 401: errorSchema, 404: errorSchema },
+      },
+    },
+    async (request) => {
+      const row = await svc.getRecipe(request.params.id);
+      if (!row) throw ApiError.notFound('That recipe');
+      return allergenHistory(app.db, row.id);
+    },
+  );
+
+  /**
    * The whole tree at a requested size.
    *
    * A chef asks for this in two ways, "make me twenty-five" and "I need five
@@ -211,8 +234,11 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       );
       // The check above is the quick answer; this one is the one that counts,
       // made inside the save with the recipe locked.
-      const result = await svc.updateRecipe(request.params.id, request.body, (updatedAt) =>
-        matchesBase(request, updatedAt),
+      const result = await svc.updateRecipe(
+        request.params.id,
+        request.body,
+        (updatedAt) => matchesBase(request, updatedAt),
+        request.user?.id ?? null,
       );
       if (result.outcome === 'changed') {
         await changedMeanwhile(async () => {
@@ -242,7 +268,11 @@ const recipeRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
-      const copy = await svc.duplicateRecipe(request.params.id, request.body.name);
+      const copy = await svc.duplicateRecipe(
+        request.params.id,
+        request.body.name,
+        request.user?.id ?? null,
+      );
       if (!copy) throw ApiError.notFound('That recipe');
       const full = await svc.getRecipe(copy.id);
       if (!full) throw new ApiError(500, 'internal_error', 'Could not read the copy back.');

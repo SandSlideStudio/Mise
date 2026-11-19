@@ -229,6 +229,7 @@ function chefPages(s: Seed, canManage = true): Record<string, PageSpec> {
     'dish recipe': { path: `/dishes/${s.dishId}/recipe`, ready: headingText(s.dishName) },
     'dish editor': { path: `/dishes/${s.dishId}/edit`, ready: field('Recipe name') },
     'dish print card': { path: `/dishes/${s.dishId}/card`, ready: headingText(s.dishName) },
+    'allergen notice': { path: '/dishes/allergen-notice', ready: headingText('Allergen notice') },
     menus: { path: '/menus', ready: headingText('Menus') },
     // A chef edits the menu's name in place; a cook reads it as a heading.
     menu: {
@@ -252,6 +253,8 @@ function cookPages(s: Seed): Record<string, PageSpec> {
     'dish card': all['dish card']!,
     'dish recipe': all['dish recipe']!,
     'dish print card': all['dish print card']!,
+    // Whoever opens up may be the one to put the notice back up.
+    'allergen notice': all['allergen notice']!,
     menus: all.menus!,
     menu: all.menu!,
     'menu overview': all['menu overview']!,
@@ -546,6 +549,26 @@ for (const { label, viewport } of WIDTHS) {
         [
           'the overview from a menu',
           { from: 'menu', click: link('Allergen overview'), to: `/menus/${s.menuId}/overview` },
+        ],
+        [
+          'the allergen notice from Dishes',
+          {
+            from: 'dishes',
+            click: link('Print allergen notice'),
+            to: '/dishes/allergen-notice',
+          },
+        ],
+        [
+          'the allergen notice from a menu overview',
+          {
+            from: 'menu overview',
+            click: link('Print allergen notice'),
+            to: '/dishes/allergen-notice',
+          },
+        ],
+        [
+          'dishes from the allergen notice',
+          { from: 'allergen notice', click: link('← Dishes'), to: '/dishes' },
         ],
         [
           'menu from its overview',

@@ -141,4 +141,27 @@ describe('the allergen overview of a menu', () => {
     expect([...seen.values()].every((count) => count === 1)).toBe(true);
     expect(seen.size).toBe(overview.dishes.length);
   });
+
+  it('says on every page what date its allergens are as of', () => {
+    const overview = { ...sampleOverview(48), allergensAsOf: '2026-11-03T09:30:00.000Z' };
+    const pages = layoutMenuOverview(overview, fonts, {
+      language: 'nl',
+      kitchenLanguage: 'nl',
+      theme: 'day',
+      printedAt,
+    });
+    for (const page of pages) {
+      const lines = page.ops.flatMap((op) => (op.kind === 'text' ? [op.text] : []));
+      expect(lines).toContain('Allergeneninformatie bijgewerkt op 03-11-2026');
+    }
+    // Without a date (nothing recorded yet), nothing is claimed.
+    const undated = layoutMenuOverview(sampleOverview(6), fonts, {
+      language: 'en',
+      kitchenLanguage: 'en',
+      theme: 'day',
+      printedAt,
+    });
+    const lines = undated[0]!.ops.flatMap((op) => (op.kind === 'text' ? [op.text] : []));
+    expect(lines.some((line) => line.startsWith('Allergen information as of'))).toBe(false);
+  });
 });

@@ -173,6 +173,7 @@ function chefPages(s: Seed): [string, Visit][] {
     ['dish recipe', { path: `/dishes/${s.dishId}/recipe`, ready: h1(s.dishName) }],
     ['dish editor', { path: `/dishes/${s.dishId}/edit`, ready: field('Recipe name') }],
     ['dish print card', { path: `/dishes/${s.dishId}/card`, ready: h1(s.dishName) }],
+    ['allergen notice', { path: '/dishes/allergen-notice', ready: h1('Allergen notice') }],
     ['menus', { path: '/menus', ready: h1('Menus') }],
     ['menu', { path: `/menus/${s.menuId}`, ready: field('Menu name') }],
     ['menu overview', { path: `/menus/${s.menuId}/overview`, ready: h1(s.menuName) }],

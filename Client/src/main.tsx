@@ -25,6 +25,7 @@ import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
 import { RecipeView } from './routes/RecipeView.js';
 import { Recipes } from './routes/Recipes.js';
+import { AllergenNoticePage } from './routes/AllergenNoticePage.js';
 import { Dishes } from './routes/Dishes.js';
 import { DishView } from './routes/DishView.js';
 import { Menus } from './routes/Menus.js';
@@ -255,6 +256,11 @@ const routeTree = rootRoute.addChildren([
   // Dishes have pages of their own, under their own tab.
   createRoute({ getParentRoute: () => rootRoute, path: '/dishes', component: Dishes }),
   createRoute({ getParentRoute: () => rootRoute, path: '/dishes/new', component: RecipeEditor }),
+  createRoute({
+    getParentRoute: () => rootRoute,
+    path: '/dishes/allergen-notice',
+    component: AllergenNoticePage,
+  }),
   createRoute({ getParentRoute: () => rootRoute, path: '/dishes/$dishId', component: DishView }),
   createRoute({
     getParentRoute: () => rootRoute,

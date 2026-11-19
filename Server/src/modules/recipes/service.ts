@@ -13,6 +13,7 @@ import {
 } from '@mise/domain';
 import type { Database, Executor } from '../../db/client.js';
 import { recipeComponents, recipePhotos, recipes } from '../../db/schema.js';
+import { recordAllergenChanges } from './allergenHistory.js';
 import { loadRecipeBook } from './book.js';
 
 /**
@@ -332,6 +333,7 @@ export function createRecipesService(db: Database) {
       }
 
       await replaceComponents(tx, row.id, input.components);
+      await recordAllergenChanges(tx, { name: row.name, recipeId: row.id, userId: createdBy });
       return { outcome: 'created', recipe: row };
     });
   }
@@ -345,6 +347,7 @@ export function createRecipesService(db: Database) {
     id: string,
     input: UpdateRecipe,
     unchanged: (updatedAt: Date) => boolean = () => true,
+    changedBy: string | null = null,
   ): Promise<UpdateRecipeResult> {
     const existing = await db.select().from(recipes).where(eq(recipes.id, id)).limit(1);
     if (existing.length === 0) return { outcome: 'not_found' };
@@ -400,6 +403,9 @@ export function createRecipesService(db: Database) {
         .returning();
 
       if (input.components) await replaceComponents(tx, id, input.components);
+      // Its own allergens, a new type, new lines: whatever it is in may now
+      // declare something else. Nothing changed means no new line.
+      await recordAllergenChanges(tx, { name: row!.name, recipeId: id, userId: changedBy });
       return { outcome: 'updated' as const, recipe: row! };
     });
   }
@@ -413,7 +419,7 @@ export function createRecipesService(db: Database) {
   }
 
   /** Copying a spec is how most new dishes start life. */
-  async function duplicateRecipe(id: string, name: string) {
+  async function duplicateRecipe(id: string, name: string, copiedBy: string | null = null) {
     const source = await getRecipe(id);
     if (!source) return null;
 
@@ -463,6 +469,7 @@ export function createRecipesService(db: Database) {
           })),
         );
       }
+      await recordAllergenChanges(tx, { name: copy.name, recipeId: copy.id, userId: copiedBy });
       return copy;
     });
   }

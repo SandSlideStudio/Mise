@@ -767,6 +767,9 @@ export const es: Record<MessageKey, string> = {
   'ingredients.nutsPlaceholder': 'p. ej. avellana, nuez',
   'ingredients.detailsHint':
     'La ley pide que el cereal y el fruto de cáscara figuren por su nombre en la ficha de plato.',
+  'ingredients.mayContain': 'Puede contener (trazas, como en la etiqueta del proveedor)',
+  'ingredients.mayContainHint':
+    'Solo lo que advierte la etiqueta. Cada plato que lo lleve lo muestra como «puede contener». Lo que contiene se marca arriba, no aquí.',
   'card.title': 'Ficha de plato',
   'card.back': '← El plato',
   'card.language': 'Idioma de la ficha',
@@ -926,6 +929,7 @@ export const es: Record<MessageKey, string> = {
   'menus.delete': 'Eliminar el menú',
   'menus.backToMenu': '← El menú',
   'menus.overviewTitle': 'Resumen de alérgenos',
+  'menus.allergensAsOf': 'Información sobre alérgenos actualizada a {date}',
   'menus.dish': 'Plato',
   'access.title': 'Pide acceso',
   'access.body':
@@ -1368,6 +1372,7 @@ export const es: Record<MessageKey, string> = {
   'personData.lineOnIt': 'Lleva su nombre',
   'personData.lineTicked': 'La marcó',
   'personData.recipes': 'Recetas que escribió',
+  'personData.allergenChanges': 'Cambios en los alérgenos de un plato que hizo',
   'personData.note': 'Nota de relevo firmada con su nombre',
   'personData.sessions': 'Sesiones abiertas',
   'personData.session': 'Desde {started}, visto por última vez {seen}, termina {ends}',
@@ -1390,6 +1395,8 @@ export const es: Record<MessageKey, string> = {
   'privacy.keptNote':
     'El nombre de quien escribió la nota de relevo, hasta que la siguiente nota la sustituya.',
   'privacy.keptRecipes': 'Quién escribió cada receta.',
+  'privacy.keptAllergenChanges':
+    'Quién hizo cada cambio en los alérgenos de un plato, mientras el plato exista: el registro escrito que respalda la información que se da de palabra a los clientes.',
   'privacy.keptSessions':
     'Quién tiene la sesión abierta: desde cuándo, cuándo se le vio por última vez, en qué tableta y en qué navegador.',
   'privacy.keptSessionsHow':
@@ -1438,4 +1445,26 @@ export const es: Record<MessageKey, string> = {
   'privacy.sentNothingElse':
     'Nada más. Sin estadísticas, sin seguimiento y sin publicidad, y sin fuentes ni scripts de ningún otro sitio.',
   'about.licences': 'Licencias',
+
+  'allergenHistory.lastChanged': 'Alérgenos modificados por última vez el {date}',
+  'allergenHistory.history': 'Historial',
+  'allergenHistory.added': 'Ahora contiene: {allergens}',
+  'allergenHistory.removed': 'Ya no contiene: {allergens}',
+  'allergenHistory.mayAdded': 'Ahora puede contener: {allergens}',
+  'allergenHistory.mayRemoved': 'Ya no «puede contener»: {allergens}',
+  'allergenHistory.first': 'Primer registro',
+  'allergenHistory.contains': 'Contiene: {allergens}',
+  'allergenHistory.mayContain': 'Puede contener: {allergens}',
+  'allergenHistory.none': 'Sin alérgenos',
+  'allergenHistory.cause': 'Tras un cambio en {cause}',
+  'allergenHistory.onDish': 'Cambiado en el propio plato',
+  'allergenHistory.by': 'Por {name}',
+  'notice.open': 'Imprimir aviso de alérgenos',
+  'notice.title': 'Aviso de alérgenos',
+  'notice.explain':
+    'Solo puedes informar a los clientes de los alérgenos de palabra si un aviso bien visible les invita a preguntar. Imprime este y ponlo donde todos los clientes lo vean, en la entrada o en las mesas.',
+  'notice.paper': 'Papel',
+  'notice.heading': '¿Alergias o intolerancias?',
+  'notice.body':
+    'Pregunta a nuestro equipo. Podemos decirte exactamente qué alérgenos lleva cada plato.',
 };

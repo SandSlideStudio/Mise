@@ -67,6 +67,8 @@ export const menuOverviewSchema = z.object({
     }),
   ),
   settings: dishCardSettingsSchema,
+  /** When the allergens of any dish on it last changed: what the overview is as of. */
+  allergensAsOf: z.string().nullable(),
 });
 
 export type MenuStatus = z.infer<typeof menuStatusSchema>;

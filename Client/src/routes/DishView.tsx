@@ -4,6 +4,7 @@ import { useDishCard } from '../api/dishcards.js';
 import { useAwaiting } from '../lib/awaiting.js';
 import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCurrentUser } from '../api/session.js';
+import { AllergenRecord } from '../components/AllergenRecord.js';
 import { AppShell } from '../components/AppShell.js';
 import { DishCardView } from '../components/DishCardView.js';
 import { LoadError } from '../components/LoadError.js';
@@ -60,6 +61,8 @@ export function DishView() {
           <AwaitingNote what="card" className="mb-3" />
         ) : null}
         {card.data ? <DishCardView card={card.data} /> : null}
+        {/* Under the card's allergen table; a cook kept from the card still sees it. */}
+        <AllergenRecord dishId={dishId} />
       </main>
     </AppShell>
   );

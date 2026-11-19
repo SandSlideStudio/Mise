@@ -64,6 +64,7 @@ const INGREDIENTS = [
   ingredient('butter', { allergens: ['milk'], vegan: false }),
   ingredient('salt', { vegan: null }),
   ingredient('gelatine', { vegan: false }),
+  ingredient('cracker', { allergens: ['gluten'], mayContain: ['sesame', 'gluten'] }),
 ];
 
 const cream = recipe('Mais Crème', [ing('corn'), ing('oat-cream')]);
@@ -198,6 +199,22 @@ describe('the dish card matrix', () => {
   it('does not repeat a may-contain that a row already contains', () => {
     const dish = recipe('dish', [sub('Zwarte Knoflook Puree')], { mayContain: ['sulphites'] });
     expect(unwrap(dishCardMatrix('dish', bookWith(dish))).other).toBeNull();
+  });
+
+  it('shows the may-contain of an ingredient straight on the dish', () => {
+    const dish = recipe('dish', [sub('Mais Crème'), ing('cracker')]);
+    const matrix = unwrap(dishCardMatrix('dish', bookWith(dish)));
+    expect(matrix.other?.allergens).toEqual({ contains: ['gluten'], mayContain: ['sesame'] });
+    expect(matrix.dish.allergens).toEqual({ contains: ['gluten'], mayContain: ['sesame'] });
+  });
+
+  it('shows the may-contain of an ingredient inside a sub-recipe on its row', () => {
+    const base = recipe('base', [ing('corn'), ing('cracker')]);
+    const dish = recipe('dish', [sub('base')]);
+    const matrix = unwrap(dishCardMatrix('dish', bookWith(dish, [base])));
+    expect(matrix.rows[0]!.allergens.mayContain).toEqual(['sesame']);
+    expect(matrix.dish.allergens.mayContain).toEqual(['sesame']);
+    expect(matrix.other).toBeNull();
   });
 
   it('fails rather than leaving out a recipe it cannot find', () => {

@@ -37,6 +37,7 @@ const data: PersonData = {
     },
   ],
   recipes: [],
+  allergenChanges: [{ dish: 'Kroket', changedAt: '2026-11-16T14:00:00.000Z', cause: 'Panko' }],
   handoverNote: { text: 'Fond staat op.', at: '2026-11-17T22:00:00.000Z' },
   sessions: [],
   approvedDevices: [],
@@ -50,6 +51,7 @@ describe('one person’s data, to read', () => {
     expect(text).toContain('Hun naam staat erbij · Vinkte hem af');
     expect(text).toContain('Fond staat op.');
     expect(text).toContain('Nederlands');
+    expect(text).toMatch(/• Kroket \(.*\) · Na een wijziging in Panko/);
     expect(text).not.toMatch(/personData\.|\{[a-z]+\}/);
   });
 });

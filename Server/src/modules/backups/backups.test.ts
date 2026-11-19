@@ -219,6 +219,73 @@ describe('backing up and restoring', () => {
     }
   });
 
+  it('brings back each dish allergen record, with the traces that made it', async () => {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    const post = async (url: string, payload: Record<string, unknown>, method = 'POST') => {
+      const response = await app.inject({
+        method: method as 'POST' | 'PATCH',
+        url,
+        cookies,
+        payload,
+      });
+      expect(response.statusCode, response.body).toBe(200);
+      return response.json();
+    };
+    const crumb = await post('/api/ingredients', {
+      name: 'Panko',
+      baseUnit: 'g',
+      allergens: ['gluten'],
+    });
+    const dish = await post('/api/recipes', {
+      name: 'Kroket',
+      type: 'dish',
+      yield: { value: 1, unit: 'each' },
+      portions: 1,
+      components: [
+        {
+          sortOrder: 0,
+          quantity: { value: 20, unit: 'g' },
+          ref: { kind: 'ingredient', ingredientId: crumb.id },
+        },
+      ],
+    });
+    await post(`/api/ingredients/${crumb.id}`, { mayContain: ['sesame'] }, 'PATCH');
+    const { file, key } = await backUp(cookies);
+
+    const second = await emptyServer();
+    try {
+      expect((await restore(second.app, file, key)).statusCode).toBe(200);
+      const signIn = await second.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password: ADMIN.password },
+      });
+      const restoredCookies = { mise_session: cookieFrom(signIn, 'mise_session')! };
+      const history = await second.app.inject({
+        method: 'GET',
+        url: `/api/recipes/${dish.id}/allergen-history`,
+        cookies: restoredCookies,
+      });
+      expect(history.json()).toEqual([
+        expect.objectContaining({
+          contains: ['gluten'],
+          mayContain: ['sesame'],
+          cause: 'Panko',
+          changedBy: ADMIN.displayName,
+        }),
+        expect.objectContaining({ contains: ['gluten'], mayContain: [], cause: null }),
+      ]);
+      const ingredient = await second.app.inject({
+        method: 'GET',
+        url: `/api/ingredients/${crumb.id}`,
+        cookies: restoredCookies,
+      });
+      expect(ingredient.json().mayContain).toEqual(['sesame']);
+    } finally {
+      await second.close();
+    }
+  });
+
   it('brings back the dish card settings and logo', async () => {
     const { cookies } = await stockedKitchen();
     const png = Buffer.concat([Buffer.from('89504e470d0a1a0a', 'hex'), randomBytes(64)]);

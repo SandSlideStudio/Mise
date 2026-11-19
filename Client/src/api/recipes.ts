@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type {
+  AllergenChange,
   AllergenProfile,
   CreateIngredient,
   CreateRecipe,
@@ -118,6 +119,15 @@ export function useRecipeAllergens(id: string | undefined) {
   });
 }
 
+/** When a dish's allergens changed and to what, newest first. */
+export function useAllergenHistory(id: string | undefined) {
+  return useQuery({
+    queryKey: ['recipe-allergen-history', id],
+    enabled: Boolean(id),
+    queryFn: () => api.get<AllergenChange[]>(`/recipes/${id}/allergen-history`),
+  });
+}
+
 /** Which recipes use this one. Shown before deleting it. */
 export function useRecipeUsedBy(id: string | undefined) {
   return useQuery({
@@ -220,6 +230,7 @@ export function useUpdateRecipe(id: string) {
       queryClient.setQueryData(['recipe', id], recipe);
       void queryClient.invalidateQueries({ queryKey: ['recipes'] });
       void queryClient.invalidateQueries({ queryKey: ['recipe-allergens', id] });
+      void queryClient.invalidateQueries({ queryKey: ['recipe-allergen-history'] });
     },
   });
 }

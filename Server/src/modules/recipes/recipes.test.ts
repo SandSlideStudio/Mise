@@ -109,6 +109,82 @@ describe('the ingredient catalogue', () => {
     expect(response.statusCode).toBe(409);
   });
 
+  it('keeps what an ingredient may contain apart from what it contains', async () => {
+    const chocolate = await addIngredient(ctx.app, admin, {
+      name: 'Chocolate',
+      allergens: ['milk'],
+      // "May contain milk" next to milk says nothing more.
+      mayContain: ['nuts', 'milk', 'peanuts'],
+    });
+    expect(chocolate).toMatchObject({ allergens: ['milk'], mayContain: ['nuts', 'peanuts'] });
+
+    // Peanuts now in it for certain: no longer a trace as well.
+    const changed = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/ingredients/${chocolate.id}`,
+      payload: { allergens: ['milk', 'peanuts'] },
+      cookies: as(admin),
+    });
+    expect(changed.json()).toMatchObject({
+      allergens: ['milk', 'peanuts'],
+      mayContain: ['nuts'],
+    });
+
+    // Left out by an app from before 2.4: the traces stay.
+    const older = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/ingredients/${chocolate.id}`,
+      payload: { notes: 'Callebaut' },
+      cookies: as(admin),
+    });
+    expect(older.json().mayContain).toEqual(['nuts']);
+  });
+
+  it('carries an ingredient may-contain into the dish, its allergens and its card', async () => {
+    const chocolate = await addIngredient(ctx.app, admin, {
+      name: 'Chocolate',
+      allergens: ['milk'],
+      mayContain: ['nuts'],
+    });
+    const ganache = await addRecipe(ctx.app, admin, {
+      name: 'Ganache',
+      components: [
+        {
+          sortOrder: 0,
+          quantity: { value: 500, unit: 'g' },
+          ref: { kind: 'ingredient', ingredientId: chocolate.id },
+        },
+      ],
+    });
+    const tart = await addRecipe(ctx.app, admin, {
+      name: 'Tart',
+      type: 'dish',
+      yield: { value: 1, unit: 'each' },
+      portions: 1,
+      components: [
+        {
+          sortOrder: 0,
+          quantity: { value: 80, unit: 'g' },
+          ref: { kind: 'recipe', recipeId: ganache.id },
+        },
+      ],
+    });
+    const allergens = await ctx.app.inject({
+      method: 'GET',
+      url: `/api/recipes/${tart.id}/allergens`,
+      cookies: as(admin),
+    });
+    expect(allergens.json()).toEqual({ contains: ['milk'], mayContain: ['nuts'] });
+    const card = await ctx.app.inject({
+      method: 'GET',
+      url: `/api/recipes/${tart.id}/card`,
+      cookies: as(admin),
+    });
+    expect(card.statusCode).toBe(200);
+    expect(card.json().whole).toMatchObject({ contains: ['milk'], mayContain: ['nuts'] });
+    expect(card.json().rows[0]).toMatchObject({ name: 'Ganache', mayContain: ['nuts'] });
+  });
+
   it('lets a cook read the catalogue but not change it', async () => {
     const response = await ctx.app.inject({
       method: 'GET',

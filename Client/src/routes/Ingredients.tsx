@@ -96,6 +96,15 @@ export function Ingredients() {
                           ))}
                         </span>
                       ) : null}
+                      {ingredient.mayContain.length > 0 ? (
+                        <span className="text-ink-soft mt-1 block text-sm">
+                          {t('recipe.mayContain', {
+                            allergens: ingredient.mayContain
+                              .map((allergen) => allergenName(t, allergen))
+                              .join(', '),
+                          })}
+                        </span>
+                      ) : null}
                     </span>
                   </>
                 );
@@ -178,6 +187,9 @@ function IngredientForm({
   const [allergens, setAllergens] = useState<Allergen[]>(
     (ingredient?.allergens ?? []) as Allergen[],
   );
+  const [mayContain, setMayContain] = useState<Allergen[]>(
+    (ingredient?.mayContain ?? []) as Allergen[],
+  );
   const [vegan, setVegan] = useState<boolean | null>(ingredient?.vegan ?? null);
   const [cereals, setCereals] = useState((ingredient?.allergenDetails.gluten ?? []).join(', '));
   const [nuts, setNuts] = useState((ingredient?.allergenDetails.nuts ?? []).join(', '));
@@ -193,6 +205,8 @@ function IngredientForm({
       category: category || null,
       baseUnit,
       allergens,
+      // A trace of what it contains anyway says nothing more.
+      mayContain: mayContain.filter((allergen) => !allergens.includes(allergen)),
       vegan,
       // Names only count for an allergen that is ticked.
       allergenDetails: {
@@ -275,6 +289,35 @@ function IngredientForm({
             </button>
           ))}
         </div>
+      </fieldset>
+
+      <fieldset>
+        <legend className="label">{t('ingredients.mayContain')}</legend>
+        <div className="flex flex-wrap gap-1.5">
+          {ALLERGENS.map((allergen) => {
+            const contained = allergens.includes(allergen);
+            return (
+              <button
+                key={allergen}
+                type="button"
+                // Contained already: more than a trace, so not offered here.
+                disabled={contained}
+                aria-pressed={!contained && mayContain.includes(allergen)}
+                onClick={() =>
+                  setMayContain((current) =>
+                    current.includes(allergen)
+                      ? current.filter((a) => a !== allergen)
+                      : [...current, allergen],
+                  )
+                }
+                className="toggle disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                {allergenName(t, allergen)}
+              </button>
+            );
+          })}
+        </div>
+        <p className="text-ink-soft mt-1.5 text-sm">{t('ingredients.mayContainHint')}</p>
       </fieldset>
 
       {allergens.includes('gluten') || allergens.includes('nuts') ? (

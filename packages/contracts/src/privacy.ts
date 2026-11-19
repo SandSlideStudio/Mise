@@ -76,6 +76,10 @@ export const personDataSchema = z.object({
   }),
   prepLines: z.array(personLineSchema),
   recipes: z.array(z.object({ id: idSchema, name: z.string(), createdAt: z.string() })),
+  /** Changes to a dish's allergens their edit made, from its allergen record. */
+  allergenChanges: z.array(
+    z.object({ dish: z.string(), changedAt: z.string(), cause: z.string().nullable() }),
+  ),
   /** The note for the next shift, when it is signed with their name. */
   handoverNote: z.object({ text: z.string().nullable(), at: z.string().nullable() }).nullable(),
   sessions: z.array(

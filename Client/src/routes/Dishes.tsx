@@ -78,11 +78,16 @@ export function Dishes() {
           title={t('nav.dishes')}
           description={t('dishes.subtitle')}
           aside={
-            canManage ? (
-              <Link to="/dishes/new" className="btn-primary min-h-11">
-                {t('dishes.new')}
+            <span className="flex flex-wrap gap-2">
+              {canManage ? (
+                <Link to="/dishes/new" className="btn-primary min-h-11">
+                  {t('dishes.new')}
+                </Link>
+              ) : null}
+              <Link to="/dishes/allergen-notice" className="btn-quiet min-h-11">
+                {t('notice.open')}
               </Link>
-            ) : null
+            </span>
           }
         />
 

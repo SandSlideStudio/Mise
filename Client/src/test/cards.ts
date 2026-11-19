@@ -101,6 +101,7 @@ export function sampleOverview(count: number): MenuOverview {
     kitchenName: 'Demo Kitchen',
     menu: { id: '00000000-0000-4000-8000-000000000100', name: 'Long menu', description: null },
     settings: sampleCard().settings,
+    allergensAsOf: null,
     dishes: Array.from({ length: count }, (_, i) => ({
       recipeId: `00000000-0000-4000-8000-${String(1000 + i).padStart(12, '0')}`,
       name: `Dish number ${i + 1}`,

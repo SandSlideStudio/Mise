@@ -583,6 +583,26 @@
 }
 
 /*
+ * The allergen notice for guests on its own sheet, put under the page only
+ * while it prints.
+ */
+.print-notice {
+  display: none;
+}
+
+@media print {
+  html.printing-notice body > :not(.print-notice) {
+    display: none !important;
+  }
+
+  html.printing-notice .print-notice {
+    display: block;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}
+
+/*
  * The backup recovery key on its own sheet. Only there while the key is shown,
  * and only printed when the Print button next to it asked for it.
  */
