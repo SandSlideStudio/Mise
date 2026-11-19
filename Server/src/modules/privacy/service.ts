@@ -6,6 +6,8 @@ import {
   connectionSettings,
   devices,
   dishAllergenChanges,
+  ingredientLabelChecks,
+  ingredients,
   kitchens,
   prepTasks,
   recipes,
@@ -163,6 +165,19 @@ export function createPrivacyService(db: Database, access: AccessService) {
       .where(eq(dishAllergenChanges.changedBy, id))
       .orderBy(asc(dishAllergenChanges.changedAt), asc(recipes.name));
 
+    const labels = await db
+      .select({
+        ingredient: ingredients.name,
+        checkedAt: ingredientLabelChecks.checkedAt,
+        changed: ingredientLabelChecks.changed,
+        status: ingredientLabelChecks.status,
+        note: ingredientLabelChecks.note,
+      })
+      .from(ingredientLabelChecks)
+      .innerJoin(ingredients, eq(ingredients.id, ingredientLabelChecks.ingredientId))
+      .where(eq(ingredientLabelChecks.checkedBy, id))
+      .orderBy(asc(ingredientLabelChecks.checkedAt), asc(ingredients.name));
+
     const signedIn = await db
       .select({
         createdAt: sessions.createdAt,
@@ -216,6 +231,10 @@ export function createPrivacyService(db: Database, access: AccessService) {
       allergenChanges: allergenChanges.map((change) => ({
         ...change,
         changedAt: change.changedAt.toISOString(),
+      })),
+      labelChecks: labels.map((check) => ({
+        ...check,
+        checkedAt: check.checkedAt.toISOString(),
       })),
       handoverNote: signedNote
         ? { text: kitchen.handoverNote, at: iso(kitchen.handoverNoteAt) }

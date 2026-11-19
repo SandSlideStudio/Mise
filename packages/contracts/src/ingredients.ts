@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { allergenSchema, idSchema } from './common.js';
 import { ingredientPriceInputSchema, ingredientPriceSchema } from './costing.js';
+import { lastLabelCheckSchema } from './labelChecks.js';
 
 /**
  * The raw material catalogue. Density and item weight are what make
@@ -33,6 +34,8 @@ export const ingredientSchema = z.object({
   yieldPercent: z.number(),
   /** What it costs. Null: nobody has said. Left out altogether for a cook. */
   price: ingredientPriceSchema.nullable().optional(),
+  /** When its label was last read at delivery; null: never. Left out by older servers. */
+  labelCheck: lastLabelCheckSchema.nullable().optional(),
   /** When it last changed: the version an edit starts from. */
   updatedAt: z.string(),
 });

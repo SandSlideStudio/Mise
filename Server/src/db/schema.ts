@@ -459,6 +459,48 @@ export const dishAllergenChanges = pgTable(
   ],
 );
 
+export const labelCheckStatusEnum = pgEnum('label_check_status', [
+  'applied',
+  'pending',
+  'rejected',
+]);
+
+/**
+ * An ingredient's label read at delivery, against what Mise has for it.
+ *
+ * Suppliers change recipes without saying so; the new label is seen at the
+ * back door and has to reach the menu. Each check is kept, a "no change" too,
+ * so the kitchen can show that labels are looked at and when. A cook's check
+ * that finds a difference waits for a chef, as their edits to ingredients
+ * would; a chef's is applied at once.
+ */
+export const ingredientLabelChecks = pgTable(
+  'ingredient_label_check',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    ingredientId: uuid('ingredient_id')
+      .notNull()
+      .references(() => ingredients.id, { onDelete: 'cascade' }),
+    checkedAt: timestamp('checked_at', { withTimezone: true }).notNull().defaultNow(),
+    checkedBy: uuid('checked_by').references(() => users.id, { onDelete: 'set null' }),
+    /** Whether the label said something other than Mise had. */
+    changed: boolean('changed').notNull().default(false),
+    /** What Mise had when the label was read, and what the label says. */
+    beforeAllergens: jsonb('before_allergens').$type<string[]>().notNull().default([]),
+    beforeMayContain: jsonb('before_may_contain').$type<string[]>().notNull().default([]),
+    afterAllergens: jsonb('after_allergens').$type<string[]>().notNull().default([]),
+    afterMayContain: jsonb('after_may_contain').$type<string[]>().notNull().default([]),
+    /** Free text: the supplier, a product code, a batch. */
+    note: text('note'),
+    status: labelCheckStatusEnum('status').notNull().default('applied'),
+  },
+  (t) => [
+    index('ingredient_label_check_ingredient_idx').on(t.ingredientId, t.checkedAt),
+    index('ingredient_label_check_checked_by_idx').on(t.checkedBy),
+    index('ingredient_label_check_status_idx').on(t.status),
+  ],
+);
+
 // --- mise en place --------------------------------------------------------
 
 /**

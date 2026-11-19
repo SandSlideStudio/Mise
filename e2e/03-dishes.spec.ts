@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { ensureKitchen, signIn, signedInApi, unique } from './helpers.js';
+import { CHEF, ensureKitchen, signIn, signedInApi, unique } from './helpers.js';
 
 test.beforeEach(async ({ request }) => ensureKitchen(request));
 
@@ -192,4 +192,71 @@ test('the top bar and the way back work from a recipe and from a dish', async ({
   await expect(page).toHaveURL((url) => url.pathname === '/');
   await page.waitForTimeout(500);
   await expect(page).toHaveURL((url) => url.pathname === '/');
+});
+
+/**
+ * A supplier changed a product: the label at delivery says nuts now. Checking
+ * it shows the dish and its menu before saving, and the dish's allergens and
+ * its record follow.
+ */
+test('a label checked at delivery changes the allergens of the dish it goes into', async ({
+  page,
+  request,
+}) => {
+  const api = await signedInApi(request);
+  const crumble = await (
+    await api.post('/api/ingredients', { data: { name: unique('Crumble'), baseUnit: 'g' } })
+  ).json();
+  const dish = unique('Apple crumble');
+  const created = await api.post('/api/recipes', {
+    data: {
+      name: dish,
+      type: 'dish',
+      yield: { value: 1, unit: 'each' },
+      portions: 1,
+      course: 'dessert',
+      components: [
+        {
+          ref: { kind: 'ingredient', ingredientId: crumble.id },
+          quantity: { value: 60, unit: 'g' },
+          sortOrder: 0,
+        },
+      ],
+    },
+  });
+  expect(created.ok(), await created.text()).toBe(true);
+  const menu = unique('Winter menu');
+  const onMenu = await api.post('/api/menus', {
+    data: { name: menu, status: 'active', dishes: [(await created.json()).id] },
+  });
+  expect(onMenu.ok(), await onMenu.text()).toBe(true);
+
+  await signIn(page);
+  await page.getByRole('navigation').getByRole('link', { name: 'Ingredients' }).click();
+  await page.getByRole('textbox', { name: 'Search ingredients' }).first().fill(crumble.name);
+  await expect(page.getByText('Label never checked')).toBeVisible();
+  await page.getByRole('button', { name: `Check label: ${crumble.name}` }).click();
+
+  const check = page.getByRole('region', { name: `Check the label: ${crumble.name}` });
+  await check
+    .getByRole('group', { name: 'Allergens' })
+    .getByRole('button', { name: 'Tree nuts' })
+    .click();
+  // Before saving: the dish, its menu and what it gains, worked out on the tablet.
+  await expect(check.getByText('1 dish changes:')).toBeVisible({ timeout: 15_000 });
+  await expect(check.getByText(dish)).toBeVisible();
+  await expect(check.getByText(`On ${menu}`)).toBeVisible();
+  await expect(check.getByText('Now contains: Tree nuts')).toBeVisible();
+  await check.getByRole('button', { name: 'Save the new label' }).click();
+
+  await expect(page.getByRole('status').getByText('Label check saved.')).toBeVisible();
+  await expect(page.getByText(`Label checked today by ${CHEF.displayName}`)).toBeVisible();
+
+  // The dish has the nuts now, and its record says why.
+  await page.getByRole('navigation').getByRole('link', { name: 'Dishes' }).click();
+  const tile = page.getByRole('link', { name: new RegExp(dish) });
+  await expect(tile).toContainText('Tree nuts');
+  await tile.click();
+  await page.locator('summary', { hasText: /^History$/ }).click();
+  await expect(page.getByText(`After the label of ${crumble.name} was checked`)).toBeVisible();
 });

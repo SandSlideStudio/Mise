@@ -60,13 +60,12 @@ export function AppShell({ children }: { children: ReactNode }) {
             <NavLink to="/recipes" label="nav.recipes" active={pathname.startsWith('/recipes')} />
             <NavLink to="/dishes" label="nav.dishes" active={pathname.startsWith('/dishes')} />
             <NavLink to="/menus" label="nav.menus" active={pathname.startsWith('/menus')} />
-            {canManage ? (
-              <NavLink
-                to="/ingredients"
-                label="nav.ingredients"
-                active={pathname.startsWith('/ingredients')}
-              />
-            ) : null}
+            {/* Cooks too: whoever takes a delivery checks the labels there. */}
+            <NavLink
+              to="/ingredients"
+              label="nav.ingredients"
+              active={pathname.startsWith('/ingredients')}
+            />
             {canManage ? (
               <NavLink
                 to="/settings"

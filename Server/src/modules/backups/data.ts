@@ -13,6 +13,8 @@ export const BACKED_UP: PgTable[] = [
   schema.users,
   schema.devices,
   schema.ingredients,
+  // After ingredients and staff: each check is an ingredient's, and says who read the label.
+  schema.ingredientLabelChecks,
   schema.recipes,
   schema.recipeComponents,
   schema.recipePhotos,
