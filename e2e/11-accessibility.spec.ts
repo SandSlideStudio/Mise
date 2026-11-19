@@ -279,6 +279,17 @@ for (const { label, viewport } of A11Y_WIDTHS) {
         await page.waitForTimeout(300);
         await expectAccessible(page, `remove confirm, ${theme}, ${label}`);
       });
+
+      test('the label for a prep, opened from its recipe', async ({ page }) => {
+        await signIn(page);
+        await page.goto(`/recipes/${seed.prepId}`);
+        const open = page.getByRole('button', { name: 'Label', exact: true });
+        await open.click();
+        await expect(open).toHaveAttribute('aria-expanded', 'true');
+        await expect(page.getByRole('heading', { name: 'Label for the container' })).toBeVisible();
+        await expect(page.getByLabel('How many')).toHaveValue('1');
+        await expectAccessible(page, `recipe label, ${theme}, ${label}`);
+      });
     });
   }
 }
@@ -359,6 +370,11 @@ test.describe('by keyboard alone', () => {
     await tabTo(page, tick, true);
     await page.keyboard.press('Space');
     await expect(tick).toHaveAttribute('aria-pressed', 'true');
+
+    // Done, the line offers a label for the container it went into.
+    await tabTo(page, page.getByRole('button', { name: `Print a label for ${line}` }));
+    await page.keyboard.press('Enter');
+    await expect.poll(() => printed(page)).toBe(2);
   });
 
   test('the checklist is ticked, printed and changed with the keyboard', async ({ page }) => {
