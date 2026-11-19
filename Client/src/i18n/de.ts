@@ -464,8 +464,8 @@ export const de: Record<MessageKey, string> = {
   'editor.keepsHours': 'Haltbar, Stunden',
   'editor.kept': 'Wie es gelagert wird',
   'editor.keptHint':
-    'Ohne Haltbarkeit bestimmt das das Datum auf dem Etikett: Gekühltes bekommt den Standard des Hygiënecode.',
-  'editor.storage': 'Wo / Notizen',
+    'Ohne Haltbarkeitsangabe legt dies das Datum auf dem Etikett fest: Gekühltes bekommt den Standard aus der Hygiënecode.',
+  'editor.storage': 'Lagerort / Notizen',
   'editor.storageHint': 'Zum Beispiel beschriftete Boxen, Kühlraum.',
   'kept.chilled_7': 'Gekühlt, 7 °C oder kälter',
   'kept.chilled_4': 'Gekühlt, 4 °C oder kälter',
@@ -789,7 +789,7 @@ export const de: Record<MessageKey, string> = {
     'Das Gesetz verlangt, dass Getreide und Nuss auf einer Gerichtekarte beim Namen genannt werden.',
   'ingredients.mayContain': 'Kann Spuren enthalten (wie auf dem Etikett des Lieferanten)',
   'ingredients.mayContainHint':
-    'Nur, wovor das Etikett warnt. Jedes Gericht, in das dies kommt, zeigt es als „Kann Spuren enthalten“. Was es enthält, wird oben angekreuzt, nicht hier.',
+    'Nur das, wovor das Etikett warnt. Jedes Gericht mit dieser Zutat zeigt es als „Kann Spuren enthalten“. Was die Zutat enthält, kreuzt du oben an, nicht hier.',
   'card.title': 'Gerichtekarte',
   'card.back': '← Das Gericht',
   'card.language': 'Sprache der Karte',
@@ -1346,14 +1346,14 @@ export const de: Record<MessageKey, string> = {
   'checklistPrint.empty': 'Die Checkliste ist leer.',
   // Par-Bestände: wie viel der Chef fertig haben will, und was schon da ist
   'checklist.par': 'Par',
-  'checklist.parFor': 'Par für {name}',
-  'checklist.parUnitFor': 'Einheit des Pars für {name}',
+  'checklist.parFor': 'Par-Menge für {name}',
+  'checklist.parUnitFor': 'Einheit der Par-Menge für {name}',
   'checklist.parHint':
-    'Der Par ist, wie viel fertig sein soll. Wer die Zeile auf die Liste setzt, sagt, was da ist, und die Liste verlangt den Rest. Leer lassen: kein Par.',
-  'checklist.onHandTitle': 'Wie viel ist da?',
+    'Die Par-Menge ist, wie viel du fertig haben willst. Wer die Zeile auf die Liste setzt, gibt an, was da ist, und die Liste fordert den Rest an. Leer lassen: keine Par-Menge.',
+  'checklist.onHandTitle': 'Wie viel ist noch da?',
   'checklist.onHandHint':
-    'Lass ein Feld leer, wenn nichts da ist. Die Liste verlangt, was bis zum Par fehlt.',
-  'checklist.onHandFor': '{name}: wie viel ist da, in {unit}',
+    'Lass ein Feld leer, wenn nichts da ist. Die Liste fordert an, was bis zur Par-Menge fehlt.',
+  'checklist.onHandFor': 'Wie viel {name} ist da, in {unit}',
   'checklist.parIs': 'Par {amount}',
   'checklist.back': 'Zurück',
   'checklist.enough': '{name}: genug da.',
@@ -1494,8 +1494,8 @@ export const de: Record<MessageKey, string> = {
   'allergenHistory.added': 'Enthält jetzt: {allergens}',
   'allergenHistory.removed': 'Enthält nicht mehr: {allergens}',
   'allergenHistory.mayAdded': 'Kann jetzt Spuren enthalten von: {allergens}',
-  'allergenHistory.mayRemoved': 'Nicht mehr „Kann Spuren enthalten“: {allergens}',
-  'allergenHistory.first': 'Zuerst erfasst',
+  'allergenHistory.mayRemoved': 'Kann keine Spuren mehr enthalten von: {allergens}',
+  'allergenHistory.first': 'Erstmals erfasst',
   'allergenHistory.contains': 'Enthält: {allergens}',
   'allergenHistory.mayContain': 'Kann Spuren enthalten von: {allergens}',
   'allergenHistory.none': 'Keine Allergene',
@@ -1505,7 +1505,7 @@ export const de: Record<MessageKey, string> = {
   'notice.open': 'Allergen-Hinweis drucken',
   'notice.title': 'Allergen-Hinweis',
   'notice.explain':
-    'Gäste dürfen nur dann mündlich über Allergene informiert werden, wenn ein gut sichtbarer Hinweis sie bittet, danach zu fragen. Drucken Sie diesen aus und hängen Sie ihn dort auf, wo jeder Gast ihn sieht, am Eingang oder auf den Tischen.',
+    'Gäste dürfen nur dann mündlich über Allergene informiert werden, wenn ein gut sichtbarer Hinweis sie bittet, danach zu fragen. Drucke diesen aus und hänge ihn dort auf, wo jeder Gast ihn sieht, am Eingang oder auf den Tischen.',
   'notice.paper': 'Papier',
   'notice.languages': 'Sprachen',
   'notice.heading': 'Allergien oder Unverträglichkeiten?',
@@ -1528,28 +1528,28 @@ export const de: Record<MessageKey, string> = {
   'label.keptAmbient': 'Trocken lagern',
   'label.keptHot': 'Heiß ≥60 °C',
   'label.noteDefault':
-    'Das Datum ist der Standard des Hygiënecode für gekühlte eigene Zubereitungen: der Tag der Herstellung plus {days} Tage. Trag im Rezept eine Haltbarkeit ein, um diese zu drucken.',
+    'Das Datum ist der Standard aus der Hygiënecode für gekühlte eigene Zubereitungen: der Tag der Herstellung plus {days} Tage. Trage im Rezept eine Haltbarkeit ein, um ein eigenes Datum zu drucken.',
   'label.noteFrozen':
-    'Kein Datum gedruckt: Es wird tiefgekühlt, und das Rezept hat keine Haltbarkeit. Schreib es auf das Etikett oder trag im Rezept eine Haltbarkeit ein.',
+    'Kein Datum gedruckt: Es wird tiefgekühlt, und das Rezept hat keine Haltbarkeit. Schreibe das Datum selbst auf das Etikett oder trage im Rezept eine Haltbarkeit ein.',
   'label.noteAmbient':
-    'Kein Datum gedruckt: Es wird trocken gelagert, und das Rezept hat keine Haltbarkeit. Schreib es auf das Etikett oder trag im Rezept eine Haltbarkeit ein.',
+    'Kein Datum gedruckt: Es wird trocken gelagert, und das Rezept hat keine Haltbarkeit. Schreibe das Datum selbst auf das Etikett oder trage im Rezept eine Haltbarkeit ein.',
   'label.noteHot':
-    'Kein Datum gedruckt: Es wird heiß gehalten, und das geht nach Stunden, nicht nach Datum. Schreib es auf das Etikett, wenn nötig.',
+    'Kein Datum gedruckt: Es wird heiß gehalten, und dafür zählen Stunden, kein Datum. Schreibe das Datum bei Bedarf selbst auf das Etikett.',
   'label.noteUnknown':
-    'Kein Datum gedruckt: Das Rezept sagt weder, wie lange es haltbar ist, noch wie es gelagert wird. Schreib es auf das Etikett oder trag Haltbarkeit oder Lagerung ein.',
+    'Kein Datum gedruckt: Im Rezept steht weder, wie lange es haltbar ist, noch, wie es gelagert wird. Schreibe das Datum selbst auf das Etikett oder trage im Rezept Haltbarkeit oder Lagerung ein.',
   'label.noteNoRecipe':
-    'Nicht nach einem Rezept gemacht, also kommen Datum und Allergene von Hand auf das Etikett.',
+    'Nicht aus einem Rezept hergestellt, also schreibst du Datum und Allergene von Hand auf das Etikett.',
   'label.howMany': 'Wie viele',
   'label.print_one': '{count} Etikett drucken',
   'label.print_other': '{count} Etiketten drucken',
   'label.sizeHint':
-    'Druckt im Etikettenformat aus Einstellungen, Küche. Wähl im Druckdialog den Etikettendrucker.',
+    'Gedruckt wird im Etikettenformat aus Einstellungen, Küche. Wähle im Druckdialog den Etikettendrucker.',
   'kitchen.labelSize': 'Etikettenformat',
   'kitchen.labelSizeHint':
-    'Die Rolle im Etikettendrucker. Etiketten gehen über den Druckdialog, also passt jeder Etikettendrucker, auf dem das Tablet drucken kann.',
+    'Die Rolle im Etikettendrucker. Etiketten gehen über den Druckdialog, also funktioniert jeder Etikettendrucker, auf den das Tablet drucken kann.',
   'kitchen.labelOnTick': 'Etikett drucken, wenn eine Zeile abgehakt wird',
   'kitchen.labelOnTickHint':
-    'Öffnet von selbst den Druckdialog, wenn eine Zeile aus einem Rezept abgehakt wird. Sonst bietet eine abgehakte Zeile einen Knopf Etikett.',
+    'Öffnet automatisch den Druckdialog, wenn eine Zeile aus einem Rezept abgehakt wird. Sonst bietet eine abgehakte Zeile die Schaltfläche Etikett.',
   'cost.title': 'Wareneinsatz',
   'cost.perBatch': '{amount} pro Ansatz',
   'cost.forSize': '{amount} für diese Menge',
@@ -1572,21 +1572,21 @@ export const de: Record<MessageKey, string> = {
   'cost.cantConvert_other':
     '{count} Mengen, die sich nicht in die Einkaufseinheit umrechnen lassen: {names}',
   'cost.cantConvertHint':
-    'Gib der Zutat eine Dichte oder ein Gewicht pro Stück, oder verwende sie in der Art von Einheit, in der sie eingekauft wird.',
-  'cost.menuAverage': 'Durchschnitt der Karte: {amount} pro Portion',
+    'Gib der Zutat eine Dichte oder ein Gewicht pro Stück, oder verwende sie in einer Einheit derselben Art wie beim Einkauf.',
+  'cost.menuAverage': 'Durchschnitt auf dieser Karte: {amount} pro Portion',
   'cost.menuFoodCost': 'Wareneinsatz {percent}',
   'cost.menuIncomplete':
     'Einige Gerichte haben Zutaten ohne Preis, daher sind diese Zahlen zu niedrig.',
   'cost.noPrice': 'Noch kein Preis',
-  'cost.priceAge': 'Preis von {age}',
+  'cost.priceAge': 'Preis {age}',
   'cost.unconvertible':
-    'In einer Einheit eingekauft, die Mise noch nicht umrechnen kann: trag eine Dichte oder ein Gewicht pro Stück ein.',
+    'In einer Einheit eingekauft, die Mise noch nicht umrechnen kann: Trage eine Dichte oder ein Gewicht pro Stück ein.',
   'ingredients.costing': 'Preis und Ausbeute',
   'ingredients.price': 'Einkaufspreis',
   'ingredients.priceFor': 'Für',
   'ingredients.priceUnit': 'Einheit',
   'ingredients.priceHint':
-    'Wie auf der Rechnung: 12,50 für einen 5-kg-Sack. Lass es leer, wenn du es nicht weißt: Der Wareneinsatz sagt das dann, statt sie als kostenlos zu zählen.',
+    'Wie auf der Rechnung: 12,50 für einen 5-kg-Sack. Lass das Feld leer, wenn du es nicht weißt: Der Wareneinsatz weist dann darauf hin, statt die Zutat als kostenlos zu rechnen.',
   'ingredients.yieldLabel': 'Ausbeute, Prozent',
   'ingredients.yieldHint':
     'Was nach Schälen und Putzen übrig bleibt, und damit, was der Wareneinsatz als verwertbar zählt. Zwiebeln etwa 90.',
@@ -1597,7 +1597,7 @@ export const de: Record<MessageKey, string> = {
   'ingredients.addConversions': 'Gewicht pro Liter oder pro Stück hinzufügen',
   'kitchen.currency': 'Währung',
   'kitchen.currencyHint':
-    'In der Preise eingegeben und angezeigt werden. Ein Wechsel rechnet eingegebene Preise nicht um.',
+    'In dieser Währung werden Preise eingegeben und angezeigt. Ein Wechsel rechnet bereits eingegebene Preise nicht um.',
   'kitchen.vat': 'Mehrwertsteuer auf Speisen, Prozent',
   'kitchen.vatHint':
     'Wird vom Verkaufspreis abgezogen, um den Wareneinsatz in Prozent zu berechnen. 7 in Deutschland.',
@@ -1605,14 +1605,15 @@ export const de: Record<MessageKey, string> = {
   'labelCheck.check': 'Etikett prüfen',
   'labelCheck.title': 'Etikett prüfen: {name}',
   'labelCheck.intro':
-    'Stell die Allergene so ein, wie das Etikett vor dir sie nennt. Mise zeigt, was sich dadurch ändert, bevor etwas gespeichert wird.',
+    'Gib die Allergene so an, wie sie auf dem Etikett vor dir stehen. Mise zeigt, was sich dadurch ändert, bevor etwas gespeichert wird.',
   'labelCheck.note': 'Lieferant oder Artikelnummer (freiwillig)',
   'labelCheck.noChange': 'Keine Änderung',
-  'labelCheck.same': 'Das Etikett sagt, was Mise hat. Ein Tippen hält fest, dass es geprüft wurde.',
+  'labelCheck.same':
+    'Das Etikett stimmt mit Mise überein. Ein Tippen hält fest, dass es geprüft wurde.',
   'labelCheck.save': 'Neues Etikett speichern',
   'labelCheck.sendToChef': 'An einen Küchenchef schicken',
   'labelCheck.cookNote': 'Ein Küchenchef gibt das frei, bevor sich die Allergene ändern.',
-  'labelCheck.reset': 'Von vorn',
+  'labelCheck.reset': 'Neu beginnen',
   'labelCheck.consequences': 'Was sich dadurch ändert',
   'labelCheck.noDishes':
     'Kein Gericht ändert sich: Kein Gericht verwendet es, oder die Gerichte haben diese Allergene schon.',
@@ -1640,12 +1641,12 @@ export const de: Record<MessageKey, string> = {
   'labelCheck.pending_one': '{count} Etikettänderung wartet',
   'labelCheck.pending_other': '{count} Etikettänderungen warten',
   'labelCheck.pendingIntro':
-    'Ein Koch hat ein Etikett gefunden, das etwas anderes sagt als Mise. Freigeben überträgt die Allergene des Etiketts auf die Zutat.',
+    'Ein Koch hat ein Etikett gefunden, das von Mise abweicht. Mit Freigeben werden die Allergene des Etiketts für die Zutat übernommen.',
   'labelCheck.approve': 'Freigeben',
   'labelCheck.reject': 'Ablehnen',
   'labelCheck.checkedBy': 'Geprüft von {name}, {date}',
   'delivery.start': 'Lieferung prüfen',
-  'delivery.intro': 'Kreuz an, was gekommen ist, und prüf dann ein Etikett nach dem anderen.',
+  'delivery.intro': 'Hake ab, was geliefert wurde, und prüfe dann ein Etikett nach dem anderen.',
   'delivery.next_one': '{count} Etikett prüfen',
   'delivery.next_other': '{count} Etiketten prüfen',
   'delivery.step': 'Etikett {n} von {total}',
