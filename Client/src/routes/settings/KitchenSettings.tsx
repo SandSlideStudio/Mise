@@ -1,7 +1,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import {
+  CURRENCIES,
   LABEL_SIZES,
   LANGUAGES,
+  type Currency,
   type LabelSize,
   type Language,
   type TickedRetention,
@@ -34,6 +36,16 @@ export const LABEL_SIZE_NAMES: Record<LabelSize, string> = {
   '102x51': '102 × 51 mm',
 };
 
+/** "Euro (EUR)", named in the reader's language by the browser itself. */
+function currencyName(locale: string, code: Currency): string {
+  try {
+    const name = new Intl.DisplayNames([locale], { type: 'currency' }).of(code);
+    return name ? `${name} (${code})` : code;
+  } catch {
+    return code;
+  }
+}
+
 /** The usual choices, plus whatever is set already if it was set some other way. */
 function idleChoices(current: number | null): number[] {
   return current === null || IDLE_CHOICES.includes(current)
@@ -58,6 +70,8 @@ export function KitchenSettings() {
   const [prepChecklist, setPrepChecklist] = useState(false);
   const [labelSize, setLabelSize] = useState<LabelSize>('62x29');
   const [labelOnTick, setLabelOnTick] = useState(false);
+  const [currency, setCurrency] = useState<Currency>('EUR');
+  const [foodVat, setFoodVat] = useState('9');
 
   // Seed the form once the current settings arrive.
   useEffect(() => {
@@ -70,6 +84,8 @@ export function KitchenSettings() {
       setPrepChecklist(kitchen.data.prepChecklist);
       setLabelSize(kitchen.data.labelSize);
       setLabelOnTick(kitchen.data.labelOnTick);
+      setCurrency(kitchen.data.currency);
+      setFoodVat(String(kitchen.data.foodVatPercent));
     }
   }, [kitchen.data]);
 
@@ -88,6 +104,8 @@ export function KitchenSettings() {
       prepChecklist,
       labelSize,
       labelOnTick,
+      currency,
+      foodVatPercent: foodVat === '' ? 0 : Number(foodVat),
     });
   }
 
@@ -197,6 +215,50 @@ export function KitchenSettings() {
             <span className="text-ink-soft block text-sm">{t('kitchen.labelOnTickHint')}</span>
           </span>
         </label>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="label" htmlFor="currency">
+              {t('kitchen.currency')}
+            </label>
+            <select
+              id="currency"
+              className="field"
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value as Currency)}
+              aria-describedby="currencyHint"
+            >
+              {CURRENCIES.map((code) => (
+                <option key={code} value={code}>
+                  {currencyName(translator.locale, code)}
+                </option>
+              ))}
+            </select>
+            <p id="currencyHint" className="text-ink-soft mt-1.5 text-sm">
+              {t('kitchen.currencyHint')}
+            </p>
+          </div>
+          <div>
+            <label className="label" htmlFor="foodVat">
+              {t('kitchen.vat')}
+            </label>
+            <input
+              id="foodVat"
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={0}
+              max={50}
+              className="field"
+              value={foodVat}
+              onChange={(e) => setFoodVat(e.target.value)}
+              aria-describedby="foodVatHint"
+            />
+            <p id="foodVatHint" className="text-ink-soft mt-1.5 text-sm">
+              {t('kitchen.vatHint')}
+            </p>
+          </div>
+        </div>
 
         <div>
           <label className="label" htmlFor="idleSignOut">

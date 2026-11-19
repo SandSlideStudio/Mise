@@ -72,4 +72,19 @@ describe('working a size out on the tablet', () => {
       scaleOnDevice({ ...written, recipe: { ...written.recipe, portions: null } }, { portions: 4 }),
     ).toBeNull();
   });
+
+  it('scales a chef’s cost with it, per litre and per portion staying put', () => {
+    const cost = {
+      currency: 'EUR',
+      total: 4,
+      perBase: 0.004,
+      perPortion: 0.5,
+      foodCostPercent: null,
+      gaps: [],
+    } as const;
+    const twoLitres = scaleOnDevice({ ...written, cost: { ...cost, gaps: [] } }, { factor: 2 });
+    expect(twoLitres?.cost).toEqual({ ...cost, total: 8 });
+    // A cook's has none, and gets none.
+    expect(scaleOnDevice(written, { factor: 2 })).not.toHaveProperty('cost');
+  });
 });

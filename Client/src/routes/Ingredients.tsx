@@ -1,6 +1,15 @@
 import { useState, type FormEvent } from 'react';
-import type { BaseUnit, Ingredient } from '@mise/contracts';
-import { ALLERGENS, hasAnimalAllergen, type Allergen } from '@mise/domain';
+import type { BaseUnit, Currency, Ingredient } from '@mise/contracts';
+import {
+  ALL_UNITS,
+  ALLERGENS,
+  dimensionOf,
+  hasAnimalAllergen,
+  type Allergen,
+  type Dimension,
+  type UnitCode,
+} from '@mise/domain';
+import { useKitchen } from '../api/kitchen.js';
 import { useCurrentUser } from '../api/session.js';
 import {
   useCreateIngredient,
@@ -9,6 +18,7 @@ import {
   useUpdateIngredient,
 } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
+import { ingredientPriceText } from '../components/Cost.js';
 import { LoadError } from '../components/LoadError.js';
 import { Plate } from '../components/Plate.js';
 import { allergenName, errorMessage, useT, type Translator } from '../i18n/index.js';
@@ -16,8 +26,9 @@ import { allergenName, errorMessage, useT, type Translator } from '../i18n/index
 /**
  * The raw material catalogue: what goes into the recipes, and what is in it.
  *
- * Trim yield, density and weight per piece were asked for here until 2.2.4,
- * though nothing used them; they come back with costing, where they count.
+ * Trim yield, density and weight per piece were left out from 2.2.4 while
+ * nothing used them; they are back with costing, where they count. Prices
+ * are for chefs and administrators: a cook's list comes without them.
  */
 
 export function Ingredients() {
@@ -25,6 +36,8 @@ export function Ingredients() {
   const { data: user } = useCurrentUser();
   const [search, setSearch] = useState('');
   const ingredients = useIngredients(search || undefined);
+  const kitchen = useKitchen();
+  const currency: Currency = kitchen.data?.currency ?? 'EUR';
   const [adding, setAdding] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
 
@@ -87,6 +100,7 @@ export function Ingredients() {
                     <span className="min-w-0">
                       <span className="text-[19px] font-medium">{ingredient.name}</span>
                       <span className="text-ink-soft block text-sm">{describe(t, ingredient)}</span>
+                      <PriceLine ingredient={ingredient} currency={currency} />
                       {ingredient.allergens.length > 0 ? (
                         <span className="mt-1 flex flex-wrap gap-1">
                           {ingredient.allergens.map((allergen) => (
@@ -145,6 +159,19 @@ export function Ingredients() {
   );
 }
 
+/** What it costs, for chefs; nothing at all for a cook, whose list has no prices. */
+function PriceLine({ ingredient, currency }: { ingredient: Ingredient; currency: Currency }) {
+  const translator = useT();
+  if (ingredient.price === undefined) return null;
+  return (
+    <span className="text-ink-soft qty block text-sm">
+      {ingredient.price === null
+        ? translator.t('cost.noPrice')
+        : ingredientPriceText(translator, currency, ingredient.price, ingredient.baseUnit)}
+    </span>
+  );
+}
+
 function describe(t: Translator['t'], ingredient: Ingredient): string {
   const parts: string[] = [];
   if (ingredient.category) parts.push(ingredient.category);
@@ -158,6 +185,15 @@ function splitNames(value: string): string[] {
     .split(',')
     .map((name) => name.trim())
     .filter(Boolean);
+}
+
+const DIMENSION_OF_BASE: Record<BaseUnit, Dimension> = { g: 'mass', ml: 'volume', each: 'count' };
+
+/** What a new price is most likely for: weighed things by the kilo, liquids by the litre. */
+function defaultPurchaseUnit(baseUnit: BaseUnit): UnitCode {
+  if (baseUnit === 'g') return 'kg';
+  if (baseUnit === 'ml') return 'l';
+  return 'each';
 }
 
 function unitLabel(t: Translator['t'], baseUnit: BaseUnit): string {
@@ -194,6 +230,28 @@ function IngredientForm({
   const [cereals, setCereals] = useState((ingredient?.allergenDetails.gluten ?? []).join(', '));
   const [nuts, setNuts] = useState((ingredient?.allergenDetails.nuts ?? []).join(', '));
   const [confirming, setConfirming] = useState(false);
+  const [priceAmount, setPriceAmount] = useState(
+    ingredient?.price ? String(ingredient.price.amount) : '',
+  );
+  const [priceQuantity, setPriceQuantity] = useState(
+    ingredient?.price ? String(ingredient.price.quantity.value) : '',
+  );
+  const [priceUnit, setPriceUnit] = useState<UnitCode>(
+    (ingredient?.price?.quantity.unit as UnitCode | undefined) ?? defaultPurchaseUnit(baseUnit),
+  );
+  const [yieldPercent, setYieldPercent] = useState(String(ingredient?.yieldPercent ?? 100));
+  const [density, setDensity] = useState(
+    ingredient?.densityGPerMl != null ? String(ingredient.densityGPerMl) : '',
+  );
+  const [itemWeight, setItemWeight] = useState(
+    ingredient?.itemWeightG != null ? String(ingredient.itemWeightG) : '',
+  );
+
+  // Density and weight per piece only when the purchase needs them to reach
+  // how it is measured, or when one was entered before.
+  const crossing = new Set<Dimension>([dimensionOf(priceUnit), DIMENSION_OF_BASE[baseUnit]]);
+  const showDensity = (crossing.size > 1 && crossing.has('volume')) || density !== '';
+  const showItemWeight = (crossing.size > 1 && crossing.has('count')) || itemWeight !== '';
 
   const pending = create.isPending || update.isPending;
   const error = create.error ?? update.error ?? remove.error;
@@ -213,6 +271,22 @@ function IngredientForm({
         gluten: allergens.includes('gluten') ? splitNames(cereals) : [],
         nuts: allergens.includes('nuts') ? splitNames(nuts) : [],
       },
+      yieldPercent: yieldPercent ? Number(yieldPercent) : 100,
+      densityGPerMl: density ? Number(density) : null,
+      itemWeightG: itemWeight ? Number(itemWeight) : null,
+      // Unknown unless both are filled in: half a price is no price. Not sent
+      // at all when the price wasn't shown here, so it can't be wiped unseen.
+      ...(ingredient && ingredient.price === undefined
+        ? {}
+        : {
+            price:
+              priceAmount && priceQuantity
+                ? {
+                    amount: Number(priceAmount),
+                    quantity: { value: Number(priceQuantity), unit: priceUnit },
+                  }
+                : null,
+          }),
     };
     if (ingredient)
       update.mutate(
@@ -267,6 +341,125 @@ function IngredientForm({
           <option value="each">{t('ingredients.optCount')}</option>
         </select>
       </div>
+
+      <fieldset className="flex flex-col gap-4">
+        <legend className="label">{t('ingredients.costing')}</legend>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="label" htmlFor="priceAmount">
+              {t('ingredients.price')}
+            </label>
+            <input
+              id="priceAmount"
+              type="number"
+              inputMode="decimal"
+              step="0.01"
+              min={0}
+              className="field w-32"
+              value={priceAmount}
+              onChange={(e) => setPriceAmount(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="priceQuantity">
+              {t('ingredients.priceFor')}
+            </label>
+            <input
+              id="priceQuantity"
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={0}
+              className="field w-28"
+              value={priceQuantity}
+              onChange={(e) => setPriceQuantity(e.target.value)}
+            />
+          </div>
+          <div>
+            <label className="label" htmlFor="priceUnit">
+              {t('ingredients.priceUnit')}
+            </label>
+            <select
+              id="priceUnit"
+              className="field"
+              value={priceUnit}
+              onChange={(e) => setPriceUnit(e.target.value as UnitCode)}
+            >
+              {ALL_UNITS.map((unit) => (
+                <option key={unit.code} value={unit.code}>
+                  {unit.code}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <p className="text-ink-soft -mt-2 text-sm">{t('ingredients.priceHint')}</p>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          <div>
+            <label className="label" htmlFor="yieldPercent">
+              {t('ingredients.yieldLabel')}
+            </label>
+            <input
+              id="yieldPercent"
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={1}
+              max={100}
+              className="field"
+              value={yieldPercent}
+              onChange={(e) => setYieldPercent(e.target.value)}
+              aria-describedby="yieldHint"
+            />
+            <p id="yieldHint" className="text-ink-soft mt-1.5 text-sm">
+              {t('ingredients.yieldHint')}
+            </p>
+          </div>
+          {showDensity ? (
+            <div>
+              <label className="label" htmlFor="density">
+                {t('ingredients.densityLabel')}
+              </label>
+              <input
+                id="density"
+                type="number"
+                inputMode="decimal"
+                step="any"
+                min={0}
+                className="field"
+                value={density}
+                onChange={(e) => setDensity(e.target.value)}
+                aria-describedby="densityHint"
+              />
+              <p id="densityHint" className="text-ink-soft mt-1.5 text-sm">
+                {t('ingredients.densityHint')}
+              </p>
+            </div>
+          ) : null}
+          {showItemWeight ? (
+            <div>
+              <label className="label" htmlFor="itemWeight">
+                {t('ingredients.eachLabel')}
+              </label>
+              <input
+                id="itemWeight"
+                type="number"
+                inputMode="decimal"
+                step="any"
+                min={0}
+                className="field"
+                value={itemWeight}
+                onChange={(e) => setItemWeight(e.target.value)}
+                aria-describedby="itemWeightHint"
+              />
+              <p id="itemWeightHint" className="text-ink-soft mt-1.5 text-sm">
+                {t('ingredients.eachHint')}
+              </p>
+            </div>
+          ) : null}
+        </div>
+      </fieldset>
 
       <fieldset>
         <legend className="label">{t('ingredients.allergens')}</legend>

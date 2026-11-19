@@ -1505,4 +1505,55 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.labelOnTick': 'Etiket printen als een regel is afgevinkt',
   'kitchen.labelOnTickHint':
     'Opent vanzelf het printvenster als een regel van een recept wordt afgevinkt. Anders krijgt een afgevinkte regel een knop Etiket.',
+  'cost.title': 'Kostprijs',
+  'cost.perBatch': '{amount} per batch',
+  'cost.forSize': '{amount} voor deze hoeveelheid',
+  'cost.perUnit': '{amount} per {unit}',
+  'cost.each': '{amount} per stuk',
+  'cost.perPortion': '{amount} per portie',
+  'cost.costPerPortion': 'Kostprijs per portie',
+  'cost.sellPrice': 'Verkoopprijs',
+  'cost.sellPriceHint':
+    'Wat de gast betaalt, inclusief btw, zoals op de kaart. Alleen chefs en beheerders zien het.',
+  'cost.noSellPrice': 'Nog geen verkoopprijs',
+  'cost.foodCost': 'Foodcost %',
+  'cost.foodCostHint': 'De kostprijs per portie als deel van de verkoopprijs zonder btw.',
+  'cost.soFar': 'Kostprijs tot nu toe',
+  'cost.noPrice_one': '{count} ingrediënt zonder prijs: {names}',
+  'cost.noPrice_other': '{count} ingrediënten zonder prijs: {names}',
+  'cost.cantConvert_one':
+    '{count} hoeveelheid die niet om te rekenen is naar waarin het wordt ingekocht: {names}',
+  'cost.cantConvert_other':
+    '{count} hoeveelheden die niet om te rekenen zijn naar waarin ze worden ingekocht: {names}',
+  'cost.cantConvertHint':
+    'Geef het ingrediënt een soortelijk gewicht of een gewicht per stuk, of gebruik het in het soort eenheid waarin het wordt ingekocht.',
+  'cost.menuAverage': 'Gemiddeld op deze kaart: {amount} per portie',
+  'cost.menuFoodCost': 'foodcost {percent}',
+  'cost.menuIncomplete':
+    'Sommige gerechten hebben ingrediënten zonder prijs, dus deze cijfers zijn te laag.',
+  'cost.noPrice': 'Nog geen prijs',
+  'cost.priceAge': 'prijs van {age}',
+  'cost.unconvertible':
+    'Ingekocht in een eenheid die Mise nog niet kan omrekenen: vul een soortelijk gewicht of een gewicht per stuk in.',
+  'ingredients.costing': 'Prijs en rendement',
+  'ingredients.price': 'Inkoopprijs',
+  'ingredients.priceFor': 'Voor',
+  'ingredients.priceUnit': 'Eenheid',
+  'ingredients.priceHint':
+    'Zoals op de factuur: 12,50 voor een zak van 5 kg. Laat het leeg als je het niet weet: een kostprijs zegt dat dan, in plaats van het als gratis te tellen.',
+  'ingredients.yieldLabel': 'Rendement, procent',
+  'ingredients.yieldHint':
+    'Wat er overblijft na schillen en schoonmaken, en dus wat een kostprijs als bruikbaar telt. Uien zijn ongeveer 90.',
+  'ingredients.densityLabel': 'Gram per milliliter',
+  'ingredients.densityHint':
+    'Alleen om tussen gewicht en volume om te rekenen. Olie is ongeveer 0,92.',
+  'ingredients.eachLabel': 'Gram per stuk',
+  'ingredients.eachHint':
+    'Alleen om tussen aantal en gewicht om te rekenen. Een ei is ongeveer 50.',
+  'kitchen.currency': 'Valuta',
+  'kitchen.currencyHint':
+    'Waarin prijzen worden ingevoerd en getoond. Wisselen rekent ingevoerde prijzen niet om.',
+  'kitchen.vat': 'Btw op eten, procent',
+  'kitchen.vatHint':
+    'Gaat van de verkoopprijs af om de foodcost % van een gerecht te berekenen. 9 in Nederland.',
 };

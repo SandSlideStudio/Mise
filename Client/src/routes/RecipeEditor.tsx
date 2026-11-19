@@ -184,6 +184,9 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [course, setCourse] = useState<Course | ''>(recipe?.course ?? '');
   const [drinks, setDrinks] = useState((recipe?.drinkPairings ?? []).join(', '));
   const [cutlery, setCutlery] = useState((recipe?.cutlery ?? []).join(', '));
+  const [sellPrice, setSellPrice] = useState(
+    recipe?.sellPrice != null ? String(recipe.sellPrice) : '',
+  );
   const [steps, setSteps] = useState<string[]>((recipe?.method ?? []).map((s) => s.text));
   const [lines, setLines] = useState<EditorLine[]>(() =>
     (recipe?.components ?? []).length > 0
@@ -322,6 +325,8 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       drinkPairings: splitList(drinks),
       cutlery: splitList(cutlery),
       components,
+      // Only a dish is sold; anything else keeps what it had.
+      ...(isDish ? { sellPrice: sellPrice ? Number(sellPrice) : null } : {}),
     };
 
     // A dish lives on the Dishes page, as its card; everything else in the book.
@@ -681,9 +686,27 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                 </div>
 
                 {isDish ? (
-                  <p className="text-ink-soft text-sm">
-                    {plural('editor.dishPlates', dishSize.portions)}
-                  </p>
+                  <>
+                    <p className="text-ink-soft text-sm">
+                      {plural('editor.dishPlates', dishSize.portions)}
+                    </p>
+                    <RailField
+                      label={t('cost.sellPrice')}
+                      htmlFor="sellPrice"
+                      hint={t('cost.sellPriceHint')}
+                    >
+                      <input
+                        id="sellPrice"
+                        type="number"
+                        inputMode="decimal"
+                        step="0.01"
+                        min={0}
+                        className="field min-h-10"
+                        value={sellPrice}
+                        onChange={(e) => setSellPrice(e.target.value)}
+                      />
+                    </RailField>
+                  </>
                 ) : (
                   <RailField
                     label={t('recipe.storage')}

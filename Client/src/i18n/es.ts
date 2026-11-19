@@ -1504,4 +1504,52 @@ export const es: Record<MessageKey, string> = {
   'kitchen.labelOnTick': 'Imprimir una etiqueta al marcar una línea',
   'kitchen.labelOnTickHint':
     'Abre sola el diálogo de impresión cuando se marca una línea hecha con una receta. Si no, una línea marcada ofrece un botón Etiqueta.',
+  'cost.title': 'Coste de materia prima',
+  'cost.perBatch': '{amount} por tanda',
+  'cost.forSize': '{amount} para esta cantidad',
+  'cost.perUnit': '{amount} por {unit}',
+  'cost.each': '{amount} la unidad',
+  'cost.perPortion': '{amount} por ración',
+  'cost.costPerPortion': 'Coste por ración',
+  'cost.sellPrice': 'Precio de venta',
+  'cost.sellPriceHint':
+    'Lo que paga el cliente, con IVA, como en la carta. Solo lo ven los jefes de cocina y los administradores.',
+  'cost.noSellPrice': 'Aún sin precio de venta',
+  'cost.foodCost': 'Food cost %',
+  'cost.foodCostHint': 'El coste por ración como parte del precio de venta sin IVA.',
+  'cost.soFar': 'Coste hasta ahora',
+  'cost.noPrice_one': '{count} ingrediente sin precio: {names}',
+  'cost.noPrice_other': '{count} ingredientes sin precio: {names}',
+  'cost.cantConvert_one': '{count} cantidad que no se puede pasar a la unidad de compra: {names}',
+  'cost.cantConvert_other':
+    '{count} cantidades que no se pueden pasar a la unidad de compra: {names}',
+  'cost.cantConvertHint':
+    'Ponle al ingrediente una densidad o un peso por unidad, o úsalo en el tipo de unidad en que se compra.',
+  'cost.menuAverage': 'Media de la carta: {amount} por ración',
+  'cost.menuFoodCost': 'food cost {percent}',
+  'cost.menuIncomplete':
+    'Algunos platos tienen ingredientes sin precio, así que estas cifras se quedan cortas.',
+  'cost.noPrice': 'Aún sin precio',
+  'cost.priceAge': 'precio de {age}',
+  'cost.unconvertible':
+    'Comprado en una unidad que Mise aún no sabe convertir: pon una densidad o un peso por unidad.',
+  'ingredients.costing': 'Precio y rendimiento',
+  'ingredients.price': 'Precio de compra',
+  'ingredients.priceFor': 'Por',
+  'ingredients.priceUnit': 'Unidad',
+  'ingredients.priceHint':
+    'Como en la factura: 12,50 por un saco de 5 kg. Déjalo vacío si no lo sabes: el coste lo dirá, en vez de contarlo como gratis.',
+  'ingredients.yieldLabel': 'Rendimiento, por ciento',
+  'ingredients.yieldHint':
+    'Lo que queda después de pelar y limpiar, y por tanto lo que el coste cuenta como aprovechable. La cebolla ronda 90.',
+  'ingredients.densityLabel': 'Gramos por mililitro',
+  'ingredients.densityHint': 'Solo para pasar de peso a volumen. El aceite ronda 0,92.',
+  'ingredients.eachLabel': 'Gramos por unidad',
+  'ingredients.eachHint': 'Solo para pasar de unidades a peso. Un huevo ronda 50.',
+  'kitchen.currency': 'Moneda',
+  'kitchen.currencyHint':
+    'En la que se introducen y se muestran los precios. Cambiarla no convierte los precios ya introducidos.',
+  'kitchen.vat': 'IVA de la comida, por ciento',
+  'kitchen.vatHint':
+    'Se descuenta del precio de venta para calcular el food cost % de un plato. 10 en España.',
 };

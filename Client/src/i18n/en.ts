@@ -1468,6 +1468,54 @@ export const en = {
   'kitchen.labelOnTick': 'Print a label when a line is ticked',
   'kitchen.labelOnTickHint':
     'Opens the print dialog by itself when a line made from a recipe is ticked off. Otherwise a ticked line offers a Label button.',
+  'cost.title': 'Food cost',
+  'cost.perBatch': '{amount} per batch',
+  'cost.forSize': '{amount} for this size',
+  'cost.perUnit': '{amount} per {unit}',
+  'cost.each': '{amount} each',
+  'cost.perPortion': '{amount} per portion',
+  'cost.costPerPortion': 'Cost per portion',
+  'cost.sellPrice': 'Selling price',
+  'cost.sellPriceHint':
+    'What the guest pays, VAT included, as on the menu. Only chefs and administrators see it.',
+  'cost.noSellPrice': 'No selling price yet',
+  'cost.foodCost': 'Food cost %',
+  'cost.foodCostHint': 'The cost per portion as a share of the selling price without VAT.',
+  'cost.soFar': 'Cost so far',
+  'cost.noPrice_one': '{count} ingredient without a price: {names}',
+  'cost.noPrice_other': '{count} ingredients without a price: {names}',
+  'cost.cantConvert_one': '{count} amount that can’t be converted to what it is bought in: {names}',
+  'cost.cantConvert_other':
+    '{count} amounts that can’t be converted to what they are bought in: {names}',
+  'cost.cantConvertHint':
+    'Give the ingredient a density or a weight per piece, or use it in the kind of unit it is bought in.',
+  'cost.menuAverage': 'Menu average: {amount} per portion',
+  'cost.menuFoodCost': 'food cost {percent}',
+  'cost.menuIncomplete':
+    'Some dishes have ingredients without a price, so these figures are too low.',
+  'cost.noPrice': 'No price yet',
+  'cost.priceAge': 'price from {age}',
+  'cost.unconvertible':
+    'Bought in a unit Mise can’t convert yet: add a density or a weight per piece.',
+  'ingredients.costing': 'Price and yield',
+  'ingredients.price': 'Purchase price',
+  'ingredients.priceFor': 'For',
+  'ingredients.priceUnit': 'Unit',
+  'ingredients.priceHint':
+    'As on the invoice: 12.50 for a 5 kg bag. Leave it empty when you don’t know: a cost then says so, rather than counting it as free.',
+  'ingredients.yieldLabel': 'Trim yield, per cent',
+  'ingredients.yieldHint':
+    'What is left after peeling and trimming, and so what a cost counts as usable. Onions are about 90.',
+  'ingredients.densityLabel': 'Grams per millilitre',
+  'ingredients.densityHint': 'Only to convert between weight and volume. Oil is about 0.92.',
+  'ingredients.eachLabel': 'Grams each',
+  'ingredients.eachHint': 'Only to convert between count and weight. An egg is about 50.',
+  'kitchen.currency': 'Currency',
+  'kitchen.currencyHint':
+    'What prices are entered and shown in. Changing it doesn’t convert prices already entered.',
+  'kitchen.vat': 'VAT on food, per cent',
+  'kitchen.vatHint':
+    'Taken off a dish’s selling price to work out its food cost %. 9 in the Netherlands.',
 } as const;
 
 export type MessageKey = keyof typeof en;

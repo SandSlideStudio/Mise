@@ -1,6 +1,8 @@
 import { Link, useParams } from '@tanstack/react-router';
 import { RequestFailed } from '../api/client.js';
 import { useDishCard } from '../api/dishcards.js';
+import { useExpandedRecipe } from '../api/recipes.js';
+import { DishCost } from '../components/Cost.js';
 import { useAwaiting } from '../lib/awaiting.js';
 import { AwaitingNote } from '../components/AwaitingNote.js';
 import { useCurrentUser } from '../api/session.js';
@@ -63,7 +65,20 @@ export function DishView() {
         {card.data ? <DishCardView card={card.data} /> : null}
         {/* Under the card's allergen table; a cook kept from the card still sees it. */}
         <AllergenRecord dishId={dishId} />
+        {canManage ? <DishCostFor dishId={dishId} /> : null}
       </main>
     </AppShell>
   );
+}
+
+/**
+ * What the dish costs a portion and its food cost, from the spec as written:
+ * the same answer the recipe page starts from, so it is there offline too.
+ * The server only sends it to chefs and administrators.
+ */
+function DishCostFor({ dishId }: { dishId: string }) {
+  const expanded = useExpandedRecipe(dishId, {});
+  const cost = expanded.data?.cost;
+  if (!cost) return null;
+  return <DishCost cost={cost} sellPrice={expanded.data?.recipe.sellPrice ?? null} />;
 }

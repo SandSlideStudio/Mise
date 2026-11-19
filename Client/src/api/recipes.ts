@@ -14,7 +14,14 @@ import type {
 } from '@mise/contracts';
 import { componentsAsSent, knownNames, linesAsSent } from './offlineEdits.js';
 import { api, BASE_URL, isQueued, noAnswer, RequestFailed, sendOrQueue } from './client.js';
-import { factorForPortions, factorForYield, isUnitCode, ok, type UnitCode } from '@mise/domain';
+import {
+  costPerBaseUnit,
+  factorForPortions,
+  factorForYield,
+  isUnitCode,
+  ok,
+  type UnitCode,
+} from '@mise/domain';
 
 /** The ingredient catalogue and the recipe library. */
 
@@ -60,7 +67,7 @@ export function useUpdateIngredient() {
           if (list) {
             queryClient.setQueryData(
               key,
-              list.map((item) => (item.id === id ? ({ ...item, ...input } as Ingredient) : item)),
+              list.map((item) => (item.id === id ? asEdited(item, input) : item)),
             );
           }
         }
@@ -69,6 +76,42 @@ export function useUpdateIngredient() {
       void queryClient.invalidateQueries({ queryKey: ['ingredients'] });
     },
   });
+}
+
+/**
+ * An ingredient as an edit saved on this device leaves it, until Mise has it.
+ * A new price is shown worked out per unit the way the server would.
+ */
+function asEdited(item: Ingredient, input: UpdateIngredient): Ingredient {
+  const { price, ...rest } = input;
+  const edited = { ...item, ...rest } as Ingredient;
+  if (price === undefined) return edited;
+  if (price === null) return { ...edited, price: null };
+  const perBase = costPerBaseUnit({
+    id: edited.id,
+    name: edited.name,
+    baseUnit: edited.baseUnit,
+    allergens: [],
+    densityGPerMl: edited.densityGPerMl,
+    itemWeightG: edited.itemWeightG,
+    yieldPercent: edited.yieldPercent,
+    price,
+  });
+  const before = item.price;
+  const same =
+    before &&
+    before.amount === price.amount &&
+    before.quantity.value === price.quantity.value &&
+    before.quantity.unit === price.quantity.unit;
+  return {
+    ...edited,
+    price: {
+      ...price,
+      // The same price saved again is still as old as it was.
+      updatedAt: same ? before.updatedAt : new Date().toISOString(),
+      perBase: perBase.ok ? perBase.value : null,
+    },
+  };
 }
 
 export function useDeleteIngredient() {
@@ -297,6 +340,8 @@ export function scaleOnDevice(written: ExpandedRecipe, target: ScaleTarget): Exp
       ...line,
       quantity: { ...line.quantity, value: line.quantity.value * by },
     })),
+    // The cost scales the same way; per unit and per portion stay as they are.
+    ...(written.cost ? { cost: { ...written.cost, total: written.cost.total * by } } : {}),
   };
 }
 

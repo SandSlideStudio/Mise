@@ -1521,4 +1521,54 @@ export const de: Record<MessageKey, string> = {
   'kitchen.labelOnTick': 'Etikett drucken, wenn eine Zeile abgehakt wird',
   'kitchen.labelOnTickHint':
     'Öffnet von selbst den Druckdialog, wenn eine Zeile aus einem Rezept abgehakt wird. Sonst bietet eine abgehakte Zeile einen Knopf Etikett.',
+  'cost.title': 'Wareneinsatz',
+  'cost.perBatch': '{amount} pro Ansatz',
+  'cost.forSize': '{amount} für diese Menge',
+  'cost.perUnit': '{amount} pro {unit}',
+  'cost.each': '{amount} pro Stück',
+  'cost.perPortion': '{amount} pro Portion',
+  'cost.costPerPortion': 'Wareneinsatz pro Portion',
+  'cost.sellPrice': 'Verkaufspreis',
+  'cost.sellPriceHint':
+    'Was der Gast zahlt, mit Mehrwertsteuer, wie auf der Karte. Nur Küchenchefs und Administratoren sehen ihn.',
+  'cost.noSellPrice': 'Noch kein Verkaufspreis',
+  'cost.foodCost': 'Wareneinsatz %',
+  'cost.foodCostHint':
+    'Der Wareneinsatz pro Portion als Anteil am Verkaufspreis ohne Mehrwertsteuer.',
+  'cost.soFar': 'Wareneinsatz bisher',
+  'cost.noPrice_one': '{count} Zutat ohne Preis: {names}',
+  'cost.noPrice_other': '{count} Zutaten ohne Preis: {names}',
+  'cost.cantConvert_one':
+    '{count} Menge, die sich nicht in die Einkaufseinheit umrechnen lässt: {names}',
+  'cost.cantConvert_other':
+    '{count} Mengen, die sich nicht in die Einkaufseinheit umrechnen lassen: {names}',
+  'cost.cantConvertHint':
+    'Gib der Zutat eine Dichte oder ein Gewicht pro Stück, oder verwende sie in der Art von Einheit, in der sie eingekauft wird.',
+  'cost.menuAverage': 'Durchschnitt der Karte: {amount} pro Portion',
+  'cost.menuFoodCost': 'Wareneinsatz {percent}',
+  'cost.menuIncomplete':
+    'Einige Gerichte haben Zutaten ohne Preis, daher sind diese Zahlen zu niedrig.',
+  'cost.noPrice': 'Noch kein Preis',
+  'cost.priceAge': 'Preis von {age}',
+  'cost.unconvertible':
+    'In einer Einheit eingekauft, die Mise noch nicht umrechnen kann: trag eine Dichte oder ein Gewicht pro Stück ein.',
+  'ingredients.costing': 'Preis und Ausbeute',
+  'ingredients.price': 'Einkaufspreis',
+  'ingredients.priceFor': 'Für',
+  'ingredients.priceUnit': 'Einheit',
+  'ingredients.priceHint':
+    'Wie auf der Rechnung: 12,50 für einen 5-kg-Sack. Lass es leer, wenn du es nicht weißt: Der Wareneinsatz sagt das dann, statt sie als kostenlos zu zählen.',
+  'ingredients.yieldLabel': 'Ausbeute, Prozent',
+  'ingredients.yieldHint':
+    'Was nach Schälen und Putzen übrig bleibt, und damit, was der Wareneinsatz als verwertbar zählt. Zwiebeln etwa 90.',
+  'ingredients.densityLabel': 'Gramm pro Milliliter',
+  'ingredients.densityHint': 'Nur zum Umrechnen zwischen Gewicht und Volumen. Öl etwa 0,92.',
+  'ingredients.eachLabel': 'Gramm pro Stück',
+  'ingredients.eachHint': 'Nur zum Umrechnen zwischen Stückzahl und Gewicht. Ein Ei etwa 50.',
+  'kitchen.currency': 'Währung',
+  'kitchen.currencyHint':
+    'In der Preise eingegeben und angezeigt werden. Ein Wechsel rechnet eingegebene Preise nicht um.',
+  'kitchen.vat': 'Mehrwertsteuer auf Speisen, Prozent',
+  'kitchen.vatHint':
+    'Wird vom Verkaufspreis abgezogen, um den Wareneinsatz in Prozent zu berechnen. 7 in Deutschland.',
 };

@@ -22,6 +22,7 @@ import { useCurrentUser } from '../api/session.js';
 import { AppShell } from '../components/AppShell.js';
 import { LoadError } from '../components/LoadError.js';
 import { Plate } from '../components/Plate.js';
+import { MenuCostSummary, MenuDishCostText } from '../components/Cost.js';
 import { saveFile } from '../components/PrintSheets.js';
 import { courseName, createTranslator, errorMessage, LANGUAGE_NAMES, useT } from '../i18n/index.js';
 import { menuStatusName } from './Menus.js';
@@ -128,6 +129,9 @@ function MenuView({ menu }: { menu: Menu }) {
                     {dish.changedSinceCards && menu.cardsPrintedAt ? (
                       <span className="tag text-[11px]">{t('menus.changed')}</span>
                     ) : null}
+                    {dish.cost && menu.cost ? (
+                      <MenuDishCostText cost={dish.cost} currency={menu.cost.currency} />
+                    ) : null}
                     {canManage ? (
                       <span className="flex gap-1">
                         <button
@@ -171,6 +175,9 @@ function MenuView({ menu }: { menu: Menu }) {
             })}
           </ul>
         )}
+
+        {/* Only ever sent to chefs and administrators. */}
+        {menu.cost && menu.dishes.length > 0 ? <MenuCostSummary cost={menu.cost} /> : null}
 
         {canManage ? (
           <form

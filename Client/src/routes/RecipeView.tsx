@@ -20,6 +20,7 @@ import {
   type ScaleTarget,
 } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
+import { RecipeCostLine } from '../components/Cost.js';
 import { Plate } from '../components/Plate.js';
 import {
   allergenName,
@@ -117,7 +118,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
     );
   }
 
-  const { recipe, factor, lines, allergens } = expanded.data;
+  const { recipe, factor, lines, allergens, cost } = expanded.data;
   const station = stations.data?.find((s) => s.id === recipe.stationId);
   const scaled = Math.abs(factor - 1) > 0.001;
   const portions = recipe.portions ? round(recipe.portions * factor) : null;
@@ -226,6 +227,11 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
           ) : (
             <Tree lines={lines} />
           )}
+
+          {/* Only ever sent to chefs and administrators. */}
+          {cost && isUnitCode(recipe.yield.unit) ? (
+            <RecipeCostLine cost={cost} yieldUnit={recipe.yield.unit} scaled={scaled} />
+          ) : null}
 
           <Plating photos={recipe.photos} recipeId={recipe.id} canManage={canManage} />
 

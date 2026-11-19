@@ -1528,4 +1528,52 @@ export const fr: Record<MessageKey, string> = {
   'kitchen.labelOnTick': 'Imprimer une étiquette quand une ligne est cochée',
   'kitchen.labelOnTickHint':
     'Ouvre d’elle-même la fenêtre d’impression quand une ligne faite d’après une recette est cochée. Sinon, une ligne cochée propose un bouton Étiquette.',
+  'cost.title': 'Coût matière',
+  'cost.perBatch': '{amount} la fournée',
+  'cost.forSize': '{amount} pour cette quantité',
+  'cost.perUnit': '{amount} le {unit}',
+  'cost.each': '{amount} la pièce',
+  'cost.perPortion': '{amount} la portion',
+  'cost.costPerPortion': 'Coût matière par portion',
+  'cost.sellPrice': 'Prix de vente',
+  'cost.sellPriceHint':
+    'Ce que paie le client, TVA comprise, comme sur la carte. Seuls les chefs et les administrateurs le voient.',
+  'cost.noSellPrice': 'Pas encore de prix de vente',
+  'cost.foodCost': 'Ratio coût matière',
+  'cost.foodCostHint': 'Le coût matière par portion, en part du prix de vente hors TVA.',
+  'cost.soFar': 'Coût jusqu’ici',
+  'cost.noPrice_one': '{count} ingrédient sans prix : {names}',
+  'cost.noPrice_other': '{count} ingrédients sans prix : {names}',
+  'cost.cantConvert_one': '{count} quantité impossible à convertir dans l’unité d’achat : {names}',
+  'cost.cantConvert_other':
+    '{count} quantités impossibles à convertir dans l’unité d’achat : {names}',
+  'cost.cantConvertHint':
+    'Donnez à l’ingrédient une densité ou un poids à la pièce, ou utilisez-le dans le type d’unité où il est acheté.',
+  'cost.menuAverage': 'Moyenne de la carte : {amount} la portion',
+  'cost.menuFoodCost': 'ratio coût matière {percent}',
+  'cost.menuIncomplete':
+    'Certains plats ont des ingrédients sans prix : ces chiffres sont donc trop bas.',
+  'cost.noPrice': 'Pas encore de prix',
+  'cost.priceAge': 'prix d’{age}',
+  'cost.unconvertible':
+    'Acheté dans une unité que Mise ne sait pas encore convertir : indiquez une densité ou un poids à la pièce.',
+  'ingredients.costing': 'Prix et rendement',
+  'ingredients.price': 'Prix d’achat',
+  'ingredients.priceFor': 'Pour',
+  'ingredients.priceUnit': 'Unité',
+  'ingredients.priceHint':
+    'Comme sur la facture : 12,50 pour un sac de 5 kg. Laissez vide si vous ne savez pas : le coût le dira, au lieu de le compter comme gratuit.',
+  'ingredients.yieldLabel': 'Rendement, pour cent',
+  'ingredients.yieldHint':
+    'Ce qui reste après épluchage et parage, et donc ce que le coût compte comme utilisable. Les oignons, environ 90.',
+  'ingredients.densityLabel': 'Grammes par millilitre',
+  'ingredients.densityHint': 'Seulement pour passer du poids au volume. L’huile, environ 0,92.',
+  'ingredients.eachLabel': 'Grammes la pièce',
+  'ingredients.eachHint': 'Seulement pour passer du nombre au poids. Un œuf, environ 50.',
+  'kitchen.currency': 'Devise',
+  'kitchen.currencyHint':
+    'Celle dans laquelle les prix sont saisis et affichés. En changer ne convertit pas les prix déjà saisis.',
+  'kitchen.vat': 'TVA sur la nourriture, pour cent',
+  'kitchen.vatHint':
+    'Déduite du prix de vente pour calculer le ratio coût matière d’un plat. 10 en France sur place.',
 };

@@ -66,6 +66,11 @@ const FIELD_NAMES: Record<string, MessageKey> = {
   drinkPairings: 'editor.drinks',
   cutlery: 'editor.cutlery',
   items: 'checklist.title',
+  price: 'ingredients.price',
+  sellPrice: 'cost.sellPrice',
+  yieldPercent: 'ingredients.yieldLabel',
+  densityGPerMl: 'ingredients.densityLabel',
+  itemWeightG: 'ingredients.eachLabel',
 };
 
 export function fieldName(translator: Translator, key: string): string {
@@ -117,6 +122,12 @@ export function showValue(
       return naming.stations.get(String(value)) ?? t('offline.unknownStation');
     case 'yield':
       return amount(value) ?? NOTHING;
+    case 'price': {
+      // "12.5 for 5 kg": the money as typed, and what it buys.
+      const { amount: money, quantity } = value as { amount?: unknown; quantity?: unknown };
+      const much = amount(quantity);
+      return typeof money === 'number' && much ? `${money} / ${much}` : NOTHING;
+    }
     case 'prepMinutes':
     case 'cookMinutes':
       return t('recipe.minutes', { count: Number(value) });

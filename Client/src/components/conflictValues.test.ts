@@ -52,4 +52,14 @@ describe('the conflict dialog, side by side', () => {
     ).toBe('Pear tart');
     expect(showValue(nl, 'menus', 'status', 'active', names)).not.toBe('active');
   });
+
+  it('shows a price as what it buys, the same whether sent or come back worked out', () => {
+    const names = naming();
+    const sent = { amount: 12.5, quantity: { value: 5, unit: 'kg' } };
+    const back = { ...sent, updatedAt: '2026-11-01T09:00:00Z', perBase: 0.0025 };
+    expect(showValue(en, 'ingredients', 'price', sent, names)).toBe('12.5 / 5 kg');
+    expect(showValue(en, 'ingredients', 'price', back, names)).toBe('12.5 / 5 kg');
+    expect(fieldName(nl, 'price')).toBe('Inkoopprijs');
+    expect(fieldName(nl, 'sellPrice')).toBe('Verkoopprijs');
+  });
 });
