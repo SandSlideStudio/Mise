@@ -88,6 +88,8 @@ async function seedKitchen(api: APIRequestContext): Promise<Seed> {
     name: unique('Flour'),
     baseUnit: 'g',
     allergens: ['gluten'],
+    // Priced, so a cook's list can be seen to carry no prices.
+    price: { amount: 1.2, quantity: { value: 1, unit: 'kg' } },
   });
   const salt = await post('/api/ingredients', { name: unique('Salt'), baseUnit: 'g' });
   const base = {
@@ -816,11 +818,12 @@ for (const { label, viewport } of WIDTHS) {
       ).toBeVisible();
       await expect(page.getByRole('tab')).toHaveCount(0);
 
-      // The ingredient list is readable, nothing more.
+      // The ingredient list is readable, nothing more, and without prices.
       await page.goto('/ingredients');
       await expect(page.getByRole('heading', { name: 'Ingredients', level: 1 })).toBeVisible();
       await expect(page.getByText('Something went wrong')).toHaveCount(0);
       await expect(page.getByText('Loading…')).toHaveCount(0);
+      await expect(page.getByText(/per kg|No price yet/)).toHaveCount(0);
 
       // The editors are not for a cook: typing the address shows the same calm
       // refusal as Settings, with no editor and no Save to press.
