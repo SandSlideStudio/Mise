@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
-import { LANGUAGES, type Language } from '@mise/contracts';
+import { LABEL_CHECK_CAUSE, LANGUAGES, type Language } from '@mise/contracts';
 import type { Allergen } from '@mise/domain';
 import { RequestFailed } from '../api/client.js';
 import { useCurrentUser, useSetupStatus } from '../api/session.js';
@@ -176,6 +176,16 @@ export function allergenName(t: Translator['t'], allergen: Allergen | string): s
   return t(`allergen.${allergen}` as MessageKey);
 }
 
+/**
+ * Why an entry changed, in the reader's language. A label check is recorded
+ * as "label check: Pesto" and said as "After the label of Pesto was checked".
+ */
+export function causeText(t: Translator['t'], cause: string): string {
+  if (cause.startsWith(LABEL_CHECK_CAUSE))
+    return t('allergenHistory.labelCause', { name: cause.slice(LABEL_CHECK_CAUSE.length) });
+  return t('allergenHistory.cause', { cause });
+}
+
 export function roleName(t: Translator['t'], role: string): string {
   return t(`role.${role}` as MessageKey);
 }
@@ -271,6 +281,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   validation_failed: 'error.validationFailed',
   already_exists: 'error.alreadyExists',
   still_referenced: 'error.stillReferenced',
+  label_check_decided: 'error.labelCheckDecided',
   bad_origin: 'error.badOrigin',
   changed_meanwhile: 'error.changedMeanwhile',
   certificate_failed: 'error.certificateFailed',
