@@ -6,3 +6,4 @@ export * from './recipe.js';
 export * from './expand.js';
 export * from './dishcard.js';
 export * from './pin.js';
+export * from './useby.js';
