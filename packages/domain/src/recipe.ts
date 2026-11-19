@@ -45,6 +45,19 @@ export interface Ingredient {
   vegan?: boolean | null;
   /** Which gluten cereals and which nuts, for the ones that contain them. */
   allergenDetails?: Partial<AllergenDetails> | null;
+  /** Grams per millilitre and grams for one item: what lets costing cross dimensions. */
+  densityGPerMl?: number | null;
+  itemWeightG?: number | null;
+  /** Edible portion as a percentage of what is bought. Absent means all of it. */
+  yieldPercent?: number | null;
+  /** What it costs to buy, when somebody has said. Absent or null: unknown, never free. */
+  price?: IngredientPrice | null;
+}
+
+/** "€12.50 per 5 kg bag": the money, and what it buys in any unit Mise knows. */
+export interface IngredientPrice {
+  amount: number;
+  quantity: Quantity;
 }
 
 export type ComponentRef =

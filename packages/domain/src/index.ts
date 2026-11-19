@@ -4,6 +4,7 @@ export * from './rounding.js';
 export * from './allergens.js';
 export * from './recipe.js';
 export * from './expand.js';
+export * from './cost.js';
 export * from './dishcard.js';
 export * from './pin.js';
 export * from './useby.js';
