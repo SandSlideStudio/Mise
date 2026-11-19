@@ -38,7 +38,11 @@ export function RecipeLabel({
     made,
     by: user.displayName,
     kitchenName: user.kitchenName,
-    recipe: { shelfLifeHours: recipe.shelfLifeHours, storage: recipe.storage },
+    recipe: {
+      shelfLifeHours: recipe.shelfLifeHours,
+      kept: recipe.kept,
+      storage: recipe.storage,
+    },
     allergens,
   });
   const preview = label(new Date());

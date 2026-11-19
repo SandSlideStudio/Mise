@@ -462,7 +462,16 @@ export const de: Record<MessageKey, string> = {
   'editor.yieldUnit': 'Einheit des Ertrags',
   'editor.prepMinutes': 'Prep-Zeit, Minuten',
   'editor.keepsHours': 'Haltbar, Stunden',
-  'editor.storageHint': 'Wo und wie es aufbewahrt wird, zum Beispiel vakuumiert im Kühlraum.',
+  'editor.kept': 'Wie es gelagert wird',
+  'editor.keptHint':
+    'Ohne Haltbarkeit bestimmt das das Datum auf dem Etikett: Gekühltes bekommt den Standard des Hygiënecode.',
+  'editor.storage': 'Wo / Notizen',
+  'editor.storageHint': 'Zum Beispiel beschriftete Boxen, Kühlraum.',
+  'kept.chilled_7': 'Gekühlt, 7 °C oder kälter',
+  'kept.chilled_4': 'Gekühlt, 4 °C oder kälter',
+  'kept.frozen': 'Tiefgekühlt, −18 °C oder kälter',
+  'kept.ambient': 'Trocken / Raumtemperatur',
+  'kept.hot': 'Heiß gehalten, 60 °C oder heißer',
   'editor.tags': 'Schlagwörter',
   'editor.tagsHint': 'Mit Kommas trennen, zum Beispiel Pastete, à la carte.',
   'editor.mayContain': 'Kann Spuren enthalten · nur Kreuzkontamination',
@@ -1500,14 +1509,17 @@ export const de: Record<MessageKey, string> = {
   'label.keptChilled4': 'Gekühlt ≤4 °C',
   'label.keptFrozen': 'Tiefgekühlt',
   'label.keptAmbient': 'Trocken lagern',
+  'label.keptHot': 'Heiß ≥60 °C',
   'label.noteDefault':
     'Das Datum ist der Standard des Hygiënecode für gekühlte eigene Zubereitungen: der Tag der Herstellung plus {days} Tage. Trag im Rezept eine Haltbarkeit ein, um diese zu drucken.',
   'label.noteFrozen':
     'Kein Datum gedruckt: Es wird tiefgekühlt, und das Rezept hat keine Haltbarkeit. Schreib es auf das Etikett oder trag im Rezept eine Haltbarkeit ein.',
   'label.noteAmbient':
     'Kein Datum gedruckt: Es wird trocken gelagert, und das Rezept hat keine Haltbarkeit. Schreib es auf das Etikett oder trag im Rezept eine Haltbarkeit ein.',
+  'label.noteHot':
+    'Kein Datum gedruckt: Es wird heiß gehalten, und das geht nach Stunden, nicht nach Datum. Schreib es auf das Etikett, wenn nötig.',
   'label.noteUnknown':
-    'Kein Datum gedruckt: Das Rezept sagt weder, wie lange es haltbar ist, noch dass es gekühlt gelagert wird. Schreib es auf das Etikett oder trag Haltbarkeit oder Lagerung ein.',
+    'Kein Datum gedruckt: Das Rezept sagt weder, wie lange es haltbar ist, noch wie es gelagert wird. Schreib es auf das Etikett oder trag Haltbarkeit oder Lagerung ein.',
   'label.noteNoRecipe':
     'Nicht nach einem Rezept gemacht, also kommen Datum und Allergene von Hand auf das Etikett.',
   'label.howMany': 'Wie viele',

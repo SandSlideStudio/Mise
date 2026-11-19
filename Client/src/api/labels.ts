@@ -96,7 +96,11 @@ export async function labelForLine(
     by: task.completedByName ?? user.displayName,
     kitchenName: user.kitchenName,
     recipe: facts.recipe
-      ? { shelfLifeHours: facts.recipe.shelfLifeHours, storage: facts.recipe.storage }
+      ? {
+          shelfLifeHours: facts.recipe.shelfLifeHours,
+          kept: facts.recipe.kept,
+          storage: facts.recipe.storage,
+        }
       : null,
     // Without its recipe the allergens can't be vouched for.
     allergens: facts.recipe ? facts.allergens : null,

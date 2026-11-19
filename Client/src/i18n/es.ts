@@ -452,7 +452,16 @@ export const es: Record<MessageKey, string> = {
   'editor.yieldUnit': 'Unidad de rendimiento',
   'editor.prepMinutes': 'Preparación, minutos',
   'editor.keepsHours': 'Conservación, horas',
-  'editor.storageHint': 'Dónde y cómo se guarda, por ejemplo al vacío en la cámara.',
+  'editor.kept': 'Cómo se conserva',
+  'editor.keptHint':
+    'Sin vida útil, esto da la fecha de la etiqueta: lo refrigerado recibe la del Hygiënecode por defecto.',
+  'editor.storage': 'Dónde / notas',
+  'editor.storageHint': 'Por ejemplo, tarrinas etiquetadas, cámara.',
+  'kept.chilled_7': 'Refrigerado, 7 °C o menos',
+  'kept.chilled_4': 'Refrigerado, 4 °C o menos',
+  'kept.frozen': 'Congelado, −18 °C o menos',
+  'kept.ambient': 'En seco / temperatura ambiente',
+  'kept.hot': 'Mantenido en caliente, 60 °C o más',
   'editor.tags': 'Etiquetas',
   'editor.tagsHint': 'Separa con comas, por ejemplo pastel, a la carta.',
   'editor.mayContain': 'Puede contener · solo contaminación cruzada',
@@ -1483,14 +1492,17 @@ export const es: Record<MessageKey, string> = {
   'label.keptChilled4': 'Refrigerado ≤4 °C',
   'label.keptFrozen': 'Congelado',
   'label.keptAmbient': 'En seco',
+  'label.keptHot': 'En caliente ≥60 °C',
   'label.noteDefault':
     'La fecha es la que el Hygiënecode da por defecto para elaboraciones propias refrigeradas: el día en que se hizo más {days} días. Pon una vida útil en la receta para imprimir la suya.',
   'label.noteFrozen':
     'Sin fecha impresa: se guarda congelado y la receta no tiene vida útil. Escríbela en la etiqueta, o pon una vida útil en la receta.',
   'label.noteAmbient':
     'Sin fecha impresa: se guarda en seco y la receta no tiene vida útil. Escríbela en la etiqueta, o pon una vida útil en la receta.',
+  'label.noteHot':
+    'Sin fecha impresa: se mantiene en caliente, y eso se cuenta en horas, no en fechas. Escríbela en la etiqueta si hace falta.',
   'label.noteUnknown':
-    'Sin fecha impresa: la receta no dice cuánto dura ni que se guarde refrigerado. Escríbela en la etiqueta, o rellena su vida útil o su conservación.',
+    'Sin fecha impresa: la receta no dice cuánto dura ni cómo se conserva. Escríbela en la etiqueta, o rellena su vida útil o cómo se conserva.',
   'label.noteNoRecipe':
     'No se hizo con una receta, así que la fecha y los alérgenos se escriben a mano en la etiqueta.',
   'label.howMany': 'Cuántas',

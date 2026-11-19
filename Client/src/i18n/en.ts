@@ -447,7 +447,16 @@ export const en = {
   'editor.yieldUnit': 'Yield unit',
   'editor.prepMinutes': 'Prep, minutes',
   'editor.keepsHours': 'Keeps, hours',
-  'editor.storageHint': 'Where and how it’s kept, such as vac-packed in the walk-in.',
+  'editor.kept': 'How it is kept',
+  'editor.keptHint':
+    'Without a shelf life, this sets the use-by on its labels: chilled prep gets the Hygiënecode default.',
+  'editor.storage': 'Where / notes',
+  'editor.storageHint': 'Such as labelled tubs, walk-in.',
+  'kept.chilled_7': 'Chilled, 7 °C or colder',
+  'kept.chilled_4': 'Chilled, 4 °C or colder',
+  'kept.frozen': 'Frozen, −18 °C or colder',
+  'kept.ambient': 'Dry / room temperature',
+  'kept.hot': 'Kept hot, 60 °C or hotter',
   'editor.tags': 'Tags',
   'editor.tagsHint': 'Separate with commas, such as pie, à la carte.',
   'editor.mayContain': 'May contain · cross-contact only',
@@ -1447,14 +1456,17 @@ export const en = {
   'label.keptChilled4': 'Chilled ≤4 °C',
   'label.keptFrozen': 'Frozen',
   'label.keptAmbient': 'Dry store',
+  'label.keptHot': 'Kept hot ≥60 °C',
   'label.noteDefault':
     'The use-by is the Hygiënecode default for chilled prep: the day it was made plus {days} days. Set a shelf life on the recipe to print its own.',
   'label.noteFrozen':
     'No use-by printed: it is kept frozen and the recipe has no shelf life. Write it on the label, or set a shelf life on the recipe.',
   'label.noteAmbient':
     'No use-by printed: it is kept dry and the recipe has no shelf life. Write it on the label, or set a shelf life on the recipe.',
+  'label.noteHot':
+    'No use-by printed: it is kept hot, which goes by the hours it is held, not by a date. Write it on the label if it needs one.',
   'label.noteUnknown':
-    'No use-by printed: the recipe says neither how long it keeps nor that it is kept chilled. Write it on the label, or fill in its shelf life or storage.',
+    'No use-by printed: the recipe says neither how long it keeps nor how it is kept. Write it on the label, or set its shelf life or how it is kept.',
   'label.noteNoRecipe':
     'Not made from a recipe, so the use-by and allergens are left to write on the label.',
   'label.howMany': 'How many',

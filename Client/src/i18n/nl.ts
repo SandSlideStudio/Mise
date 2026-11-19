@@ -452,7 +452,16 @@ export const nl: Record<MessageKey, string> = {
   'editor.yieldUnit': 'Eenheid opbrengst',
   'editor.prepMinutes': 'Prep, minuten',
   'editor.keepsHours': 'Houdbaar, uren',
-  'editor.storageHint': 'Waar en hoe het bewaard wordt, bijvoorbeeld vacuüm in de koelcel.',
+  'editor.kept': 'Hoe het bewaard wordt',
+  'editor.keptHint':
+    'Zonder houdbaarheid bepaalt dit de datum op het etiket: gekoeld krijgt de standaard uit de Hygiënecode.',
+  'editor.storage': 'Waar / notities',
+  'editor.storageHint': 'Bijvoorbeeld gelabelde bakken, koelcel.',
+  'kept.chilled_7': 'Gekoeld, 7 °C of kouder',
+  'kept.chilled_4': 'Gekoeld, 4 °C of kouder',
+  'kept.frozen': 'Diepvries, −18 °C of kouder',
+  'kept.ambient': 'Droog / kamertemperatuur',
+  'kept.hot': 'Warm gehouden, 60 °C of warmer',
   'editor.tags': 'Labels',
   'editor.tagsHint': 'Scheid met komma’s, bijvoorbeeld pastei, à la carte.',
   'editor.mayContain': 'Kan sporen bevatten · alleen kruisbesmetting',
@@ -1484,14 +1493,17 @@ export const nl: Record<MessageKey, string> = {
   'label.keptChilled4': 'Gekoeld ≤4 °C',
   'label.keptFrozen': 'Diepvries',
   'label.keptAmbient': 'Droog bewaren',
+  'label.keptHot': 'Warm ≥60 °C',
   'label.noteDefault':
     'De datum is de standaard uit de Hygiënecode voor gekoelde eigen bereidingen: de dag van bereiden plus {days} dagen. Zet een houdbaarheid op het recept om die te printen.',
   'label.noteFrozen':
     'Geen datum geprint: het gaat de diepvries in en het recept heeft geen houdbaarheid. Schrijf hem op het etiket, of zet een houdbaarheid op het recept.',
   'label.noteAmbient':
     'Geen datum geprint: het wordt droog bewaard en het recept heeft geen houdbaarheid. Schrijf hem op het etiket, of zet een houdbaarheid op het recept.',
+  'label.noteHot':
+    'Geen datum geprint: het wordt warm gehouden, en dat gaat per uur, niet per datum. Schrijf hem op het etiket als dat nodig is.',
   'label.noteUnknown':
-    'Geen datum geprint: het recept zegt niet hoe lang het houdbaar is, en ook niet dat het gekoeld bewaard wordt. Schrijf hem op het etiket, of vul de houdbaarheid of het bewaren in.',
+    'Geen datum geprint: het recept zegt niet hoe lang het houdbaar is en ook niet hoe het bewaard wordt. Schrijf hem op het etiket, of vul de houdbaarheid of het bewaren in.',
   'label.noteNoRecipe':
     'Niet van een recept gemaakt, dus de datum en de allergenen schrijf je zelf op het etiket.',
   'label.howMany': 'Hoeveel',

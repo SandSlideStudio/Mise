@@ -39,6 +39,7 @@ describe('a label for a ticked line', () => {
     queryClient.setQueryData(['recipe', 'r1'], {
       id: 'r1',
       shelfLifeHours: 72,
+      kept: 'chilled_4',
       storage: 'Koelcel',
     });
     queryClient.setQueryData(['recipe-allergens', 'r1'], { contains: ['milk'], mayContain: [] });
@@ -49,7 +50,7 @@ describe('a label for a ticked line', () => {
       made: new Date('2027-04-05T12:30:00.000Z'),
       by: 'Marco Rossi',
       kitchenName: 'De Kas',
-      recipe: { shelfLifeHours: 72, storage: 'Koelcel' },
+      recipe: { shelfLifeHours: 72, kept: 'chilled_4', storage: 'Koelcel' },
       allergens: { contains: ['milk'], mayContain: [] },
     });
   });
@@ -57,6 +58,8 @@ describe('a label for a ticked line', () => {
   it('finds them in the expanded recipe too', async () => {
     markUnreachable();
     const queryClient = new QueryClient();
+    // Saved by an older version, before a recipe said how it is kept: the
+    // label then reads the storage note.
     queryClient.setQueryData(['recipe-expanded', 'r1', {}], {
       recipe: { id: 'r1', shelfLifeHours: null, storage: 'Freezer' },
       allergens: { contains: [], mayContain: ['sesame'] },

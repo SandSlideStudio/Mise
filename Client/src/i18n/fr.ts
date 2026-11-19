@@ -464,7 +464,16 @@ export const fr: Record<MessageKey, string> = {
   'editor.yieldUnit': 'Unité de rendement',
   'editor.prepMinutes': 'Préparation, minutes',
   'editor.keepsHours': 'Conservation, heures',
-  'editor.storageHint': 'Où et comment il se conserve, par exemple sous vide en chambre froide.',
+  'editor.kept': 'Mode de conservation',
+  'editor.keptHint':
+    'Sans durée de conservation, il donne la date sur l’étiquette : le réfrigéré reçoit celle du Hygiënecode par défaut.',
+  'editor.storage': 'Où / notes',
+  'editor.storageHint': 'Par exemple bacs étiquetés, chambre froide.',
+  'kept.chilled_7': 'Réfrigéré, 7 °C ou moins',
+  'kept.chilled_4': 'Réfrigéré, 4 °C ou moins',
+  'kept.frozen': 'Congelé, −18 °C ou moins',
+  'kept.ambient': 'Au sec / température ambiante',
+  'kept.hot': 'Maintenu chaud, 60 °C ou plus',
   'editor.tags': 'Étiquettes',
   'editor.tagsHint': 'Séparez par des virgules, par exemple tourte, à la carte.',
   'editor.mayContain': 'Peut contenir · contamination croisée seulement',
@@ -1507,14 +1516,17 @@ export const fr: Record<MessageKey, string> = {
   'label.keptChilled4': 'Réfrigéré ≤4 °C',
   'label.keptFrozen': 'Congelé',
   'label.keptAmbient': 'Au sec',
+  'label.keptHot': 'Maintenu chaud ≥60 °C',
   'label.noteDefault':
     'La date est celle que le Hygiënecode prévoit par défaut pour les préparations maison réfrigérées : le jour de fabrication plus {days} jours. Indiquez une durée de conservation sur la recette pour imprimer la sienne.',
   'label.noteFrozen':
     'Aucune date imprimée : il est congelé et la recette n’a pas de durée de conservation. Écrivez-la sur l’étiquette, ou indiquez une durée de conservation sur la recette.',
   'label.noteAmbient':
     'Aucune date imprimée : il se garde au sec et la recette n’a pas de durée de conservation. Écrivez-la sur l’étiquette, ou indiquez une durée de conservation sur la recette.',
+  'label.noteHot':
+    'Aucune date imprimée : il est maintenu chaud, ce qui se compte en heures et non en date. Écrivez-la sur l’étiquette si besoin.',
   'label.noteUnknown':
-    'Aucune date imprimée : la recette ne dit ni combien de temps il se garde, ni qu’il est réfrigéré. Écrivez-la sur l’étiquette, ou indiquez sa conservation sur la recette.',
+    'Aucune date imprimée : la recette ne dit ni combien de temps il se garde, ni comment il est conservé. Écrivez-la sur l’étiquette, ou indiquez sa durée ou son mode de conservation sur la recette.',
   'label.noteNoRecipe':
     'Pas fait d’après une recette : la date et les allergènes sont à écrire sur l’étiquette.',
   'label.howMany': 'Combien',

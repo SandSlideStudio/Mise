@@ -15,7 +15,7 @@ const figGel: LabelContent = {
   made,
   by: 'Marco Rossi',
   kitchenName: 'Brasserie Noord',
-  recipe: { shelfLifeHours: null, storage: 'Koelcel' },
+  recipe: { shelfLifeHours: null, kept: 'chilled_7', storage: 'Koelcel' },
   allergens: { contains: ['milk', 'gluten'], mayContain: ['nuts'] },
 };
 
@@ -65,6 +65,46 @@ describe('a label on the smallest roll', () => {
   });
 });
 
+describe('how it is kept', () => {
+  it('goes by the choice on the recipe, whatever the note says', () => {
+    const { container } = render(
+      <PrepLabel
+        label={{
+          ...figGel,
+          recipe: { shelfLifeHours: null, kept: 'chilled_4', storage: 'Labelled tubs' },
+        }}
+        size="89x36"
+      />,
+    );
+    // A day more at 4 °C, though the note says nothing about it.
+    expect(screen.getByTestId('use-by').textContent).toMatch(/Thu.*8 Apr/);
+    expect(text(container)).toContain('Chilled ≤4 °C · Labelled tubs');
+  });
+
+  it('gives a date to chilled prep that has no storage note at all', () => {
+    render(
+      <PrepLabel
+        label={{ ...figGel, recipe: { shelfLifeHours: null, kept: 'chilled_7', storage: null } }}
+        size="54x25"
+      />,
+    );
+    expect(screen.getByTestId('use-by').textContent).toMatch(/Wed.*7 Apr/);
+  });
+
+  it('still reads the note on a recipe nobody has chosen for', () => {
+    const { container } = render(
+      <PrepLabel
+        label={{ ...figGel, recipe: { shelfLifeHours: null, kept: null, storage: 'Fridge, 3 °C' } }}
+        size="89x36"
+      />,
+    );
+    expect(screen.getByTestId('use-by').textContent).toMatch(/Thu.*8 Apr/);
+    // What the note says, once.
+    expect(text(container)).toContain('Chilled ≤4 °C');
+    expect(text(container)).not.toContain('Fridge');
+  });
+});
+
 describe('a label on a larger roll', () => {
   it('also says how it is kept and in which kitchen', () => {
     const { container } = render(
@@ -110,11 +150,22 @@ describe('a label with something missing', () => {
   it('leaves the use-by to write on for frozen stock without a shelf life', () => {
     render(
       <PrepLabel
-        label={{ ...figGel, recipe: { shelfLifeHours: null, storage: 'Freezer' } }}
+        label={{ ...figGel, recipe: { shelfLifeHours: null, kept: 'frozen', storage: null } }}
         size="62x29"
       />,
     );
     expect(screen.queryByTestId('use-by')).toBeNull();
+  });
+
+  it('leaves the use-by to write on for food kept hot, which goes by the hour', () => {
+    const { container } = render(
+      <PrepLabel
+        label={{ ...figGel, recipe: { shelfLifeHours: null, kept: 'hot', storage: 'Bain-marie' } }}
+        size="89x36"
+      />,
+    );
+    expect(screen.queryByTestId('use-by')).toBeNull();
+    expect(text(container)).toContain('Kept hot ≥60 °C · Bain-marie');
   });
 
   it('leaves a line for who made it when nobody is known', () => {
@@ -143,6 +194,12 @@ describe('what the person printing is told', () => {
   });
 
   it('why there is no date to print', () => {
+    expect(
+      useByNote(t, { ...figGel, recipe: { shelfLifeHours: null, kept: 'hot', storage: null } }),
+    ).toMatch(/kept hot.*hours/);
+    expect(
+      useByNote(t, { ...figGel, recipe: { shelfLifeHours: null, kept: null, storage: null } }),
+    ).toMatch(/nor how it is kept/);
     expect(
       useByNote(t, { ...figGel, recipe: { shelfLifeHours: null, storage: 'Freezer' } }),
     ).toMatch(/frozen/);

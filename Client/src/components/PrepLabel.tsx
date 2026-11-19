@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { labelMillimetres, type AllergenProfile, type LabelSize } from '@mise/contracts';
-import { computeUseBy, keptAs, type KeptAs, type UseBy } from '@mise/domain';
+import { computeUseBy, keptFor, type KeptAs, type UseBy } from '@mise/domain';
 import { useT, type MessageKey, type Translator } from '../i18n/index.js';
 
 /**
@@ -22,8 +22,11 @@ export interface LabelContent {
   /** Who made it. Null: a line to write it on. */
   by: string | null;
   kitchenName: string;
-  /** What the recipe says about keeping it. Null for a line not made from a recipe. */
-  recipe: { shelfLifeHours: number | null; storage: string | null } | null;
+  /**
+   * What the recipe says about keeping it. Null for a line not made from a
+   * recipe. `kept` is missing from a recipe saved offline by an older version.
+   */
+  recipe: { shelfLifeHours: number | null; kept?: KeptAs | null; storage: string | null } | null;
   /** Null when not known (no recipe, or it couldn't be worked out): a line to write them on. */
   allergens: AllergenProfile | null;
 }
@@ -69,7 +72,8 @@ export function shortName(name: string): string {
 /** Until when this label's batch may be used. */
 export function labelUseBy(label: LabelContent): { useBy: UseBy; kept: KeptAs | null } {
   if (!label.recipe) return { useBy: { kind: 'blank', reason: 'unknown' }, kept: null };
-  const kept = keptAs(label.recipe.storage);
+  // The chef's choice; for a recipe nobody has chosen for yet, what its note says.
+  const kept = keptFor(label.recipe);
   return {
     useBy: computeUseBy({ made: label.made, shelfLifeHours: label.recipe.shelfLifeHours, kept }),
     kept,
@@ -85,11 +89,21 @@ function time(locale: string, date: Date): string {
 }
 
 const KEPT: Record<KeptAs, MessageKey> = {
-  chilled7: 'label.keptChilled7',
-  chilled4: 'label.keptChilled4',
+  chilled_7: 'label.keptChilled7',
+  chilled_4: 'label.keptChilled4',
   frozen: 'label.keptFrozen',
   ambient: 'label.keptAmbient',
+  hot: 'label.keptHot',
 };
+
+/** How it is kept and where, as far as the recipe says: "Chilled ≤4 °C · Walk-in". */
+function keptLine(t: Translator['t'], kept: KeptAs | null, label: LabelContent): string {
+  const note = label.recipe?.storage?.trim() ?? '';
+  if (!kept) return note;
+  // Read from the note rather than chosen: the note would only say it again.
+  if (!label.recipe?.kept || !note) return t(KEPT[kept]);
+  return `${t(KEPT[kept])} · ${note}`;
+}
 
 /** A line to write on by hand, after its heading. */
 function Blank() {
@@ -126,7 +140,7 @@ export function PrepLabel({ label, size }: { label: LabelContent; size: LabelSiz
   const tier = tierOf(size);
   const type = typeFor(tier, height);
   const { useBy: until, kept } = labelUseBy(label);
-  const keptText = kept ? t(KEPT[kept]) : (label.recipe?.storage?.trim() ?? '');
+  const keptText = keptLine(t, kept, label);
 
   return (
     <article
@@ -216,6 +230,7 @@ export function useByNote(t: Translator['t'], label: LabelContent): string | nul
   if (!label.recipe) return t('label.noteNoRecipe');
   if (until.reason === 'frozen') return t('label.noteFrozen');
   if (until.reason === 'ambient') return t('label.noteAmbient');
+  if (until.reason === 'hot') return t('label.noteHot');
   return t('label.noteUnknown');
 }
 

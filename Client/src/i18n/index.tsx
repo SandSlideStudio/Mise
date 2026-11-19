@@ -192,6 +192,25 @@ export function temperatureName(t: Translator['t'], temperature: string): string
   return t(`temperature.${temperature}` as MessageKey);
 }
 
+/** How a recipe's batches are kept, in full: "Chilled, 4 °C or colder". */
+export function keptName(t: Translator['t'], kept: string): string {
+  return t(`kept.${kept}` as MessageKey);
+}
+
+/**
+ * How and where a recipe is kept, for reading: "Chilled, 4 °C or colder ·
+ * Labelled tubs, walk-in". Empty when it says neither. `kept` is missing on a
+ * copy saved offline by an older version.
+ */
+export function keptWithNote(
+  t: Translator['t'],
+  recipe: { kept?: string | null; storage: string | null },
+): string {
+  return [recipe.kept ? keptName(t, recipe.kept) : null, recipe.storage?.trim() || null]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 export function courseName(t: Translator['t'], course: string): string {
   return t(`course.${course}` as MessageKey);
 }
