@@ -1,10 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+  MAX_UNPACKED_LINES,
   OFFLINE_BUNDLE_FORMAT,
   unpackOfflineBundle,
   type OfflineBundle,
   type Recipe,
 } from '@mise/contracts';
+import { MAX_LINES } from '@mise/domain';
 import { breather, unpack } from './unpack.js';
 
 /**
@@ -136,6 +138,61 @@ describe('unpacking off the page', () => {
     vi.stubGlobal('requestIdleCallback', idle);
     await breather();
     expect(idle).toHaveBeenCalledWith(expect.any(Function), { timeout: 100 });
+  });
+});
+
+describe('a bundle of very large specs', () => {
+  it('stops working out specs once they come to more lines than a tablet can hold', () => {
+    // Each prep uses the next twice, so the second lists about 8,000 lines,
+    // under the limit for one recipe; and three hundred dishes use it.
+    const line = (id: string, ref: number) => ({
+      id,
+      sortOrder: 0,
+      section: null,
+      note: null,
+      quantity: { value: 1, unit: 'each' as const },
+      ref,
+    });
+    const preps = Array.from({ length: 14 }, (_, level) => ({
+      recipe: {
+        ...recipe,
+        id: `p${level}`,
+        name: `Prep ${level}`,
+        yield: { value: 1, unit: 'each' as const },
+        // A recipe is sent as minus one minus its place in the entries.
+        components:
+          level === 13 ? [] : [line(`a${level}`, -2 - level), line(`b${level}`, -2 - level)],
+      },
+      allergenHistory: null,
+    }));
+    const dishes = Array.from({ length: 300 }, (_, i) => ({
+      recipe: {
+        ...recipe,
+        id: `d${i}`,
+        name: `Dish ${i}`,
+        type: 'dish' as const,
+        yield: { value: 1, unit: 'each' as const },
+        components: [line(`c${i}`, -2)],
+      },
+      allergenHistory: [],
+    }));
+    const big = { ...bundle, recipeEntries: [...preps, ...dishes] };
+
+    const started = Date.now();
+    const entries = unpackOfflineBundle(big);
+    expect(Date.now() - started).toBeLessThan(5_000);
+    const expanded = entries.filter(([key]) => key[0] === 'recipe-expanded');
+    const lines = expanded.reduce(
+      (sum, [, data]) => sum + (data as { lines: unknown[] }).lines.length,
+      0,
+    );
+    expect(lines).toBeLessThanOrEqual(MAX_UNPACKED_LINES + MAX_LINES);
+    expect(expanded.length).toBeLessThan(big.recipeEntries.length);
+    // The rest is still there to read offline; only the long spec waits to be opened online.
+    const last = (kind: string) => entries.some(([key]) => key[0] === kind && key[1] === 'd299');
+    expect(last('recipe')).toBe(true);
+    expect(last('recipe-allergens')).toBe(true);
+    expect(last('recipe-expanded')).toBe(false);
   });
 });
 

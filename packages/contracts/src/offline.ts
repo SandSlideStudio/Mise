@@ -5,6 +5,7 @@ import {
   dishCardMatrix,
   expandRecipe,
   factorFor,
+  MAX_LINES,
   rollUpAllergens,
   toBase,
   type Ingredient as BookIngredient,
@@ -115,6 +116,15 @@ export interface OfflineBundle {
 }
 
 export type UnpackedEntry = readonly [queryKey: readonly unknown[], data: unknown];
+
+/**
+ * The most lines the expanded specs of a whole bundle may come to on a
+ * tablet. Each recipe stops at MAX_LINES, but a thousand dishes that each
+ * use a sub-recipe of nearly that many came to eight million lines: a
+ * gigabyte, and every tablet's page gone at each load. Far more than a real
+ * kitchen's specs; past it, the rest are asked for when opened, online.
+ */
+export const MAX_UNPACKED_LINES = 200_000;
 
 /**
  * A recipe as the recipe book has it, made from the recipe as the endpoint
@@ -270,6 +280,7 @@ export function unpackOfflineBundle(bundle: OfflineBundle): UnpackedEntry[] {
       })) satisfies RecipeSummary[],
     ],
   ];
+  let linesLeft = MAX_UNPACKED_LINES;
   for (const [i, entry] of bundle.recipeEntries.entries()) {
     const recipe = recipes[i]!;
     const id = recipe.id;
@@ -281,7 +292,10 @@ export function unpackOfflineBundle(bundle: OfflineBundle): UnpackedEntry[] {
     if (allergens.ok) {
       entries.push([['recipe-allergens', id], allergens.value]);
       const factor = factorFor(id, {}, book);
-      const lines = factor.ok ? expandRecipe(id, factor.value, book) : null;
+      const lines = factor.ok && linesLeft > 0 ? expandRecipe(id, factor.value, book) : null;
+      // A tree refused for its size took as long to work out as one that size.
+      if (lines?.ok) linesLeft -= lines.value.length;
+      else if (lines?.error.kind === 'too_many_lines') linesLeft -= MAX_LINES;
       if (factor.ok && lines?.ok) {
         const cost = bundle.costSettings
           ? recipeCostAt(id, factor.value, book, bundle.costSettings, recipe.sellPrice ?? null)
