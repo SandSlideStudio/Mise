@@ -1625,6 +1625,8 @@ export const en = {
   'error.labelCheckDecided': 'Someone already approved or rejected that label change.',
   'error.labelCheckOutdated':
     'The ingredient changed since this label was read. Reject it and read the label again.',
+  'error.labelChecksWaiting':
+    'You have many label changes waiting for a chef. Ask a chef to look at them first.',
   'allergenHistory.labelCause': 'After the label of {name} was checked',
   'privacy.keptLabelChecks':
     'Who checked each ingredient’s label at delivery, when, and what they found, for as long as the ingredient is kept.',

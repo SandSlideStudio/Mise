@@ -283,6 +283,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   still_referenced: 'error.stillReferenced',
   label_check_decided: 'error.labelCheckDecided',
   label_check_outdated: 'error.labelCheckOutdated',
+  label_checks_waiting: 'error.labelChecksWaiting',
   bad_origin: 'error.badOrigin',
   changed_meanwhile: 'error.changedMeanwhile',
   certificate_failed: 'error.certificateFailed',

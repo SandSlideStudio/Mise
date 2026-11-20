@@ -1687,6 +1687,8 @@ export const fr: Record<MessageKey, string> = {
   'error.labelCheckDecided': 'Quelqu’un a déjà validé ou refusé ce changement d’étiquette.',
   'error.labelCheckOutdated':
     'L’ingrédient a changé depuis la lecture de cette étiquette. Refusez-la et relisez l’étiquette.',
+  'error.labelChecksWaiting':
+    'Vous avez de nombreux changements d’étiquette en attente d’un chef. Demandez d’abord à un chef de les examiner.',
   'allergenHistory.labelCause': 'Après vérification de l’étiquette de {name}',
   'privacy.keptLabelChecks':
     'Qui a vérifié l’étiquette de chaque ingrédient à la livraison, quand, et ce que cette personne a constaté, tant que l’ingrédient existe.',

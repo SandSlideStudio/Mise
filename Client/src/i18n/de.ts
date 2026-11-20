@@ -1681,6 +1681,8 @@ export const de: Record<MessageKey, string> = {
   'error.labelCheckDecided': 'Jemand hat diese Etikettänderung schon freigegeben oder abgelehnt.',
   'error.labelCheckOutdated':
     'Die Zutat wurde geändert, seit dieses Etikett gelesen wurde. Lehne es ab und lies das Etikett noch einmal.',
+  'error.labelChecksWaiting':
+    'Viele deiner Etikettänderungen warten noch auf einen Küchenchef. Bitte zuerst einen Küchenchef, sie anzusehen.',
   'allergenHistory.labelCause': 'Nach der Prüfung des Etiketts von {name}',
   'privacy.keptLabelChecks':
     'Wer das Etikett jeder Zutat bei der Lieferung geprüft hat, wann und mit welchem Ergebnis, solange es die Zutat gibt.',

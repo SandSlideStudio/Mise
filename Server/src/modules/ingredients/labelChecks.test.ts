@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { cookieFrom, setUpKitchen, useTestContext } from '../../test/harness.js';
+import { MAX_WAITING_LABEL_CHECKS } from './labelChecks.js';
 
 /**
  * Checking a label at delivery: a chef's difference is applied and reaches
@@ -249,6 +250,49 @@ describe('a cook checking a label', () => {
 
     const checks = await ok('GET', `/api/ingredients/${pesto.id}/label-checks`, undefined, cook);
     expect(checks).toEqual([expect.objectContaining({ id: check.id, status: 'rejected' })]);
+  });
+
+  it('may leave only so many changes waiting, so a chef can still see everyone else’s', async () => {
+    const { pesto, leaves } = await kitchen();
+    const cook = await signInCook();
+    const send = (allergens: string[], cookies = cook) =>
+      call(
+        'POST',
+        `/api/ingredients/${pesto.id}/label-checks`,
+        { allergens, mayContain: [] },
+        cookies,
+      );
+    for (let i = 0; i < MAX_WAITING_LABEL_CHECKS; i += 1) {
+      expect((await send(['milk', 'nuts'])).statusCode).toBe(200);
+    }
+    const refused = await send(['milk', 'nuts']);
+    expect(refused.statusCode).toBe(409);
+    expect(refused.json().error.code).toBe('label_checks_waiting');
+    // Still free to say a label is unchanged, and so is anyone else.
+    expect((await send(['milk'])).json().status).toBe('applied');
+    await ok('POST', '/api/users', {
+      displayName: 'Bo',
+      role: 'cook',
+      email: 'bo@example.com',
+      password: 'a-long-enough-password',
+    });
+    const bo = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'bo@example.com', password: 'a-long-enough-password' },
+    });
+    const other = await call(
+      'POST',
+      `/api/ingredients/${leaves.id}/label-checks`,
+      { allergens: ['celery'], mayContain: [] },
+      { mise_session: cookieFrom(bo, 'mise_session')! },
+    );
+    expect(other.json().status).toBe('pending');
+    const pending = await ok('GET', '/api/ingredients/label-checks/pending');
+    expect(pending).toHaveLength(MAX_WAITING_LABEL_CHECKS + 1);
+    // Once a chef decides one, there is room for another.
+    await ok('POST', `/api/ingredients/label-checks/${pending[0].id}/reject`);
+    expect((await send(['milk', 'nuts'])).statusCode).toBe(200);
   });
 
   it('may still not edit the ingredient itself', async () => {

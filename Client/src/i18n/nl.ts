@@ -1666,6 +1666,8 @@ export const nl: Record<MessageKey, string> = {
   'error.labelCheckDecided': 'Iemand heeft die etiketwijziging al goedgekeurd of afgewezen.',
   'error.labelCheckOutdated':
     'Het ingrediënt is gewijzigd sinds dit etiket werd gelezen. Wijs het af en lees het etiket opnieuw.',
+  'error.labelChecksWaiting':
+    'Je hebt veel etiketwijzigingen die op een chef wachten. Vraag eerst een chef ze te bekijken.',
   'allergenHistory.labelCause': 'Na controle van het etiket van {name}',
   'privacy.keptLabelChecks':
     'Wie het etiket van elk ingrediënt bij levering controleerde, wanneer, en wat daaruit bleek, zolang het ingrediënt bestaat.',

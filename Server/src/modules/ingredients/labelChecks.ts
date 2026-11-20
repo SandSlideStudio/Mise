@@ -1,4 +1,4 @@
-import { asc, desc, eq, type SQL } from 'drizzle-orm';
+import { and, asc, count, desc, eq, type SQL } from 'drizzle-orm';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -42,6 +42,13 @@ import { applyIngredientEdit, tracesOnly, type IngredientRow } from './save.js';
  */
 
 /** A check made offline and sent later keeps its time, within the week the device keeps it. */
+/**
+ * Changes one person may leave waiting for a chef. More than a delivery
+ * brings, and far fewer than the waiting list shows: without a limit, one
+ * account could bury everyone else's changes, a real new allergen among
+ * them, under hundreds of its own.
+ */
+export const MAX_WAITING_LABEL_CHECKS = 50;
 const OFFLINE_WEEK_MS = 7 * 24 * 60 * 60 * 1000;
 
 function checkedAtFrom(sent: string | undefined): Date {
@@ -144,7 +151,7 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
       schema: {
         params: z.object({ id: idSchema }),
         body: createLabelCheckSchema,
-        response: { 200: labelCheckSchema, 401: errorSchema, 404: errorSchema },
+        response: { 200: labelCheckSchema, 401: errorSchema, 404: errorSchema, 409: errorSchema },
       },
     },
     async (request) => {
@@ -172,6 +179,19 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
         // Whoever may edit the ingredient changes it; anyone else asks a chef,
         // and so does anyone whose check started from an older version.
         const applies = !changed || (MANAGERS.includes(user.role) && !outdated);
+        if (!applies) {
+          // Counted under the recipe graph's lock, so checks sent at once can't all slip past.
+          const [waiting] = await tx
+            .select({ n: count() })
+            .from(ingredientLabelChecks)
+            .where(
+              and(
+                eq(ingredientLabelChecks.checkedBy, user.id),
+                eq(ingredientLabelChecks.status, 'pending'),
+              ),
+            );
+          if ((waiting?.n ?? 0) >= MAX_WAITING_LABEL_CHECKS) return 'too_many' as const;
+        }
         const [check] = await tx
           .insert(ingredientLabelChecks)
           .values({
@@ -190,6 +210,13 @@ const labelCheckRoutes: FastifyPluginAsync = async (app) => {
         if (changed && applies) await applyLabel(tx, locked, label, user.id);
         return check?.id ?? null;
       });
+      if (id === 'too_many') {
+        throw new ApiError(
+          409,
+          'label_checks_waiting',
+          'You have many label changes waiting for a chef. Ask a chef to look at them first.',
+        );
+      }
       if (!id) throw ApiError.notFound('That ingredient');
       return readCheck(app.db, id);
     },
