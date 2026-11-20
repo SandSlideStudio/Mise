@@ -117,43 +117,61 @@ export function createDishCardService(db: Database) {
     return current.logoPath;
   }
 
-  async function card(
-    recipeId: string,
-    loaded?: Awaited<ReturnType<typeof loadRecipeBook>>,
-  ): Promise<{ ok: true; card: DishCard } | { ok: false; error: CardFailure }> {
-    const [dish] = await db.select().from(recipes).where(eq(recipes.id, recipeId)).limit(1);
-    if (!dish) return { ok: false, error: { kind: 'not_found' } };
-    if (dish.type !== 'dish') return { ok: false, error: { kind: 'not_a_dish' } };
+  type Book = Awaited<ReturnType<typeof loadRecipeBook>>;
+  type CardResult = { ok: true; card: DishCard } | { ok: false; error: CardFailure };
+  type DishRow = typeof recipes.$inferSelect;
 
-    const book = loaded ?? (await loadRecipeBook(db));
-    const matrix = dishCardMatrix(recipeId, book);
-    // A card that can't be worked out is not printed with a guess in it.
-    if (!matrix.ok) return { ok: false, error: { kind: 'broken' } };
+  /** What a card is drawn from besides the book: read for one dish, or for all of them. */
+  interface CardContext {
+    photos: (typeof recipePhotos.$inferSelect)[];
+    kitchenName: string;
+    stored: StoredSettings;
+    /** The active menus each dish is on, in name order. */
+    menusOf: Map<string, string[]>;
+  }
 
+  async function readContext(recipeId?: string): Promise<CardContext> {
     const [photos, [kitchen], stored, onMenus] = await Promise.all([
-      db.select().from(recipePhotos).where(eq(recipePhotos.recipeId, recipeId)),
+      recipeId
+        ? db.select().from(recipePhotos).where(eq(recipePhotos.recipeId, recipeId))
+        : db.select().from(recipePhotos),
       db.select({ name: kitchens.name }).from(kitchens).limit(1),
       settings(),
       // The menus the floor is selling it on now. Printing from a menu names
       // that menu instead; the client swaps it in.
       db
-        .select({ name: menus.name })
+        .select({ recipeId: menuDishes.recipeId, name: menus.name })
         .from(menuDishes)
         .innerJoin(menus, eq(menus.id, menuDishes.menuId))
-        .where(and(eq(menuDishes.recipeId, recipeId), eq(menus.status, 'active')))
+        .where(
+          and(eq(menus.status, 'active'), recipeId ? eq(menuDishes.recipeId, recipeId) : undefined),
+        )
         .orderBy(asc(menus.name)),
     ]);
+    const menusOf = new Map<string, string[]>();
+    for (const row of onMenus) {
+      menusOf.set(row.recipeId, [...(menusOf.get(row.recipeId) ?? []), row.name]);
+    }
+    return { photos, kitchenName: kitchen?.name ?? 'Mise', stored, menusOf };
+  }
+
+  function makeCard(dish: DishRow, book: Book, context: CardContext): CardResult {
+    const matrix = dishCardMatrix(dish.id, book);
+    // A card that can't be worked out is not printed with a guess in it.
+    if (!matrix.ok) return { ok: false, error: { kind: 'broken' } };
+
+    const photos = context.photos.filter((p) => p.recipeId === dish.id);
     const photo = photos.find((p) => p.isPrimary) ?? photos[0] ?? null;
 
     return {
       ok: true,
       card: {
-        kitchenName: kitchen?.name ?? 'Mise',
+        kitchenName: context.kitchenName,
         dish: {
           id: dish.id,
           name: dish.name,
           status: dish.status,
-          menus: onMenus.map((menu) => menu.name),
+          menus: context.menusOf.get(dish.id) ?? [],
           flavourProfile: dish.flavourProfile,
           servingTemperature: dish.servingTemperature,
           course: dish.course,
@@ -168,20 +186,39 @@ export function createDishCardService(db: Database) {
         })),
         other: matrix.value.other ? facts(matrix.value.other) : null,
         whole: facts(matrix.value.dish),
-        attention: await attentionFor(recipeId, book),
-        settings: serialiseSettings(stored),
+        attention: attentionFor(dish.id, book),
+        settings: serialiseSettings(context.stored),
       },
     };
+  }
+
+  async function card(recipeId: string, loaded?: Book): Promise<CardResult> {
+    const [dish] = await db.select().from(recipes).where(eq(recipes.id, recipeId)).limit(1);
+    if (!dish) return { ok: false, error: { kind: 'not_found' } };
+    if (dish.type !== 'dish') return { ok: false, error: { kind: 'not_a_dish' } };
+
+    const book = loaded ?? (await loadRecipeBook(db));
+    return makeCard(dish, book, await readContext(recipeId));
+  }
+
+  /**
+   * The card of every dish, by recipe id, from one reading of what they are
+   * drawn from: for the bundle for offline use, which would otherwise ask the
+   * database four more times for each of its dishes.
+   */
+  async function allCards(book: Book): Promise<Map<string, CardResult>> {
+    const [dishes, context] = await Promise.all([
+      db.select().from(recipes).where(eq(recipes.type, 'dish')),
+      readContext(),
+    ]);
+    return new Map(dishes.map((dish) => [dish.id, makeCard(dish, book, context)]));
   }
 
   /**
    * Ingredients somewhere in the dish that leave the card less sure than it
    * should be: vegan not answered, or gluten or nuts without saying which.
    */
-  async function attentionFor(
-    recipeId: string,
-    book: Awaited<ReturnType<typeof loadRecipeBook>>,
-  ): Promise<DishCard['attention']> {
+  function attentionFor(recipeId: string, book: Book): DishCard['attention'] {
     const ingredientIds = new Set<string>();
     const visited = new Set<string>();
     const stack = [recipeId];
@@ -252,7 +289,7 @@ export function createDishCardService(db: Database) {
     });
   }
 
-  return { settings, update, setLogo, card, summaries };
+  return { settings, update, setLogo, card, allCards, summaries };
 }
 
 export type DishCardService = ReturnType<typeof createDishCardService>;

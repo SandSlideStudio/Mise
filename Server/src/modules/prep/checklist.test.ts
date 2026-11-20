@@ -263,6 +263,46 @@ describe('adding from the checklist', () => {
     expect(await lines()).toHaveLength(2);
   });
 
+  it('counts the same name on the same station twice in one go as already there, whichever item it came from', async () => {
+    const twins = (
+      await save([
+        { stationId: hot, name: 'Stock' },
+        { stationId: hot, name: ' stock ' },
+        { stationId: cold, name: 'Stock' },
+      ])
+    ).json().items as Item[];
+    const response = await call(cook, 'POST', '/api/checklist/add', {
+      ids: twins.map((item) => item.id),
+    });
+    expect(response.json()).toEqual({ added: 2, alreadyThere: 1, enough: [] });
+  });
+
+  it('puts the lines on in the checklist’s order, after what is already on the list', async () => {
+    await call(admin, 'POST', '/api/running/tasks', { description: 'Pickled onions' });
+    await call(cook, 'POST', '/api/checklist/add', { ids: ids('Chicken stock', 'Jus', 'Slaw') });
+    const order = (await call(admin, 'GET', '/api/running/tasks')).json() as {
+      description: string;
+      sortOrder: number;
+    }[];
+    const byOrder = [...order].sort((a, b) => a.sortOrder - b.sortOrder).map((l) => l.description);
+    expect(byOrder).toEqual(['Pickled onions', 'Chicken stock', 'Jus', 'Slaw', 'Chicken stock']);
+  });
+
+  it('makes the same number of statements to the database for eighteen items as for two', async () => {
+    const many = (
+      await save(Array.from({ length: 20 }, (_, i) => ({ stationId: hot, name: `Item ${i}` })))
+    ).json().items as Item[];
+    const few = await ctx.countStatements(() =>
+      call(cook, 'POST', '/api/checklist/add', { ids: many.slice(0, 2).map((i) => i.id) }),
+    );
+    const lots = await ctx.countStatements(() =>
+      call(cook, 'POST', '/api/checklist/add', { ids: many.slice(2, 20).map((i) => i.id) }),
+    );
+    expect(few.result.json().added).toBe(2);
+    expect(lots.result.json().added).toBe(18);
+    expect(lots.statements).toBeLessThanOrEqual(few.statements);
+  });
+
   it('ignores an item the chef removed since it was ticked', async () => {
     const [jus] = ids('Jus');
     await save(items.filter((item) => item.id !== jus));

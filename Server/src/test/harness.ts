@@ -85,6 +85,14 @@ export async function createTestDatabase(): Promise<{ client: PGlite; db: Databa
 export interface TestContext {
   readonly app: FastifyInstance;
   readonly db: Database;
+  /**
+   * How many statements a piece of work sends to the database, counted at the
+   * wire so those inside transactions are included, with the SQL itself. For tests that guard
+   * against work growing with the size of the kitchen.
+   */
+  countStatements<T>(
+    work: () => Promise<T>,
+  ): Promise<{ result: T; statements: number; sql: string }>;
 }
 
 /**
@@ -96,8 +104,15 @@ export function useTestContext(): TestContext {
   let db: Database | null = null;
   let app: FastifyInstance | null = null;
 
+  const seen: string[] = [];
   beforeAll(async () => {
     ({ client, db } = await createTestDatabase());
+    // Every statement, in or out of a transaction, goes through the raw protocol call.
+    const raw = client.execProtocolRaw.bind(client);
+    client.execProtocolRaw = (...args: Parameters<typeof raw>) => {
+      seen.push(new TextDecoder().decode(args[0]));
+      return raw(...args);
+    };
   });
 
   afterAll(async () => {
@@ -125,6 +140,16 @@ export function useTestContext(): TestContext {
     get db(): Database {
       if (!db) throw new Error('No database yet. Call useTestContext() at the top of the file.');
       return db;
+    },
+    async countStatements(work) {
+      const before = seen.length;
+      const result = await work();
+      const mine = seen.slice(before).join('\n');
+      // The SQL text of each statement, told from the other bytes of the protocol.
+      const statements = mine
+        .split(/[^\x20-\x7e]+/)
+        .filter((text) => /^(select|insert|update|delete|with)\b/i.test(text)).length;
+      return { result, statements, sql: mine };
     },
   };
 }

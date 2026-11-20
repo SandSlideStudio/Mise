@@ -329,52 +329,48 @@ export function createPrepService(db: Database) {
     return db.transaction(async (tx) => {
       // The same lock as a typed line, so the two can't both add the same thing.
       await tx.execute(sql`select pg_advisory_xact_lock(hashtext('mise-prep-add'))`);
-      let added = 0;
       let alreadyThere = 0;
       const enough: string[] = [];
+      // What is open now, read once: the same name on the same station,
+      // however it was typed. Lines made in this go count too, so a name
+      // ticked twice makes one line.
+      const open = await tx
+        .select({ description: prepTasks.description, stationId: prepTasks.stationId })
+        .from(prepTasks)
+        .where(inArray(prepTasks.status, ['open', 'in_progress']));
+      const keyOf = (name: string, stationId: string | null) =>
+        `${stationId ?? ''}|${name.trim().toLowerCase()}`;
+      const taken = new Set(open.map((line) => keyOf(line.description, line.stationId)));
+      const firstSortOrder = await nextSortOrder(tx);
+      const rows: (typeof prepTasks.$inferInsert)[] = [];
       for (const item of items) {
         const outcome = item.par ? toMakeForPar(item.par, item.onHand ?? null) : null;
         if (outcome?.kind === 'enough') {
           enough.push(item.name);
           continue;
         }
-        const [existing] = await tx
-          .select({ id: prepTasks.id })
-          .from(prepTasks)
-          .where(
-            and(
-              inArray(prepTasks.status, ['open', 'in_progress']),
-              sql`lower(trim(${prepTasks.description})) = lower(trim(${item.name}))`,
-              item.stationId
-                ? eq(prepTasks.stationId, item.stationId)
-                : isNull(prepTasks.stationId),
-            ),
-          )
-          .limit(1);
-        if (existing) {
+        const key = keyOf(item.name, item.stationId);
+        if (taken.has(key)) {
           alreadyThere += 1;
           continue;
         }
+        taken.add(key);
         const make = outcome?.kind === 'make' ? outcome : null;
-        await insertTask(
-          {
-            description: item.name,
-            stationId: item.stationId,
-            recipeId: item.recipeId ?? null,
-            quantity: make?.make ?? null,
-          },
-          tx,
-          {
-            createdBy,
-            fromChecklist: true,
-            ...(make
-              ? { par: { parBase: toBase(make.par), onHandBase: toBase(make.onHand) } }
-              : {}),
-          },
-        );
-        added += 1;
+        rows.push({
+          stationId: item.stationId,
+          recipeId: item.recipeId ?? null,
+          description: item.name,
+          ...toBaseQuantity(make?.make ?? null),
+          status: 'open',
+          sortOrder: firstSortOrder + rows.length,
+          createdBy,
+          fromChecklist: true,
+          parBase: make ? toBase(make.par) : null,
+          onHandBase: make ? toBase(make.onHand) : null,
+        });
       }
-      return { added, alreadyThere, enough };
+      if (rows.length > 0) await tx.insert(prepTasks).values(rows);
+      return { added: rows.length, alreadyThere, enough };
     });
   }
 
