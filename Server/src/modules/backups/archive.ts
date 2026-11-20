@@ -26,6 +26,13 @@ interface EntryHeader {
 /** Larger than any real header; anything bigger means a damaged file. */
 const MAX_HEADER_BYTES = 64 * 1024;
 
+/**
+ * Larger than any one table or photo a kitchen has, packed or unpacked. Each
+ * entry is held in memory whole, so a file that says (or unzips to) more is
+ * refused rather than let fill the memory of a small server.
+ */
+export const MAX_ENTRY_BYTES = 256 * 1024 * 1024;
+
 export async function* packEntries(entries: AsyncIterable<Entry> | Iterable<Entry>) {
   for await (const entry of entries) {
     const body = entry.compress ? await gzip(entry.data) : entry.data;
@@ -93,7 +100,25 @@ export async function* unpackEntries(chunks: AsyncIterable<Buffer>): AsyncGenera
     } catch {
       throw new BackupFailure('not_a_backup', 'unreadable header');
     }
+    if (
+      typeof header?.name !== 'string' ||
+      !Number.isSafeInteger(header.size) ||
+      header.size < 0 ||
+      header.size > MAX_ENTRY_BYTES
+    ) {
+      throw new BackupFailure('not_a_backup', 'entry too large');
+    }
     const body = await read(header.size);
-    yield { name: header.name, data: header.gzip ? await gunzip(body) : body };
+    if (!header.gzip) {
+      yield { name: header.name, data: body };
+      continue;
+    }
+    let data: Buffer;
+    try {
+      data = await gunzip(body, { maxOutputLength: MAX_ENTRY_BYTES });
+    } catch {
+      throw new BackupFailure('not_a_backup', 'entry does not unpack');
+    }
+    yield { name: header.name, data };
   }
 }

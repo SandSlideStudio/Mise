@@ -25,7 +25,18 @@ export interface ExpandedLine {
 
 const MAX_DEPTH = 32;
 
-export type ExpandError = RecipeError | { kind: 'max_depth_exceeded'; recipeId: string };
+/**
+ * Far more lines than any spec a kitchen writes. A sub-recipe used twice is
+ * listed twice, so a chain of recipes that each use the next one a few times
+ * grows the list exponentially: past this it is refused, rather than holding
+ * up the server working out millions of lines.
+ */
+export const MAX_LINES = 10_000;
+
+export type ExpandError =
+  | RecipeError
+  | { kind: 'max_depth_exceeded'; recipeId: string }
+  | { kind: 'too_many_lines'; recipeId: string };
 
 /**
  * Flatten a recipe's tree at a given multiplier.
@@ -56,6 +67,7 @@ export function expandRecipe(
     const nextPath = new Set(onPath).add(id);
 
     for (const component of recipe.components) {
+      if (lines.length >= MAX_LINES) return err({ kind: 'too_many_lines', recipeId });
       const scaled: Quantity = {
         value: component.quantity.value * multiplier,
         unit: component.quantity.unit,

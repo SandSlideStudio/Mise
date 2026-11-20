@@ -134,7 +134,8 @@ const photoRoutes: FastifyPluginAsync = async (app) => {
       if (!photo) throw ApiError.notFound('That photograph');
 
       // A leftover file is untidy; a failed request because of one is worse.
-      await unlink(path.join(uploadDir, photo.path)).catch(() => {});
+      // Only ever a name in the upload folder, whatever a restored backup said.
+      await unlink(path.join(uploadDir, path.basename(photo.path))).catch(() => {});
       return reply.status(204).send(null);
     },
   );
