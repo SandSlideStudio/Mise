@@ -153,9 +153,12 @@ export function createMenusService(db: Database) {
     return result;
   }
 
-  async function serialise(row: StoredMenu): Promise<Menu> {
-    const dishes = await dishesOf(row.id);
-    const changed = await lastChanged(dishes.map((dish) => dish.recipeId));
+  async function serialise(
+    row: StoredMenu,
+    known?: { dishes: Awaited<ReturnType<typeof dishesOf>>; changed: Map<string, Date> },
+  ): Promise<Menu> {
+    const dishes = known?.dishes ?? (await dishesOf(row.id));
+    const changed = known?.changed ?? (await lastChanged(dishes.map((dish) => dish.recipeId)));
     return {
       id: row.id,
       name: row.name,
@@ -185,6 +188,39 @@ export function createMenusService(db: Database) {
   async function getMenu(id: string): Promise<Menu | null> {
     const found = await row(id);
     return found ? serialise(found) : null;
+  }
+
+  /**
+   * Every menu, as getMenu gives each one, from one reading of the dishes and
+   * of when they last changed instead of one for each menu.
+   */
+  async function allMenus(): Promise<Menu[]> {
+    const rows = await db.select().from(menus).orderBy(asc(menus.name));
+    if (rows.length === 0) return [];
+    const placed = await db
+      .select({
+        menuId: menuDishes.menuId,
+        recipeId: menuDishes.recipeId,
+        sortOrder: menuDishes.sortOrder,
+        name: recipes.name,
+        course: recipes.course,
+        status: recipes.status,
+      })
+      .from(menuDishes)
+      .innerJoin(recipes, eq(recipes.id, menuDishes.recipeId));
+    const changed = await lastChanged([...new Set(placed.map((dish) => dish.recipeId))]);
+    return Promise.all(
+      rows.map((row) =>
+        serialise(row, {
+          dishes: placed
+            .filter((dish) => dish.menuId === row.id)
+            .sort(
+              (a, b) => courseRank(a.course) - courseRank(b.course) || a.sortOrder - b.sortOrder,
+            ),
+          changed,
+        }),
+      ),
+    );
   }
 
   async function createMenu(
@@ -378,6 +414,7 @@ export function createMenusService(db: Database) {
     withCosts,
     listMenus,
     getMenu,
+    allMenus,
     createMenu,
     updateMenu,
     deleteMenu,

@@ -9,6 +9,7 @@ import {
   wouldCreateCycle,
   type Allergen,
   type AllergenProfile,
+  type RecipeBook,
   type UnitCode,
 } from '@mise/domain';
 import type { Database, Executor } from '../../db/client.js';
@@ -178,13 +179,14 @@ export function createRecipesService(db: Database) {
     exec: Executor,
     recipeId: string,
     components: CreateRecipeComponent[],
+    bookOf: () => Promise<RecipeBook> = () => loadRecipeBook(exec),
   ): Promise<string[] | null> {
     const children = components
       .filter((c) => c.ref.kind === 'recipe')
       .map((c) => (c.ref as { kind: 'recipe'; recipeId: string }).recipeId);
     if (children.length === 0) return null;
 
-    const book = await loadRecipeBook(exec);
+    const book = await bookOf();
     for (const childId of children) {
       if (wouldCreateCycle(recipeId, childId, book)) {
         const child = book.recipe(childId);
@@ -204,8 +206,12 @@ export function createRecipesService(db: Database) {
     recipeId: string,
     components: CreateRecipeComponent[] | undefined,
     newYield: { value: number; unit: string } | undefined,
+    bookOf: () => Promise<RecipeBook> = () => loadRecipeBook(exec),
   ): Promise<UnitProblem | null> {
-    const book = await loadRecipeBook(exec);
+    // Nothing to check for an edit that touches no sub-recipe line and not the yield.
+    const usesRecipes = (components ?? []).some((c) => c.ref.kind === 'recipe');
+    if (!usesRecipes && !newYield) return null;
+    const book = await bookOf();
     // Said in the units the chef typed, not the base units the maths uses.
     const childIds = (components ?? []).flatMap((c) =>
       c.ref.kind === 'recipe' ? [c.ref.recipeId] : [],
@@ -258,6 +264,12 @@ export function createRecipesService(db: Database) {
       }
     }
     return null;
+  }
+
+  /** Reads the book the first time it is asked for, so one save reads it at most once. */
+  function readOnce(exec: Executor): () => Promise<RecipeBook> {
+    let book: Promise<RecipeBook> | null = null;
+    return () => (book ??= loadRecipeBook(exec));
   }
 
   /** One edit to the recipe graph at a time, so two can't make a loop together. */
@@ -324,12 +336,13 @@ export function createRecipesService(db: Database) {
 
       // A brand new recipe cannot close a loop through itself, but it can point
       // at one that already exists, so the same check runs.
-      const cycle = await findCycleIn(tx, row.id, input.components);
+      const bookOf = readOnce(tx);
+      const cycle = await findCycleIn(tx, row.id, input.components, bookOf);
       if (cycle) {
         await tx.delete(recipes).where(eq(recipes.id, row.id));
         return { outcome: 'cycle', through: cycle };
       }
-      const units = await findUnitProblem(tx, row.id, input.components, undefined);
+      const units = await findUnitProblem(tx, row.id, input.components, undefined, bookOf);
       if (units) {
         await tx.delete(recipes).where(eq(recipes.id, row.id));
         return { outcome: 'units', problem: units };
@@ -366,11 +379,12 @@ export function createRecipesService(db: Database) {
         .for('update');
       if (!locked) return { outcome: 'not_found' as const };
       if (!unchanged(locked.updatedAt)) return { outcome: 'changed' as const };
+      const bookOf = readOnce(tx);
       if (input.components) {
-        const cycle = await findCycleIn(tx, id, input.components);
+        const cycle = await findCycleIn(tx, id, input.components, bookOf);
         if (cycle) return { outcome: 'cycle' as const, through: cycle };
       }
-      const units = await findUnitProblem(tx, id, input.components, input.yield);
+      const units = await findUnitProblem(tx, id, input.components, input.yield, bookOf);
       if (units) return { outcome: 'units' as const, problem: units };
 
       const [row] = await tx

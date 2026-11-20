@@ -233,6 +233,29 @@ describe('the bundle for offline use', () => {
     expect(bookLoads.count).toBe(1);
   });
 
+  it('asks the database no more often for twelve dishes than for three', async () => {
+    const { base } = await kitchenWith(3);
+    const small = await ctx.countStatements(() => bundleFor(admin));
+    for (let i = 3; i < 12; i += 1) {
+      await post('/api/recipes', {
+        name: `Extra ${i}`,
+        type: 'dish',
+        yield: { value: 4, unit: 'each' },
+        portions: 4,
+        components: [
+          {
+            sortOrder: 0,
+            quantity: { value: 100, unit: 'g' },
+            ref: { kind: 'recipe', recipeId: base.id },
+          },
+        ],
+      });
+    }
+    const large = await ctx.countStatements(() => bundleFor(admin));
+    expect(large.result.dishes).toHaveLength(12);
+    expect(large.statements).toBeLessThanOrEqual(small.statements);
+  });
+
   it('is built once for a chef and a cook taking turns', async () => {
     await kitchenWith(3);
     cook = await signInCook();

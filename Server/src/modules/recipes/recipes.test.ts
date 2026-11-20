@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { eq, sql } from 'drizzle-orm';
 import { ingredients } from '../../db/schema.js';
 import { setUpKitchen, useTestContext } from '../../test/harness.js';
+import { loadRecipeBook } from './book.js';
 
 const ctx = useTestContext();
 let admin: string;
@@ -971,5 +972,69 @@ describe('allergens that cannot be worked out', () => {
       expect(response.statusCode, url).not.toBe(200);
       if (url.endsWith('/allergens')) expect(response.json().error.code).toBe('allergens_unknown');
     }
+  });
+});
+
+describe('how often a save reads the whole recipe book', () => {
+  // The book is every recipe, line and ingredient; reading it is the heavy part
+  // of a save, so a save reads it only as often as it has to.
+  const bookReads = (sqlText: string) => (sqlText.match(/from "ingredient"/g) ?? []).length;
+  const line = (recipeId: string, value: number, unit: string) => ({
+    sortOrder: 0,
+    quantity: { value, unit },
+    ref: { kind: 'recipe', recipeId },
+  });
+  const patch = (id: string, payload: Record<string, unknown>) =>
+    ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/recipes/${id}`,
+      payload,
+      cookies: as(admin),
+    });
+
+  it('reads only the columns the allergen and cost maths use', async () => {
+    const stock = await addRecipe(ctx.app, admin, {
+      name: 'Stock',
+      method: [{ text: 'Simmer for a long time.' }],
+    });
+    const { result, sql: sent } = await ctx.countStatements(() => loadRecipeBook(ctx.db));
+    expect(result.recipe(stock.id)?.name).toBe('Stock');
+    expect(bookReads(sent)).toBe(1);
+    // The method, notes and timestamps are most of a row and play no part.
+    expect(sent).not.toContain('"method"');
+    expect(sent).not.toContain('"notes"');
+    expect(sent).not.toContain('"updated_at"');
+  });
+
+  it('reads it once to rename a recipe', async () => {
+    const stock = await addRecipe(ctx.app, admin, { name: 'Stock' });
+    const { result, sql: sent } = await ctx.countStatements(() =>
+      patch(stock.id, { name: 'Veal stock' }),
+    );
+    expect(result.statusCode).toBe(200);
+    expect(bookReads(sent)).toBe(1);
+  });
+
+  it('reads it twice at most to save lines that include a sub-recipe', async () => {
+    const stock = await addRecipe(ctx.app, admin, { name: 'Stock' });
+    const jus = await addRecipe(ctx.app, admin, { name: 'Jus' });
+    const { result, sql: sent } = await ctx.countStatements(() =>
+      patch(jus.id, { components: [line(stock.id, 200, 'g')] }),
+    );
+    expect(result.statusCode).toBe(200);
+    // Once to check for loops and units before the save, once for the allergen record after it.
+    expect(bookReads(sent)).toBe(2);
+  });
+
+  it('still refuses a loop and a unit that does not fit', async () => {
+    const stock = await addRecipe(ctx.app, admin, { name: 'Stock' });
+    const jus = await addRecipe(ctx.app, admin, {
+      name: 'Jus',
+      components: [line(stock.id, 100, 'g')],
+    });
+    expect((await patch(stock.id, { components: [line(jus.id, 100, 'g')] })).statusCode).toBe(400);
+    expect(
+      (await patch(jus.id, { components: [line(stock.id, 1, 'l')] })).statusCode,
+    ).toBeGreaterThanOrEqual(400);
   });
 });
