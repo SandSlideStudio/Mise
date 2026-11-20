@@ -38,6 +38,7 @@ import { LoadError } from '../components/LoadError.js';
 import { ComponentPicker } from '../components/ComponentPicker.js';
 import { NumberInput } from '../components/NumberInput.js';
 import { Plate } from '../components/Plate.js';
+import { WithCurrency } from '../components/Cost.js';
 import { UnitOptions } from '../components/UnitOptions.js';
 import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
 import {
@@ -734,14 +735,17 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                       htmlFor="sellPrice"
                       hint={t('cost.sellPriceHint')}
                     >
-                      <NumberInput
-                        id="sellPrice"
-                        rules={SELL_PRICE}
-                        money
-                        className="field min-h-10"
-                        value={sellPrice}
-                        onText={setSellPrice}
-                      />
+                      <WithCurrency>
+                        <NumberInput
+                          id="sellPrice"
+                          rules={SELL_PRICE}
+                          money
+                          className="field min-h-10 min-w-0 flex-1"
+                          value={sellPrice}
+                          onText={setSellPrice}
+                          messageClassName="order-last basis-full"
+                        />
+                      </WithCurrency>
                     </RailField>
                   </>
                 ) : (

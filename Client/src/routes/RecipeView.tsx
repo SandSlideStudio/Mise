@@ -237,12 +237,18 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
             <Tree lines={lines} />
           )}
 
-          {/* Only ever sent to chefs and administrators. */}
-          {cost && isUnitCode(recipe.yield.unit) ? (
+          {/* Only ever sent to chefs and administrators. Left off while there is nothing in
+              the recipe yet: "€0.00 per batch" would read as a finding. */}
+          {cost && lines.length > 0 && isUnitCode(recipe.yield.unit) ? (
             <RecipeCostLine cost={cost} yieldUnit={recipe.yield.unit} scaled={scaled} />
           ) : null}
 
-          <Plating photos={recipe.photos} recipeId={recipe.id} canManage={canManage} />
+          <Plating
+            photos={recipe.photos}
+            recipeId={recipe.id}
+            canManage={canManage}
+            isDish={recipe.type === 'dish'}
+          />
 
           {recipe.method.length > 0 || kept ? (
             <section className="border-line bg-surface-raised border-t px-4 py-5 sm:px-8 sm:py-6">
@@ -623,10 +629,12 @@ function Plating({
   photos,
   recipeId,
   canManage,
+  isDish,
 }: {
   photos: RecipePhoto[];
   recipeId: string;
   canManage: boolean;
+  isDish: boolean;
 }) {
   const translator = useT();
   const { t } = translator;
@@ -637,6 +645,9 @@ function Plating({
   const input = useRef<HTMLInputElement>(null);
 
   if (photos.length === 0 && !canManage) return null;
+  // Plating is how a dish goes out: a prep or component has no plate, and its printed
+  // card leaves photos off as well. One added before still shows, so it can be removed.
+  if (photos.length === 0 && !isDish) return null;
 
   const [first, ...rest] = photos;
 

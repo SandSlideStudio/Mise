@@ -5,6 +5,7 @@ import type { RecipeCost } from '@mise/contracts';
 import { createTranslator } from '../i18n/index.js';
 import {
   CostGaps,
+  currencySign,
   DishCost,
   formatMoney,
   ingredientPriceText,
@@ -43,6 +44,17 @@ describe('money and units', () => {
     expect(plain(formatMoney(en.locale, 'EUR', 12.5))).toBe('€12.50');
     expect(plain(formatMoney(nl.locale, 'EUR', 12.5))).toBe('€ 12,50');
     expect(plain(formatMoney(en.locale, 'GBP', 3))).toBe('£3.00');
+  });
+
+  it('puts the currency sign beside a price box on the side the reader writes it', () => {
+    expect(currencySign(nl.locale, 'EUR')).toEqual({ sign: '€', after: false });
+    expect(currencySign(createTranslator('de').locale, 'EUR')).toEqual({ sign: '€', after: true });
+    expect(currencySign(createTranslator('fr').locale, 'EUR')).toEqual({ sign: '€', after: true });
+    expect(currencySign(en.locale, 'GBP')).toEqual({ sign: '£', after: false });
+  });
+
+  it('names a unit in the reader’s words in a cost per unit', () => {
+    expect(plain(perUnitText(nl, 'EUR', 0.25, 'dozen'))).toBe('€ 3,00 per dozijn');
   });
 
   it('shows a cost per gram per kilo, per millilitre per litre, and per piece each', () => {

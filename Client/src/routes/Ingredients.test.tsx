@@ -85,6 +85,11 @@ async function save() {
 }
 
 describe('the price in the ingredient editor', () => {
+  it('has the currency sign beside its box', () => {
+    open();
+    expect(screen.getByLabelText('Purchase price').parentElement!.textContent).toBe('€');
+  });
+
   it('is not sent again when it was left as it was', async () => {
     open();
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Salted butter' } });

@@ -79,6 +79,7 @@ export function DishView() {
 function DishCostFor({ dishId }: { dishId: string }) {
   const expanded = useExpandedRecipe(dishId, {});
   const cost = expanded.data?.cost;
-  if (!cost) return null;
+  // Nothing in it yet costs nothing; "€0.00 a portion" would read as a finding.
+  if (!cost || expanded.data?.lines.length === 0) return null;
   return <DishCost cost={cost} sellPrice={expanded.data?.recipe.sellPrice ?? null} />;
 }

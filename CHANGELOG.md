@@ -147,6 +147,10 @@ staff data, and a stack of smaller fixes.
   "2 el" and "1 kopje" in Dutch, "2 EL" in German, "2 c. à s." in French, "2 cda." in Spanish,
   with "stuk" rather than "each" to choose from. Recipes keep the same units underneath, so a
   recipe written in one language reads right in another. g, kg, ml and l stay as they are.
+- A recipe or dish with nothing in it yet shows no food cost, rather than €0.00. The purchase price
+  and selling price boxes show the kitchen's currency sign beside them. Prep and component
+  recipes no longer offer a plating photograph, which is for dishes (one already added still
+  shows, so it can be removed). Setup says a password is too short once, not twice.
 - An active menu with dishes still marked draft says so, on its page and in the list of menus
   ("2 dishes are still drafts — their cards say so"), and chefs can publish them from there in
   one tap.

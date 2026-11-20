@@ -23,7 +23,7 @@ import {
   useUpdateIngredient,
 } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
-import { ingredientPriceText } from '../components/Cost.js';
+import { ingredientPriceText, WithCurrency } from '../components/Cost.js';
 import { DeliveryCheck } from '../components/DeliveryCheck.js';
 import {
   LabelCheckForm,
@@ -484,14 +484,17 @@ export function IngredientForm({
             <label className="label" htmlFor="priceAmount">
               {t('ingredients.price')}
             </label>
-            <NumberInput
-              id="priceAmount"
-              rules={PRICE}
-              money
-              className="field w-32"
-              value={priceAmount}
-              onText={setPriceAmount}
-            />
+            <WithCurrency>
+              <NumberInput
+                id="priceAmount"
+                rules={PRICE}
+                money
+                className="field w-32"
+                value={priceAmount}
+                onText={setPriceAmount}
+                messageClassName="order-last basis-full"
+              />
+            </WithCurrency>
           </div>
           <div>
             <label className="label" htmlFor="priceQuantity">
