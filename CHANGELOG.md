@@ -161,6 +161,12 @@ staff data, and a stack of smaller fixes.
   folder, or unpack into more memory than a kitchen could ever need.
 - A change resent with the same id as another one is no longer answered with that other one's
   result.
+- Recipes built to be enormous can no longer make every tablet try to work out more than it can
+  hold: past a sensible size, the longest specs are opened online instead of kept offline.
+- One person can leave at most 50 label changes waiting for a chef, so a flood of made-up ones
+  can't bury a real allergen change.
+- Two changes to the kitchen certificate at the same moment (a second tab, or the nightly renewal)
+  are made one after the other, so neither can undo the other.
 - With `TRUST_PROXY` set, someone reaching Mise's own port through Docker's relay (IPv6, rootless
   Docker, Podman) could name a kitchen address in a forwarding header and count as inside. Only the
   web server named in **Settings → Connection** speaks for the relay now; Caddy from the compose
