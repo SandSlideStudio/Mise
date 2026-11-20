@@ -19,7 +19,7 @@ import { useEffect } from 'react';
 import { isAccessRequired, markAccessRequired, useAccessRequired } from './api/access.js';
 import { useLiveUpdates } from './api/live.js';
 import { useTickSender } from './api/ticks.js';
-import { useCurrentUser, useFinishSignOut, useSetupStatus } from './api/session.js';
+import { useCurrentUser, useFinishSignOut, useRoster, useSetupStatus } from './api/session.js';
 import { I18nProvider, useT } from './i18n/index.js';
 import { Ingredients } from './routes/Ingredients.js';
 import { RecipeEditor } from './routes/RecipeEditor.js';
@@ -129,6 +129,9 @@ function Shell() {
   // /trust is for tablets that haven't signed in yet, or can't.
   const isPublicRoute =
     pathname === '/login' || pathname === '/line' || pathname === '/setup' || pathname === '/trust';
+  // A kitchen tablet opened in the morning, or left by a chef who signed in
+  // with a password, should show the names to tap, not an email form.
+  const roster = useRoster(signedOut && !needsSetup && !isPublicRoute);
 
   useEffect(() => {
     if (!unreachable) return;
@@ -162,9 +165,19 @@ function Shell() {
       return;
     }
     if (!needsSetup && signedOut && !isPublicRoute) {
-      void navigate({ to: '/login', replace: true });
+      if (roster.isPending) return;
+      void navigate({ to: roster.data ? '/line' : '/login', replace: true });
     }
-  }, [needsSetup, signedOut, pathname, isPublicRoute, setupStatus.isPending, navigate]);
+  }, [
+    needsSetup,
+    signedOut,
+    pathname,
+    isPublicRoute,
+    setupStatus.isPending,
+    roster.isPending,
+    roster.data,
+    navigate,
+  ]);
 
   if (accessRequired) return <AccessRequest />;
 
