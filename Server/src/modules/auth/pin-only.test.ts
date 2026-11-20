@@ -314,6 +314,20 @@ describe('the tablet lock', () => {
     for (let i = 0; i < 4; i += 1) expect((await pinOnly('5050')).statusCode).toBe(401);
   });
 
+  it('locks after ten wrong PINs in a while, even with right ones in between', async () => {
+    await turnOn();
+    // Four, then their own PIN to reset the five in a row, again and again.
+    const answers: number[] = [];
+    for (let round = 0; round < 3; round += 1) {
+      for (let i = 0; i < 4; i += 1) answers.push((await pinOnly('5050')).statusCode);
+      if (round < 2) expect((await pinOnly('4821')).statusCode).toBe(200);
+    }
+    // The tenth wrong one locks the tablet; the eleventh guess isn't checked.
+    expect(answers.slice(0, 9).every((status) => status === 401)).toBe(true);
+    expect(answers[9]).toBe(429);
+    expect((await pinOnly('4821')).json().error.code).toBe('tablet_locked');
+  });
+
   it('counts per tablet, not for the whole kitchen', async () => {
     await turnOn();
     for (let i = 0; i < 5; i += 1) await pinOnly('5050');

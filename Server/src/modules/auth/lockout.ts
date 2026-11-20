@@ -17,6 +17,12 @@
  */
 
 export const MAX_FAILED_ATTEMPTS = 5;
+/**
+ * Wrong PINs on one tablet within the window that lock it however many right
+ * ones came in between: a cook could otherwise try four, sign in as
+ * themselves, and try four more, all day long, until a chef's PIN came up.
+ */
+export const TABLET_WRONG_IN_WINDOW = 10;
 export const ACCOUNT_BRAKE = 30;
 export const LOCKOUT_MINUTES = 15;
 const WINDOW_MS = LOCKOUT_MINUTES * 60_000;
@@ -49,14 +55,15 @@ export function createLockout(now: () => number = Date.now) {
    * Tablets that sign in by PIN alone. A wrong PIN there belongs to nobody,
    * so it counts against the tablet: five wrong and it waits 15 minutes, then
    * twice as long each time (30, an hour, up to a day). The right PIN starts
-   * the count of wrong ones again, but not the doubling, or someone could try
-   * four, wait for a cook to sign in, and try four more all day long. That
-   * goes once a day has passed without a lock, so a few honest slips a month
-   * don't add up to day-long waits.
+   * the count of five in a row again, but not the doubling, and ten wrong in
+   * 15 minutes lock it whatever came in between, or someone could try four,
+   * sign in as themselves, and try four more all day long. The doubling goes
+   * once a day has passed without a lock, so a few honest slips a month don't
+   * add up to day-long waits.
    */
   const tablets = new Map<
     string,
-    { attempts: number; strikes: number; lockedUntil: number | null }
+    { attempts: number; strikes: number; lockedUntil: number | null; wrong: number[] }
   >();
 
   function lockTablet(state: { strikes: number; lockedUntil: number | null }): number {
@@ -177,7 +184,7 @@ export function createLockout(now: () => number = Date.now) {
         return { lockedUntil: new Date(state.lockedUntil) };
       }
       if (!state) {
-        state = { attempts: 0, strikes: 0, lockedUntil: null };
+        state = { attempts: 0, strikes: 0, lockedUntil: null, wrong: [] };
         tablets.set(deviceId, state);
       }
       // A lock that has run out: a fresh five, but the strikes stay.
@@ -194,11 +201,22 @@ export function createLockout(now: () => number = Date.now) {
       const state = tablets.get(deviceId);
       if (!state) return null;
       const locked = state.lockedUntil !== null && state.lockedUntil > now();
-      if (!locked && attempt >= MAX_FAILED_ATTEMPTS) lockTablet(state);
+      // Every wrong PIN in the window counts, right ones in between or not.
+      state.wrong = [...state.wrong.filter((at) => at > now() - WINDOW_MS), now()];
+      if (
+        !locked &&
+        (attempt >= MAX_FAILED_ATTEMPTS || state.wrong.length >= TABLET_WRONG_IN_WINDOW)
+      ) {
+        lockTablet(state);
+        state.wrong = [];
+      }
       return state.lockedUntil && state.lockedUntil > now() ? new Date(state.lockedUntil) : null;
     },
 
-    /** The right PIN on this tablet: the wrong ones before it no longer count. */
+    /**
+     * The right PIN on this tablet: a slip before it no longer counts towards
+     * five in a row. It still counts towards TABLET_WRONG_IN_WINDOW.
+     */
     tabletSucceeded(deviceId: string): void {
       const state = tablets.get(deviceId);
       if (state) state.attempts = 0;
