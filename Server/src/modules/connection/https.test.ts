@@ -16,6 +16,7 @@ import {
 import type { issueDomainCertificate } from './acme.js';
 import { authorityPermits, createAuthority, issueKitchenCertificate } from './certificates.js';
 import { CONNECTION_ID } from './service.js';
+import { createHttpsListener } from './listener.js';
 
 const ctx = useTestContext();
 const INSIDE = '192.168.1.20';
@@ -484,5 +485,62 @@ describe('a certificate for the domain', () => {
     await server.connection.load();
     await server.connection.renew('The Test Kitchen');
     expect(letsEncrypt.calls).toHaveLength(3);
+  });
+});
+
+describe('the HTTPS listener', () => {
+  it('cuts off a request sent a byte at a time, but not a live stream', async () => {
+    const listener = createHttpsListener(() => ({ info: () => {} }) as never, {
+      requestTimeout: 500,
+      connectionsCheckingInterval: 100,
+    });
+    listener.serverFactory((request, response) => {
+      if (request.method === 'GET') {
+        response.writeHead(200, { 'content-type': 'text/event-stream' });
+        response.write('retry: 3000\n\n');
+        const beat = setInterval(() => response.write(': still here\n\n'), 100);
+        response.on('close', () => clearInterval(beat));
+        return;
+      }
+      request.resume();
+      request.on('end', () => response.end('in'));
+    });
+    const authority = await createAuthority('Kitchen', ['127.0.0.1']);
+    await listener.serve({
+      kitchen: await issueKitchenCertificate(authority, ['127.0.0.1']),
+      domain: null,
+    });
+    await listener.start(0, '127.0.0.1');
+    const port = listener.port()!;
+    const connect = () =>
+      tls.connect({ port, host: '127.0.0.1', ca: authority.cert, servername: undefined });
+
+    try {
+      const stream = connect();
+      let streamed = '';
+      stream.on('data', (chunk: Buffer) => (streamed += chunk.toString()));
+      stream.write('GET /api/events HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n');
+
+      const slow = connect();
+      let answer = '';
+      slow.on('data', (chunk: Buffer) => (answer += chunk.toString()));
+      slow.write(
+        'POST /api/access/request HTTP/1.1\r\nHost: 127.0.0.1\r\nContent-Length: 1000\r\n\r\n',
+      );
+      const drip = setInterval(() => slow.write('a'), 50);
+      const closed = new Promise<void>((resolve) => slow.on('close', () => resolve()));
+      await closed;
+      clearInterval(drip);
+      expect(answer).toContain('408');
+
+      // Well past the time a request may take, the stream is still coming.
+      const before = streamed.length;
+      await new Promise((resolve) => setTimeout(resolve, 300));
+      expect(stream.destroyed).toBe(false);
+      expect(streamed.length).toBeGreaterThan(before);
+      stream.destroy();
+    } finally {
+      await listener.close();
+    }
   });
 });

@@ -22,8 +22,17 @@ export interface ServedCertificates {
   domain: { name: string; cert: string; key: string } | null;
 }
 
+/**
+ * How long a client may take to send a whole request, and how often that is
+ * checked. Node's own defaults, as on plain HTTP; shorter only in tests.
+ */
+interface Timeouts {
+  requestTimeout?: number;
+  connectionsCheckingInterval?: number;
+}
+
 /** The logger comes later: this exists before the Fastify instance that owns it. */
-export function createHttpsListener(log: () => FastifyBaseLogger) {
+export function createHttpsListener(log: () => FastifyBaseLogger, timeouts: Timeouts = {}) {
   let handler: http.RequestListener | null = null;
   let server: https.Server | null = null;
   let target: { port: number; host: string } | null = null;
@@ -56,6 +65,7 @@ export function createHttpsListener(log: () => FastifyBaseLogger) {
     }
     const created = https.createServer(
       {
+        ...timeouts,
         cert: pems.cert,
         key: pems.key,
         SNICallback: (servername, done) => {
@@ -69,8 +79,10 @@ export function createHttpsListener(log: () => FastifyBaseLogger) {
       },
       handler,
     );
-    // Live updates hold a connection open for hours; nothing here may cut it.
-    created.requestTimeout = 0;
+    // Live updates hold a connection open for hours. The time a request may
+    // take to arrive doesn't cut them: it ends once the request is in, and
+    // the stream is the answer. Turned off, it let anyone on the internet
+    // hold connections open by sending a request a byte at a time.
     created.keepAliveTimeout = 72_000;
     await new Promise<void>((resolve, reject) => {
       created.once('error', reject);
