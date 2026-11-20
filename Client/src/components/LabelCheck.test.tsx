@@ -156,6 +156,16 @@ describe('checking a delivery', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Done' }));
     expect(close).toHaveBeenCalled();
   });
+
+  it('brings each label into view from its top', () => {
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled;
+    show(<DeliveryCheck ingredients={INGREDIENTS} onClose={vi.fn()} />);
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Pesto' }));
+    expect(scrolled).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Check 1 label' }));
+    expect(scrolled).toHaveBeenCalledWith({ block: 'start' });
+  });
 });
 
 describe('label changes waiting for a chef', () => {
