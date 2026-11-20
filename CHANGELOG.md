@@ -9,6 +9,18 @@ Setup that knows about the checklist and PIN-only sign-in, a checklist that link
 prints, use-by labels, food cost, allergen records and a notice for guests, privacy controls for
 staff data, and a stack of smaller fixes.
 
+**Before updating**
+
+- Tablets left open on 2.3 should be reloaded once the update is done, so they pick up the new
+  app. Mise offers it on each of them.
+- Food cost starts in euros with 9 % VAT on food. A kitchen elsewhere sets its own currency and
+  rate under **Settings → Kitchen** (administrators).
+- Each recipe's new "how it is kept" choice is filled in from its storage note. Worth a look before
+  printing the first labels.
+- Cooks now have the **Ingredients** tab, without prices and without editing, to check labels at
+  delivery.
+- Going back to 2.3 afterwards means restoring the backup Mise makes before it updates.
+
 **Setup**
 
 - Setup asks whether to use the prep checklist, sign-in with a PIN only, and how long a shared
@@ -69,7 +81,8 @@ staff data, and a stack of smaller fixes.
 - A recipe says how it is kept: chilled at 7 °C or colder, chilled at 4 °C or colder, frozen, dry,
   or kept hot, with the old storage field kept as a note ("Labelled tubs, walk-in"). Updating fills
   it in from what the note already says ("Koelcel, 4 °C" becomes chilled at 4 °C or colder), so
-  labels get their use-by from a choice rather than from reading the note.
+  labels get their use-by from a choice rather than from reading the note. (A backup from before
+  2.4, restored, leaves the choice empty; labels still read the note until one is made.)
 
 **Food cost**
 
@@ -77,7 +90,8 @@ staff data, and a stack of smaller fixes.
   yield. Mise works out what each recipe costs through every sub-recipe, per batch, per litre or
   kilo and per portion, and follows the size asked for.
 - A dish can have a selling price: its page shows the cost per portion and the food cost %, worked
-  out without VAT (**Settings → Kitchen** sets the currency and the VAT rate on food). The menu page
+  out without VAT (an administrator sets the currency and the VAT rate on food under **Settings →
+  Kitchen**). The menu page
   shows it for every dish, and the menu's average.
 - An ingredient without a price is never counted as free: the cost says "so far" and names what is
   missing. A price older than six months says so.
@@ -92,7 +106,8 @@ staff data, and a stack of smaller fixes.
   as JSON. Removing someone now also clears their name from the handover note, and says plainly
   how long older backups keep their data.
 - **Settings → Kitchen → Keep them for** sets how long kept prep lines stay. A kitchen set up on
-  2.4 starts at a year; a kitchen that updates keeps them for good, as before, until a chef chooses.
+  2.4 starts at a year; a kitchen that updates keeps them for good, as before, until an
+  administrator chooses. A shorter time deletes older lines within the hour, so Mise asks first.
 - Outside devices unused for 90 days are forgotten, with their address and browser, and old
   sessions lose their browser name. This clean-up now runs every hour, not only when someone opens
   the list.
