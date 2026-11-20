@@ -374,6 +374,25 @@ describe('a checklist line linked to a recipe', () => {
     expect((await read()).map((i) => [i.name, i.recipeId])).toEqual([['Fig gel', null]]);
   });
 
+  it('keeps the link when a save leaves it out, and drops it when it says null', async () => {
+    const gel = await recipe('Vijgen Gel');
+    const saved = (
+      await save([
+        { stationId: hot, name: 'Fig gel', recipeId: gel },
+        { stationId: hot, name: 'Jus', recipeId: gel },
+      ])
+    ).json().items as Linked[];
+    // A tablet still on 2.3 after the update sends the items without links.
+    const kept = await save([
+      { id: saved[0]!.id, stationId: hot, name: 'Fig gel' },
+      { id: saved[1]!.id, stationId: hot, name: 'Jus', recipeId: null },
+    ]);
+    expect((kept.json().items as Linked[]).map((i) => [i.name, i.recipeId])).toEqual([
+      ['Fig gel', gel],
+      ['Jus', null],
+    ]);
+  });
+
   it('tells every screen the list changed when a linked recipe is deleted', async () => {
     const gel = await recipe('Vijgen Gel');
     const before = (await save([{ stationId: hot, name: 'Fig gel', recipeId: gel }])).json();

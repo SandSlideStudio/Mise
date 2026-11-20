@@ -55,8 +55,12 @@ export function useChecklist(enabled = true) {
             id: item.id ?? newItemId(),
             stationId: item.stationId,
             name: item.name,
-            recipeId: item.recipeId ?? null,
-            // Left out by a save from before pars: the item keeps the par it had.
+            // Left out by a save from before recipe links or pars: the item
+            // keeps the link and the par it had.
+            recipeId:
+              item.recipeId !== undefined
+                ? item.recipeId
+                : (checklist.items.find((other) => other.id === item.id)?.recipeId ?? null),
             par:
               item.par !== undefined
                 ? item.par

@@ -151,7 +151,13 @@ const checklistRoutes: FastifyPluginAsync = async (app) => {
           const values = {
             stationId: item.stationId,
             name: item.name,
-            recipeId: item.recipeId && liveRecipes.has(item.recipeId) ? item.recipeId : null,
+            // Left out (a tablet from before recipe links, still open after an
+            // update) keeps the link the item has; null takes it away.
+            ...(item.recipeId === undefined
+              ? {}
+              : {
+                  recipeId: item.recipeId && liveRecipes.has(item.recipeId) ? item.recipeId : null,
+                }),
             // Left out (a tablet from before pars) keeps the par the item has.
             ...(item.par === undefined
               ? {}
