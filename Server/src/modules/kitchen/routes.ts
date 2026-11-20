@@ -393,8 +393,21 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
         response: { 200: kitchenSchema, 403: errorSchema, 404: errorSchema },
       },
     },
-    async (request) => {
-      const row = await kitchen.updateKitchen(request.body);
+    async (request, reply) => {
+      // How people sign in is changed with a password, like the rest of what
+      // decides who gets in: a PIN alone may run the kitchen, not lower the
+      // door. The form sends these every time, so only a change counts.
+      const body = request.body;
+      const current = await kitchen.getKitchen();
+      if (current) {
+        const pinOnlyChanges =
+          body.pinOnly !== undefined && body.pinOnly !== (current.pinOnlySince !== null);
+        const idleChanges =
+          body.idleSignOutMinutes !== undefined &&
+          body.idleSignOutMinutes !== current.idleSignOutMinutes;
+        if (pinOnlyChanges || idleChanges) await app.requirePassword(request, reply);
+      }
+      const row = await kitchen.updateKitchen(body);
       if (!row) throw ApiError.notFound('This kitchen');
       return describeKitchen(row);
     },

@@ -82,6 +82,16 @@ describe('an administrator signed in with a PIN', () => {
     expect(
       (await as(byPin, 'PATCH', '/api/kitchen', { name: 'The Test Kitchen' })).statusCode,
     ).toBe(200);
+    // The settings form sends the sign-in fields every time; unchanged, they're fine.
+    expect(
+      (
+        await as(byPin, 'PATCH', '/api/kitchen', {
+          name: 'The Test Kitchen',
+          pinOnly: false,
+          idleSignOutMinutes: null,
+        })
+      ).statusCode,
+    ).toBe(200);
   });
 
   it('is asked for the password for anything that touches security', async () => {
@@ -98,6 +108,9 @@ describe('an administrator signed in with a PIN', () => {
       ['POST', '/api/auth/devices', { name: 'Another tablet' }],
       ['PUT', '/api/connection', { outsideDomain: 'mise.example.com' }],
       ['PUT', '/api/connection/kitchen-https', { names: ['192.168.1.50'] }],
+      // How people sign in, not just what the kitchen is called.
+      ['PATCH', '/api/kitchen', { pinOnly: true }],
+      ['PATCH', '/api/kitchen', { idleSignOutMinutes: 5 }],
     ];
     for (const [method, url, payload] of security) {
       const response = await as(byPin, method, url, payload);
