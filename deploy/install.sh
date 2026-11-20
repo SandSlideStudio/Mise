@@ -94,11 +94,15 @@ else
   session_secret="$(random_secret)"
   db_password="$(random_secret)"
   setup_code="$(random_secret | cut -c1-24)"
-  sed -e "s/^SESSION_SECRET=.*/SESSION_SECRET=$session_secret/" \
-      -e "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$db_password/" \
-      -e "s/^SETUP_TOKEN=.*/SETUP_TOKEN=$setup_code/" \
-      .env.example > .env
-  chmod 600 .env
+  # Made readable by this user alone from the start, not only once written:
+  # anyone else on this machine could otherwise read the secrets in between.
+  (
+    umask 077
+    sed -e "s/^SESSION_SECRET=.*/SESSION_SECRET=$session_secret/" \
+        -e "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=$db_password/" \
+        -e "s/^SETUP_TOKEN=.*/SETUP_TOKEN=$setup_code/" \
+        .env.example > .env
+  )
   rm .env.example
   say "Wrote .env with new secrets. Keep it safe, and back it up with your data."
 fi
