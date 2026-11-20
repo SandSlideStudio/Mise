@@ -204,14 +204,53 @@ describe('the dish card matrix', () => {
     expect(matrix.dish.vegan).toBe('no');
   });
 
-  it('adds no row when the ingredients on the dish say nothing new', () => {
-    const dish = recipe('dish', [sub('Zwarte Knoflook Puree'), ing('black-garlic'), ing('corn')]);
+  it('adds no row when the ingredients on the dish carry no allergen', () => {
+    const dish = recipe('dish', [sub('Zwarte Knoflook Puree'), ing('corn'), ing('oat-cream')]);
     expect(unwrap(dishCardMatrix('dish', bookWith(dish))).other).toBeNull();
   });
 
-  it('does not repeat a may-contain that a row already contains', () => {
+  /**
+   * Found walking through the app: butter on a dish whose sauce already had
+   * milk left the "other" row off, since milk was on the card already. Front
+   * of house reading "no sauce" then read "no milk", with butter on the plate.
+   */
+  it('shows an allergen on the dish itself even when a sub-recipe has it too', () => {
+    const sauce = recipe('Beurre blanc', [ing('butter'), ing('corn')]);
+    const dish = recipe('dish', [sub('Beurre blanc'), ing('butter')]);
+    const matrix = unwrap(dishCardMatrix('dish', bookWith(dish, [sauce])));
+    expect(matrix.rows[0]!.allergens.contains).toEqual(['milk']);
+    expect(matrix.other?.allergens.contains).toEqual(['milk']);
+    expect(matrix.other?.vegan).toBe('no');
+  });
+
+  it('lists every allergen on the dish itself, not only the ones the rows lack', () => {
+    const dish = recipe('dish', [
+      sub('Zwarte Knoflook Puree'),
+      ing('black-garlic'),
+      ing('hazelnut'),
+    ]);
+    const matrix = unwrap(dishCardMatrix('dish', bookWith(dish)));
+    expect(matrix.other?.allergens.contains).toEqual(['nuts', 'sulphites']);
+  });
+
+  it('shows a may-contain declared on the dish even when a row contains it', () => {
     const dish = recipe('dish', [sub('Zwarte Knoflook Puree')], { mayContain: ['sulphites'] });
-    expect(unwrap(dishCardMatrix('dish', bookWith(dish))).other).toBeNull();
+    const matrix = unwrap(dishCardMatrix('dish', bookWith(dish)));
+    expect(matrix.other?.allergens).toEqual({ contains: [], mayContain: ['sulphites'] });
+    // The whole dish still says contains, which outranks may contain.
+    expect(matrix.dish.allergens).toEqual({ contains: ['sulphites'], mayContain: [] });
+  });
+
+  it('writes what is declared on the dish the way every other row is written', () => {
+    const dish = recipe('dish', [sub('Mais Crème')], {
+      declaredAllergens: ['sulphites', 'eggs'],
+      mayContain: ['eggs', 'sesame'],
+    });
+    const matrix = unwrap(dishCardMatrix('dish', bookWith(dish)));
+    expect(matrix.other?.allergens).toEqual({
+      contains: ['eggs', 'sulphites'],
+      mayContain: ['sesame'],
+    });
   });
 
   it('shows the may-contain of an ingredient straight on the dish', () => {

@@ -515,6 +515,28 @@ describe('the dish card matrix', () => {
             gluten: nameSet(shown.flatMap((r) => r.details.gluten)),
             nuts: nameSet(shown.flatMap((r) => r.details.nuts)),
           }).toEqual(referenceDetails(kitchen.book, dishId));
+          // What sits directly on the dish is a row of its own whenever it
+          // carries an allergen, all of them, whatever the sub-recipes have
+          // already: "no jus" must never be read as "no milk" with butter on
+          // the plate as well.
+          const ownContains = new Set<Allergen>(dish.declaredAllergens ?? []);
+          const ownMay = new Set<Allergen>(dish.mayContain ?? []);
+          for (const component of dish.components) {
+            if (component.ref.kind !== 'ingredient') continue;
+            const ingredient = kitchen.book.ingredient(component.ref.ingredientId)!;
+            ingredient.allergens.forEach((a) => ownContains.add(a));
+            (ingredient.mayContain ?? []).forEach((a) => ownMay.add(a));
+          }
+          const own = {
+            contains: ALLERGENS.filter((a) => ownContains.has(a)),
+            mayContain: ALLERGENS.filter((a) => ownMay.has(a) && !ownContains.has(a)),
+          };
+          if (own.contains.length + own.mayContain.length > 0) {
+            expect(matrix.other?.allergens).toEqual(own);
+          } else if (matrix.other) {
+            expect(matrix.other.allergens).toEqual(own);
+          }
+
           // Never every row vegan on a dish that isn't. (The "other" row only
           // speaks for what sits directly in the dish, so it is left aside.)
           if (

@@ -64,6 +64,10 @@ staff data, and a stack of smaller fixes.
   say) now counts as not vegan, on its dish card row and in every recipe it goes into, instead
   of "not said". Found by checking thousands of made-up kitchens against a plain walk through
   each recipe.
+- The dish card's allergen table always shows its **Other ingredients in the dish** row when
+  something put straight on the dish, or declared on it, carries an allergen, with all of them.
+  It used to leave the row off when a sub-recipe already had that allergen, so with butter on a
+  dish whose jus has milk too, front of house reading "no jus" would have thought "no milk".
 - **Print allergen notice** (on Dishes and the menu overview) gives a sheet for guests, A4 or A5,
   in the kitchen's language and English: "Allergies or intolerances? Ask our staff." In the
   Netherlands, allergens may only be told to guests by word of mouth when such a notice is up.
