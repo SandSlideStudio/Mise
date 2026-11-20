@@ -147,6 +147,16 @@ staff data, and a stack of smaller fixes.
   try four more, until a chef's PIN came up.
 - Sign-in no longer tells a stranger which email addresses have an account: guessing at a made-up
   one now locks after the same number of tries as a real one.
+- Giving someone a PIN no longer lets a chef find out other people's PINs one "already taken" at a
+  time: after five, Mise asks them to wait.
+- Turning PIN-only sign-in or idle sign-out on or off needs a password sign-in, like the other
+  settings that decide who gets in.
+- A recipe tree built to double at every level can no longer run the server out of memory; it is
+  refused instead.
+- A backup can no longer, once restored, make deleting a photo remove a file outside the upload
+  folder, or unpack into more memory than a kitchen could ever need.
+- A change resent with the same id as another one is no longer answered with that other one's
+  result.
 
 **Under the hood**
 
