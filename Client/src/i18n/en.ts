@@ -1636,6 +1636,8 @@ export const en = {
   'personData.labelChecks': 'Labels checked at delivery',
   // A number that can't be read, under the box it was typed in.
   'number.notNumber': 'Not a number. Write it like {example}.',
+  'number.ambiguous':
+    '{whole} or {decimal}? Write {whole} for the first, {decimal} for the second.',
   'number.grouped':
     'Leave out the thousands separator, and use one comma or point for the decimals: {example}.',
   'number.whole': 'A whole number, please.',

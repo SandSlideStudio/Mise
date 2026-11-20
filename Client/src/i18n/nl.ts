@@ -1677,6 +1677,8 @@ export const nl: Record<MessageKey, string> = {
   'personData.labelChecks': 'Etiketten gecontroleerd bij levering',
   // Een getal dat niet te lezen is, onder het vak waarin het staat.
   'number.notNumber': 'Geen getal. Schrijf het zoals {example}.',
+  'number.ambiguous':
+    '{whole} of {decimal}? Schrijf {whole} voor het eerste, {decimal} voor het tweede.',
   'number.grouped':
     'Laat de punt voor duizendtallen weg en gebruik één komma of punt voor de decimalen: {example}.',
   'number.whole': 'Alleen een heel getal.',

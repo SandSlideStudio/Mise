@@ -28,6 +28,7 @@ export interface NumberRules {
 export type NumberProblem =
   | { kind: 'notNumber' }
   | { kind: 'grouped' }
+  | { kind: 'ambiguous'; whole: number; decimal: number }
   | { kind: 'whole' }
   | { kind: 'atLeast'; min: number }
   | { kind: 'moreThan'; min: number }
@@ -56,6 +57,22 @@ export function readNumber(text: string, rules: NumberRules = {}): TypedNumber {
     return {
       value: null,
       problem: { kind: GROUPED.test(cleaned) ? 'grouped' : 'notNumber' },
+    };
+  }
+  // "1.250" or "1,250": a thousand and a quarter where a point groups
+  // thousands, one and a quarter where it marks decimals. Guessing either way
+  // makes a price or an amount a thousand times off without anyone seeing,
+  // so it is asked instead. "0,250" can only mean a quarter.
+  const ambiguous = /^-?([1-9]\d{0,2})[.,](\d{3})$/.exec(cleaned);
+  if (ambiguous) {
+    const [, head, tail] = ambiguous as unknown as [string, string, string];
+    return {
+      value: null,
+      problem: {
+        kind: 'ambiguous',
+        whole: Number(head + tail),
+        decimal: Number(`${head}.${tail}`),
+      },
     };
   }
   const value = Number(cleaned.replace(',', '.'));
@@ -99,6 +116,11 @@ export function problemText(translator: Translator, problem: NumberProblem): str
       return t('number.notNumber', { example: numberText(9.8, locale) });
     case 'grouped':
       return t('number.grouped', { example: numberText(1250.5, locale) });
+    case 'ambiguous':
+      return t('number.ambiguous', {
+        whole: numberText(problem.whole, locale),
+        decimal: numberText(problem.decimal, locale),
+      });
     case 'whole':
       return t('number.whole');
     case 'atLeast':

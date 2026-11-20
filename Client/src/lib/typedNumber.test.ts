@@ -15,9 +15,14 @@ describe('reading a number as a kitchen types it', () => {
   });
 
   it('reads one separator as the decimals, never as thousands', () => {
-    // The rule, not a guess: "1.250" is one and a quarter, in every language.
-    expect(value('1.250')).toBe(1.25);
-    expect(value('1,250')).toBe(1.25);
+    // "1.250" could be a thousand and a quarter or one and a quarter: asked,
+    // never guessed, or a price is a thousand times off. "0,250" can't be.
+    expect(value('1.250')).toBeNull();
+    expect(value('1,250')).toBeNull();
+    expect(problem('12.500')).toBe('ambiguous');
+    expect(value('0,250')).toBe(0.25);
+    expect(value('1,25')).toBe(1.25);
+    expect(value('1.2500')).toBe(1.25);
   });
 
   it('lets spaces and a currency sign go', () => {

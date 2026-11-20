@@ -1692,6 +1692,8 @@ export const de: Record<MessageKey, string> = {
   'personData.labelChecks': 'Bei der Lieferung geprüfte Etiketten',
   // Eine Zahl, die sich nicht lesen lässt, unter dem Feld, in dem sie steht.
   'number.notNumber': 'Keine Zahl. Schreib sie so: {example}.',
+  'number.ambiguous':
+    '{whole} oder {decimal}? Schreibe {whole} für das Erste, {decimal} für das Zweite.',
   'number.grouped':
     'Lass das Tausendertrennzeichen weg und nimm ein Komma oder einen Punkt für die Nachkommastellen: {example}.',
   'number.whole': 'Bitte eine ganze Zahl.',

@@ -1674,6 +1674,8 @@ export const es: Record<MessageKey, string> = {
   'personData.labelChecks': 'Etiquetas revisadas en la entrega',
   // Un número que no se puede leer, bajo la casilla donde se escribió.
   'number.notNumber': 'No es un número. Escríbelo así: {example}.',
+  'number.ambiguous':
+    '¿{whole} o {decimal}? Escribe {whole} para lo primero y {decimal} para lo segundo.',
   'number.grouped':
     'Sin separador de miles, con una sola coma o un solo punto para los decimales: {example}.',
   'number.whole': 'Solo un número entero.',

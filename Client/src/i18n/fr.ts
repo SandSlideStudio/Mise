@@ -1698,6 +1698,8 @@ export const fr: Record<MessageKey, string> = {
   'personData.labelChecks': 'Étiquettes vérifiées à la livraison',
   // Un nombre illisible, sous la case où il a été saisi.
   'number.notNumber': 'Ce n’est pas un nombre. Écrivez-le ainsi : {example}.',
+  'number.ambiguous':
+    '{whole} ou {decimal} ? Écrivez {whole} pour le premier, {decimal} pour le second.',
   'number.grouped':
     'Sans séparateur de milliers, avec une seule virgule ou un seul point pour les décimales : {example}.',
   'number.whole': 'Un nombre entier, s’il vous plaît.',
