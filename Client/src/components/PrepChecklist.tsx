@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { ChecklistItem, Quantity, RecipeSummary, Station } from '@mise/contracts';
 import { ALL_UNITS, formatQuantity, unit as unitDef, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
@@ -53,6 +53,7 @@ function Panel() {
   const stations = useStations();
   const add = useAddFromChecklist();
   const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const [editing, setEditing] = useState(false);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
   // Asking how much is there of the ticked items with a par, before they go on.
@@ -83,6 +84,11 @@ function Panel() {
           // Cleared once it has gone, or been kept on the tablet to go later.
           setTicked(new Set());
           setCounting(false);
+          // Folded away, so the lines just added are in view on a tablet
+          // instead of below the whole checklist. The keyboard's place goes to
+          // the button that opens it again, not lost with the button it was on.
+          setOpen(false);
+          toggleRef.current?.focus();
           setOutcome(
             isQueued(result)
               ? { kind: 'queued' }
@@ -99,6 +105,21 @@ function Panel() {
     );
   }
 
+  const said =
+    outcome && !add.isPending
+      ? outcome.kind === 'queued'
+        ? t('checklist.queued')
+        : [
+            outcome.added > 0 ? plural('checklist.added', outcome.added) : t('checklist.addedNone'),
+            outcome.alreadyThere > 0
+              ? plural('checklist.alreadyThere', outcome.alreadyThere)
+              : null,
+            ...outcome.enough.map((name) => t('checklist.enough', { name })),
+          ]
+            .filter(Boolean)
+            .join(' ')
+      : null;
+
   /** Straight on, unless something ticked has a par: then first ask what is there. */
   function onAdd() {
     if (withPar.length > 0) {
@@ -111,6 +132,7 @@ function Panel() {
     <section data-tour="checklist" className="no-print border-line bg-surface border-b-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-7">
         <button
+          ref={toggleRef}
           type="button"
           aria-expanded={open}
           onClick={() => setOpen(!open)}
@@ -119,7 +141,13 @@ function Panel() {
           {t('checklist.title')}
           <span aria-hidden>{open ? '▴' : '▾'}</span>
         </button>
-        {!open ? <span className="text-ink-soft text-[15px]">{t('checklist.hint')}</span> : null}
+        {open ? null : said ? (
+          <p role="status" className="text-ink-soft text-base">
+            {said}
+          </p>
+        ) : (
+          <span className="text-ink-soft text-[15px]">{t('checklist.hint')}</span>
+        )}
       </div>
 
       {open && !editing && counting && withPar.length > 0 ? (
@@ -187,21 +215,9 @@ function Panel() {
               {errorMessage(translator, add.error)}
             </p>
           ) : null}
-          {outcome && !add.isPending ? (
+          {said ? (
             <p role="status" className="text-ink-soft mt-2 text-base">
-              {outcome.kind === 'queued'
-                ? t('checklist.queued')
-                : [
-                    outcome.added > 0
-                      ? plural('checklist.added', outcome.added)
-                      : t('checklist.addedNone'),
-                    outcome.alreadyThere > 0
-                      ? plural('checklist.alreadyThere', outcome.alreadyThere)
-                      : null,
-                    ...outcome.enough.map((name) => t('checklist.enough', { name })),
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+              {said}
             </p>
           ) : null}
         </div>
@@ -398,8 +414,16 @@ function Editor({
       ...draft.filter((item) => item.id !== id),
       ...draft.filter((item) => item.id === id).map((item) => ({ ...item, stationId })),
     ]);
-  const append = (stationId: string | null, name: string) =>
-    setDraft([...draft, { id: newItemId(), stationId, name, recipeId: null, par: null }]);
+  // A line named just like a recipe in the book is that recipe: linked at
+  // once, so the chef does not have to find it a second time.
+  const append = (stationId: string | null, name: string) => {
+    const same = name.trim().toLocaleLowerCase();
+    const recipeId =
+      (recipes.data ?? []).find(
+        (recipe) => recipe.status !== 'archived' && recipe.name.trim().toLocaleLowerCase() === same,
+      )?.id ?? null;
+    setDraft([...draft, { id: newItemId(), stationId, name, recipeId, par: null }]);
+  };
   const link = (id: string, recipeId: string | null) =>
     setDraft(draft.map((item) => (item.id === id ? { ...item, recipeId } : item)));
 
@@ -676,7 +700,11 @@ function RecipeLinkField({
         type="button"
         className="btn-quiet min-h-11 basis-full justify-start text-[15px]"
         aria-label={t('checklist.linkRecipeFor', { name })}
-        onClick={() => setSearching(true)}
+        onClick={() => {
+          // Start from the line's own name: usually the recipe is called the same.
+          setTyped(name);
+          setSearching(true);
+        }}
       >
         {t('checklist.linkRecipe')}
       </button>
