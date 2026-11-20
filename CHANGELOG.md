@@ -60,6 +60,10 @@ staff data, and a stack of smaller fixes.
   ingredient says when its label was last checked and by whom. A change a cook finds waits for a
   chef to approve it; cooks now have the Ingredients tab for this, without prices and without
   editing. Works offline.
+- A recipe with no lines of its own that declares an animal allergen (a bought-in prawn oil,
+  say) now counts as not vegan, on its dish card row and in every recipe it goes into, instead
+  of "not said". Found by checking thousands of made-up kitchens against a plain walk through
+  each recipe.
 - **Print allergen notice** (on Dishes and the menu overview) gives a sheet for guests, A4 or A5,
   in the kitchen's language and English: "Allergies or intolerances? Ask our staff." In the
   Netherlands, allergens may only be told to guests by word of mouth when such a notice is up.
