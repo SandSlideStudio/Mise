@@ -1,7 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
-import { OFFLINE_BUNDLE_FORMAT, type OfflineBundle, type Recipe } from '@mise/contracts';
+import {
+  OFFLINE_BUNDLE_FORMAT,
+  unpackOfflineBundle,
+  type OfflineBundle,
+  type Recipe,
+} from '@mise/contracts';
 import { markReachable } from '../lib/connectivity.js';
 import { add } from '../lib/outbox.js';
 import { forgetKept, loadAhead } from './offline.js';
@@ -270,5 +275,85 @@ describe('loading ahead', () => {
     expect(queryClient.getQueryData(['dish-card', 'gone'])).toBeUndefined();
     expect(queryClient.getQueryData(['recipe', 'gone'])).toBeUndefined();
     expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual(recipe);
+  });
+});
+
+/** A stand-in for the browser's Worker that unpacks as the real one does, a moment later. */
+function workerThat(before: () => void = () => undefined) {
+  const ended: boolean[] = [];
+  class FakeWorker extends EventTarget {
+    private at = ended.push(false) - 1;
+    postMessage(message: OfflineBundle) {
+      const sent = structuredClone(message);
+      setTimeout(() => {
+        before();
+        const data = structuredClone({ entries: unpackOfflineBundle(sent) });
+        this.dispatchEvent(new MessageEvent('message', { data }));
+      }, 0);
+    }
+    terminate() {
+      ended[this.at] = true;
+    }
+  }
+  vi.stubGlobal('Worker', FakeWorker);
+  return ended;
+}
+
+const edit = () =>
+  add({
+    id: 'recipe-000000002',
+    userId: 'user-1',
+    method: 'PATCH',
+    path: '/recipes/r1',
+    body: { name: 'Edited offline' },
+    label: { key: 'offline.label.recipe' },
+  });
+
+describe('loading ahead with a worker', () => {
+  it('fills the same keys from the worker’s answer, and ends the worker', async () => {
+    const ended = workerThat();
+    const queryClient = new QueryClient();
+    await loadAhead(queryClient, 'user-1');
+    expect(ended).toEqual([true]);
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual(recipe);
+    expect(queryClient.getQueryData(['recipe-expanded', 'r1', {}])).toMatchObject({ factor: 1 });
+    expect(queryClient.getQueryData(['tasks', 'running'])).toEqual([]);
+    expect(queryClient.getQueryData(['loaded-version'])).toBe(version);
+  });
+
+  it('leaves alone an edit made while the worker was at it, and loads again later', async () => {
+    workerThat(edit);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['dish-card', 'gone'], { name: 'Old card' });
+    await new Promise((resolve) => setTimeout(resolve, 5));
+    await loadAhead(queryClient, 'user-1');
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toBeUndefined();
+    expect(queryClient.getQueryData(['dish-card', 'gone'])).toEqual({ name: 'Old card' });
+    expect(queryClient.getQueryData(['loaded-version'])).toBeUndefined();
+  });
+
+  it('gives the page breathers, and stops at an edit made during one', async () => {
+    workerThat();
+    // Time running fast, so every answer is a slice of its own.
+    let now = Date.now();
+    vi.spyOn(Date, 'now').mockImplementation(() => (now += 10));
+    const idle = vi.fn((done: () => void) => {
+      if (idle.mock.calls.length === 2) edit();
+      setTimeout(done, 0);
+    });
+    vi.stubGlobal('requestIdleCallback', idle);
+    const queryClient = new QueryClient();
+    queryClient.setQueryData(['dish-card', 'gone'], { name: 'Old card' });
+    try {
+      await loadAhead(queryClient, 'user-1');
+    } finally {
+      vi.mocked(Date.now).mockRestore();
+    }
+    expect(idle).toHaveBeenCalledTimes(2);
+    // The first slices went in; the rest, and letting go, wait for the next round.
+    expect(queryClient.getQueryData(['stations'])).toEqual([]);
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toBeUndefined();
+    expect(queryClient.getQueryData(['dish-card', 'gone'])).toEqual({ name: 'Old card' });
+    expect(queryClient.getQueryData(['loaded-version'])).toBeUndefined();
   });
 });

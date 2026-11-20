@@ -17,6 +17,10 @@ const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   // No inline scripts at all: the one pre-paint script is its own file.
   "script-src 'self'",
+  // Said outright though it follows from the line above: the offline bundle
+  // is worked out in a worker, and the service worker keeps the app, both
+  // files of Mise's own.
+  "worker-src 'self'",
   // Inline styles stay allowed: view transitions and a few computed widths set them.
   "style-src 'self' 'unsafe-inline'",
   // Photos come from the server; data: and blob: cover previews before upload.

@@ -26,6 +26,17 @@ function serviceWorker(): Plugin {
       const built = Object.keys(bundle).filter((file) => !file.endsWith('.map'));
       const fromPublic = readdirSync(new URL('./public', import.meta.url));
       const files = [...new Set([...built, ...fromPublic])].sort();
+      // A file the app starts by its address (the worker that unpacks the
+      // offline bundle) must be kept too, or that part fails offline. Such
+      // files are built with the rest; this catches one that ever isn't.
+      for (const output of Object.values(bundle)) {
+        if (output.type !== 'chunk') continue;
+        for (const [address] of output.code.matchAll(/\/assets\/[\w.-]+\.js\b/g)) {
+          if (!files.includes(address.slice(1))) {
+            this.error(`${output.fileName} starts ${address}, which sw.js would not keep`);
+          }
+        }
+      }
       const version = createHash('sha256').update(files.join('\n')).digest('hex').slice(0, 12);
       const template = readFileSync(new URL('./sw/service-worker.js', import.meta.url), 'utf8');
       const source = template

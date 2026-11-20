@@ -8,6 +8,7 @@ describe('security headers', () => {
     const response = await ctx.app.inject({ method: 'GET', url: '/api/health' });
     const csp = String(response.headers['content-security-policy']);
     expect(csp).toContain("script-src 'self'");
+    expect(csp).toContain("worker-src 'self'");
     expect(csp).toContain("frame-ancestors 'none'");
     expect(csp).not.toContain("script-src 'self' 'unsafe-inline'");
     expect(response.headers['x-content-type-options']).toBe('nosniff');

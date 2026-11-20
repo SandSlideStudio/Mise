@@ -1,12 +1,18 @@
 import { useEffect } from 'react';
-import { useQueryClient, type QueryClient, type QueryKey } from '@tanstack/react-query';
-import { OFFLINE_BUNDLE_FORMAT, unpackOfflineBundle, type OfflineBundle } from '@mise/contracts';
+import {
+  notifyManager,
+  useQueryClient,
+  type QueryClient,
+  type QueryKey,
+} from '@tanstack/react-query';
+import { OFFLINE_BUNDLE_FORMAT, type OfflineBundle } from '@mise/contracts';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { del, get, set } from 'idb-keyval';
 import { isReachable } from '../lib/connectivity.js';
 import { VERSION } from '../version.js';
 import { entriesFor } from '../lib/outbox.js';
 import { api } from './client.js';
+import { breather, unpack } from './unpack.js';
 
 /**
  * What a tablet keeps for when Mise can't be reached.
@@ -74,6 +80,12 @@ const EVERY_MS = 30 * 60 * 1000;
 const FRESH_MS = 25 * 60 * 1000;
 /** A few at a time, so a Raspberry Pi serving the kitchen doesn't notice. */
 const AT_ONCE = 3;
+/**
+ * How long the bundle's answers are put in the cache before the page gets a
+ * breather: each one wakes the screens that show it, and all of a kitchen's
+ * at once is a stutter a cook would feel.
+ */
+const SLICE_MS = 8;
 
 async function load(queryClient: QueryClient, queryKey: QueryKey, path: string, query?: object) {
   await queryClient
@@ -151,8 +163,10 @@ export async function loadAhead(queryClient: QueryClient, userId?: string): Prom
   if (bundle.format !== OFFLINE_BUNDLE_FORMAT) return;
   // Changes not sent yet are shown as made; the server's copy must not paint
   // over them. The next round, once they are sent, loads it.
-  if (queryClient.isMutating() > 0) return;
-  if (userId && entriesFor(userId).length > 0) return;
+  const editing = () => queryClient.isMutating() > 0 || (!!userId && entriesFor(userId).length > 0);
+  if (editing()) return;
+
+  const entries = await unpack(bundle);
 
   let complete = true;
   const fresher = (queryKey: QueryKey) => {
@@ -160,18 +174,30 @@ export async function loadAhead(queryClient: QueryClient, userId?: string): Prom
     return state !== undefined && state.dataUpdatedAt > started;
   };
   const inBundle = new Map<string, Set<string>>();
-  for (const [queryKey, data] of unpackOfflineBundle(bundle)) {
-    const kind = String(queryKey[0]);
-    if (PER_ITEM.has(kind)) {
-      if (!inBundle.has(kind)) inBundle.set(kind, new Set());
-      inBundle.get(kind)!.add(String(queryKey[1]));
-    }
-    // Saved while the bundle was on its way: newer than what it holds.
-    if (fresher(queryKey)) {
-      complete = false;
-      continue;
-    }
-    queryClient.setQueryData(queryKey, data);
+  for (let next = 0; next < entries.length;) {
+    // Asked again before every slice: someone may have started an edit while
+    // the bundle was being worked out, or during the last breather. Then the
+    // rest waits for the next round, and nothing is let go of on what is
+    // only part of the bundle.
+    if (editing()) return;
+    const until = Date.now() + SLICE_MS;
+    notifyManager.batch(() => {
+      do {
+        const [queryKey, data] = entries[next++]!;
+        const kind = String(queryKey[0]);
+        if (PER_ITEM.has(kind)) {
+          if (!inBundle.has(kind)) inBundle.set(kind, new Set());
+          inBundle.get(kind)!.add(String(queryKey[1]));
+        }
+        // Saved while the bundle was on its way: newer than what it holds.
+        if (fresher(queryKey)) {
+          complete = false;
+          continue;
+        }
+        queryClient.setQueryData(queryKey, data);
+      } while (next < entries.length && Date.now() < until);
+    });
+    if (next < entries.length) await breather();
   }
   // What the bundle no longer holds is gone, or no longer theirs to open
   // (cards made chefs-only): not kept for offline use either.
