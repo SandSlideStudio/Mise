@@ -66,6 +66,30 @@ describe('expandRecipe', () => {
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.error.kind).toBe('missing_recipe');
   });
+
+  it('refuses a tree that would list too many lines, rather than holding up the server', () => {
+    // Each recipe uses the next one twice: 2^30 lines if nothing stopped it.
+    const chain = Array.from({ length: 31 }, (_, level) => ({
+      id: `r-${level}`,
+      name: `Level ${level}`,
+      type: 'prep' as const,
+      yield: qty(1, 'each'),
+      components:
+        level === 30
+          ? []
+          : [0, 1].map((copy) => ({
+              id: `c-${level}-${copy}`,
+              sortOrder: copy,
+              ref: { kind: 'recipe' as const, recipeId: `r-${level + 1}` },
+              quantity: qty(1, 'each'),
+            })),
+    }));
+    const started = Date.now();
+    const result = expandRecipe('r-0', 1, createRecipeBook(chain, []));
+    expect(result.ok).toBe(false);
+    if (!result.ok) expect(result.error).toEqual({ kind: 'too_many_lines', recipeId: 'r-0' });
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
 });
 
 describe('factorFor', () => {

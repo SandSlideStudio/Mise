@@ -537,6 +537,42 @@ describe('loops', () => {
   });
 });
 
+describe('a tree too large to list', () => {
+  it('is refused quickly, and the rest of the kitchen still opens offline', async () => {
+    // Each recipe uses the next one twice: 2^24 lines if nothing stopped it.
+    let next = await addRecipe(ctx.app, admin, {
+      name: 'Level 24',
+      yield: { value: 1, unit: 'kg' },
+    });
+    for (let level = 23; level >= 0; level -= 1) {
+      next = await addRecipe(ctx.app, admin, {
+        name: `Level ${level}`,
+        yield: { value: 1, unit: 'kg' },
+        components: [0, 1].map((copy) => ({
+          sortOrder: copy,
+          quantity: { value: 1, unit: 'kg' },
+          ref: { kind: 'recipe', recipeId: next.id },
+        })),
+      });
+    }
+
+    const started = Date.now();
+    const expanded = await ctx.app.inject({
+      method: 'GET',
+      url: `/api/recipes/${next.id}/expanded`,
+      cookies: as(admin),
+    });
+    expect(expanded.statusCode).toBe(400);
+    const bundle = await ctx.app.inject({
+      method: 'GET',
+      url: '/api/offline/bundle',
+      cookies: as(admin),
+    });
+    expect(bundle.statusCode).toBe(200);
+    expect(Date.now() - started).toBeLessThan(5000);
+  });
+});
+
 describe('finding a recipe', () => {
   beforeEach(async () => {
     const flour = await addIngredient(ctx.app, admin, { name: 'Flour', allergens: ['gluten'] });
