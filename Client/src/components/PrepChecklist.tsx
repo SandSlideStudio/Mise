@@ -248,7 +248,7 @@ function OnHand({
   onSend: (onHand: Record<string, Quantity>) => void;
   onBack: () => void;
 }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [typed, setTyped] = useState<Record<string, string>>({});
 
   function onSubmit(event: FormEvent) {
@@ -275,7 +275,7 @@ function OnHand({
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="text-lg break-words">{item.name}</span>
                   <span className="text-ink-soft text-[15px]">
-                    {t('checklist.parIs', { amount: formatParAmount(par) })}
+                    {t('checklist.parIs', { amount: formatParAmount(par, locale) })}
                   </span>
                 </span>
                 <input
@@ -315,8 +315,8 @@ function OnHand({
 }
 
 /** A par as the chef set it: "3 l", "2 dz", "40". */
-export function formatParAmount(par: Quantity): string {
-  return formatQuantity({ value: par.value, unit: par.unit as UnitCode });
+export function formatParAmount(par: Quantity, locale?: string): string {
+  return formatQuantity({ value: par.value, unit: par.unit as UnitCode }, { locale });
 }
 
 /** What can be ticked: the items by station, each row a whole-row target. */

@@ -538,7 +538,10 @@ function AddRunningLine() {
                 <span className="text-ink-soft">
                   {' · '}
                   {t('addTask.makes', {
-                    amount: formatQuantity({ value: recipe.yield.value, unit: recipe.yield.unit }),
+                    amount: formatQuantity(
+                      { value: recipe.yield.value, unit: recipe.yield.unit },
+                      { locale: translator.locale },
+                    ),
                   })}
                 </span>
               ) : null}
