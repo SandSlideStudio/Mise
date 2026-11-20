@@ -67,7 +67,8 @@ export const updatePrepTaskSchema = z.object({
   /**
    * How long ago it was ticked done, for a tick made offline and sent later.
    * Measured on the device itself, so a tablet with the wrong time doesn't
-   * matter. The server never goes back past the line's creation or a day.
+   * matter. The server never goes back past the line's creation or an hour,
+   * so a ticked line always stays on the list a while after the tick arrives.
    */
   doneMsAgo: z.number().int().min(0).optional(),
 });

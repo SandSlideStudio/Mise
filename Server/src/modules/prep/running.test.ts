@@ -412,7 +412,7 @@ describe('a tick sent late', () => {
     expect(ago).toBeLessThan(51 * 60_000);
   });
 
-  it('never goes back before the line existed, or more than a day', async () => {
+  it('never goes back before the line existed, or more than an hour', async () => {
     const fresh = (await add({ description: 'Chives' })).json().task;
     const done = await tick(fresh.id, { status: 'done', doneMsAgo: 5 * 60 * 60_000 });
     // The line is seconds old, so it was done no earlier than that.
@@ -425,8 +425,45 @@ describe('a tick sent late', () => {
       .where(eq(prepTasks.id, old));
     const late = await tick(old, { status: 'done', doneMsAgo: 9 * 24 * 60 * 60_000 });
     const ago = Date.now() - Date.parse(late.json().completedAt);
-    expect(ago).toBeLessThanOrEqual(24 * 60 * 60_000 + 1_000);
-    expect(ago).toBeGreaterThan(23 * 60 * 60_000);
+    expect(ago).toBeLessThanOrEqual(60 * 60_000 + 1_000);
+    expect(ago).toBeGreaterThan(59 * 60_000);
+  });
+
+  it('cannot make a line vanish for good by being dated further back', async () => {
+    await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { tickedRetention: 'delete' },
+      cookies: as(admin),
+    });
+    const id = (await add({ description: 'Veal stock, 20 l' })).json().task.id as string;
+    // Put on the list this morning.
+    await ctx.db
+      .update(prepTasks)
+      .set({ createdAt: new Date(Date.now() - 5 * 60 * 60_000) })
+      .where(eq(prepTasks.id, id));
+
+    // Only a chef may delete a line. A cook ticks it "done a day ago" instead.
+    const cook = await signInCook();
+    const deleteAttempt = await ctx.app.inject({
+      method: 'DELETE',
+      url: `/api/tasks/${id}`,
+      cookies: as(cook),
+    });
+    expect(deleteAttempt.statusCode).toBe(403);
+    const ticked = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/tasks/${id}`,
+      payload: { status: 'done', doneMsAgo: 24 * 60 * 60_000 },
+      cookies: as(cook),
+    });
+    expect(ticked.statusCode).toBe(200);
+
+    // It is still on the chef's list, still there, and can be reopened.
+    expect((await list()).map((t) => t.id)).toContain(id);
+    const rows = await ctx.db.select().from(prepTasks).where(eq(prepTasks.id, id));
+    expect(rows).toHaveLength(1);
+    expect((await setStatus(id, 'open')).statusCode).toBe(200);
   });
 
   it('is made once, however often it is sent', async () => {

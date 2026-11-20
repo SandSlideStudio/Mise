@@ -33,8 +33,15 @@ function toBaseQuantity(quantity: { value: number; unit: string } | null | undef
   };
 }
 
-/** A tick sent late keeps its own time, but no more than a day back. */
-const DONE_AT_MAX_BACK_MS = 24 * 60 * 60 * 1000;
+/**
+ * A tick sent late keeps its own time, but no more than an hour back. Further
+ * back, a line could be ticked "two hours ago" and be gone from the list the
+ * moment the tick arrives: hidden for good, and with the kitchen deleting
+ * ticked lines, deleted, by someone who may not delete lines. Half the time a
+ * ticked line stays leaves it on the list at least an hour after the tick
+ * arrives, for a chef to see and reopen if need be.
+ */
+export const DONE_AT_MAX_BACK_MS = RUNNING_TICK_LIFETIME_MS / 2;
 
 /** Station order is how the kitchen is laid out, which is how a prep list should read. */
 const TASK_ORDER = [asc(stations.sortOrder), asc(prepTasks.sortOrder), asc(prepTasks.description)];
@@ -144,7 +151,7 @@ export function createPrepService(db: Database) {
 
   /**
    * When a tick sent late was really made: as long ago as the device says, but
-   * never before the line existed, and at most a day back.
+   * never before the line existed, and at most an hour back.
    */
   function doneTime(msAgo: number | undefined, task: { createdAt: Date }): Date {
     const now = Date.now();

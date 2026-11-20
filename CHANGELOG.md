@@ -204,6 +204,10 @@ staff data, and a stack of smaller fixes.
   sending one a byte at a time.
 - The installer writes `.env` readable by its owner alone from the first byte, and runs nothing
   from a download that was cut off halfway.
+- A cook ticking a line can no longer date the tick so far back that the line drops off the prep
+  list at once (and, where ticked lines are deleted, is gone for good). A tick sent late keeps its
+  own time up to an hour back, so the line stays on the list at least an hour for a chef to see
+  and reopen.
 
 **Under the hood**
 
