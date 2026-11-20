@@ -157,6 +157,16 @@ staff data, and a stack of smaller fixes.
   folder, or unpack into more memory than a kitchen could ever need.
 - A change resent with the same id as another one is no longer answered with that other one's
   result.
+- With `TRUST_PROXY` set, someone reaching Mise's own port through Docker's relay (IPv6, rootless
+  Docker, Podman) could name a kitchen address in a forwarding header and count as inside. Only the
+  web server named in **Settings → Connection** speaks for the relay now; Caddy from the compose
+  file works as before.
+- An outside device taken off the list stops hearing live updates at once, not only once its
+  sign-in ends. One person can hold twenty live-update streams open at most.
+- HTTPS no longer lets a request take forever to arrive, so nobody can hold connections open by
+  sending one a byte at a time.
+- The installer writes `.env` readable by its owner alone from the first byte, and runs nothing
+  from a download that was cut off halfway.
 
 **Under the hood**
 
