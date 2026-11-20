@@ -7,8 +7,19 @@ import { idSchema, quantitySchema } from './common.js';
  * book and an optional par: how much the chef wants ready.
  */
 
+/**
+ * More than any kitchen keeps of anything, in any unit: far enough for real
+ * pars, and short of numbers that turn into Infinity once converted.
+ */
+const MOST = 1_000_000;
+
+/** An amount counted in the kitchen: never negative, never absurd. */
+const countedSchema = quantitySchema.refine((q) => q.value <= MOST, {
+  message: 'That amount is too large.',
+});
+
 /** A par is an amount to have ready, so it is more than nothing. */
-export const parSchema = quantitySchema.refine((q) => q.value > 0, {
+export const parSchema = countedSchema.refine((q) => q.value > 0, {
   message: 'A par is more than nothing.',
 });
 
@@ -67,7 +78,7 @@ export const addFromChecklistSchema = z.object({
    * made. Left out altogether by tablets from before pars.
    */
   onHand: z
-    .record(idSchema, quantitySchema)
+    .record(idSchema, countedSchema)
     .refine((onHand) => Object.keys(onHand).length <= 500, {
       message: 'Too many amounts.',
     })

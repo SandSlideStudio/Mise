@@ -520,6 +520,8 @@ describe('pars', () => {
   it('are more than nothing, in a unit Mise knows', async () => {
     expect((await save([{ ...gel, par: { value: 0, unit: 'l' } }])).statusCode).toBe(400);
     expect((await save([{ ...gel, par: { value: 2, unit: 'trays' } }])).statusCode).toBe(400);
+    // Nothing a kitchen keeps, and big enough to turn into Infinity.
+    expect((await save([{ ...gel, par: { value: 1e308, unit: 'l' } }])).statusCode).toBe(400);
   });
 
   it('stay when a save leaves them out, and go when it says null', async () => {
