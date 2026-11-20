@@ -1,5 +1,5 @@
 import { randomBytes, randomUUID } from 'node:crypto';
-import { mkdir, mkdtemp, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import http from 'node:http';
 import type { AddressInfo } from 'node:net';
 import os from 'node:os';
@@ -20,7 +20,8 @@ import {
   resetDatabase,
   setUpKitchen,
 } from '../../test/harness.js';
-import { formatRecoveryKey, generateRecoveryKey } from './crypto.js';
+import { packEntries, unpackEntries, type Entry } from './archive.js';
+import { decryptChunks, formatRecoveryKey, generateRecoveryKey, writeEncrypted } from './crypto.js';
 import { BACKED_UP, NOT_BACKED_UP, restoreTables } from './data.js';
 import type * as DataModule from './data.js';
 import { isDue, problemOf } from './service.js';
@@ -1034,6 +1035,59 @@ describe('restoring safely', () => {
     } finally {
       await server.close();
       await second.client.close();
+    }
+  });
+
+  it('never lets a photo path in a backup reach a file outside the upload folder', async () => {
+    const { cookies } = await stockedKitchen();
+    const { file, key } = await backUp(cookies);
+
+    // The same backup, sealed again with its own key, its photo pointing out.
+    const original = path.join(dir, `original-${randomUUID()}`);
+    await writeFile(original, file);
+    const entries: Entry[] = [];
+    for await (const entry of unpackEntries(decryptChunks(original, key))) {
+      if (entry.name !== 'table/recipe_photo.json') entries.push(entry);
+      else {
+        const rows = JSON.parse(entry.data.toString()) as { path: string }[];
+        for (const row of rows) row.path = '../../outside.txt';
+        entries.push({ name: entry.name, data: Buffer.from(JSON.stringify(rows)), compress: true });
+      }
+    }
+    const crafted = path.join(dir, `crafted-${randomUUID()}`);
+    await writeEncrypted(crafted, key, packEntries(entries));
+
+    const second = await emptyServer();
+    try {
+      const outside = path.join(second.uploads, '../../outside.txt');
+      await writeFile(outside, 'not a photo');
+      expect((await restore(second.app, await readFile(crafted), key)).statusCode).toBe(200);
+      const signIn = await second.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password: ADMIN.password },
+      });
+      const restoredCookies = { mise_session: cookieFrom(signIn, 'mise_session')! };
+      const list = await second.app.inject({
+        method: 'GET',
+        url: '/api/recipes',
+        cookies: restoredCookies,
+      });
+      const recipe = await second.app.inject({
+        method: 'GET',
+        url: `/api/recipes/${list.json()[0].id}`,
+        cookies: restoredCookies,
+      });
+      const [photo] = recipe.json().photos;
+      const removed = await second.app.inject({
+        method: 'DELETE',
+        url: `/api/photos/${photo.id}`,
+        cookies: restoredCookies,
+      });
+      expect(removed.statusCode).toBe(204);
+      expect((await stat(outside)).isFile()).toBe(true);
+    } finally {
+      await second.close();
     }
   });
 });
