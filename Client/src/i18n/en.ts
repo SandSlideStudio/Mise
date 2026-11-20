@@ -1112,7 +1112,7 @@ export const en = {
   'error.noDomain': 'Set the address from outside first.',
   'offline.title': 'Offline.',
   'offline.body':
-    'Mise can’t be reached since {time}. This shows what this device had, and changes are kept here until Mise answers again.',
+    'Mise hasn’t answered since {time}. This shows what this device had, and changes are kept here until Mise answers again.',
   'offline.waiting_one': '1 change is waiting.',
   'offline.waiting_other': '{count} changes are waiting.',
   'offline.sending_one': 'Sending 1 change made while offline…',
