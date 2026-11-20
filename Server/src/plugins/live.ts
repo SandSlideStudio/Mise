@@ -3,6 +3,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import type { ServerResponse } from 'node:http';
 import { ApiError } from '../lib/errors.js';
+import { ACCESS_COOKIE } from '../modules/access/service.js';
 import { SESSION_COOKIE } from './auth.js';
 
 /**
@@ -173,13 +174,19 @@ const livePlugin: FastifyPluginAsync = async (app) => {
       raw.write(`event: change\ndata: ${JSON.stringify({ topic })}\n\n`);
     });
     const token = request.cookies[SESSION_COOKIE];
+    // Let in from outside as an approved device: that approval has to last too.
+    const device = request.remoteDevice ? request.cookies[ACCESS_COOKIE] : undefined;
     const heartbeat = setInterval(() => {
       void (async () => {
         const session = token
           ? await app.auth.resolveSession(token).catch(() => 'unknown' as const)
           : null;
-        // Signed out, removed, or tablet revoked: end it. A database hiccup isn't.
-        if (session === null) {
+        const approved = device
+          ? await app.access.approved(device).catch(() => 'unknown' as const)
+          : 'inside';
+        // Signed out, removed, tablet revoked, or the outside device taken off
+        // the list (a lost phone, say): end it. A database hiccup isn't.
+        if (session === null || approved === null) {
           raw.end();
           return;
         }
@@ -205,4 +212,4 @@ const livePlugin: FastifyPluginAsync = async (app) => {
   });
 };
 
-export default fp(livePlugin, { name: 'live', dependencies: ['auth'] });
+export default fp(livePlugin, { name: 'live', dependencies: ['auth', 'access'] });

@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { MAX_STREAMS_PER_PERSON, type LiveTopic } from './live.js';
-import { setUpKitchen, useTestContext } from '../test/harness.js';
+import { remoteDevices } from '../db/schema.js';
+import { approvedOutside, setUpKitchen, useTestContext } from '../test/harness.js';
 
 const ctx = useTestContext();
 let admin: string;
@@ -146,5 +147,37 @@ describe('live updates', () => {
     });
 
     abort.abort();
+  });
+
+  it('ends the stream of an outside device once it is taken off the list', async () => {
+    const device = await approvedOutside(ctx.app);
+    vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+    try {
+      let ended = false;
+      const stream = ctx.app
+        .inject({
+          method: 'GET',
+          url: '/api/events',
+          remoteAddress: '203.0.113.50',
+          headers: { cookie: `mise_session=${admin}; ${device}` },
+        })
+        .then((response) => {
+          ended = true;
+          return response;
+        });
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
+      // Still approved: the heartbeat keeps it open.
+      await vi.advanceTimersByTimeAsync(25_000);
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      expect(ended).toBe(false);
+
+      await ctx.db.delete(remoteDevices);
+      await vi.advanceTimersByTimeAsync(25_000);
+      await vi.waitFor(() => expect(ended).toBe(true));
+      expect((await stream).statusCode).toBe(200);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
