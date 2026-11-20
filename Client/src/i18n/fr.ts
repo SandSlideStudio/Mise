@@ -604,7 +604,7 @@ export const fr: Record<MessageKey, string> = {
   'kitchen.language': 'Langue',
   'kitchen.languageHint':
     'La langue de l’application pour ceux qui n’en ont pas choisi une. Les recettes restent exactement telles qu’elles ont été saisies.',
-  'kitchen.retention': 'Lignes disparues de la liste continue',
+  'kitchen.retention': 'Lignes cochées, une fois sorties de la liste',
   'kitchen.retentionKeep': 'Les garder dans la base de données, hors de vue',
   'kitchen.retentionDelete': 'Les supprimer pour gagner de l’espace',
   'kitchen.retentionHint':

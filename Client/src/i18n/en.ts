@@ -581,7 +581,7 @@ export const en = {
   'kitchen.language': 'Language',
   'kitchen.languageHint':
     'What the interface speaks for anyone who has not chosen their own. Recipes stay exactly as they were typed.',
-  'kitchen.retention': 'Lines gone from the running list',
+  'kitchen.retention': 'Ticked lines, once they leave the list',
   'kitchen.retentionKeep': 'Keep them in the database, out of sight',
   'kitchen.retentionDelete': 'Delete them to save space',
   'kitchen.retentionHint':

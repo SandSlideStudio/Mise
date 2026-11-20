@@ -526,7 +526,7 @@ export const de: Record<MessageKey, string> = {
   'staff.passwordTag': 'Passwort',
   'staff.locked': 'Gesperrt',
   'staff.unlock': 'Sperre aufheben',
-  'staff.namePlaceholder': 'Wie die Brigade diese Person kennt',
+  'staff.namePlaceholder': 'Rufname in der Küche',
   'staff.role': 'Rolle',
   'staff.station': 'Üblicher Posten',
   'staff.noStation': 'Kein fester Posten',
@@ -599,7 +599,7 @@ export const de: Record<MessageKey, string> = {
   'kitchen.language': 'Sprache',
   'kitchen.languageHint':
     'Die Sprache der App für alle, die keine eigene gewählt haben. Rezepte bleiben genau so, wie sie eingetippt wurden.',
-  'kitchen.retention': 'Verschwundene Zeilen der laufenden Liste',
+  'kitchen.retention': 'Abgehakte Zeilen, wenn sie von der Liste gehen',
   'kitchen.retentionKeep': 'In der Datenbank behalten, unsichtbar',
   'kitchen.retentionDelete': 'Löschen, um Speicherplatz zu sparen',
   'kitchen.retentionHint':

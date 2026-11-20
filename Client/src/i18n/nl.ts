@@ -516,7 +516,7 @@ export const nl: Record<MessageKey, string> = {
   'staff.passwordTag': 'Wachtwoord',
   'staff.locked': 'Geblokkeerd',
   'staff.unlock': 'Blokkade opheffen',
-  'staff.namePlaceholder': 'Zoals de brigade die persoon kent',
+  'staff.namePlaceholder': 'Roepnaam in de keuken',
   'staff.role': 'Rol',
   'staff.station': 'Vaste post',
   'staff.noStation': 'Geen vaste post',
@@ -589,7 +589,7 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.language': 'Taal',
   'kitchen.languageHint':
     'De taal van de app voor iedereen die zelf geen taal heeft gekozen. Recepten blijven precies zoals ze zijn ingetypt.',
-  'kitchen.retention': 'Verdwenen regels van de doorlopende lijst',
+  'kitchen.retention': 'Afgevinkte regels, als ze van de lijst gaan',
   'kitchen.retentionKeep': 'Bewaren in de database, uit het zicht',
   'kitchen.retentionDelete': 'Verwijderen om ruimte te besparen',
   'kitchen.retentionHint':

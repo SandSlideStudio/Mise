@@ -590,7 +590,7 @@ export const es: Record<MessageKey, string> = {
   'kitchen.language': 'Idioma',
   'kitchen.languageHint':
     'El idioma de la aplicación para quien no haya elegido el suyo. Las recetas se quedan tal como se escribieron.',
-  'kitchen.retention': 'Líneas que desaparecen de la lista continua',
+  'kitchen.retention': 'Líneas marcadas, cuando salen de la lista',
   'kitchen.retentionKeep': 'Guardarlas en la base de datos, fuera de la vista',
   'kitchen.retentionDelete': 'Eliminarlas para ahorrar espacio',
   'kitchen.retentionHint':
