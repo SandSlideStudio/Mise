@@ -4,6 +4,7 @@ import { OFFLINE_BUNDLE_FORMAT, unpackOfflineBundle, type OfflineBundle } from '
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { del, get, set } from 'idb-keyval';
 import { isReachable } from '../lib/connectivity.js';
+import { VERSION } from '../version.js';
 import { entriesFor } from '../lib/outbox.js';
 import { api } from './client.js';
 
@@ -136,7 +137,12 @@ export async function loadAhead(queryClient: QueryClient, userId?: string): Prom
   const started = Date.now();
   let bundle: OfflineBundle;
   try {
-    bundle = await api.get<OfflineBundle>('/offline/bundle', { format: OFFLINE_BUNDLE_FORMAT });
+    // Which app asks, so a server that has been updated meanwhile can tell it
+    // to reload rather than let it work out allergens with older code.
+    bundle = await api.get<OfflineBundle>('/offline/bundle', {
+      format: OFFLINE_BUNDLE_FORMAT,
+      app: VERSION,
+    });
   } catch {
     return;
   }

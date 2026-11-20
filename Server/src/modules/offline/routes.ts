@@ -17,6 +17,7 @@ import {
 } from '@mise/contracts';
 import { createRecipeBook, toBase } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
+import { sameRelease } from '../../lib/version.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService, serialiseSettings } from '../dishcards/service.js';
 import { createKitchenService } from '../kitchen/service.js';
@@ -237,7 +238,12 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     '/offline/bundle',
     {
       onRequest: [app.requireUser],
-      schema: { querystring: z.object({ format: z.coerce.number().int().optional() }) },
+      schema: {
+        querystring: z.object({
+          format: z.coerce.number().int().optional(),
+          app: z.string().max(40).optional(),
+        }),
+      },
     },
     async (request, reply) => {
       // An app saved on a tablet before an update asks without a format, or
@@ -248,6 +254,13 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
           410,
           'bundle_format',
           'This version of the app can’t read what the server loads ahead. Reload the app to update it.',
+        );
+      }
+      if (!sameRelease(request.query.app)) {
+        throw new ApiError(
+          410,
+          'app_outdated',
+          'This tablet runs an older version of the app. Reload it to update before it loads ahead.',
         );
       }
       const user = request.user!;
