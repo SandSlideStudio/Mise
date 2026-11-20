@@ -2,6 +2,7 @@ import { isIP } from 'node:net';
 import type { FastifyPluginAsync, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import {
+  confirmPasswordSchema,
   connectionSchema,
   errorSchema,
   kitchenHttpsSchema,
@@ -13,12 +14,17 @@ import { validKitchenName } from './certificates.js';
 import { AuthorityRefusal, CertificateFailure } from './service.js';
 import { ACME_ROUTE } from '../../plugins/access.js';
 import { ApiError } from '../../lib/errors.js';
-import { isPrivateAddress } from '../../lib/network.js';
+import { isPrivateAddress, plainAddress } from '../../lib/network.js';
 import { plainHost } from './service.js';
 
 /**
  * Settings → Connection. Administrators only: a wrong address here shuts
- * every outside device out.
+ * every outside device out. From outside the kitchen, every change here asks
+ * for the password again: who counts as inside, who reaches Mise at all and
+ * which certificate the tablets trust are no business of a signed-in phone
+ * that went missing. Refusing them from outside altogether would shut out
+ * the very kitchens these settings are for: behind a web server not trusted
+ * yet, or a container relay, everyone looks outside until they are changed.
  */
 const connectionRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
@@ -66,11 +72,11 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: updateConnectionSchema,
-        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
+        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema, 429: errorSchema },
       },
     },
     async (request) => {
-      const { outsideDomain: domain, trustedProxy: proxy } = request.body;
+      const { outsideDomain: domain, trustedProxy: proxy, trustContainerGateway } = request.body;
       // From outside, only an address that still leads back here, or the
       // very next request would get "Not found".
       if (!request.inside && domain != null && plainHost(domain) !== plainHost(request.hostname)) {
@@ -90,10 +96,18 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           'Use the address of a web server on the kitchen network, such as 192.168.1.60.',
         );
       }
+      // The form sends what it shows, so only a change counts.
+      const changes =
+        (domain !== undefined &&
+          (domain && plainHost(domain)) !== app.connection.outsideDomain()) ||
+        (proxy !== undefined && (proxy && plainAddress(proxy)) !== app.connection.trustedProxy()) ||
+        (trustContainerGateway !== undefined &&
+          trustContainerGateway !== app.connection.trustsContainerGateway());
+      if (changes) await app.outsideNeedsPassword(request, request.body.currentPassword);
       await app.connection.update({
         outsideDomain: domain,
         trustedProxy: proxy,
-        trustContainerGateway: request.body.trustContainerGateway,
+        trustContainerGateway,
       });
       return describe(request);
     },
@@ -112,7 +126,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: kitchenHttpsSchema,
-        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
+        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema, 429: errorSchema },
       },
     },
     async (request) => {
@@ -132,6 +146,7 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
           { name: outside[0] },
         );
       }
+      await app.outsideNeedsPassword(request, request.body.currentPassword);
       await app.connection.enableKitchenHttps(names, await kitchenName());
       return describe(request);
     },
@@ -141,9 +156,13 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
     '/connection/kitchen-https',
     {
       onRequest: [app.requireRole('admin'), app.requirePassword],
-      schema: { response: { 200: connectionSchema, 403: errorSchema } },
+      schema: {
+        body: confirmPasswordSchema.nullish(),
+        response: { 200: connectionSchema, 403: errorSchema, 429: errorSchema },
+      },
     },
     async (request) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       await app.connection.disableKitchenHttps();
       return describe(request);
     },
@@ -159,10 +178,18 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
     {
       onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
-        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema, 404: errorSchema },
+        body: confirmPasswordSchema.nullish(),
+        response: {
+          200: connectionSchema,
+          400: errorSchema,
+          403: errorSchema,
+          404: errorSchema,
+          429: errorSchema,
+        },
       },
     },
     async (request) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       try {
         await app.connection.replaceAuthority(await kitchenName());
       } catch (error) {
@@ -193,13 +220,15 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       // Let's Encrypt allows only a few failed tries an hour.
       config: { rateLimit: { max: 5, timeWindow: '1 hour' } },
       schema: {
-        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema },
+        body: confirmPasswordSchema.nullish(),
+        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema, 429: errorSchema },
       },
     },
     async (request) => {
       if (!app.connection.outsideDomain()) {
         throw new ApiError(400, 'no_domain', 'Set the address from outside first.');
       }
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       try {
         await app.connection.enableDomainHttps();
       } catch (error) {
@@ -217,9 +246,13 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
     '/connection/domain-https',
     {
       onRequest: [app.requireRole('admin'), app.requirePassword],
-      schema: { response: { 200: connectionSchema, 403: errorSchema } },
+      schema: {
+        body: confirmPasswordSchema.nullish(),
+        response: { 200: connectionSchema, 403: errorSchema, 429: errorSchema },
+      },
     },
     async (request) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       await app.connection.disableDomainHttps();
       return describe(request);
     },

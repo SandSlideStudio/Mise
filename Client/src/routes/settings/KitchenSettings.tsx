@@ -9,6 +9,12 @@ import {
   type TickedRetention,
 } from '@mise/contracts';
 import { useKitchen, usePinOnlyStatus, useUpdateKitchen } from '../../api/kitchen.js';
+import { useOutside } from '../../api/access.js';
+import {
+  OutsidePassword,
+  PasswordPrompt,
+  refusedForPassword,
+} from '../../components/PasswordConfirm.js';
 import { useCurrentUser } from '../../api/session.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 import { VersionSettings } from './VersionSettings.js';
@@ -76,6 +82,11 @@ export function KitchenSettings() {
   const [labelOnTick, setLabelOnTick] = useState(false);
   const [currency, setCurrency] = useState<Currency>('EUR');
   const [foodVat, setFoodVat] = useState('9');
+  const [currentPassword, setCurrentPassword] = useState('');
+  // From outside the kitchen, a new idle sign-out asks for your password again.
+  const outside = useOutside();
+  const idleChanges = kitchen.data !== undefined && idleMinutes !== kitchen.data.idleSignOutMinutes;
+  const asksPassword = (outside === true && idleChanges) || refusedForPassword(update.error);
 
   // Seed the form once the current settings arrive.
   useEffect(() => {
@@ -108,18 +119,22 @@ export function KitchenSettings() {
     const shorter =
       tickedRetention === 'keep' && keepDays !== null && (before === null || keepDays < before);
     if (shorter && !window.confirm(plural('kitchen.keepShorterConfirm', keepDays))) return;
-    update.mutate({
-      name,
-      language,
-      tickedRetention,
-      tickedKeepDays: keepDays,
-      idleSignOutMinutes: idleMinutes,
-      prepChecklist,
-      labelSize,
-      labelOnTick,
-      currency,
-      foodVatPercent: vat.value ?? 0,
-    });
+    update.mutate(
+      {
+        name,
+        language,
+        tickedRetention,
+        tickedKeepDays: keepDays,
+        idleSignOutMinutes: idleMinutes,
+        prepChecklist,
+        labelSize,
+        labelOnTick,
+        currency,
+        foodVatPercent: vat.value ?? 0,
+        ...(asksPassword && currentPassword ? { currentPassword } : {}),
+      },
+      { onSuccess: () => setCurrentPassword('') },
+    );
   }
 
   return (
@@ -289,6 +304,14 @@ export function KitchenSettings() {
           <p className="text-ink-soft mt-1.5 text-sm">{t('kitchen.idleHint')}</p>
         </div>
 
+        {asksPassword ? (
+          <OutsidePassword
+            id="kitchenCurrentPassword"
+            value={currentPassword}
+            onChange={setCurrentPassword}
+          />
+        ) : null}
+
         <div>
           <label className="label" htmlFor="kitchenLanguage">
             {t('kitchen.language')}
@@ -316,7 +339,11 @@ export function KitchenSettings() {
         {update.isSuccess ? <p className="text-ink-soft text-sm">{t('common.saved')}</p> : null}
 
         <div>
-          <button type="submit" className="btn-primary" disabled={update.isPending}>
+          <button
+            type="submit"
+            className="btn-primary"
+            disabled={update.isPending || (asksPassword && !currentPassword)}
+          >
             {update.isPending ? t('common.saving') : t('common.save')}
           </button>
         </div>
@@ -339,6 +366,11 @@ function PinOnlySettings() {
   const kitchen = useKitchen();
   const update = useUpdateKitchen();
   const isAdmin = me?.role === 'admin';
+  // From outside the kitchen, switching it asks for your password first.
+  const outside = useOutside();
+  const [asking, setAsking] = useState<boolean | null>(null);
+  const refused = refusedForPassword(update.error) ? (update.variables?.pinOnly ?? null) : null;
+  const choosing = asking ?? refused;
   // Head chefs hand the new PINs out, so they see who is waiting too.
   const status = usePinOnlyStatus(isAdmin || me?.role === 'head_chef');
 
@@ -357,13 +389,31 @@ function PinOnlySettings() {
             className="accent-accent mt-1 h-5 w-5 shrink-0"
             checked={state !== 'off'}
             disabled={!isAdmin || update.isPending}
-            onChange={(e) => update.mutate({ pinOnly: e.target.checked })}
+            onChange={(e) => {
+              if (outside === true) setAsking(e.target.checked);
+              else update.mutate({ pinOnly: e.target.checked });
+            }}
           />
           <span>
             <span className="font-medium">{t('pinOnly.label')}</span>
             <span className="text-ink-soft block text-sm">{t('pinOnly.hint')}</span>
           </span>
         </label>
+        {choosing !== null ? (
+          <PasswordPrompt
+            id="pinOnlyPassword"
+            submitLabel={t('common.save')}
+            pending={update.isPending}
+            onSubmit={(currentPassword) => {
+              setAsking(null);
+              update.mutate({ pinOnly: choosing, currentPassword });
+            }}
+            onCancel={() => {
+              setAsking(null);
+              update.reset();
+            }}
+          />
+        ) : null}
         {update.error ? (
           <p role="alert" className="text-danger text-sm">
             {errorMessage(translator, update.error)}

@@ -11,6 +11,11 @@ import {
   useReplaceKitchenAuthority,
 } from '../../api/connection.js';
 import { errorMessage, useT } from '../../i18n/index.js';
+import {
+  AskedAction,
+  OutsidePassword,
+  refusedForPassword,
+} from '../../components/PasswordConfirm.js';
 
 /**
  * HTTPS, set up from here: a certificate of Mise's own for the kitchen
@@ -63,6 +68,10 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
   const enable = useEnableKitchenHttps();
   const disable = useDisableKitchenHttps();
   const [names, setNames] = useState('');
+  // From outside the kitchen, every certificate change asks for your password again.
+  const outside = !connection.inside;
+  const [currentPassword, setCurrentPassword] = useState('');
+  const asksPassword = outside || refusedForPassword(enable.error);
 
   useEffect(() => {
     setNames(kitchen.names.length ? kitchen.names.join(', ') : suggestedNames(connection));
@@ -72,7 +81,12 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     const list = namesFrom(names);
-    if (list.length) enable.mutate({ names: list });
+    if (list.length) {
+      enable.mutate(
+        { names: list, ...(asksPassword && currentPassword ? { currentPassword } : {}) },
+        { onSuccess: () => setCurrentPassword('') },
+      );
+    }
   }
 
   const changed = namesFrom(names).join(',') !== kitchen.names.join(',');
@@ -139,10 +153,22 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
           />
           <p className="text-ink-faint mt-1.5 text-xs">{t('https.namesHint')}</p>
         </div>
+        {asksPassword ? (
+          <OutsidePassword
+            id="kitchenHttpsPassword"
+            value={currentPassword}
+            onChange={setCurrentPassword}
+          />
+        ) : null}
         <button
           type="submit"
           className={kitchen.enabled ? 'btn-quiet' : 'btn-primary'}
-          disabled={enable.isPending || !namesFrom(names).length || (kitchen.enabled && !changed)}
+          disabled={
+            enable.isPending ||
+            !namesFrom(names).length ||
+            (kitchen.enabled && !changed) ||
+            (asksPassword && !currentPassword)
+          }
         >
           {enable.isPending
             ? t('https.making')
@@ -151,14 +177,15 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
               : t('https.turnOn')}
         </button>
         {kitchen.enabled ? (
-          <button
-            type="button"
+          <AskedAction
+            id="kitchenHttpsOffPassword"
+            outside={outside}
+            error={disable.error}
+            pending={disable.isPending}
             className="btn-quiet"
-            disabled={disable.isPending}
-            onClick={() => disable.mutate(undefined)}
-          >
-            {t('https.turnOff')}
-          </button>
+            label={t('https.turnOff')}
+            onAct={(password) => disable.mutate(password)}
+          />
         ) : null}
       </form>
       <p className="text-ink-faint mt-3 text-xs">
@@ -221,14 +248,22 @@ function AuthorityReplacement({ connection }: { connection: Connection }) {
       <div className="mt-3 flex flex-wrap items-center gap-2">
         {confirming ? (
           <>
-            <button
-              type="button"
+            <AskedAction
+              id="replaceAuthorityPassword"
+              outside={!connection.inside}
+              error={replace.error}
+              pending={replace.isPending}
+              danger
               className="btn-small border-danger text-danger"
-              disabled={replace.isPending}
-              onClick={() => replace.mutate(undefined, { onSettled: () => setConfirming(false) })}
-            >
-              {replace.isPending ? t('https.replacing') : t('https.replaceAuthorityConfirm')}
-            </button>
+              label={replace.isPending ? t('https.replacing') : t('https.replaceAuthorityConfirm')}
+              onAct={(password) =>
+                replace.mutate(password, {
+                  onSettled: (_data, error) => {
+                    if (!refusedForPassword(error)) setConfirming(false);
+                  },
+                })
+              }
+            />
             <button
               type="button"
               className="btn-small"
@@ -260,6 +295,8 @@ function DomainCertificate({ connection }: { connection: Connection }) {
   const enable = useEnableDomainHttps();
   const disable = useDisableDomainHttps();
   const target = connection.outsideDomain;
+  // From outside the kitchen, with your password again.
+  const outside = !connection.inside;
 
   return (
     <div className="border-line bg-surface-raised border p-5">
@@ -298,14 +335,20 @@ function DomainCertificate({ connection }: { connection: Connection }) {
             </p>
           ) : null}
           <div>
-            <button
-              type="button"
+            <AskedAction
+              id="domainHttpsOffPassword"
+              outside={outside}
+              error={disable.error}
+              pending={disable.isPending}
               className="btn-quiet mt-2"
-              disabled={disable.isPending}
-              onClick={() => disable.mutate(undefined)}
-            >
-              {t('https.turnOff')}
-            </button>
+              label={t('https.turnOff')}
+              onAct={(password) => disable.mutate(password)}
+            />
+            {disable.error ? (
+              <p role="alert" className="text-danger mt-2 text-sm">
+                {errorMessage(translator, disable.error)}
+              </p>
+            ) : null}
           </div>
         </div>
       ) : (
@@ -324,14 +367,15 @@ function DomainCertificate({ connection }: { connection: Connection }) {
             <li>{t('https.domainStep3')}</li>
           </ol>
           <div>
-            <button
-              type="button"
+            <AskedAction
+              id="domainHttpsPassword"
+              outside={outside}
+              error={enable.error}
+              pending={enable.isPending}
               className="btn-primary"
-              disabled={enable.isPending}
-              onClick={() => enable.mutate(undefined)}
-            >
-              {enable.isPending ? t('https.asking') : t('https.getCertificate')}
-            </button>
+              label={enable.isPending ? t('https.asking') : t('https.getCertificate')}
+              onAct={(password) => enable.mutate(password)}
+            />
           </div>
           {enable.isPending ? (
             <p className="text-ink-soft text-sm" role="status">

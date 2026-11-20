@@ -44,6 +44,13 @@ declare module 'fastify' {
      * counted like a sign-in. Throws the refusal when it isn't right.
      */
     confirmOwnPassword: (request: FastifyRequest, password: string | undefined) => Promise<void>;
+    /**
+     * From outside the kitchen, the same: anything that would let a signed-in
+     * phone that went missing in for good, lock the owner out, take the
+     * kitchen's data away or lower the door asks for the password again.
+     * Inside, nothing more is asked.
+     */
+    outsideNeedsPassword: (request: FastifyRequest, password: string | undefined) => Promise<void>;
     setSessionCookie: (reply: FastifyReply, token: string, expiresAt: Date) => void;
     /** Cookies only over HTTPS: always with COOKIE_SECURE, or whenever this request came over it. */
     secureCookies: (request: FastifyRequest) => boolean;
@@ -141,6 +148,13 @@ const authPlugin: FastifyPluginAsync = async (app) => {
           lockedUntil: result.lockedUntil.toISOString(),
         });
       }
+    },
+  );
+
+  app.decorate(
+    'outsideNeedsPassword',
+    async (request: FastifyRequest, password: string | undefined) => {
+      if (!request.inside) await app.confirmOwnPassword(request, password);
     },
   );
 

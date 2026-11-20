@@ -121,9 +121,19 @@ describe('the address that leads to Mise from outside', () => {
     expect(locked.statusCode).toBe(400);
     expect(locked.json().error.code).toBe('domain_locks_you_out');
 
-    // Through the address itself, it's fine.
-    const fine = await setDomain(away, DOMAIN, OUTSIDE, DOMAIN, phone);
+    // Through the address itself, it's fine, with the password typed again.
+    const asked = await setDomain(away, DOMAIN, OUTSIDE, DOMAIN, phone);
+    expect(asked.json().error.code).toBe('wrong_password');
+    const fine = await from(OUTSIDE, DOMAIN, {
+      method: 'PUT',
+      url: '/api/connection',
+      payload: { outsideDomain: DOMAIN, currentPassword: ADMIN.password },
+      cookie: `mise_session=${away}; ${phone}`,
+    });
     expect(fine.statusCode).toBe(200);
+    // Sent back unchanged, as the form does, it asks nothing.
+    const same = await setDomain(away, DOMAIN, OUTSIDE, DOMAIN, phone);
+    expect(same.statusCode).toBe(200);
   });
 
   it('can be cleared again', async () => {
@@ -298,6 +308,34 @@ describe('behind the web server that hosts the other sites', () => {
     expect(signedIn.cookies.find((c) => c.name === 'mise_session')?.secure).toBeFalsy();
   });
 
+  it('from outside, takes the web server on only with the password typed again', async () => {
+    // Until Apache is trusted everyone through it looks outside, the
+    // administrator at home too: so it can be done from outside, not without.
+    await setUpKitchen(ctx.app);
+    const phone = await approvedOutside(ctx.app);
+    const signedIn = await viaApache('192.168.1.30', {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+      cookie: phone,
+    });
+    const cookie = `mise_session=${cookieFrom(signedIn, 'mise_session')!}; ${phone}`;
+    const put = (payload: object) =>
+      viaApache('192.168.1.30', { method: 'PUT', url: '/api/connection', payload, cookie });
+
+    const refused = await put({ trustedProxy: APACHE });
+    expect(refused.statusCode).toBe(403);
+    expect(refused.json().error.code).toBe('wrong_password');
+    const wrong = await put({ trustedProxy: APACHE, currentPassword: 'not-it' });
+    expect(wrong.json().error.code).toBe('wrong_password');
+
+    const trusted = await put({ trustedProxy: APACHE, currentPassword: ADMIN.password });
+    expect(trusted.statusCode).toBe(200);
+    expect(trusted.json().trustedProxy).toBe(APACHE);
+    const status = await viaApache('192.168.1.30', { method: 'GET', url: '/api/access/status' });
+    expect(status.json().status).toBe('inside');
+  });
+
   it('only trusts a machine on the kitchen network', async () => {
     const admin = await setUpKitchen(ctx.app);
     for (const bad of ['203.0.113.7', 'not-an-address', '999.1.1.1']) {
@@ -328,5 +366,47 @@ describe('behind the web server that hosts the other sites', () => {
     } finally {
       await again.close();
     }
+  });
+});
+
+describe('HTTPS, from outside the kitchen', () => {
+  it('asks for the password again before any certificate changes', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    await setDomain(admin, DOMAIN);
+    const phone = await approvedOutside(ctx.app);
+    const signedIn = await from(OUTSIDE, DOMAIN, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+      cookie: phone,
+    });
+    const cookie = `mise_session=${cookieFrom(signedIn, 'mise_session')!}; ${phone}`;
+    const send = (method: 'PUT' | 'POST' | 'DELETE', url: string, payload?: object) =>
+      from(OUTSIDE, DOMAIN, { method, url, payload, cookie });
+
+    for (const [method, url, payload] of [
+      ['PUT', '/api/connection/kitchen-https', { names: ['192.168.1.50'] }],
+      ['DELETE', '/api/connection/kitchen-https'],
+      ['POST', '/api/connection/kitchen-https/replace-authority'],
+      ['POST', '/api/connection/domain-https'],
+      ['DELETE', '/api/connection/domain-https'],
+    ] as const) {
+      const refused = await send(method, url, payload);
+      expect(refused.json().error?.code, `${method} ${url}`).toBe('wrong_password');
+    }
+    const off = await send('DELETE', '/api/connection/kitchen-https', {
+      currentPassword: ADMIN.password,
+    });
+    expect(off.statusCode).toBe(200);
+  });
+
+  it('inside the kitchen, asks nothing more', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const off = await from(INSIDE, 'mise.local', {
+      method: 'DELETE',
+      url: '/api/connection/domain-https',
+      cookie: `mise_session=${admin}`,
+    });
+    expect(off.statusCode).toBe(200);
   });
 });

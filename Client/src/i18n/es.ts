@@ -517,6 +517,8 @@ export const es: Record<MessageKey, string> = {
   'staff.passwordTag': 'Contraseña',
   'staff.locked': 'Bloqueado',
   'staff.unlock': 'Quitar el bloqueo',
+  'staff.ownLock':
+    'Estás bloqueado tras demasiadas contraseñas incorrectas. El bloqueo se quita solo al cabo de un rato, o puede quitarlo otro responsable. Nadie puede quitar su propio bloqueo.',
   'staff.namePlaceholder': 'Cómo se le conoce en la brigada',
   'staff.role': 'Rol',
   'staff.station': 'Partida habitual',
@@ -999,6 +1001,10 @@ export const es: Record<MessageKey, string> = {
   'confirm.whyOutside': 'Estás fuera de la cocina, así que esto vuelve a pedir tu contraseña.',
   'confirm.whySelf':
     'Para cambiar tu propia contraseña o tu correo, primero se pide tu contraseña actual.',
+  'error.ownLock':
+    'Nadie puede quitar su propio bloqueo. Espera a que caduque o pídeselo a otro responsable.',
+  'error.downloadTicket':
+    'Desde fuera de la cocina, descargar una copia de seguridad vuelve a pedir tu contraseña.',
   'error.tooManyRequests': 'Hay demasiados dispositivos esperando aprobación. Inténtalo más tarde.',
   'settings.tabConnection': 'Conexión',
   'connection.relayedTitle': 'Mise no puede saber quién está dentro de la cocina',

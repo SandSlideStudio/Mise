@@ -484,6 +484,169 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
     expect(owner.statusCode).toBe(200);
   });
 
+  it('cannot lift its own lock to keep guessing the password', async () => {
+    const { cookie } = await phone();
+    const me = await outside(cookie, { method: 'GET', url: '/api/auth/me' });
+    const myId = me.json().user.id as string;
+    const guess = (currentPassword: string) =>
+      outside(cookie, {
+        method: 'POST',
+        url: '/api/users',
+        payload: {
+          displayName: 'X',
+          role: 'admin',
+          email: 'x@evil.example',
+          password: 'thief-chosen-password',
+          currentPassword,
+        },
+      });
+    for (let round = 0; round < 3; round++) {
+      for (let i = 0; i < 5; i++) await guess(`wrong-${round}-${i}`);
+      expect((await guess(ADMIN.password)).statusCode).toBe(429);
+      for (const payload of [undefined, { currentPassword: ADMIN.password }]) {
+        const lift = await outside(cookie, {
+          method: 'POST',
+          url: `/api/users/${myId}/unlock`,
+          payload,
+        });
+        expect(lift.statusCode).toBe(403);
+        expect(lift.json().error.code).toBe('own_lock');
+      }
+    }
+    // Nor by giving yourself a new PIN.
+    await outside(cookie, { method: 'PATCH', url: `/api/users/${myId}`, payload: { pin: '7356' } });
+    expect((await guess(ADMIN.password)).statusCode).toBe(429);
+  });
+
+  it('lifts someone else’s lock, from outside only with the password', async () => {
+    const { admin, cookie } = await phone();
+    const created = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        displayName: 'Rosa',
+        role: 'head_chef',
+        email: 'r@example.com',
+        password: 'a'.repeat(12),
+      },
+      cookie: `mise_session=${admin}`,
+    });
+    const id = created.json().id as string;
+    for (let i = 0; i < 5; i++) {
+      await from(INSIDE, {
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: 'r@example.com', password: `wrong-${i}` },
+      });
+    }
+    const lift = (payload?: object) =>
+      outside(cookie, { method: 'POST', url: `/api/users/${id}/unlock`, payload });
+    expect((await lift()).json().error.code).toBe('wrong_password');
+    expect((await lift({ currentPassword: 'not-it' })).json().error.code).toBe('wrong_password');
+    expect((await lift({ currentPassword: ADMIN.password })).statusCode).toBe(200);
+  });
+
+  it('cannot remove the other managers, or their devices and tablets, without the password', async () => {
+    const { admin, laptop, session, cookie } = await phone();
+    const owner = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        displayName: 'Owner',
+        role: 'admin',
+        email: 'owner@example.com',
+        password: 'owners-own-password',
+      },
+      cookie: `mise_session=${admin}`,
+    });
+    const ownerId = owner.json().id as string;
+    const removeOwner = (payload?: object) =>
+      outside(cookie, { method: 'DELETE', url: `/api/users/${ownerId}`, payload });
+    const refused = await removeOwner();
+    expect(refused.statusCode).toBe(403);
+    expect(refused.json().error.code).toBe('wrong_password');
+
+    // The owner's own laptop, approved from inside, and someone still waiting.
+    await ask('Owner laptop', '198.51.100.30');
+    const ownersLaptop = (await list(admin)).devices.find((d) => d.name === 'Owner laptop')!;
+    await approve(admin, ownersLaptop.id);
+    await ask('Owner tablet at home', '198.51.100.31');
+    await ask('Owner phone', '198.51.100.32');
+    const devicesNow = async () => (await list(session, OUTSIDE, laptop)).devices;
+    const waiting = (await devicesNow()).find((d) => d.name === 'Owner tablet at home')!;
+    for (const id of [ownersLaptop.id, waiting.id]) {
+      const kept = await outside(cookie, { method: 'DELETE', url: `/api/access/devices/${id}` });
+      expect(kept.json().error.code).toBe('wrong_password');
+    }
+    const turnDown = await outside(cookie, {
+      method: 'POST',
+      url: '/api/access/devices/turn-down-waiting',
+      payload: {},
+    });
+    expect(turnDown.json().error.code).toBe('wrong_password');
+    expect((await devicesNow()).length).toBe(4);
+
+    // The kitchen's tablets: shutting them out, or lifting their lock.
+    const tablet = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookie: `mise_session=${admin}`,
+    });
+    const tabletId = tablet.json().id as string;
+    for (const [method, url] of [
+      ['DELETE', `/api/auth/devices/${tabletId}`],
+      ['POST', `/api/auth/devices/${tabletId}/unlock`],
+    ] as const) {
+      const kept = await outside(cookie, { method, url });
+      expect(kept.json().error.code, `${method} ${url}`).toBe('wrong_password');
+    }
+
+    // With the password, each goes ahead.
+    const withPassword = { currentPassword: ADMIN.password };
+    expect((await removeOwner(withPassword)).statusCode).toBe(204);
+    const removed = await outside(cookie, {
+      method: 'DELETE',
+      url: `/api/access/devices/${ownersLaptop.id}`,
+      payload: withPassword,
+    });
+    expect(removed.statusCode).toBe(204);
+    const turnedDown = await outside(cookie, {
+      method: 'POST',
+      url: '/api/access/devices/turn-down-waiting',
+      payload: withPassword,
+    });
+    expect(turnedDown.json().removed).toBe(2);
+    for (const [method, url] of [
+      ['POST', `/api/auth/devices/${tabletId}/unlock`],
+      ['DELETE', `/api/auth/devices/${tabletId}`],
+    ] as const) {
+      const done = await outside(cookie, { method, url, payload: withPassword });
+      expect(done.statusCode, `${method} ${url}`).toBe(204);
+    }
+  });
+
+  it('cannot switch PIN-only sign-in or the idle sign-out from outside without the password', async () => {
+    const { admin, cookie } = await phone();
+    await from(INSIDE, {
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { idleSignOutMinutes: 5 },
+      cookie: `mise_session=${admin}`,
+    });
+    const edit = (payload: object) =>
+      outside(cookie, { method: 'PATCH', url: '/api/kitchen', payload });
+    for (const change of [{ idleSignOutMinutes: null }, { pinOnly: true }]) {
+      const refused = await edit(change);
+      expect(refused.json().error?.code, JSON.stringify(change)).toBe('wrong_password');
+    }
+    // The rest of the form, with the same idle time sent back, asks nothing.
+    expect((await edit({ name: 'Chez nous', idleSignOutMinutes: 5 })).statusCode).toBe(200);
+    const off = await edit({ idleSignOutMinutes: null, currentPassword: ADMIN.password });
+    expect(off.statusCode).toBe(200);
+    expect(off.json().idleSignOutMinutes).toBeNull();
+  });
+
   it('inside the kitchen, adding staff and enrolling a tablet ask for nothing more', async () => {
     const admin = await setUpKitchen(ctx.app);
     const added = await from(INSIDE, {

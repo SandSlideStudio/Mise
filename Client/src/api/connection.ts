@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Connection, KitchenHttps, TrustInfo, UpdateConnection } from '@mise/contracts';
-import { api } from './client.js';
+import { api, withPassword } from './client.js';
 
 /** Settings → Connection: how this server is reached. Administrators only. */
 
@@ -32,15 +32,27 @@ export const useEnableKitchenHttps = () =>
   useConnectionChange((input: KitchenHttps) =>
     api.put<Connection>('/connection/kitchen-https', input),
   );
+// Each takes your password when asked again from outside the kitchen.
 export const useDisableKitchenHttps = () =>
-  useConnectionChange(() => api.delete<Connection>('/connection/kitchen-https'));
+  useConnectionChange((currentPassword?: string) =>
+    api.delete<Connection>('/connection/kitchen-https', withPassword(currentPassword)),
+  );
 /** A new, limited authority in place of one from before 2.2.2. Every tablet trusts it again. */
 export const useReplaceKitchenAuthority = () =>
-  useConnectionChange(() => api.post<Connection>('/connection/kitchen-https/replace-authority'));
+  useConnectionChange((currentPassword?: string) =>
+    api.post<Connection>(
+      '/connection/kitchen-https/replace-authority',
+      withPassword(currentPassword),
+    ),
+  );
 export const useEnableDomainHttps = () =>
-  useConnectionChange(() => api.post<Connection>('/connection/domain-https'));
+  useConnectionChange((currentPassword?: string) =>
+    api.post<Connection>('/connection/domain-https', withPassword(currentPassword)),
+  );
 export const useDisableDomainHttps = () =>
-  useConnectionChange(() => api.delete<Connection>('/connection/domain-https'));
+  useConnectionChange((currentPassword?: string) =>
+    api.delete<Connection>('/connection/domain-https', withPassword(currentPassword)),
+  );
 
 /** For the trust page, before anyone signs in. */
 export function useTrustInfo() {

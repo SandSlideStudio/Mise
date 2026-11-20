@@ -130,6 +130,11 @@ export const updateKitchenSchema = z.object({
   labelOnTick: z.boolean().optional(),
   currency: currencySchema.optional(),
   foodVatPercent: z.number().min(0).max(50).optional(),
+  /**
+   * Your own password again. Asked from outside the kitchen when PIN-only
+   * sign-in or the idle sign-out changes.
+   */
+  currentPassword: currentPasswordSchema.optional(),
 });
 
 /**

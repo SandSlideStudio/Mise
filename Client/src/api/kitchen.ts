@@ -10,7 +10,7 @@ import type {
   UpdateUser,
   User,
 } from '@mise/contracts';
-import { api } from './client.js';
+import { api, withPassword, type Confirmed } from './client.js';
 
 /** Stations, staff and the kitchen's own settings. */
 
@@ -93,7 +93,8 @@ export function useUpdateStaff() {
 export function useRemoveStaff() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/users/${id}`),
+    mutationFn: ({ id, currentPassword }: Confirmed) =>
+      api.delete<void>(`/users/${id}`, withPassword(currentPassword)),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['users'] });
       void queryClient.invalidateQueries({ queryKey: ['roster'] });
@@ -105,7 +106,8 @@ export function useRemoveStaff() {
 export function useUnlockStaff() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.post<User>(`/users/${id}/unlock`),
+    mutationFn: ({ id, currentPassword }: Confirmed) =>
+      api.post<User>(`/users/${id}/unlock`, withPassword(currentPassword)),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ['users'] });
     },
@@ -178,7 +180,8 @@ export function useEnrollDevice() {
 export function useRevokeDevice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/auth/devices/${id}`),
+    mutationFn: ({ id, currentPassword }: Confirmed) =>
+      api.delete<void>(`/auth/devices/${id}`, withPassword(currentPassword)),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['devices'] }),
   });
 }
@@ -187,7 +190,8 @@ export function useRevokeDevice() {
 export function useUnlockDevice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.post<void>(`/auth/devices/${id}/unlock`),
+    mutationFn: ({ id, currentPassword }: Confirmed) =>
+      api.post<void>(`/auth/devices/${id}/unlock`, withPassword(currentPassword)),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['devices'] }),
   });
 }

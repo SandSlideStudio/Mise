@@ -1,7 +1,7 @@
 import { useSyncExternalStore } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { AccessStatus, RemoteDevices } from '@mise/contracts';
-import { api, RequestFailed } from './client.js';
+import { api, RequestFailed, withPassword, type Confirmed } from './client.js';
 
 /** Outside access: asking from a device beyond the kitchen, and answering. */
 
@@ -75,7 +75,11 @@ export function useApproveRemoteDevice() {
 export function useTurnDownWaiting() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.post<{ removed: number }>('/access/devices/turn-down-waiting', {}),
+    mutationFn: (currentPassword?: string) =>
+      api.post<{ removed: number }>(
+        '/access/devices/turn-down-waiting',
+        withPassword(currentPassword) ?? {},
+      ),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['remote-devices'] }),
   });
 }
@@ -83,7 +87,8 @@ export function useTurnDownWaiting() {
 export function useRemoveRemoteDevice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.delete<void>(`/access/devices/${id}`),
+    mutationFn: ({ id, currentPassword }: Confirmed) =>
+      api.delete<void>(`/access/devices/${id}`, withPassword(currentPassword)),
     onSettled: () => void queryClient.invalidateQueries({ queryKey: ['remote-devices'] }),
   });
 }

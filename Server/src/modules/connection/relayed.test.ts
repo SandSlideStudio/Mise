@@ -1,6 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
+import type { InjectOptions } from 'fastify';
 import { buildApp } from '../../app.js';
-import { TEST_CONFIG, setUpKitchen, useTestContext } from '../../test/harness.js';
+import {
+  ADMIN,
+  TEST_CONFIG,
+  approvedOutside,
+  cookieFrom,
+  setUpKitchen,
+  useTestContext,
+} from '../../test/harness.js';
 
 // As in a rootless container, whose relay is 10.0.2.2.
 vi.mock('../../lib/containerGateway.js', () => ({
@@ -63,6 +71,53 @@ describe('visitors relayed by the container', () => {
 
     await set(false);
     expect(await statusFrom(RELAY)).toBe('none');
+  });
+
+  it('count as inside only with the password, when it is set from outside', async () => {
+    // Everyone comes through the relay, the administrator too, so this can be
+    // set from outside; a signed-in phone that went missing must not, or it
+    // would count as inside itself and pass every other check.
+    await setUpKitchen(ctx.app);
+    const phone = await approvedOutside(ctx.app);
+    const relayed = (options: InjectOptions & { cookie?: string }) =>
+      ctx.app.inject({
+        ...options,
+        remoteAddress: RELAY,
+        headers: {
+          host: '192.168.1.5:3000',
+          ...(options.cookie ? { cookie: options.cookie } : {}),
+        },
+      });
+    const signedIn = await relayed({
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+      cookie: phone,
+    });
+    const cookie = `mise_session=${cookieFrom(signedIn, 'mise_session')!}; ${phone}`;
+    const set = (payload: object) =>
+      relayed({ method: 'PUT', url: '/api/connection', payload, cookie });
+
+    const refused = await set({ trustContainerGateway: true });
+    expect(refused.json().error.code).toBe('wrong_password');
+    expect(await statusFrom(RELAY)).toBe('none');
+    // Nor slipped in: an administrator added from there still asks too.
+    const helper = await relayed({
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        displayName: 'Helper',
+        role: 'admin',
+        email: 'helper@evil.example',
+        password: 'thief-chosen-password',
+      },
+      cookie,
+    });
+    expect(helper.json().error.code).toBe('wrong_password');
+
+    const trusted = await set({ trustContainerGateway: true, currentPassword: ADMIN.password });
+    expect(trusted.statusCode).toBe(200);
+    expect(await statusFrom(RELAY)).toBe('inside');
   });
 
   it('leave a trusted web server on the host passing visitors on as it was', async () => {

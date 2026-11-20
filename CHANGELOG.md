@@ -218,6 +218,18 @@ staff data, and a stack of smaller fixes.
   of its choosing and let itself in as them.
 - Changing your own password or email asks for your current password first, so someone at a
   session left signed in can't lock you out of your own account.
+- Nobody can lift their own lock any more, not with "Lift the lock" and not by giving themselves a
+  new PIN. Before, a signed-in phone that went missing could lift the lock after every five wrong
+  passwords and keep guessing for as long as it liked. Another manager still can.
+- From outside the kitchen, more now asks for your password again: lifting someone's lock,
+  removing someone, turning down or taking back an outside device, revoking a tablet or lifting
+  its lock, and everything in Settings → Connection: the address from outside, the web server
+  Mise believes, counting relayed visitors as inside, and HTTPS. Before, a signed-in phone that
+  went missing could tell Mise to count itself as inside and pass every other check.
+- From outside the kitchen, the recovery key, downloading a backup, sending backups somewhere
+  else (a NAS, OneDrive) or keeping fewer, and testing a NAS ask for your password again, and so do
+  PIN-only sign-in and the idle sign-out for shared tablets. Before, a signed-in phone could carry
+  the whole kitchen off, or switch the idle sign-out off and stay.
 
 **Under the hood**
 

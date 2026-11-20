@@ -2,6 +2,7 @@ import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
+  confirmPasswordSchema,
   createStationSchema,
   createUserSchema,
   errorSchema,
@@ -64,6 +65,12 @@ function failureToError(failure: KitchenFailure): ApiError {
       );
     case 'self_lockout':
       return new ApiError(409, 'cannot_remove_self', 'You cannot remove your own account.');
+    case 'own_lock':
+      return new ApiError(
+        403,
+        'own_lock',
+        'Nobody can lift their own lock. Wait for it to run out, or ask another manager.',
+      );
     case 'no_credential':
       return new ApiError(
         400,
@@ -301,7 +308,7 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     async (request) => {
       // From outside, a signed-in phone that went missing must not be able to
       // add someone whose password it chose, and come back in as them.
-      if (!request.inside) await app.confirmOwnPassword(request, request.body.currentPassword);
+      await app.outsideNeedsPassword(request, request.body.currentPassword);
       const result = await withPinTry(request.user!.id, Boolean(request.body.pin), () =>
         kitchen.createUser(request.body, request.user!),
       );
@@ -336,25 +343,34 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
         kitchen.updateUser(request.params.id, request.body, request.user!),
       );
       if (!result.ok) throw failureToError(result.error);
-      // A new password or PIN lifts the lock wherever they were locked out.
-      if (request.body.password || request.body.pin !== undefined) {
+      // A new password or PIN lifts the lock wherever they were locked out,
+      // unless it is your own: nobody lifts their own lock.
+      const ownAccount = request.params.id === request.user!.id;
+      if (!ownAccount && (request.body.password || request.body.pin !== undefined)) {
         app.auth.forgetFailures(request.params.id);
       }
       return withLock(result.user);
     },
   );
 
-  /** Lift someone's lock, PIN and password alike, without changing either. */
+  /**
+   * Lift someone's lock, PIN and password alike, without changing either.
+   * Never your own, and from outside only with your password again: the
+   * lock is what stops a signed-in phone that went missing from guessing it.
+   */
   r.post(
     '/users/:id/unlock',
     {
       onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
       schema: {
         params: z.object({ id: idSchema }),
-        response: { 200: userSchema, 403: errorSchema, 404: errorSchema },
+        body: confirmPasswordSchema.nullish(),
+        response: { 200: userSchema, 403: errorSchema, 404: errorSchema, 429: errorSchema },
       },
     },
     async (request) => {
+      if (request.params.id === request.user!.id) throw failureToError({ kind: 'own_lock' });
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       const result = await kitchen.unlockUser(request.params.id, request.user!);
       if (!result.ok) throw failureToError(result.error);
       app.auth.forgetFailures(request.params.id);
@@ -362,17 +378,29 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
     },
   );
 
-  /** Removes someone for good. There is no list of former staff to tidy up. */
+  /**
+   * Removes someone for good. There is no list of former staff to tidy up.
+   * From outside, with your password again: removing the other managers
+   * would leave a signed-in phone that went missing the only one left.
+   */
   r.delete(
     '/users/:id',
     {
       onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
       schema: {
         params: z.object({ id: idSchema }),
-        response: { 204: z.null(), 403: errorSchema, 404: errorSchema, 409: errorSchema },
+        body: confirmPasswordSchema.nullish(),
+        response: {
+          204: z.null(),
+          403: errorSchema,
+          404: errorSchema,
+          409: errorSchema,
+          429: errorSchema,
+        },
       },
     },
     async (request, reply) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       const result = await kitchen.deleteUser(request.params.id, request.user!);
       if (!result.ok) throw failureToError(result.error);
       app.auth.forgetFailures(request.params.id);
@@ -424,14 +452,16 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole('admin')],
       schema: {
         body: updateKitchenSchema,
-        response: { 200: kitchenSchema, 403: errorSchema, 404: errorSchema },
+        response: { 200: kitchenSchema, 403: errorSchema, 404: errorSchema, 429: errorSchema },
       },
     },
     async (request, reply) => {
       // How people sign in is changed with a password, like the rest of what
       // decides who gets in: a PIN alone may run the kitchen, not lower the
-      // door. The form sends these every time, so only a change counts.
-      const body = request.body;
+      // door. From outside, with the password typed again, or a signed-in
+      // phone that went missing could switch the idle sign-out off and stay.
+      // The form sends these every time, so only a change counts.
+      const { currentPassword, ...body } = request.body;
       const current = await kitchen.getKitchen();
       if (current) {
         const pinOnlyChanges =
@@ -439,7 +469,10 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
         const idleChanges =
           body.idleSignOutMinutes !== undefined &&
           body.idleSignOutMinutes !== current.idleSignOutMinutes;
-        if (pinOnlyChanges || idleChanges) await app.requirePassword(request, reply);
+        if (pinOnlyChanges || idleChanges) {
+          await app.requirePassword(request, reply);
+          await app.outsideNeedsPassword(request, currentPassword);
+        }
       }
       const row = await kitchen.updateKitchen(body);
       if (!row) throw ApiError.notFound('This kitchen');

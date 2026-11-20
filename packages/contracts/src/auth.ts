@@ -47,6 +47,17 @@ export const passwordSchema = z
 export const currentPasswordSchema = z.string().max(200);
 
 /**
+ * The body of an action that, from outside the kitchen, asks for your own
+ * password again first: lifting a lock, removing someone or a device, the
+ * recovery key, where backups go, how Mise decides who is inside. Inside the
+ * kitchen it may be left out, body and all.
+ */
+export const confirmPasswordSchema = z.object({
+  currentPassword: currentPasswordSchema.optional(),
+});
+export type ConfirmPassword = z.infer<typeof confirmPasswordSchema>;
+
+/**
  * A shared tablet that signs out when left alone tells the server it is in
  * use at most this often while someone is touching it, so the server, which
  * signs out a tablet it has not heard from, never signs out someone at work.

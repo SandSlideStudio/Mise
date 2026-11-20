@@ -101,7 +101,7 @@ describe('an administrator signed in with a PIN', () => {
       payload?: object,
     ][] = [
       ['GET', '/api/backups'],
-      ['GET', '/api/backups/key'],
+      ['POST', '/api/backups/key'],
       ['POST', '/api/backups/run'],
       ['POST', '/api/users', { displayName: 'Sam', role: 'cook', pin: '1234' }],
       ['PATCH', `/api/users/${adminId}`, { pin: '9999' }],

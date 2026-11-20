@@ -26,13 +26,22 @@ const kitchen = {
 } satisfies Kitchen;
 
 let patches: Record<string, unknown>[];
+/** Where this device is, as the server says. */
+let where: 'inside' | 'approved';
 
 beforeEach(() => {
   patches = [];
+  where = 'inside';
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (_url: string, init?: RequestInit) => {
+    vi.fn(async (url: string, init?: RequestInit) => {
       if (init?.method === 'PATCH') patches.push(JSON.parse(init.body as string));
+      if (url.endsWith('/access/status')) {
+        return new Response(JSON.stringify({ status: where, name: null, code: null }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
       return new Response(JSON.stringify(kitchen), {
         status: 200,
         headers: { 'content-type': 'application/json' },
@@ -79,4 +88,32 @@ it('does not ask when nothing is shortened', async () => {
   fireEvent.submit(keepFor.form!);
   expect(confirm).not.toHaveBeenCalled();
   await waitFor(() => expect(patches).toHaveLength(1));
+});
+
+it('from outside the kitchen, asks for the password before the idle sign-out changes', async () => {
+  where = 'approved';
+  await showForm();
+  const idle = screen.getByLabelText(/sign out of shared tablets/i) as HTMLSelectElement;
+  fireEvent.change(idle, { target: { value: '5' } });
+  const password = await screen.findByLabelText('Your password');
+  const save = screen.getByRole('button', { name: 'Save' });
+  expect(save).toHaveProperty('disabled', true);
+  fireEvent.change(password, { target: { value: 'correct-horse-battery' } });
+  fireEvent.click(save);
+  await waitFor(() =>
+    expect(patches[0]).toMatchObject({
+      idleSignOutMinutes: 5,
+      currentPassword: 'correct-horse-battery',
+    }),
+  );
+});
+
+it('inside the kitchen, changes the idle sign-out without asking', async () => {
+  await showForm();
+  const idle = screen.getByLabelText(/sign out of shared tablets/i) as HTMLSelectElement;
+  fireEvent.change(idle, { target: { value: '5' } });
+  expect(screen.queryByLabelText('Your password')).toBeNull();
+  fireEvent.submit(idle.form!);
+  await waitFor(() => expect(patches[0]).toMatchObject({ idleSignOutMinutes: 5 }));
+  expect(patches[0]).not.toHaveProperty('currentPassword');
 });

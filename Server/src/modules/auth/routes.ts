@@ -3,6 +3,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import {
   DEFAULT_LABEL_SIZE,
+  confirmPasswordSchema,
   deviceSchema,
   enrollDeviceRequestSchema,
   enrollDeviceResponseSchema,
@@ -301,7 +302,7 @@ const authRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       // An enrolled tablet takes PINs. From outside, a signed-in phone that
       // went missing must not be enough to make one.
-      if (!request.inside) await app.confirmOwnPassword(request, request.body.currentPassword);
+      await app.outsideNeedsPassword(request, request.body.currentPassword);
       const device = await app.auth.enrollDevice(request.body.name);
       reply.setCookie(DEVICE_COOKIE, device.token, {
         httpOnly: true,
@@ -335,27 +336,39 @@ const authRoutes: FastifyPluginAsync = async (app) => {
 
   /**
    * Lift a tablet's lock after too many wrong PINs, the way a person's lock
-   * is lifted: the same people may, and with a password, not a PIN.
+   * is lifted: the same people may, with a password, not a PIN, and from
+   * outside with it typed again.
    */
   r.post(
     '/devices/:id/unlock',
     {
       onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
-      schema: { params: z.object({ id: idSchema }), response: { 204: z.null(), 403: errorSchema } },
+      schema: {
+        params: z.object({ id: idSchema }),
+        body: confirmPasswordSchema.nullish(),
+        response: { 204: z.null(), 403: errorSchema, 429: errorSchema },
+      },
     },
     async (request, reply) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       app.auth.forgetTabletFailures(request.params.id);
       return reply.status(204).send(null);
     },
   );
 
+  /** From outside, with the password again: every tablet could be shut out in one go. */
   r.delete(
     '/devices/:id',
     {
       onRequest: [app.requireRole('admin'), app.requirePassword],
-      schema: { params: z.object({ id: idSchema }), response: { 204: z.null(), 403: errorSchema } },
+      schema: {
+        params: z.object({ id: idSchema }),
+        body: confirmPasswordSchema.nullish(),
+        response: { 204: z.null(), 403: errorSchema, 429: errorSchema },
+      },
     },
     async (request, reply) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       await app.auth.revokeDevice(request.params.id);
       return reply.status(204).send(null);
     },

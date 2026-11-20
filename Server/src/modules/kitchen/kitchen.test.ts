@@ -826,6 +826,24 @@ describe('changing your own password or email', () => {
     expect(locked.json().error.code).toBe('account_locked');
   });
 
+  it('never lets you lift your own lock, not even with a new PIN of your own', async () => {
+    for (let i = 0; i < 10; i++) {
+      await editMe({ password: 'someone-elses-choice', currentPassword: 'still-guessing' });
+    }
+    const lift = await ctx.app.inject({
+      method: 'POST',
+      url: `/api/users/${await myId()}/unlock`,
+      cookies: as(admin),
+    });
+    expect(lift.statusCode).toBe(403);
+    expect(lift.json().error.code).toBe('own_lock');
+    const id = await myId();
+    expect((await editMe({ pin: '7356' })).statusCode).toBe(200);
+    // Still locked, where the guesses came from.
+    const still = await ctx.app.auth.confirmPassword(id, ADMIN.password, '127.0.0.1');
+    expect(still).toMatchObject({ lockedUntil: expect.any(Date) });
+  });
+
   it('asks nothing for your name, or for the same email sent back unchanged', async () => {
     const renamed = await editMe({ displayName: 'Auguste', email: ADMIN.email, role: 'admin' });
     expect(renamed.statusCode).toBe(200);

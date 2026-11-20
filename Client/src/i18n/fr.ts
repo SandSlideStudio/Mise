@@ -529,6 +529,8 @@ export const fr: Record<MessageKey, string> = {
   'staff.passwordTag': 'Mot de passe',
   'staff.locked': 'Bloqué',
   'staff.unlock': 'Lever le blocage',
+  'staff.ownLock':
+    'Vous êtes bloqué après trop de mots de passe erronés. Le blocage se lève tout seul au bout d’un moment, ou un autre responsable peut le lever. Personne ne peut lever son propre blocage.',
   'staff.namePlaceholder': 'Comme la brigade l’appelle',
   'staff.role': 'Rôle',
   'staff.station': 'Poste habituel',
@@ -1016,6 +1018,10 @@ export const fr: Record<MessageKey, string> = {
   'confirm.whyOutside': 'Vous êtes hors de la cuisine : votre mot de passe est redemandé.',
   'confirm.whySelf':
     'Pour changer votre propre mot de passe ou votre e-mail, votre mot de passe actuel est demandé d’abord.',
+  'error.ownLock':
+    'Personne ne peut lever son propre blocage. Attendez qu’il expire, ou demandez à un autre responsable.',
+  'error.downloadTicket':
+    'Depuis l’extérieur de la cuisine, télécharger une sauvegarde demande à nouveau votre mot de passe.',
   'error.tooManyRequests': 'Trop d’appareils attendent une approbation. Réessayez plus tard.',
   'settings.tabConnection': 'Connexion',
   'connection.relayedTitle': 'Mise ne peut pas savoir qui est dans la cuisine',

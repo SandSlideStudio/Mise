@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { currentPasswordSchema } from './auth.js';
 
 /**
  * Where else each backup goes. Every backup is kept on the server first; it is
@@ -92,6 +93,11 @@ export const updateBackupSettingsSchema = z
     timeZone: z.string().min(1).max(64),
     keepLocal: z.number().int().min(1).max(60),
     keepRemote: z.number().int().min(1).max(365),
+    /**
+     * Your own password again. Asked from outside the kitchen when where
+     * backups go, or how many are kept, changes.
+     */
+    currentPassword: currentPasswordSchema,
   })
   .partial();
 
@@ -100,9 +106,17 @@ export const testBackupDestinationSchema = z.object({
   webdavUsername: z.string().trim().max(200).nullable().optional(),
   /** Left out to test with the saved password. */
   webdavPassword: z.string().max(500).optional(),
+  /** Your own password again, when testing from outside the kitchen. */
+  currentPassword: currentPasswordSchema.optional(),
 });
 
 export const recoveryKeySchema = z.object({ recoveryKey: z.string() });
+
+/**
+ * From outside the kitchen a backup is downloaded with a ticket, handed out
+ * for the password typed again: good for that one file, once, for a minute.
+ */
+export const backupTicketSchema = z.object({ ticket: z.string() });
 
 export const restoreResultSchema = z.object({
   kitchenName: z.string(),

@@ -1,6 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { PasswordInput } from '../../components/PasswordInput.js';
-import { PasswordConfirm, refusedForPassword } from '../../components/PasswordConfirm.js';
+import {
+  AskedAction,
+  OutsidePassword,
+  PasswordConfirm,
+  refusedForPassword,
+} from '../../components/PasswordConfirm.js';
 import { useOutside } from '../../api/access.js';
 import { passwordAsked } from '../../lib/passwordAsked.js';
 import { mayManage, ROLES, type Role, type Station, type User } from '@mise/contracts';
@@ -116,6 +121,8 @@ function StaffRow({
   const unlock = useUnlockStaff();
   const [confirming, setConfirming] = useState(false);
   const [showData, setShowData] = useState(false);
+  // From outside the kitchen, lifting a lock or removing someone asks for your password.
+  const outside = useOutside();
 
   const station = stations.find((s) => s.id === person.defaultStationId);
   const locked = person.lockedUntil !== null && new Date(person.lockedUntil) > new Date();
@@ -148,15 +155,19 @@ function StaffRow({
           ) : null}
         </div>
 
-        {locked && canManage ? (
-          <button
-            type="button"
-            className="btn-small"
-            disabled={unlock.isPending}
-            onClick={() => unlock.mutate(person.id)}
-          >
-            {t('staff.unlock')}
-          </button>
+        {/* Never your own lock: it is what stops someone guessing your password. */}
+        {locked && canManage && !isSelf ? (
+          <AskedAction
+            id={`unlock-${person.id}`}
+            outside={outside}
+            error={unlock.error}
+            pending={unlock.isPending}
+            label={t('staff.unlock')}
+            onAct={(currentPassword) => unlock.mutate({ id: person.id, currentPassword })}
+          />
+        ) : null}
+        {locked && isSelf ? (
+          <p className="text-ink-soft basis-full text-sm">{t('staff.ownLock')}</p>
         ) : null}
 
         <div className="flex flex-wrap gap-2">
@@ -189,9 +200,27 @@ function StaffRow({
         <RemoveForGood
           person={person}
           pending={remove.isPending}
-          onRemove={() => remove.mutate(person.id, { onSettled: () => setConfirming(false) })}
+          asksPassword={outside === true || refusedForPassword(remove.error)}
+          onRemove={(currentPassword) =>
+            remove.mutate(
+              { id: person.id, currentPassword },
+              {
+                onSuccess: () => setConfirming(false),
+                // Kept open for a wrong password, to try again.
+                onError: (error) => {
+                  if (!refusedForPassword(error)) setConfirming(false);
+                },
+              },
+            )
+          }
           onCancel={() => setConfirming(false)}
         />
+      ) : null}
+
+      {unlock.error ? (
+        <p role="alert" className="text-danger mt-2 text-sm">
+          {errorMessage(translator, unlock.error)}
+        </p>
       ) : null}
 
       {remove.error ? (
@@ -278,16 +307,20 @@ function PersonDataDownload({ person }: { person: User }) {
 function RemoveForGood({
   person,
   pending,
+  asksPassword,
   onRemove,
   onCancel,
 }: {
   person: User;
   pending: boolean;
-  onRemove: () => void;
+  /** From outside the kitchen: your own password first. */
+  asksPassword: boolean;
+  onRemove: (currentPassword: string | undefined) => void;
   onCancel: () => void;
 }) {
   const { t, plural } = useT();
   const privacy = usePrivacySummary();
+  const [password, setPassword] = useState('');
   const backups = privacy.data?.backups;
   const remote = backups && (backups.webdav || backups.onedrive);
 
@@ -302,8 +335,25 @@ function RemoveForGood({
           {t('staff.removeBackupsDownloaded')}
         </p>
       ) : null}
+      {asksPassword ? (
+        <div className="mt-4">
+          <OutsidePassword
+            id={`remove-password-${person.id}`}
+            value={password}
+            onChange={setPassword}
+          />
+        </div>
+      ) : null}
       <div className="mt-4 flex flex-wrap gap-3">
-        <button type="button" className="btn-danger" disabled={pending} onClick={onRemove}>
+        <button
+          type="button"
+          className="btn-danger"
+          disabled={pending || (asksPassword && !password)}
+          onClick={() => {
+            onRemove(asksPassword ? password : undefined);
+            setPassword('');
+          }}
+        >
           {t('staff.removeForGood')}
         </button>
         <button type="button" className="btn-quiet" onClick={onCancel}>

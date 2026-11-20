@@ -6,7 +6,7 @@ import type {
   TestBackupDestination,
   UpdateBackupSettings,
 } from '@mise/contracts';
-import { api, BASE_URL, request, RequestFailed } from './client.js';
+import { api, BASE_URL, request, RequestFailed, withPassword } from './client.js';
 
 export function useBackupStatus(enabled = true) {
   return useQuery({
@@ -21,7 +21,8 @@ export function useBackupStatus(enabled = true) {
 export function useConnectOnedrive() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.post<BackupStatus>('/backups/onedrive'),
+    mutationFn: (currentPassword?: string) =>
+      api.post<BackupStatus>('/backups/onedrive', withPassword(currentPassword)),
     onSuccess: (status) => queryClient.setQueryData(['backups'], status),
   });
 }
@@ -30,7 +31,8 @@ export function useConnectOnedrive() {
 export function useDisconnectOnedrive() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: () => api.delete<BackupStatus>('/backups/onedrive'),
+    mutationFn: (currentPassword?: string) =>
+      api.delete<BackupStatus>('/backups/onedrive', withPassword(currentPassword)),
     onSuccess: (status) => queryClient.setQueryData(['backups'], status),
   });
 }
@@ -58,13 +60,14 @@ export function useTestBackupDestination() {
   });
 }
 
-/** Only fetched when someone asks to see it. */
-export function useRecoveryKey(enabled: boolean) {
-  return useQuery({
-    queryKey: ['backup-key'],
-    queryFn: () => api.get<{ recoveryKey: string }>('/backups/key'),
-    enabled,
-    staleTime: Infinity,
+/**
+ * Only asked for when someone wants to see it, and from outside the kitchen
+ * with their password again. Kept by the screen, never in the query cache.
+ */
+export function useRecoveryKey() {
+  return useMutation({
+    mutationFn: (currentPassword?: string) =>
+      api.post<{ recoveryKey: string }>('/backups/key', withPassword(currentPassword)),
   });
 }
 
@@ -76,8 +79,30 @@ export function useConfirmRecoveryKey() {
   });
 }
 
-export function backupDownloadUrl(name: string): string {
-  return `${BASE_URL}/backups/files/${encodeURIComponent(name)}`;
+export function backupDownloadUrl(name: string, ticket?: string): string {
+  const url = `${BASE_URL}/backups/files/${encodeURIComponent(name)}`;
+  return ticket ? `${url}?ticket=${encodeURIComponent(ticket)}` : url;
+}
+
+/**
+ * From outside the kitchen: a ticket for the password, then the download
+ * itself, which the browser saves as it would from a link.
+ */
+export function useDownloadBackup() {
+  return useMutation({
+    mutationFn: async ({ name, currentPassword }: { name: string; currentPassword?: string }) => {
+      const { ticket } = await api.post<{ ticket: string }>(
+        `/backups/files/${encodeURIComponent(name)}/ticket`,
+        withPassword(currentPassword),
+      );
+      const link = document.createElement('a');
+      link.href = backupDownloadUrl(name, ticket);
+      link.download = name;
+      document.body.append(link);
+      link.click();
+      link.remove();
+    },
+  });
 }
 
 export interface RestoreInput {

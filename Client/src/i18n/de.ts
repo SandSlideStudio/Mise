@@ -526,6 +526,8 @@ export const de: Record<MessageKey, string> = {
   'staff.passwordTag': 'Passwort',
   'staff.locked': 'Gesperrt',
   'staff.unlock': 'Sperre aufheben',
+  'staff.ownLock':
+    'Du bist nach zu vielen falschen Passwörtern gesperrt. Die Sperre endet nach einer Weile von selbst, oder eine andere Leitung hebt sie auf. Die eigene Sperre kann niemand aufheben.',
   'staff.namePlaceholder': 'Rufname in der Küche',
   'staff.role': 'Rolle',
   'staff.station': 'Üblicher Posten',
@@ -1018,6 +1020,10 @@ export const de: Record<MessageKey, string> = {
     'Du bist außerhalb der Küche, deshalb wird erneut nach deinem Passwort gefragt.',
   'confirm.whySelf':
     'Um dein eigenes Passwort oder deine E-Mail-Adresse zu ändern, brauchst du zuerst dein aktuelles Passwort.',
+  'error.ownLock':
+    'Die eigene Sperre kann niemand aufheben. Warte, bis sie abläuft, oder frag eine andere Leitung.',
+  'error.downloadTicket':
+    'Von außerhalb der Küche fragt das Herunterladen einer Sicherung noch einmal nach deinem Passwort.',
   'error.tooManyRequests': 'Zu viele Geräte warten auf Freigabe. Versuche es später noch einmal.',
   'settings.tabConnection': 'Verbindung',
   'connection.relayedTitle': 'Mise kann nicht erkennen, wer in der Küche ist',

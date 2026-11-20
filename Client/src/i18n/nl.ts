@@ -516,6 +516,8 @@ export const nl: Record<MessageKey, string> = {
   'staff.passwordTag': 'Wachtwoord',
   'staff.locked': 'Geblokkeerd',
   'staff.unlock': 'Blokkade opheffen',
+  'staff.ownLock':
+    'Je bent geblokkeerd na te veel verkeerde wachtwoorden. De blokkade gaat na een tijdje vanzelf weg, of een andere manager heft hem op. Je eigen blokkade kun je niet opheffen.',
   'staff.namePlaceholder': 'Roepnaam in de keuken',
   'staff.role': 'Rol',
   'staff.station': 'Vaste post',
@@ -999,6 +1001,10 @@ export const nl: Record<MessageKey, string> = {
   'confirm.whyOutside': 'Je bent buiten de keuken, dus dit vraagt opnieuw om je wachtwoord.',
   'confirm.whySelf':
     'Je eigen wachtwoord of e-mailadres wijzigen vraagt eerst om je huidige wachtwoord.',
+  'error.ownLock':
+    'Je eigen blokkade kun je niet opheffen. Wacht tot hij afloopt, of vraag een andere manager.',
+  'error.downloadTicket':
+    'Van buiten de keuken vraagt het downloaden van een back-up opnieuw om je wachtwoord.',
   'error.tooManyRequests':
     'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
   'settings.tabConnection': 'Verbinding',

@@ -6,6 +6,11 @@ import {
   useUpdateConnection,
 } from '../../api/connection.js';
 import { LoadError } from '../../components/LoadError.js';
+import {
+  OutsidePassword,
+  PasswordPrompt,
+  refusedForPassword,
+} from '../../components/PasswordConfirm.js';
 import { clockTime, errorMessage, useT } from '../../i18n/index.js';
 
 /**
@@ -22,6 +27,14 @@ export function ConnectionSettings() {
   const connection = useConnection();
   const update = useUpdateConnection();
   const [domain, setDomain] = useState('');
+  // From outside the kitchen, every change here asks for your password again.
+  const outside = connection.data ? !connection.data.inside : undefined;
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [trustAsked, setTrustAsked] = useState<boolean | null>(null);
+  const refused = refusedForPassword(update.error);
+  const trustChoosing =
+    trustAsked ?? (refused ? (update.variables?.trustContainerGateway ?? null) : null);
+  const domainAsks = outside === true || (refused && update.variables?.outsideDomain !== undefined);
 
   const saved = connection.data?.outsideDomain ?? null;
   useEffect(() => {
@@ -29,7 +42,18 @@ export function ConnectionSettings() {
   }, [saved]);
 
   function save(value: string | null) {
-    update.mutate({ outsideDomain: value });
+    update.mutate(
+      {
+        outsideDomain: value,
+        ...(domainAsks && currentPassword ? { currentPassword } : {}),
+      },
+      { onSuccess: () => setCurrentPassword('') },
+    );
+  }
+
+  function trust(value: boolean) {
+    if (outside === true) setTrustAsked(value);
+    else update.mutate({ trustContainerGateway: value });
   }
 
   function onSubmit(event: FormEvent) {
@@ -84,7 +108,7 @@ export function ConnectionSettings() {
               className="accent-accent mt-1 size-4 shrink-0"
               checked={connection.data.trustContainerGateway}
               disabled={update.isPending}
-              onChange={(e) => update.mutate({ trustContainerGateway: e.target.checked })}
+              onChange={(e) => trust(e.target.checked)}
             />
             <span>
               <span className="block font-medium">{t('connection.relayedTrust')}</span>
@@ -93,6 +117,26 @@ export function ConnectionSettings() {
               </span>
             </span>
           </label>
+          {trustChoosing !== null ? (
+            <div className="mt-3">
+              <PasswordPrompt
+                id="trustGatewayPassword"
+                submitLabel={t('common.save')}
+                pending={update.isPending}
+                onSubmit={(password) => {
+                  setTrustAsked(null);
+                  update.mutate({
+                    trustContainerGateway: trustChoosing,
+                    currentPassword: password,
+                  });
+                }}
+                onCancel={() => {
+                  setTrustAsked(null);
+                  update.reset();
+                }}
+              />
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -121,10 +165,21 @@ export function ConnectionSettings() {
                 inputMode="url"
               />
             </div>
+            {domainAsks ? (
+              <OutsidePassword
+                id="domainCurrentPassword"
+                value={currentPassword}
+                onChange={setCurrentPassword}
+              />
+            ) : null}
             <button
               type="submit"
               className="btn-primary"
-              disabled={update.isPending || bareDomain(domain) === (saved ?? '')}
+              disabled={
+                update.isPending ||
+                bareDomain(domain) === (saved ?? '') ||
+                (domainAsks && !currentPassword)
+              }
             >
               {update.isPending ? t('common.saving') : t('common.save')}
             </button>
@@ -132,7 +187,7 @@ export function ConnectionSettings() {
               <button
                 type="button"
                 className="btn-quiet"
-                disabled={update.isPending}
+                disabled={update.isPending || (domainAsks && !currentPassword)}
                 onClick={() => save(null)}
               >
                 {t('connection.domainClear')}

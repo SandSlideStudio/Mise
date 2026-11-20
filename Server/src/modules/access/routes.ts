@@ -5,6 +5,7 @@ import {
   accessRequestSchema,
   accessStatusSchema,
   approveRemoteDeviceSchema,
+  confirmPasswordSchema,
   errorSchema,
   idSchema,
   remoteDevicesSchema,
@@ -102,7 +103,7 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const user = request.user!;
       // From outside, a signed-in phone that went missing must not be enough.
-      if (!request.inside) await app.confirmOwnPassword(request, request.body.password);
+      await app.outsideNeedsPassword(request, request.body.password);
       const approved = await app.access.approve(request.params.id, {
         userId: user.id,
         from: request.inside ? null : (request.remoteDevice?.name ?? null),
@@ -113,22 +114,43 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
   );
 
   // One tap clears a flood of requests; only the waiting ones, never an approval.
+  // From outside, like removing one, with the password again.
   r.post(
     '/devices/turn-down-waiting',
     {
       onRequest: [app.requireRole(...MANAGERS), app.requirePassword],
-      schema: { response: { 200: z.object({ removed: z.number().int() }), 403: errorSchema } },
+      schema: {
+        body: confirmPasswordSchema.nullish(),
+        response: {
+          200: z.object({ removed: z.number().int() }),
+          403: errorSchema,
+          429: errorSchema,
+        },
+      },
     },
-    async () => ({ removed: await app.access.removeWaiting() }),
+    async (request) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
+      return { removed: await app.access.removeWaiting() };
+    },
   );
 
+  /**
+   * Turning a device down, or taking its approval back. From outside, with
+   * the password again: a signed-in phone that went missing must not be able
+   * to shut the owner's own laptop out, or turn the owner's new one away.
+   */
   r.delete(
     '/devices/:id',
     {
       onRequest: [app.requireRole(...MANAGERS), app.requirePassword],
-      schema: { params: z.object({ id: idSchema }), response: { 204: z.null(), 403: errorSchema } },
+      schema: {
+        params: z.object({ id: idSchema }),
+        body: confirmPasswordSchema.nullish(),
+        response: { 204: z.null(), 403: errorSchema, 429: errorSchema },
+      },
     },
     async (request, reply) => {
+      await app.outsideNeedsPassword(request, request.body?.currentPassword);
       await app.access.remove(request.params.id);
       if (request.params.id === request.remoteDevice?.id) {
         reply.clearCookie(ACCESS_COOKIE, { path: '/' });

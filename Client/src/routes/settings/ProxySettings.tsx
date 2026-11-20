@@ -1,6 +1,7 @@
 import { useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useConnection, useUpdateConnection } from '../../api/connection.js';
 import { errorMessage, useT } from '../../i18n/index.js';
+import { PasswordPrompt, refusedForPassword } from '../../components/PasswordConfirm.js';
 
 /**
  * Mise behind the web server that already answers for the kitchen's other
@@ -17,15 +18,31 @@ export function ProxySettings() {
   const connection = useConnection();
   const update = useUpdateConnection();
   const [address, setAddress] = useState('');
+  // From outside the kitchen, which web server is believed asks for your
+  // password first: it decides who counts as inside.
+  const [asking, setAsking] = useState<{ value: string | null } | null>(null);
 
   const data = connection.data;
   if (!data) return null;
   const trusted = data.trustedProxy;
   const seen = data.seenProxy;
   const offer = seen && seen.address !== trusted ? seen : null;
+  const refused =
+    refusedForPassword(update.error) && update.variables?.trustedProxy !== undefined
+      ? { value: update.variables.trustedProxy }
+      : null;
+  const choosing = asking ?? refused;
+
+  function send(value: string | null, currentPassword?: string) {
+    update.mutate(
+      { trustedProxy: value, ...(currentPassword ? { currentPassword } : {}) },
+      { onSuccess: () => setAddress('') },
+    );
+  }
 
   function trust(value: string | null) {
-    update.mutate({ trustedProxy: value }, { onSuccess: () => setAddress('') });
+    if (!data?.inside) setAsking({ value });
+    else send(value);
   }
 
   function onSubmit(event: FormEvent) {
@@ -69,6 +86,27 @@ export function ProxySettings() {
           >
             {t('proxy.trust', { address: offer.address })}
           </button>
+        </div>
+      ) : null}
+
+      {choosing ? (
+        <div className="mb-5">
+          <p className="mb-2 text-sm">
+            {choosing.value ? t('proxy.trust', { address: choosing.value }) : t('proxy.stop')}
+          </p>
+          <PasswordPrompt
+            id="proxyPassword"
+            submitLabel={t('common.save')}
+            pending={update.isPending}
+            onSubmit={(password) => {
+              setAsking(null);
+              send(choosing.value, password);
+            }}
+            onCancel={() => {
+              setAsking(null);
+              update.reset();
+            }}
+          />
         </div>
       ) : null}
 

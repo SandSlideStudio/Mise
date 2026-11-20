@@ -306,6 +306,8 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   access_required: 'error.accessRequired',
   wrong_password: 'error.wrongPassword',
   password_needed: 'error.passwordNeeded',
+  own_lock: 'error.ownLock',
+  download_ticket: 'error.downloadTicket',
   too_many_requests: 'error.tooManyRequests',
   domain_locks_you_out: 'error.domainLocksYouOut',
   proxy_not_local: 'error.proxyNotLocal',

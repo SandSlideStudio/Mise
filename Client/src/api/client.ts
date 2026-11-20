@@ -207,10 +207,27 @@ export async function sendOrQueue<T>(
   }
 }
 
+/**
+ * Your own password, when the action asks for it again from outside the
+ * kitchen; nothing at all otherwise, so inside nothing changes on the wire.
+ */
+export function withPassword(
+  currentPassword: string | undefined,
+): { currentPassword: string } | undefined {
+  return currentPassword ? { currentPassword } : undefined;
+}
+
+/** Something done to one thing, with your password when it is asked. */
+export interface Confirmed {
+  id: string;
+  currentPassword?: string;
+}
+
 export const api = {
   get: <T>(path: string, query?: RequestOptions['query']) => request<T>(path, { query }),
   post: <T>(path: string, body?: unknown) => request<T>(path, { method: 'POST', body }),
   patch: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PATCH', body }),
   put: <T>(path: string, body?: unknown) => request<T>(path, { method: 'PUT', body }),
-  delete: <T>(path: string) => request<T>(path, { method: 'DELETE' }),
+  /** A body only for the few that carry your password again from outside the kitchen. */
+  delete: <T>(path: string, body?: unknown) => request<T>(path, { method: 'DELETE', body }),
 };

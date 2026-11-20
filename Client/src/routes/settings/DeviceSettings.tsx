@@ -1,6 +1,10 @@
 import { useState, type FormEvent } from 'react';
 import { LoadError } from '../../components/LoadError.js';
-import { PasswordConfirm, refusedForPassword } from '../../components/PasswordConfirm.js';
+import {
+  AskedAction,
+  PasswordConfirm,
+  refusedForPassword,
+} from '../../components/PasswordConfirm.js';
 import { useOutside } from '../../api/access.js';
 import {
   useDevices,
@@ -87,17 +91,20 @@ export function DeviceSettings() {
                   <span className="tag border-danger text-danger">{t('staff.locked')}</span>
                 ) : null}
                 {locked && mayLift ? (
-                  <button
-                    type="button"
-                    className="btn-small"
-                    disabled={unlock.isPending}
-                    onClick={() => unlock.mutate(device.id)}
-                  >
-                    {t('staff.unlock')}
-                  </button>
+                  <AskedAction
+                    id={`unlock-tablet-${device.id}`}
+                    outside={outside}
+                    error={unlock.variables?.id === device.id ? unlock.error : null}
+                    pending={unlock.isPending}
+                    label={t('staff.unlock')}
+                    onAct={(currentPassword) => unlock.mutate({ id: device.id, currentPassword })}
+                  />
                 ) : null}
                 <RevokeButton
-                  onRevoke={() => revoke.mutate(device.id)}
+                  id={device.id}
+                  outside={outside}
+                  error={revoke.variables?.id === device.id ? revoke.error : null}
+                  onRevoke={(currentPassword) => revoke.mutate({ id: device.id, currentPassword })}
                   pending={revoke.isPending}
                   name={device.name}
                 />
@@ -107,9 +114,9 @@ export function DeviceSettings() {
         </ul>
       ) : null}
 
-      {unlock.error ? (
+      {(unlock.error ?? revoke.error) ? (
         <p role="alert" className="text-danger mt-3 text-sm">
-          {errorMessage(translator, unlock.error)}
+          {errorMessage(translator, unlock.error ?? revoke.error)}
         </p>
       ) : null}
 
@@ -176,11 +183,17 @@ export function DeviceSettings() {
 }
 
 function RevokeButton({
+  id,
+  outside,
+  error,
   onRevoke,
   pending,
   name,
 }: {
-  onRevoke: () => void;
+  id: string;
+  outside: boolean | undefined;
+  error: unknown;
+  onRevoke: (currentPassword: string | undefined) => void;
   pending: boolean;
   name: string;
 }) {
@@ -195,15 +208,18 @@ function RevokeButton({
     );
   }
 
+  // From outside the kitchen, your password before it goes.
   return (
-    <button
-      type="button"
+    <AskedAction
+      id={`revoke-${id}`}
+      outside={outside}
+      error={error}
+      pending={pending}
+      danger
       className="btn-small border-danger text-danger"
-      onClick={onRevoke}
-      disabled={pending}
       title={t('devices.revokeTitle', { name })}
-    >
-      {t('devices.reallyRevoke')}
-    </button>
+      label={t('devices.reallyRevoke')}
+      onAct={onRevoke}
+    />
   );
 }

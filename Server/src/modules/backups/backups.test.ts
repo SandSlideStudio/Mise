@@ -16,6 +16,7 @@ import * as schema from '../../db/schema.js';
 import {
   ADMIN,
   TEST_CONFIG,
+  approvedOutside,
   cookieFrom,
   createTestDatabase,
   resetDatabase,
@@ -140,7 +141,7 @@ async function backUp(cookies: Record<string, string>) {
     cookies,
   });
   expect(file.statusCode).toBe(200);
-  const key = await app.inject({ method: 'GET', url: '/api/backups/key', cookies });
+  const key = await app.inject({ method: 'POST', url: '/api/backups/key', cookies });
   return { status: run.json(), file: file.rawPayload, key: key.json().recoveryKey as string };
 }
 
@@ -211,7 +212,7 @@ describe('backing up and restoring', () => {
       });
       expect(backups.json().keyConfirmed).toBe(true);
       const sameKey = await second.app.inject({
-        method: 'GET',
+        method: 'POST',
         url: '/api/backups/key',
         cookies: restoredCookies,
       });
@@ -553,7 +554,7 @@ describe('backing up and restoring', () => {
 
     for (const [method, url] of [
       ['GET', '/api/backups'],
-      ['GET', '/api/backups/key'],
+      ['POST', '/api/backups/key'],
       ['POST', '/api/backups/run'],
     ] as const) {
       const response = await app.inject({ method, url, cookies: headChef });
@@ -1131,5 +1132,129 @@ describe('restoring safely', () => {
     } finally {
       await second.close();
     }
+  });
+});
+
+describe('from outside the kitchen, on a signed-in phone', () => {
+  const OUTSIDE = '203.0.113.9';
+
+  /** Signed in with the password, on a device approved from outside. */
+  async function away() {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    const phone = await approvedOutside(app);
+    const signedIn = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      remoteAddress: OUTSIDE,
+      headers: { cookie: phone },
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(signedIn.statusCode).toBe(200);
+    const cookie = `mise_session=${cookieFrom(signedIn, 'mise_session')!}; ${phone}`;
+    const send = (method: 'GET' | 'POST' | 'PATCH' | 'DELETE', url: string, payload?: object) =>
+      app.inject({ method, url, remoteAddress: OUTSIDE, headers: { cookie }, payload });
+    return { cookies, send };
+  }
+
+  it('asks for the password before backups go anywhere else, or fewer are kept', async () => {
+    const { send } = await away();
+    const elsewhere = {
+      sendTo: ['webdav'],
+      webdavUrl: 'https://evil.example/dav',
+      webdavUsername: 'x',
+      webdavPassword: 'y',
+    };
+    for (const change of [elsewhere, { keepLocal: 1 }, { keepRemote: 1 }]) {
+      const refused = await send('PATCH', '/api/backups', change);
+      expect(refused.json().error.code, JSON.stringify(change)).toBe('wrong_password');
+    }
+    expect((await send('GET', '/api/backups')).json().sendTo).toEqual([]);
+
+    // The hour, or the settings sent back unchanged as the form does, ask nothing.
+    const status = (await send('GET', '/api/backups')).json();
+    const same = await send('PATCH', '/api/backups', {
+      sendTo: status.sendTo,
+      webdavUrl: status.webdavUrl,
+      webdavUsername: status.webdavUsername,
+      keepLocal: status.keepLocal,
+      keepRemote: status.keepRemote,
+      hour: 5,
+    });
+    expect(same.statusCode).toBe(200);
+
+    const moved = await send('PATCH', '/api/backups', {
+      ...elsewhere,
+      currentPassword: ADMIN.password,
+    });
+    expect(moved.statusCode).toBe(200);
+    expect(moved.json()).toMatchObject({ sendTo: ['webdav'], webdavUrl: elsewhere.webdavUrl });
+  });
+
+  it('asks for the password before testing a NAS or connecting OneDrive', async () => {
+    const { send } = await away();
+    const test = await send('POST', '/api/backups/test', { webdavUrl: 'http://10.0.0.1/dav' });
+    expect(test.json().error.code).toBe('wrong_password');
+    const onedrive = await send('POST', '/api/backups/onedrive');
+    expect(onedrive.json().error.code).toBe('wrong_password');
+  });
+
+  it('shows the recovery key only with the password', async () => {
+    const { send } = await away();
+    const refused = await send('POST', '/api/backups/key');
+    expect(refused.statusCode).toBe(403);
+    expect(refused.json().error.code).toBe('wrong_password');
+    const wrong = await send('POST', '/api/backups/key', { currentPassword: 'not-it' });
+    expect(wrong.json().error.code).toBe('wrong_password');
+    const shown = await send('POST', '/api/backups/key', { currentPassword: ADMIN.password });
+    expect(shown.statusCode).toBe(200);
+    expect(shown.json().recoveryKey).toMatch(/^[0-9A-Z]{4}(-[0-9A-Z]{4}){7}$/);
+  });
+
+  it('downloads a backup only with a ticket bought with the password, used once', async () => {
+    const { cookies, send } = await away();
+    const run = await app.inject({ method: 'POST', url: '/api/backups/run', cookies });
+    const name = run.json().files[0].name as string;
+    const url = `/api/backups/files/${name}`;
+
+    const plain = await send('GET', url);
+    expect(plain.statusCode).toBe(403);
+    expect(plain.json().error.code).toBe('download_ticket');
+    expect((await send('GET', `${url}?ticket=made-up`)).statusCode).toBe(403);
+    expect((await send('POST', `${url}/ticket`)).json().error.code).toBe('wrong_password');
+
+    const bought = await send('POST', `${url}/ticket`, { currentPassword: ADMIN.password });
+    expect(bought.statusCode).toBe(200);
+    // For that one file only: spent on another, it is gone.
+    const other = 'mise-backup-20200101-000000.mise';
+    const elsewhere = await send(
+      'GET',
+      `/api/backups/files/${other}?ticket=${bought.json().ticket}`,
+    );
+    expect(elsewhere.statusCode).toBe(403);
+    expect((await send('GET', `${url}?ticket=${bought.json().ticket}`)).statusCode).toBe(403);
+
+    const again = await send('POST', `${url}/ticket`, { currentPassword: ADMIN.password });
+    const file = await send('GET', `${url}?ticket=${again.json().ticket}`);
+    expect(file.statusCode).toBe(200);
+    expect(file.rawPayload.subarray(0, 8).toString('ascii')).toBe('MISEBAK1');
+    // Once.
+    expect((await send('GET', `${url}?ticket=${again.json().ticket}`)).statusCode).toBe(403);
+  });
+
+  it('inside the kitchen, asks for nothing more', async () => {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    const run = await app.inject({ method: 'POST', url: '/api/backups/run', cookies });
+    const name = run.json().files[0].name as string;
+    const file = await app.inject({ method: 'GET', url: `/api/backups/files/${name}`, cookies });
+    expect(file.statusCode).toBe(200);
+    const key = await app.inject({ method: 'POST', url: '/api/backups/key', cookies });
+    expect(key.statusCode).toBe(200);
+    const moved = await app.inject({
+      method: 'PATCH',
+      url: '/api/backups',
+      cookies,
+      payload: { sendTo: ['webdav'], webdavUrl: 'https://nas.local/dav', keepLocal: 3 },
+    });
+    expect(moved.statusCode).toBe(200);
   });
 });

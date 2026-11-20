@@ -12,6 +12,7 @@ import type { Database } from '../../db/client.js';
 import {
   ADMIN,
   TEST_CONFIG,
+  approvedOutside,
   cookieFrom,
   createTestDatabase,
   resetDatabase,
@@ -392,6 +393,42 @@ describe('backing up to OneDrive', () => {
       sendTo: [],
       onedrive: { account: null },
     });
+  });
+
+  it('from outside the kitchen, connects and disconnects only with the password', async () => {
+    const cookies = { mise_session: await setUpKitchen(app) };
+    const OUTSIDE = '203.0.113.9';
+    const phone = await approvedOutside(app);
+    const signedIn = await app.inject({
+      method: 'POST',
+      url: '/api/auth/login',
+      remoteAddress: OUTSIDE,
+      headers: { cookie: phone },
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    const cookie = `mise_session=${cookieFrom(signedIn, 'mise_session')!}; ${phone}`;
+    const send = (method: 'POST' | 'DELETE', payload?: object) =>
+      app.inject({
+        method,
+        url: '/api/backups/onedrive',
+        remoteAddress: OUTSIDE,
+        headers: { cookie },
+        payload,
+      });
+
+    // Whoever's OneDrive signs in here would get every backup.
+    expect((await send('POST')).json().error.code).toBe('wrong_password');
+    const started = await send('POST', { currentPassword: ADMIN.password });
+    expect(started.json().onedrive.connecting).toMatchObject({ userCode: 'ABCD-EFGH' });
+    // Calling off a sign-in still waiting takes nothing away, so needs nothing.
+    expect((await send('DELETE')).json().onedrive.connecting).toBeNull();
+
+    await connect(cookies);
+    const kept = await send('DELETE');
+    expect(kept.json().error.code).toBe('wrong_password');
+    expect((await status(cookies)).onedrive.account).not.toBeNull();
+    const gone = await send('DELETE', { currentPassword: ADMIN.password });
+    expect(gone.json().onedrive.account).toBeNull();
   });
 
   it('reports a sign-in turned down at Microsoft', async () => {

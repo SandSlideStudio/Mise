@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { currentPasswordSchema } from './auth.js';
 
 /**
  * How this server is reached. For now, the one address that leads to Mise
@@ -74,6 +75,11 @@ export const updateConnectionSchema = z.object({
   outsideDomain: domainSchema.nullable().optional(),
   trustedProxy: addressSchema.nullable().optional(),
   trustContainerGateway: z.boolean().optional(),
+  /**
+   * Your own password again. Asked from outside the kitchen when any of the
+   * above changes: they decide who counts as inside and who reaches Mise.
+   */
+  currentPassword: currentPasswordSchema.optional(),
 });
 export type UpdateConnection = z.infer<typeof updateConnectionSchema>;
 
@@ -88,6 +94,8 @@ export const kitchenNameSchema = z
 
 export const kitchenHttpsSchema = z.object({
   names: z.array(kitchenNameSchema).min(1).max(10),
+  /** Your own password again, from outside the kitchen. */
+  currentPassword: currentPasswordSchema.optional(),
 });
 export type KitchenHttps = z.infer<typeof kitchenHttpsSchema>;
 

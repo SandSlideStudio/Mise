@@ -4,11 +4,18 @@ import { createPortal } from 'react-dom';
 import type { BackupDestination, BackupFile, BackupStatus, OnedriveStatus } from '@mise/contracts';
 import { LoadError } from '../../components/LoadError.js';
 import {
+  AskedAction,
+  OutsidePassword,
+  refusedForPassword,
+} from '../../components/PasswordConfirm.js';
+import { useOutside } from '../../api/access.js';
+import {
   backupDownloadUrl,
   useBackupStatus,
   useConfirmRecoveryKey,
   useConnectOnedrive,
   useDisconnectOnedrive,
+  useDownloadBackup,
   useRecoveryKey,
   useRunBackup,
   useTestBackupDestination,
@@ -75,11 +82,7 @@ export function BackupSettings() {
             >
               {run.isPending ? t('backups.running') : t('backups.now')}
             </button>
-            {newest ? (
-              <a className="btn-quiet" href={backupDownloadUrl(newest.name)} download>
-                {t('backups.download')}
-              </a>
-            ) : null}
+            {newest ? <DownloadBackup name={newest.name} className="btn-quiet" /> : null}
           </div>
           {run.error ? (
             <p role="alert" className="text-danger text-sm">
@@ -109,14 +112,52 @@ function fileSize(locale: string, bytes: number): string {
     : `${number(Math.max(1, bytes / 1000), 0)} kB`;
 }
 
+/**
+ * A backup to save. From outside the kitchen, it asks for your password and
+ * downloads with the ticket that buys; inside, it is an ordinary link.
+ */
+function DownloadBackup({ name, className }: { name: string; className: string }) {
+  const translator = useT();
+  const { t } = translator;
+  const outside = useOutside();
+  const download = useDownloadBackup();
+
+  if (outside !== true && !refusedForPassword(download.error)) {
+    return (
+      <a className={className} href={backupDownloadUrl(name)} download>
+        {t('backups.download')}
+      </a>
+    );
+  }
+  return (
+    <>
+      <AskedAction
+        id={`download-${name}`}
+        outside
+        error={download.error}
+        pending={download.isPending}
+        className={className}
+        label={t('backups.download')}
+        onAct={(currentPassword) => download.mutate({ name, currentPassword })}
+      />
+      {download.error ? (
+        <p role="alert" className="text-danger basis-full text-sm">
+          {errorMessage(translator, download.error)}
+        </p>
+      ) : null}
+    </>
+  );
+}
+
 function RecoveryKey({ confirmed }: { confirmed: boolean }) {
   const translator = useT();
   const { t } = translator;
-  const [shown, setShown] = useState(false);
-  const key = useRecoveryKey(shown);
+  // Asked for when someone wants to see it: from outside, with their password.
+  const key = useRecoveryKey();
+  const outside = useOutside();
   const confirm = useConfirmRecoveryKey();
   const kitchen = useKitchen();
-  const visible = shown && key.data ? key.data.recoveryKey : null;
+  const visible = key.data?.recoveryKey ?? null;
 
   // Printing shows only the sheet below, not the settings page around it.
   function print() {
@@ -141,13 +182,29 @@ function RecoveryKey({ confirmed }: { confirmed: boolean }) {
             {visible}
           </p>
         ) : null}
-        {shown && key.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
-        {shown && key.isError ? <LoadError onRetry={() => void key.refetch()} /> : null}
+        {key.isPending ? <p className="text-ink-soft">{t('common.loading')}</p> : null}
+        {key.error ? (
+          <p role="alert" className="text-danger text-sm">
+            {errorMessage(translator, key.error)}
+          </p>
+        ) : null}
 
         <div className="flex flex-wrap gap-3">
-          <button type="button" className="btn-quiet" onClick={() => setShown(!shown)}>
-            {shown ? t('backups.keyHide') : t('backups.keyShow')}
-          </button>
+          {visible ? (
+            <button type="button" className="btn-quiet" onClick={() => key.reset()}>
+              {t('backups.keyHide')}
+            </button>
+          ) : (
+            <AskedAction
+              id="recovery-key-password"
+              outside={outside}
+              error={key.error}
+              pending={key.isPending}
+              className="btn-quiet"
+              label={t('backups.keyShow')}
+              onAct={(currentPassword) => key.mutate(currentPassword)}
+            />
+          )}
           {visible ? (
             <button type="button" className="btn-quiet" onClick={print}>
               {t('backups.keyPrint')}
@@ -210,6 +267,8 @@ function Destination({ status }: { status: BackupStatus }) {
   const { t, plural } = translator;
   const update = useUpdateBackups();
   const test = useTestBackupDestination();
+  const outside = useOutside();
+  const [currentPassword, setCurrentPassword] = useState('');
 
   const [sendTo, setSendTo] = useState<BackupDestination[]>(status.sendTo);
   const toWebdav = sendTo.includes('webdav');
@@ -226,28 +285,48 @@ function Destination({ status }: { status: BackupStatus }) {
   const [keepRemote, setKeepRemote] = useState(status.keepRemote);
   const zone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+  // Decided as the server decides it: from outside the kitchen, sending
+  // backups anywhere else or keeping fewer asks for your password again.
+  const webdavUrl = url.trim() || null;
+  const webdavUsername = username.trim() || null;
+  const moves =
+    [...sendTo].sort().join() !== [...status.sendTo].sort().join() ||
+    webdavUrl !== status.webdavUrl ||
+    webdavUsername !== status.webdavUsername ||
+    password !== '' ||
+    keepLocal !== status.keepLocal ||
+    keepRemote !== status.keepRemote;
+  const asksPassword = (outside === true && moves) || refusedForPassword(update.error);
+
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     update.mutate(
       {
         sendTo,
-        webdavUrl: url.trim() || null,
-        webdavUsername: username.trim() || null,
+        webdavUrl,
+        webdavUsername,
         ...(password ? { webdavPassword: password } : {}),
         hour,
         timeZone: zone,
         keepLocal,
         keepRemote,
+        ...(asksPassword && currentPassword ? { currentPassword } : {}),
       },
-      { onSuccess: () => setPassword('') },
+      {
+        onSuccess: () => {
+          setPassword('');
+          setCurrentPassword('');
+        },
+      },
     );
   }
 
-  function onTest() {
+  function onTest(confirmed: string | undefined) {
     test.mutate({
       webdavUrl: url.trim(),
-      webdavUsername: username.trim() || null,
+      webdavUsername,
       ...(password ? { webdavPassword: password } : {}),
+      ...(confirmed ? { currentPassword: confirmed } : {}),
     });
   }
 
@@ -334,14 +413,17 @@ function Destination({ status }: { status: BackupStatus }) {
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
+              {/* From outside, with your password: a test reaches out to any address. */}
+              <AskedAction
+                id="backup-test-password"
+                outside={outside}
+                error={test.error}
+                pending={test.isPending}
+                disabled={!url.trim()}
                 className="btn-quiet"
-                disabled={test.isPending || !url.trim()}
-                onClick={onTest}
-              >
-                {test.isPending ? t('backups.testing') : t('backups.test')}
-              </button>
+                label={test.isPending ? t('backups.testing') : t('backups.test')}
+                onAct={onTest}
+              />
               {test.isSuccess ? (
                 <p role="status" className="text-sm">
                   {t('backups.testOk')}
@@ -420,6 +502,14 @@ function Destination({ status }: { status: BackupStatus }) {
           </div>
         </div>
 
+        {asksPassword ? (
+          <OutsidePassword
+            id="backupCurrentPassword"
+            value={currentPassword}
+            onChange={setCurrentPassword}
+          />
+        ) : null}
+
         {update.error ? (
           <p role="alert" className="text-danger text-sm">
             {errorMessage(translator, update.error)}
@@ -431,7 +521,11 @@ function Destination({ status }: { status: BackupStatus }) {
           <button
             type="submit"
             className="btn-primary"
-            disabled={update.isPending || (toOnedrive && !status.onedrive.account)}
+            disabled={
+              update.isPending ||
+              (toOnedrive && !status.onedrive.account) ||
+              (asksPassword && !currentPassword)
+            }
           >
             {update.isPending ? t('common.saving') : t('common.save')}
           </button>
@@ -450,19 +544,26 @@ function OnedrivePanel({ onedrive }: { onedrive: OnedriveStatus }) {
   const { t } = translator;
   const connect = useConnectOnedrive();
   const disconnect = useDisconnectOnedrive();
+  // From outside the kitchen, connecting or disconnecting asks for your password.
+  const outside = useOutside();
 
   if (onedrive.account) {
     return (
       <div className="border-line flex flex-wrap items-center gap-3 border-l-4 pl-4">
         <p className="flex-1">{t('backups.onedriveConnected', { account: onedrive.account })}</p>
-        <button
-          type="button"
-          className="btn-small"
-          disabled={disconnect.isPending}
-          onClick={() => disconnect.mutate()}
-        >
-          {t('backups.onedriveDisconnect')}
-        </button>
+        <AskedAction
+          id="onedrive-disconnect-password"
+          outside={outside}
+          error={disconnect.error}
+          pending={disconnect.isPending}
+          label={t('backups.onedriveDisconnect')}
+          onAct={(currentPassword) => disconnect.mutate(currentPassword)}
+        />
+        {disconnect.error ? (
+          <p role="alert" className="text-danger basis-full text-sm">
+            {errorMessage(translator, disconnect.error)}
+          </p>
+        ) : null}
       </div>
     );
   }
@@ -486,7 +587,8 @@ function OnedrivePanel({ onedrive }: { onedrive: OnedriveStatus }) {
         </p>
         <p className="text-ink-soft text-sm">{t('backups.onedriveUnverified')}</p>
         <div>
-          <button type="button" className="btn-small" onClick={() => disconnect.mutate()}>
+          {/* Calling off a sign-in still waiting takes nothing away: no password. */}
+          <button type="button" className="btn-small" onClick={() => disconnect.mutate(undefined)}>
             {t('common.cancel')}
           </button>
         </div>
@@ -497,14 +599,15 @@ function OnedrivePanel({ onedrive }: { onedrive: OnedriveStatus }) {
   return (
     <div className="border-line flex flex-col gap-3 border-l-4 pl-4">
       <div>
-        <button
-          type="button"
+        <AskedAction
+          id="onedrive-connect-password"
+          outside={outside}
+          error={connect.error}
+          pending={connect.isPending}
           className="btn-quiet"
-          disabled={connect.isPending}
-          onClick={() => connect.mutate()}
-        >
-          {connect.isPending ? t('backups.onedriveStarting') : t('backups.onedriveConnect')}
-        </button>
+          label={connect.isPending ? t('backups.onedriveStarting') : t('backups.onedriveConnect')}
+          onAct={(currentPassword) => connect.mutate(currentPassword)}
+        />
       </div>
       {onedrive.connectError ? (
         <p role="alert" className="text-danger text-sm">
@@ -573,9 +676,7 @@ function KeptFiles({ files }: { files: BackupFile[] }) {
                 <p className="font-medium">{moment(locale, file.createdAt)}</p>
                 <p className="text-ink-soft mt-0.5 text-sm">{fileSize(locale, file.size)}</p>
               </div>
-              <a className="btn-small" href={backupDownloadUrl(file.name)} download>
-                {t('backups.download')}
-              </a>
+              <DownloadBackup name={file.name} className="btn-small" />
             </li>
           ))}
         </ul>

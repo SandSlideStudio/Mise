@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
-import { PasswordConfirm } from '../../components/PasswordConfirm.js';
+import { AskedAction, PasswordConfirm } from '../../components/PasswordConfirm.js';
+import { useOutside } from '../../api/access.js';
 import type { RemoteDevice } from '@mise/contracts';
 import {
   useApproveRemoteDevice,
@@ -75,19 +76,25 @@ function TurnDownAll({ count }: { count: number }) {
   const { t, plural } = translator;
   const turnDown = useTurnDownWaiting();
   const [confirming, setConfirming] = useState(false);
+  const outside = useOutside();
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       {confirming ? (
         <>
-          <button
-            type="button"
+          {/* From outside the kitchen, with your password. */}
+          <AskedAction
+            id="turn-down-all"
+            outside={outside}
+            error={turnDown.error}
+            pending={turnDown.isPending}
+            danger
             className="btn-small border-danger text-danger"
-            onClick={() => turnDown.mutate(undefined, { onSettled: () => setConfirming(false) })}
-            disabled={turnDown.isPending}
-          >
-            {plural('outside.reallyTurnDownAll', count)}
-          </button>
+            label={plural('outside.reallyTurnDownAll', count)}
+            onAct={(currentPassword) =>
+              turnDown.mutate(currentPassword, { onSuccess: () => setConfirming(false) })
+            }
+          />
           <button type="button" className="btn-small" onClick={() => setConfirming(false)}>
             {t('common.cancel')}
           </button>
@@ -178,22 +185,24 @@ function WaitingDevice({ device, inside }: { device: RemoteDevice; inside: boole
           >
             {t('outside.approve')}
           </button>
-          <button
-            type="button"
+          {/* From outside, like approving, with your password. */}
+          <AskedAction
+            id={`deny-${device.id}`}
+            outside={!inside}
+            error={remove.error}
+            pending={remove.isPending}
             className="btn-quiet min-h-11"
-            onClick={() => remove.mutate(device.id)}
-            disabled={remove.isPending}
-          >
-            {t('outside.deny')}
-          </button>
+            label={t('outside.deny')}
+            onAct={(currentPassword) => remove.mutate({ id: device.id, currentPassword })}
+          />
         </div>
       )}
       {!inside && askingPassword ? (
         <p className="text-ink-faint text-sm">{t('outside.passwordWhy')}</p>
       ) : null}
-      {approve.error ? (
+      {(approve.error ?? remove.error) ? (
         <p role="alert" className="text-danger text-sm">
-          {errorMessage(translator, approve.error)}
+          {errorMessage(translator, approve.error ?? remove.error)}
         </p>
       ) : null}
     </li>
@@ -201,8 +210,10 @@ function WaitingDevice({ device, inside }: { device: RemoteDevice; inside: boole
 }
 
 function ApprovedDevice({ device }: { device: RemoteDevice }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t, locale } = translator;
   const remove = useRemoveRemoteDevice();
+  const outside = useOutside();
   const [confirming, setConfirming] = useState(false);
   const day = (iso: string) => new Date(iso).toLocaleDateString(locale);
 
@@ -240,20 +251,28 @@ function ApprovedDevice({ device }: { device: RemoteDevice }) {
         </p>
       </div>
       {confirming ? (
-        <button
-          type="button"
+        // From outside the kitchen, with your password.
+        <AskedAction
+          id={`revoke-${device.id}`}
+          outside={outside}
+          error={remove.error}
+          pending={remove.isPending}
+          danger
           className="btn-small border-danger text-danger"
-          onClick={() => remove.mutate(device.id)}
-          disabled={remove.isPending}
           title={device.thisDevice ? t('outside.revokeSelf') : undefined}
-        >
-          {device.thisDevice ? t('outside.reallyRevokeSelf') : t('devices.reallyRevoke')}
-        </button>
+          label={device.thisDevice ? t('outside.reallyRevokeSelf') : t('devices.reallyRevoke')}
+          onAct={(currentPassword) => remove.mutate({ id: device.id, currentPassword })}
+        />
       ) : (
         <button type="button" className="btn-small" onClick={() => setConfirming(true)}>
           {t('devices.revoke')}
         </button>
       )}
+      {remove.error ? (
+        <p role="alert" className="text-danger basis-full text-sm">
+          {errorMessage(translator, remove.error)}
+        </p>
+      ) : null}
     </li>
   );
 }

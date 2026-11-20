@@ -25,6 +25,7 @@ export type KitchenFailure =
   | { kind: 'not_found' }
   | { kind: 'last_admin' }
   | { kind: 'self_lockout' }
+  | { kind: 'own_lock' }
   | { kind: 'no_credential' }
   | { kind: 'password_needs_email' }
   | { kind: 'outranked' }
@@ -205,7 +206,9 @@ export function createKitchenService(db: Database) {
   /**
    * Lift a lockout someone ran into, or that a colleague caused on purpose by
    * trying wrong PINs for them. Same rights as editing them; their PIN and
-   * password stay as they are.
+   * password stay as they are. Never your own: whoever is guessing at your
+   * password from a session left signed in would otherwise lift the lock
+   * after every five tries and never stop.
    */
   async function unlockUser(
     id: string,
@@ -216,7 +219,8 @@ export function createKitchenService(db: Database) {
   > {
     const [current] = await db.select().from(users).where(eq(users.id, id)).limit(1);
     if (!current) return { ok: false, error: { kind: 'not_found' } };
-    if (id !== actor.id && !mayManage(actor.role, current.role)) {
+    if (id === actor.id) return { ok: false, error: { kind: 'own_lock' } };
+    if (!mayManage(actor.role, current.role)) {
       return { ok: false, error: { kind: 'outranked' } };
     }
     await db.update(users).set({ lockedUntil: null }).where(eq(users.id, id));
@@ -342,8 +346,11 @@ export function createKitchenService(db: Database) {
             : {}),
           ...(pinNowOld ? { pinSetAt: null } : {}),
           // Any credential change also clears a standing lockout, which is what
-          // an administrator resetting a forgotten PIN actually wants.
-          ...(input.password || input.pin !== undefined ? { lockedUntil: null } : {}),
+          // an administrator resetting a forgotten PIN actually wants. Not
+          // your own: nobody lifts their own lock (see unlockUser).
+          ...((input.password || input.pin !== undefined) && id !== actor.id
+            ? { lockedUntil: null }
+            : {}),
           updatedAt: new Date(),
         })
         .where(eq(users.id, id))

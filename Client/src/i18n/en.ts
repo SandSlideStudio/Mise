@@ -511,6 +511,8 @@ export const en = {
   'staff.passwordTag': 'Password',
   'staff.locked': 'Locked out',
   'staff.unlock': 'Lift the lock',
+  'staff.ownLock':
+    'You’re locked out after too many wrong passwords. The lock lifts by itself after a while, or another manager can lift it. Nobody can lift their own.',
   'staff.namePlaceholder': 'How the brigade knows them',
   'staff.role': 'Role',
   'staff.station': 'Usual station',
@@ -978,6 +980,10 @@ export const en = {
   'confirm.currentPasswordLabel': 'Your current password',
   'confirm.whyOutside': 'You’re outside the kitchen, so this asks for your password again.',
   'confirm.whySelf': 'Changing your own password or email asks for your current password first.',
+  'error.ownLock':
+    'Nobody can lift their own lock. Wait for it to run out, or ask another manager.',
+  'error.downloadTicket':
+    'From outside the kitchen, downloading a backup asks for your password again.',
   'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
   'settings.tabConnection': 'Connection',
   'connection.relayedTitle': 'Mise can’t tell who is inside the kitchen',
