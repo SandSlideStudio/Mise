@@ -83,7 +83,8 @@ function veganOf(value: boolean | null | undefined, contains: readonly string[] 
 
 /**
  * Vegan all the way down: every ingredient in every sub-recipe has to be.
- * A recipe with nothing in it says nothing about itself, so it is unknown.
+ * A recipe with nothing in it says nothing about itself, so it is unknown,
+ * unless it declares milk, eggs, fish or shellfish.
  */
 export function rollUpVegan(recipeId: string, book: RecipeBook): Result<VeganStatus, RecipeError> {
   const memo = new Map<string, VeganStatus>();
@@ -96,7 +97,11 @@ export function rollUpVegan(recipeId: string, book: RecipeBook): Result<VeganSta
 
     const recipe = book.recipe(id);
     if (!recipe) return err({ kind: 'missing_recipe', recipeId: id });
-    if (recipe.components.length === 0) return ok('unknown');
+    // Empty, but prawns declared on it is still a recipe with prawns in it:
+    // that settles it, rather than leaving the row "unknown" next to them.
+    if (recipe.components.length === 0) {
+      return ok(hasAnimalAllergen(recipe.declaredAllergens ?? []) ? 'no' : 'unknown');
+    }
 
     onPath.add(id);
     const parts: VeganStatus[] = [];
