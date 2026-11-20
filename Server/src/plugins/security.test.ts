@@ -86,7 +86,9 @@ describe('sign-in rate limit', () => {
       const response = await ctx.app.inject({
         method: 'POST',
         url: '/api/auth/login',
-        payload: { email: 'nobody@example.com', password: 'not-a-real-password' },
+        // A different made-up email each time, so only the limit per address
+        // can stop it (one email is locked after five, like a real account).
+        payload: { email: `nobody${i}@example.com`, password: 'not-a-real-password' },
         headers: { 'x-forwarded-for': `203.0.113.${i}`, cookie: phone },
       });
       statuses.push(response.statusCode);
