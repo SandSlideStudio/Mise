@@ -80,6 +80,18 @@ export function createConnectionService(options: {
   let row: Row | null = null;
   /** Let's Encrypt's tokens while a certificate is being fetched. */
   const answers: ChallengeAnswers = new Map();
+  /**
+   * Changes to the kitchen certificate, one after the other. Each reads the
+   * authority, waits while keys are made, then saves: two at once (new
+   * addresses while the authority is replaced, or a renewal) would save a
+   * certificate for the wrong addresses, or put the old authority back.
+   */
+  let kitchenChanges: Promise<unknown> = Promise.resolve();
+  function oneAtATime<T>(change: () => Promise<T>): Promise<T> {
+    const next = kitchenChanges.then(change, change);
+    kitchenChanges = next.catch(() => undefined);
+    return next;
+  }
 
   async function read(): Promise<Row | null> {
     const [found] = await db
@@ -244,8 +256,10 @@ export function createConnectionService(options: {
         : names.filter((name) => !isKitchenName(name));
     },
 
-    async enableKitchenHttps(names: string[], kitchenName: string): Promise<void> {
-      await save({ kitchenHttps: true, ...(await makeKitchenCertificate(names, kitchenName)) });
+    enableKitchenHttps(names: string[], kitchenName: string): Promise<void> {
+      return oneAtATime(async () => {
+        await save({ kitchenHttps: true, ...(await makeKitchenCertificate(names, kitchenName)) });
+      });
     },
 
     /**
@@ -257,33 +271,35 @@ export function createConnectionService(options: {
      * once; until then it shows the browser's warning over HTTPS, and plain
      * HTTP keeps working.
      */
-    async replaceAuthority(kitchenName: string): Promise<void> {
-      const old = row?.kitchenCaCert;
-      if (!old) throw new AuthorityRefusal('none');
-      // Only the old kind: replacing a limited one gains nothing and costs
-      // every tablet a visit.
-      if (authorityConstrained(old)) throw new AuthorityRefusal('already_constrained');
-      const names = row?.kitchenNames ?? [];
-      // The old authority took any name; the new one would carry a public
-      // one in its limits, and with it the risk this is meant to end.
-      const outside = names.find((name) => !isKitchenName(name));
-      if (outside) throw new AuthorityRefusal('name_outside_kitchen', outside);
-      const authority = await createAuthority(kitchenName, names);
-      const values: Partial<Row> = { kitchenCaCert: authority.cert, kitchenCaKey: authority.key };
-      if (names.length > 0) {
-        const issued = await issueKitchenCertificate(authority, names);
-        Object.assign(values, {
-          kitchenCert: issued.cert,
-          kitchenKey: issued.key,
-          kitchenExpiresAt: issued.expiresAt,
-        });
-      }
-      await save(values);
+    replaceAuthority(kitchenName: string): Promise<void> {
+      return oneAtATime(async () => {
+        const old = row?.kitchenCaCert;
+        if (!old) throw new AuthorityRefusal('none');
+        // Only the old kind: replacing a limited one gains nothing and costs
+        // every tablet a visit.
+        if (authorityConstrained(old)) throw new AuthorityRefusal('already_constrained');
+        const names = row?.kitchenNames ?? [];
+        // The old authority took any name; the new one would carry a public
+        // one in its limits, and with it the risk this is meant to end.
+        const outside = names.find((name) => !isKitchenName(name));
+        if (outside) throw new AuthorityRefusal('name_outside_kitchen', outside);
+        const authority = await createAuthority(kitchenName, names);
+        const values: Partial<Row> = { kitchenCaCert: authority.cert, kitchenCaKey: authority.key };
+        if (names.length > 0) {
+          const issued = await issueKitchenCertificate(authority, names);
+          Object.assign(values, {
+            kitchenCert: issued.cert,
+            kitchenKey: issued.key,
+            kitchenExpiresAt: issued.expiresAt,
+          });
+        }
+        await save(values);
+      });
     },
 
     /** The authority stays, so turning it back on asks no tablet to trust it again. */
-    async disableKitchenHttps(): Promise<void> {
-      await save({ kitchenHttps: false });
+    disableKitchenHttps(): Promise<void> {
+      return oneAtATime(() => save({ kitchenHttps: false }));
     },
 
     /** Ask Let's Encrypt for the outside address. Throws CertificateFailure with their reason. */
@@ -311,9 +327,11 @@ export function createConnectionService(options: {
      * still has weeks left, and says why in Settings.
      */
     async renew(kitchenName: string): Promise<void> {
-      if (row?.kitchenHttps && due(row.kitchenExpiresAt) && row.kitchenNames?.length) {
-        await save(await makeKitchenCertificate(row.kitchenNames, kitchenName));
-      }
+      await oneAtATime(async () => {
+        if (row?.kitchenHttps && due(row.kitchenExpiresAt) && row.kitchenNames?.length) {
+          await save(await makeKitchenCertificate(row.kitchenNames, kitchenName));
+        }
+      });
       const domain = state.outsideDomain;
       if (
         row?.domainHttps &&

@@ -481,6 +481,34 @@ describe('replacing an authority from before 2.2.2', () => {
     expect(server.connection.authority()).toBe(old.cert);
   });
 
+  it('is not undone by a change to the addresses made at the same moment', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    await onOldAuthority(server, admin, ['192.168.1.50']);
+    const [replaced, renamed] = await Promise.all([
+      as(server, admin, 'POST', REPLACE),
+      as(server, admin, 'PUT', '/api/connection/kitchen-https', {
+        names: ['192.168.1.50', 'mise.local'],
+      }),
+    ]);
+    expect(replaced.statusCode).toBe(200);
+    expect(renamed.statusCode).toBe(200);
+    // Whichever came second, the old authority is gone, and the certificate
+    // served is the new one's, for the addresses the kitchen now has.
+    const authority = server.connection.authority()!;
+    expect(authorityConstrained(authority)).toBe(true);
+    const [row] = await ctx.db
+      .select()
+      .from(connectionSettings)
+      .where(eq(connectionSettings.id, CONNECTION_ID));
+    expect(row!.kitchenCaCert).toBe(authority);
+    expect(new X509Certificate(row!.kitchenCert!).checkIssued(new X509Certificate(authority))).toBe(
+      true,
+    );
+    expect(row!.kitchenNames).toEqual(['192.168.1.50', 'mise.local']);
+    expect(new X509Certificate(row!.kitchenCert!).checkHost('mise.local')).toBe('mise.local');
+  });
+
   it('has nothing to replace before there is a kitchen certificate', async () => {
     const server = await start();
     const admin = await signIn(server);
