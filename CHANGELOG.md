@@ -141,6 +141,10 @@ staff data, and a stack of smaller fixes.
   whatever language the browser is set to. An English browser read a purchase price of "9,80" as
   980, so every food cost was a hundred times out without a word. Something that can't be read,
   such as "1.250,50", is now pointed out under the box and nothing is saved until it is fixed.
+- Units are named in the reader's language wherever they are shown, printed sheets included:
+  "2 el" and "1 kopje" in Dutch, "2 EL" in German, "2 c. à s." in French, "2 cda." in Spanish,
+  with "stuk" rather than "each" to choose from. Recipes keep the same units underneath, so a
+  recipe written in one language reads right in another. g, kg, ml and l stay as they are.
 
 **Accessibility**
 

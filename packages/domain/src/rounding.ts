@@ -111,10 +111,18 @@ export function humanize(q: Quantity, mode?: RoundingMode): Quantity {
  * Format for display. Trims trailing zeros so 1.50 kg prints as 1.5 kg.
  * Given a locale, the number is written the way that kitchen writes it: in
  * Dutch, German, French or Spanish 1.5 kg is "1,5 kg", and "1.5" reads wrong.
+ *
+ * `label` names the unit for a reader in another language ("2 el", not
+ * "2 tbsp"). The domain only knows the English names; the words for each
+ * language live with the rest of the interface's text.
  */
 export function formatQuantity(
   q: Quantity,
-  opts: { abbreviate?: boolean; locale?: string } = {},
+  opts: {
+    abbreviate?: boolean;
+    locale?: string;
+    label?: (code: UnitCode, value: number) => string;
+  } = {},
 ): string {
   const def = unit(q.unit);
   const rounded = Number(q.value.toFixed(3));
@@ -123,7 +131,11 @@ export function formatQuantity(
         rounded,
       )
     : String(rounded);
-  const label = opts.abbreviate === false ? def.name : def.abbr;
+  const label = opts.label
+    ? opts.label(q.unit, rounded)
+    : opts.abbreviate === false
+      ? def.name
+      : def.abbr;
 
   if (q.unit === 'each') {
     // "12 ea" is noise. A bare count reads better.

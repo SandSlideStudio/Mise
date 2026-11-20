@@ -106,7 +106,7 @@ describe('the checklist as drawn', () => {
 });
 
 describe('items with a par ticked while Mise could not be reached', () => {
-  const { t } = createTranslator('en');
+  const translator = createTranslator('en');
   const withPar: ChecklistItem[] = [
     { id: 'i-gel', stationId: HOT, name: 'Fig gel', recipeId: null, par: { value: 3, unit: 'l' } },
     {
@@ -131,8 +131,8 @@ describe('items with a par ticked while Mise could not be reached', () => {
       ['Fig gel', { value: 1.8, unit: 'l' }],
       ['Eggs', { value: 40, unit: 'each' }],
     ]);
-    expect(parNote(t, list[0]!)).toBe('Par 3 l, 1.2 l there');
-    expect(parNote(t, list[1]!)).toBe('Par 40, none there');
+    expect(parNote(translator, list[0]!)).toBe('Par 3 l, 1.2 l there');
+    expect(parNote(translator, list[1]!)).toBe('Par 40, none there');
   });
 
   it('leave out what there is enough of', () => {
@@ -144,6 +144,6 @@ describe('items with a par ticked while Mise could not be reached', () => {
   });
 
   it('say nothing about a par on a line without one', () => {
-    expect(parNote(t, line({ quantity: { value: 2000, unit: 'ml' } }))).toBeNull();
+    expect(parNote(translator, line({ quantity: { value: 2000, unit: 'ml' } }))).toBeNull();
   });
 });

@@ -7,7 +7,7 @@ import type {
   RecipeCost,
 } from '@mise/contracts';
 import { dimensionOf, unit as unitDef, type BaseUnit, type UnitCode } from '@mise/domain';
-import { useT, type Translator } from '../i18n/index.js';
+import { unitLabel, useT, type Translator } from '../i18n/index.js';
 
 /**
  * Food cost on screen, for chefs and administrators. The server leaves every
@@ -49,7 +49,7 @@ export function perUnitText(
   const amount = formatMoney(translator.locale, currency, perBase * unitDef(shown).toBase);
   return shown === 'each'
     ? translator.t('cost.each', { amount })
-    : translator.t('cost.perUnit', { amount, unit: unitDef(shown).abbr });
+    : translator.t('cost.perUnit', { amount, unit: unitLabel(translator, shown, 1) });
 }
 
 /**

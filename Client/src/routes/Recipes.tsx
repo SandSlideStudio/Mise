@@ -1,13 +1,20 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
-import { ALLERGENS, formatQuantity, humanize, isUnitCode } from '@mise/domain';
+import { ALLERGENS, humanize, isUnitCode } from '@mise/domain';
 import { useStations } from '../api/kitchen.js';
 import { useCurrentUser } from '../api/session.js';
 import { useRecipes } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
 import { LoadError } from '../components/LoadError.js';
 import { Plate } from '../components/Plate.js';
-import { allergenName, inSentence, recipeStatusName, recipeTypeName, useT } from '../i18n/index.js';
+import {
+  allergenName,
+  inSentence,
+  quantityText,
+  recipeStatusName,
+  recipeTypeName,
+  useT,
+} from '../i18n/index.js';
 
 /**
  * The book.
@@ -175,9 +182,9 @@ export function Recipes() {
                       <span className="text-ink-soft hidden text-sm sm:block">{sortStation}</span>
                       <span className="qty text-right text-[22px]">
                         {isUnitCode(recipe.yield.unit)
-                          ? formatQuantity(
+                          ? quantityText(
+                              translator,
                               humanize({ value: recipe.yield.value, unit: recipe.yield.unit }),
-                              { locale: translator.locale },
                             )
                           : recipe.yield.value}
                       </span>

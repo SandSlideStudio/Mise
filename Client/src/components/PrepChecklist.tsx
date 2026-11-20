@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import type { ChecklistItem, Quantity, RecipeSummary, Station } from '@mise/contracts';
-import { ALL_UNITS, formatQuantity, unit as unitDef, type UnitCode } from '@mise/domain';
+import type { UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
 import {
   groupChecklist,
@@ -12,7 +12,8 @@ import {
 import { useKitchen, useStations } from '../api/kitchen.js';
 import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
-import { errorMessage, useT } from '../i18n/index.js';
+import { errorMessage, quantityText, unitLabel, useT, type Translator } from '../i18n/index.js';
+import { UnitOptions } from './UnitOptions.js';
 import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
 import { NumberInput } from './NumberInput.js';
 import { ChecklistSheet, usePrintChecklist } from './ChecklistPrint.js';
@@ -261,7 +262,8 @@ function OnHand({
   onSend: (onHand: Record<string, Quantity>) => void;
   onBack: () => void;
 }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t } = translator;
   const [typed, setTyped] = useState<Record<string, string>>({});
 
   function onSubmit(event: FormEvent) {
@@ -284,7 +286,7 @@ function OnHand({
         <ul className="grid gap-x-6 lg:grid-cols-2">
           {items.map((item, index) => {
             const par = item.par!;
-            const abbr = unitDef(par.unit as UnitCode).abbr;
+            const abbr = unitLabel(translator, par.unit as UnitCode);
             return (
               <li
                 key={item.id}
@@ -293,7 +295,7 @@ function OnHand({
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="text-lg break-words">{item.name}</span>
                   <span className="text-ink-soft text-[15px]">
-                    {t('checklist.parIs', { amount: formatParAmount(par, locale) })}
+                    {t('checklist.parIs', { amount: formatParAmount(par, translator) })}
                   </span>
                 </span>
                 <NumberInput
@@ -331,8 +333,8 @@ function OnHand({
 }
 
 /** A par as the chef set it: "3 l", "2 dz", "40". */
-export function formatParAmount(par: Quantity, locale?: string): string {
-  return formatQuantity({ value: par.value, unit: par.unit as UnitCode }, { locale });
+export function formatParAmount(par: Quantity, translator: Translator): string {
+  return quantityText(translator, { value: par.value, unit: par.unit as UnitCode });
 }
 
 /** What can be ticked: the items by station, each row a whole-row target. */
@@ -567,11 +569,7 @@ function Editor({
                         setParUnit({ ...parUnit, [item.id]: e.target.value as UnitCode })
                       }
                     >
-                      {ALL_UNITS.map((u) => (
-                        <option key={u.code} value={u.code}>
-                          {u.code}
-                        </option>
-                      ))}
+                      <UnitOptions />
                     </select>
                   </div>
                   <RecipeLinkField

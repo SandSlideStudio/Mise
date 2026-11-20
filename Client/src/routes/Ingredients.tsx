@@ -7,7 +7,6 @@ import type {
   IngredientPriceInput,
 } from '@mise/contracts';
 import {
-  ALL_UNITS,
   ALLERGENS,
   dimensionOf,
   hasAnimalAllergen,
@@ -36,6 +35,7 @@ import { LoadError } from '../components/LoadError.js';
 import { PendingLabelChecks } from '../components/PendingLabelChecks.js';
 import { NumberInput } from '../components/NumberInput.js';
 import { Plate } from '../components/Plate.js';
+import { UnitOptions } from '../components/UnitOptions.js';
 import { allergenName, errorMessage, useT, type Translator } from '../i18n/index.js';
 import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
 
@@ -515,11 +515,7 @@ export function IngredientForm({
               value={priceUnit}
               onChange={(e) => setPriceUnit(e.target.value as UnitCode)}
             >
-              {ALL_UNITS.map((unit) => (
-                <option key={unit.code} value={unit.code}>
-                  {unit.code}
-                </option>
-              ))}
+              <UnitOptions />
             </select>
           </div>
         </div>

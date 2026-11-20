@@ -11,7 +11,8 @@ import { byStation, formatTaskQuantity } from './PrepTaskRow.js';
  * printed, and one being made prints like any other.
  */
 export function PrepListPrint({ kitchenName }: { kitchenName: string }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t, locale } = translator;
   const tasks = useRunningTasks();
   const stations = useStations();
 
@@ -42,7 +43,7 @@ export function PrepListPrint({ kitchenName }: { kitchenName: string }) {
             {station?.name ?? t('common.anywhere')}
           </h2>
           {lines.map((task) => {
-            const amount = formatTaskQuantity(task);
+            const amount = formatTaskQuantity(task, translator);
             return (
               <p key={task.id} className="flex items-center gap-[3.5mm] py-[1.6mm] text-[12.5pt]">
                 <span

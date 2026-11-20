@@ -11,7 +11,7 @@ import {
   type SetupRequest,
   type TickedRetention,
 } from '@mise/contracts';
-import { ALL_UNITS, isCommonPin, ONE_PLATE, type UnitCode } from '@mise/domain';
+import { isCommonPin, ONE_PLATE, type UnitCode } from '@mise/domain';
 import type { BackupDestination, OnedriveStatus, RestoreResult } from '@mise/contracts';
 import {
   useRestoreBackup,
@@ -24,6 +24,7 @@ import { RequestFailed } from '../api/client.js';
 import { useEnrollDevice } from '../api/kitchen.js';
 import { useSetup, useSetupStatus } from '../api/session.js';
 import { Plate } from '../components/Plate.js';
+import { UnitOptions } from '../components/UnitOptions.js';
 import {
   errorMessage,
   LANGUAGE_NAMES,
@@ -1855,11 +1856,7 @@ function RecipeRow({
                 value={recipe.yieldUnit}
                 onChange={(e) => onChange({ ...recipe, yieldUnit: e.target.value as UnitCode })}
               >
-                {ALL_UNITS.map((unit) => (
-                  <option key={unit.code} value={unit.code}>
-                    {unit.code}
-                  </option>
-                ))}
+                <UnitOptions />
               </select>
             </div>
           </div>

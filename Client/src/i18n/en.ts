@@ -1646,6 +1646,25 @@ export const en = {
   'number.atLeast': 'At least {min}.',
   'number.moreThan': 'More than {min}.',
   'number.atMost': 'At most {max}.',
+
+  // Units a kitchen says in its own words. The bare key names the unit in a
+  // list to choose from; the pair follows a number. Metric and imperial
+  // symbols (g, ml, oz…) are the same in every language and have no key.
+  'unit.each': 'each',
+  'unit.each_one': 'ea',
+  'unit.each_other': 'ea',
+  'unit.dozen': 'dozen',
+  'unit.dozen_one': 'dz',
+  'unit.dozen_other': 'dz',
+  'unit.tsp': 'tsp',
+  'unit.tsp_one': 'tsp',
+  'unit.tsp_other': 'tsp',
+  'unit.tbsp': 'tbsp',
+  'unit.tbsp_one': 'tbsp',
+  'unit.tbsp_other': 'tbsp',
+  'unit.cup': 'cup',
+  'unit.cup_one': 'cup',
+  'unit.cup_other': 'cup',
 } as const;
 
 export type MessageKey = keyof typeof en;

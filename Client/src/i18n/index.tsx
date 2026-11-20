@@ -1,6 +1,13 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { LABEL_CHECK_CAUSE, LANGUAGES, type Language } from '@mise/contracts';
-import type { Allergen } from '@mise/domain';
+import {
+  formatQuantity,
+  isUnitCode,
+  unit,
+  type Allergen,
+  type Quantity,
+  type UnitCode,
+} from '@mise/domain';
 import { RequestFailed } from '../api/client.js';
 import { useCurrentUser, useSetupStatus } from '../api/session.js';
 import { de } from './de.js';
@@ -171,6 +178,37 @@ export function usePreviewLanguage(): (language: Language | null) => void {
 }
 
 // --- names for things the domain only knows by code -------------------------
+
+/**
+ * The units a kitchen says in words of its own: "el" in Dutch, not "tbsp".
+ * Only shown; a recipe stores the code. Every other unit is a symbol that
+ * reads the same in each language (g, ml, oz), so it keeps its code.
+ */
+const SAID_UNITS: ReadonlySet<string> = new Set(['each', 'dozen', 'tsp', 'tbsp', 'cup']);
+
+/** A unit as a choice in a list: "stuk", "el", "kg". */
+export function unitName(t: Translator['t'], code: UnitCode): string {
+  return SAID_UNITS.has(code) ? t(`unit.${code}` as MessageKey) : code;
+}
+
+/**
+ * A unit after an amount, singular or plural by it: "1 kopje", "2 kopjes",
+ * "2 kg". Without an amount, beside a box still to be filled in, it is the
+ * plural: "… stuks".
+ */
+export function unitLabel(translator: Translator, code: UnitCode, count?: number): string {
+  if (!SAID_UNITS.has(code)) return unit(code).abbr;
+  if (count === undefined) return translator.t(`unit.${code}_other` as MessageKey);
+  return translator.plural(`unit.${code}` as PluralBase, count);
+}
+
+/** An amount with its unit in the reader's words and number style: "1,5 el". */
+export function quantityText(translator: Translator, q: Quantity): string {
+  return formatQuantity(q, {
+    locale: translator.locale,
+    label: (code, value) => unitLabel(translator, code, value),
+  });
+}
 
 export function allergenName(t: Translator['t'], allergen: Allergen | string): string {
   return t(`allergen.${allergen}` as MessageKey);
@@ -381,7 +419,8 @@ export function errorMessage(translator: Translator, error: unknown): string {
     const details = error.details as
       { child?: string; unit?: string; makes?: string; usedIn?: string | null } | undefined;
     if (details?.child && details.unit && details.makes) {
-      const vars = { child: details.child, unit: details.unit, makes: details.makes };
+      const said = (code: string) => (isUnitCode(code) ? unitName(translator.t, code) : code);
+      const vars = { child: details.child, unit: said(details.unit), makes: said(details.makes) };
       return details.usedIn
         ? translator.t('error.incompatibleUnitsUsedIn', { ...vars, usedIn: details.usedIn })
         : translator.t('error.incompatibleUnits', vars);

@@ -5,7 +5,7 @@ import { RecipeCardPrint } from '../components/RecipeCardPrint.js';
 import { RecipeLabel } from '../components/RecipeLabel.js';
 import { RequestFailed } from '../api/client.js';
 import type { ExpandedLine, Recipe, RecipePhoto } from '@mise/contracts';
-import { convert, formatQuantity, humanize, isUnitCode, type Allergen } from '@mise/domain';
+import { convert, humanize, isUnitCode, type Allergen } from '@mise/domain';
 import { useDishCardSettings } from '../api/dishcards.js';
 import { useAwaiting } from '../lib/awaiting.js';
 import { useStations } from '../api/kitchen.js';
@@ -29,9 +29,12 @@ import {
   errorMessage,
   inSentence,
   keptWithNote,
+  quantityText,
   recipeStatusName,
   recipeTypeName,
+  unitLabel,
   useT,
+  type Translator,
 } from '../i18n/index.js';
 
 /**
@@ -130,7 +133,7 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
     note: scaled
       ? t('recipe.scaled', { factor: factorText(translator.locale, factor) })
       : t('recipe.asWritten'),
-    makes: `${t('recipe.makes', { amount: amount(recipe.yield.value * factor, recipe.yield.unit, translator.locale) })}${
+    makes: `${t('recipe.makes', { amount: amount(recipe.yield.value * factor, recipe.yield.unit, translator) })}${
       portions ? ` · ${plural('recipes.portions', portions)}` : ''
     }`,
   };
@@ -416,7 +419,8 @@ function ScaleControl({
   asked: ScaleTarget;
   onChange: (target: ScaleTarget) => void;
 }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t, locale } = translator;
   // Shown in the unit the recipe is written in: 2000 g asked of a recipe in kg reads 2.
   const askedYield =
     asked.yieldValue !== undefined && asked.yieldUnit && isUnitCode(asked.yieldUnit)
@@ -490,7 +494,14 @@ function ScaleControl({
             {divider}
           </>
         ) : null}
-        {field('yield', t('scale.need'), numberText(recipe.yield.value, locale), recipe.yield.unit)}
+        {field(
+          'yield',
+          t('scale.need'),
+          numberText(recipe.yield.value, locale),
+          isUnitCode(recipe.yield.unit)
+            ? unitLabel(translator, recipe.yield.unit, recipe.yield.value)
+            : recipe.yield.unit,
+        )}
         {divider}
         {field('batches', t('scale.batches'), '1')}
         <button
@@ -523,7 +534,8 @@ function indentStyle(depth: number): CSSProperties {
  * a number in the gutter, so the fourth level still reads on a photocopy.
  */
 function Tree({ lines }: { lines: ExpandedLine[] }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t } = translator;
   let lastSection: string | null | undefined;
   const columns =
     'grid grid-cols-[18px_76px_minmax(0,1fr)] gap-2.5 px-4 sm:grid-cols-[30px_120px_minmax(0,1fr)] sm:gap-3.5 sm:px-8';
@@ -548,7 +560,7 @@ function Tree({ lines }: { lines: ExpandedLine[] }) {
             <div className={`border-rule items-baseline border-b py-[11px] ${columns}`}>
               <span className="text-ink-faint font-mono text-[11px]">{line.depth}</span>
               <span className="qty text-right text-[20px] sm:text-[26px]">
-                {amount(line.quantity.value, line.quantity.unit, locale)}
+                {amount(line.quantity.value, line.quantity.unit, translator)}
               </span>
               <span className="relative min-w-0" style={indentStyle(line.depth)}>
                 <Leaders depth={line.depth} />
@@ -730,9 +742,9 @@ function Plating({
  * repeats the size, because a sheet taped up for three weeks needs to say
  * which size it is.
  */
-function amount(value: number, unit: string, locale: string): string {
+function amount(value: number, unit: string, translator: Translator): string {
   return isUnitCode(unit)
-    ? formatQuantity(humanize({ value, unit }), { locale })
+    ? quantityText(translator, humanize({ value, unit }))
     : `${round(value)} ${unit}`;
 }
 

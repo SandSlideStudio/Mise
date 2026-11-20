@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { PrepTask, PrepTaskStatus, RecipeSummary } from '@mise/contracts';
-import { ALL_UNITS, formatQuantity, isUnitCode, type UnitCode } from '@mise/domain';
+import { isUnitCode, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
 import { useKitchen, useStations } from '../api/kitchen.js';
 import {
@@ -28,7 +28,8 @@ import { BottomNotice } from '../components/BottomNotice.js';
 import { NumberInput } from '../components/NumberInput.js';
 import { readNumber, type NumberRules } from '../lib/typedNumber.js';
 import { LabelSheets, useByNote, usePrintLabels } from '../components/PrepLabel.js';
-import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
+import { UnitOptions } from '../components/UnitOptions.js';
+import { clockTime, errorMessage, friendlyDate, quantityText, useT } from '../i18n/index.js';
 import { useNight } from '../lib/theme.js';
 import { serverNow } from '../lib/serverClock.js';
 
@@ -510,11 +511,7 @@ function AddRunningLine() {
         value={unit}
         onChange={(e) => setUnit(e.target.value as UnitCode)}
       >
-        {ALL_UNITS.map((u) => (
-          <option key={u.code} value={u.code}>
-            {u.code}
-          </option>
-        ))}
+        <UnitOptions />
       </select>
       <select
         aria-label={t('common.station')}
@@ -552,10 +549,10 @@ function AddRunningLine() {
                 <span className="text-ink-soft">
                   {' · '}
                   {t('addTask.makes', {
-                    amount: formatQuantity(
-                      { value: recipe.yield.value, unit: recipe.yield.unit },
-                      { locale: translator.locale },
-                    ),
+                    amount: quantityText(translator, {
+                      value: recipe.yield.value,
+                      unit: recipe.yield.unit,
+                    }),
                   })}
                 </span>
               ) : null}
