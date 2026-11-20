@@ -1294,6 +1294,8 @@ export const de: Record<MessageKey, string> = {
     'Zum Anmelden an einem Küchentablet. Sie muss sich von allen anderen unterscheiden und darf nicht naheliegen wie 1234.',
   'error.pinTaken': 'Wähle eine andere PIN.',
   'error.pinTooCommon': 'Wähle eine weniger naheliegende PIN.',
+  'error.pinTries':
+    'Zu viele PINs, die schon vergeben waren. Versuche es in 15 Minuten noch einmal.',
   'error.pinOnlyOff': 'Dieses Tablet zeigt wieder die Namen. Tippe auf deinen Namen, dann die PIN.',
   'error.pinOnlyOn': 'An diesem Tablet meldest du dich jetzt nur mit der PIN an.',
   'error.tabletLockedUntil':

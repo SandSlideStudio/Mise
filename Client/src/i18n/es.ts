@@ -1279,6 +1279,7 @@ export const es: Record<MessageKey, string> = {
     'Para entrar en una tableta de cocina. Tiene que ser distinto del de los demás, y no uno obvio como 1234.',
   'error.pinTaken': 'Elige otro PIN.',
   'error.pinTooCommon': 'Elige un PIN menos obvio.',
+  'error.pinTries': 'Demasiados PIN que ya estaban asignados. Vuelve a intentarlo en 15 minutos.',
   'error.pinOnlyOff': 'Esta tableta vuelve a mostrar los nombres. Toca tu nombre y luego tu PIN.',
   'error.pinOnlyOn': 'En esta tableta ahora se entra solo con un PIN.',
   'error.tabletLockedUntil':

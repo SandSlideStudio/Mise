@@ -311,6 +311,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   email_taken: 'error.emailTaken',
   pin_taken: 'error.pinTaken',
   pin_too_common: 'error.pinTooCommon',
+  pin_tries: 'error.pinTries',
   pin_only_off: 'error.pinOnlyOff',
   pin_only_on: 'error.pinOnlyOn',
   last_admin: 'error.lastAdmin',
