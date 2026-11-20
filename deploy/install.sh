@@ -10,6 +10,11 @@
 # again pulls the newest release and keeps your existing .env.
 set -eu
 
+# Everything is in braces, so the shell reads the whole script before it
+# runs any of it. Piped from curl, a download cut off halfway would
+# otherwise run its first half, the half-written last line included.
+{
+
 # Run from inside an existing Mise folder, it updates that one in place.
 if [ -z "${MISE_DIR:-}" ] && [ -f compose.yaml ] && grep -q '^name: mise-kitchen' compose.yaml; then
   MISE_DIR=.
@@ -154,3 +159,4 @@ else
   say "Mise is running: http://$address:$port"
 fi
 say "To update later, run the same command again inside $(pwd)."
+}
