@@ -1,5 +1,5 @@
 import { ApiError } from '../../lib/errors.js';
-import { and, asc, eq, ilike, inArray, isNotNull, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm';
 import type { CreateRecipe, CreateRecipeComponent, UpdateRecipe } from '@mise/contracts';
 import {
   findCycle,
@@ -507,22 +507,6 @@ export function createRecipesService(db: Database) {
       .where(eq(recipeComponents.childRecipeId, id));
   }
 
-  /** usedBy for every recipe at once: which recipes each one is a part of. */
-  async function usedByAll() {
-    const rows = await db
-      .select({ child: recipeComponents.childRecipeId, id: recipes.id, name: recipes.name })
-      .from(recipeComponents)
-      .innerJoin(recipes, eq(recipes.id, recipeComponents.recipeId))
-      .where(isNotNull(recipeComponents.childRecipeId));
-    const byChild = new Map<string, { id: string; name: string }[]>();
-    for (const { child, id, name } of rows) {
-      const list = byChild.get(child!) ?? [];
-      list.push({ id, name });
-      byChild.set(child!, list);
-    }
-    return byChild;
-  }
-
   /**
    * Recipes that can't be called free from an allergen: they contain it or may
    * contain it anywhere in their tree, or their allergens can't be worked out.
@@ -563,7 +547,6 @@ export function createRecipesService(db: Database) {
     deleteRecipe,
     duplicateRecipe,
     usedBy,
-    usedByAll,
     allRecipes,
     idsWithAllergen,
     detectCycle,

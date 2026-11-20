@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { QueryClient } from '@tanstack/react-query';
-import type { OfflineBundle } from '@mise/contracts';
+import { OFFLINE_BUNDLE_FORMAT, type OfflineBundle, type Recipe } from '@mise/contracts';
 import { markReachable } from '../lib/connectivity.js';
 import { add } from '../lib/outbox.js';
 import { forgetKept, loadAhead } from './offline.js';
@@ -22,30 +22,46 @@ const fetchMock = vi.fn<typeof fetch>();
 let version = 'boot-1-chef';
 
 const settings = { access: 'everyone' } as OfflineBundle['dishCardSettings'];
-const recipe = { id: 'r1', name: 'Base' } as OfflineBundle['recipeEntries'][number]['recipe'];
+const recipe: Recipe = {
+  id: 'r1',
+  name: 'Base',
+  type: 'prep',
+  status: 'published',
+  stationId: null,
+  yield: { value: 1, unit: 'kg' },
+  portions: null,
+  prepMinutes: null,
+  cookMinutes: null,
+  shelfLifeHours: null,
+  kept: null,
+  storage: null,
+  method: [],
+  tags: [],
+  declaredAllergens: [],
+  mayContain: [],
+  flavourProfile: [],
+  servingTemperature: null,
+  course: null,
+  drinkPairings: [],
+  cutlery: [],
+  components: [],
+  photos: [],
+  version: 1,
+  updatedAt: '2026-01-01T00:00:00.000Z',
+};
 
 function bundle(): OfflineBundle {
   return {
+    format: OFFLINE_BUNDLE_FORMAT,
     version,
     stations: [],
     checklist: { enabled: false, items: [], updatedAt: '2026-01-01T00:00:00.000Z' },
     dishes: [],
     menus: [],
     dishCardSettings: settings,
-    recipes: [{ id: 'r1' }] as OfflineBundle['recipes'],
-    recipeEntries: [
-      {
-        recipe,
-        usedBy: [],
-        allergens: {
-          contains: [],
-          mayContain: [],
-        } as unknown as OfflineBundle['recipeEntries'][number]['allergens'],
-        expanded: { factor: 1, lines: [] },
-        card: null,
-        allergenHistory: null,
-      },
-    ],
+    kitchenName: null,
+    ingredients: [],
+    recipeEntries: [{ recipe, allergenHistory: null }],
     menuEntries: [],
   };
 }
@@ -57,7 +73,8 @@ function json(body: unknown) {
   });
 }
 
-const asked = () => fetchMock.mock.calls.map(([url]) => String(url).replace('/api', ''));
+const asked = () =>
+  fetchMock.mock.calls.map(([url]) => String(url).replace('/api', '').replace(/\?.*/, ''));
 
 beforeEach(() => {
   localStorage.clear();
@@ -66,7 +83,7 @@ beforeEach(() => {
   fetchMock.mockImplementation((input) => {
     const url = String(input);
     if (url.endsWith('/offline/version')) return Promise.resolve(json({ version }));
-    if (url.endsWith('/offline/bundle')) return Promise.resolve(json(bundle()));
+    if (url.includes('/offline/bundle')) return Promise.resolve(json(bundle()));
     if (url.endsWith('/running/tasks')) return Promise.resolve(json([]));
     if (url.endsWith('/running/note')) return Promise.resolve(json({ text: null }));
     return Promise.resolve(new Response(null, { status: 404 }));
@@ -88,7 +105,21 @@ describe('loading ahead', () => {
     // Not one request per recipe.
     expect(asked().some((path) => path.startsWith('/recipes'))).toBe(false);
 
-    expect(queryClient.getQueryData(['recipes', {}])).toEqual([{ id: 'r1' }]);
+    expect(String(fetchMock.mock.calls[1]![0])).toContain(`format=${OFFLINE_BUNDLE_FORMAT}`);
+
+    expect(queryClient.getQueryData(['recipes', {}])).toEqual([
+      {
+        id: 'r1',
+        name: 'Base',
+        type: 'prep',
+        status: 'published',
+        stationId: null,
+        yield: { value: 1, unit: 'kg' },
+        portions: null,
+        tags: [],
+        updatedAt: '2026-01-01T00:00:00.000Z',
+      },
+    ]);
     expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual(recipe);
     expect(queryClient.getQueryData(['recipe-expanded', 'r1', {}])).toEqual({
       recipe,
@@ -104,6 +135,22 @@ describe('loading ahead', () => {
     expect(queryClient.getQueryData(['dishes'])).toEqual([]);
     expect(queryClient.getQueryData(['menus'])).toEqual([]);
     expect(queryClient.getQueryData(['tasks', 'running'])).toEqual([]);
+  });
+
+  it('leaves a bundle in a format it can not read alone, and asks again later', async () => {
+    const queryClient = new QueryClient();
+    // What a server from before the format answers: no format, other parts.
+    const { format: _format, ...older } = bundle();
+    fetchMock.mockImplementationOnce(() => Promise.resolve(json({ version })));
+    fetchMock.mockImplementationOnce(() => Promise.resolve(json(older)));
+    await loadAhead(queryClient);
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toBeUndefined();
+    expect(queryClient.getQueryData(['loaded-version'])).toBeUndefined();
+
+    fetchMock.mockClear();
+    await loadAhead(queryClient);
+    expect(asked()).toContain('/offline/bundle');
+    expect(queryClient.getQueryData(['recipe', 'r1'])).toEqual(recipe);
   });
 
   it('skips when nothing changed since the last complete load', async () => {
@@ -196,7 +243,7 @@ describe('loading ahead', () => {
     fetchMock.mockImplementation((input) => {
       const url = String(input);
       if (url.endsWith('/offline/version')) return Promise.resolve(json({ version }));
-      if (url.endsWith('/offline/bundle')) {
+      if (url.includes('/offline/bundle')) {
         return new Promise((resolve) => {
           release = () => resolve(json(bundle()));
         });

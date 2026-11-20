@@ -566,7 +566,7 @@ describe('a tree too large to list', () => {
     expect(expanded.statusCode).toBe(400);
     const bundle = await ctx.app.inject({
       method: 'GET',
-      url: '/api/offline/bundle',
+      url: '/api/offline/bundle?format=2',
       cookies: as(admin),
     });
     expect(bundle.statusCode).toBe(200);

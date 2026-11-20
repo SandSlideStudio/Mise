@@ -1,9 +1,22 @@
-import { promisify } from 'node:util';
+import { isDeepStrictEqual, promisify } from 'node:util';
 import { gzip } from 'node:zlib';
 import type { FastifyPluginAsync } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { errorSchema, stationSchema, type OfflineBundle } from '@mise/contracts';
+import {
+  bookRecipeFrom,
+  componentName,
+  dishCardFrom,
+  errorSchema,
+  OFFLINE_BUNDLE_FORMAT,
+  packedRef,
+  stationSchema,
+  type OfflineBundle,
+  type OfflineRecipeEntry,
+  type Recipe,
+} from '@mise/contracts';
+import { createRecipeBook, toBase } from '@mise/domain';
+import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService, serialiseSettings } from '../dishcards/service.js';
 import { createKitchenService } from '../kitchen/service.js';
@@ -11,9 +24,9 @@ import { createMenusService } from '../menus/service.js';
 import { createChecklistReader } from '../prep/checklist.js';
 import { historyOf } from '../recipes/allergenHistory.js';
 import { loadComponentNames, loadRecipeBook } from '../recipes/book.js';
-import { costAgainst, loadCostSettings, seesCosts } from '../recipes/costs.js';
+import { loadCostSettings, seesCosts } from '../recipes/costs.js';
 import { createRecipesService } from '../recipes/service.js';
-import { expandAgainst, serialise, summarise } from '../recipes/shape.js';
+import { serialise } from '../recipes/shape.js';
 
 /**
  * Loading ahead for offline use, made light.
@@ -24,10 +37,17 @@ import { expandAgainst, serialise, summarise } from '../recipes/shape.js';
  * that changed, for everything in one go: the book is read once, and the
  * result is kept per version so six tablets cost one build.
  *
+ * And it is small: each recipe is sent once, with the ingredients it uses,
+ * and the tablet works out the expanded trees, allergens and dish cards with
+ * the same kitchen maths (see unpackOfflineBundle). Before sending, the
+ * server works out what the tablet will, and wherever that would not be
+ * exactly its own answer, sends its own answer instead.
+ *
  * Every part is what the individual endpoint would answer for the person
  * asking: where cards are for chefs only, a cook gets no cards or overviews,
  * just as they would be refused one by one, and a cook's bundle carries no
- * costs or selling prices at all, since those answers leave them out.
+ * costs, selling prices or ingredient prices at all, since those answers
+ * leave them out.
  */
 
 const gzipped = promisify(gzip);
@@ -36,6 +56,8 @@ interface Built {
   raw: Buffer;
   zipped?: Promise<Buffer>;
 }
+
+type BundleIngredient = OfflineBundle['ingredients'][number];
 
 const offlineRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
@@ -65,7 +87,6 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
       loadRecipeBook(app.db),
       recipes.allRecipes(),
       loadComponentNames(app.db),
-      recipes.usedByAll(),
       kitchen.listStations(),
       checklist.readChecklist(),
       menus.listMenus(),
@@ -91,40 +112,80 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     withCards: boolean,
     withCosts: boolean,
   ): Promise<OfflineBundle> {
-    const [book, all, names, usedBy, stations, list, menuList, settings, history, costSettings] =
+    const [book, all, names, stations, list, menuList, settings, history, costSettings] =
       await sourcesAt(version);
     const dishes = await dishCards.summaries(book);
     const cards = withCards ? await dishCards.allCards(book) : null;
+    const summaries = new Map(dishes.map((dish) => [dish.id, dish]));
 
-    const recipeEntries: OfflineBundle['recipeEntries'] = [];
+    // Every ingredient a recipe uses, once: the tablet's book is made of these.
+    const ingredients = new Map<string, BundleIngredient>();
+    const full: Recipe[] = [];
+    const recipeEntries: OfflineRecipeEntry[] = [];
     for (const row of all) {
-      let allergens: OfflineBundle['recipeEntries'][number]['allergens'] = null;
-      try {
-        allergens = await recipes.allergensFor(row.id, book);
-      } catch {
-        // Answered with 422 one by one: what can't be worked out is not handed out.
-      }
-      const expanded = allergens ? expandAgainst(row.id, {}, book) : null;
-      const cost =
-        withCosts && expanded?.ok
-          ? costAgainst(row.id, expanded.value.factor, book, costSettings, row.sellPrice)
-          : null;
-      let card: OfflineBundle['recipeEntries'][number]['card'] = null;
-      if (cards && row.type === 'dish') {
-        const result = cards.get(row.id);
-        if (result?.ok) {
-          const { settings: _settings, ...rest } = result.card;
-          card = rest;
-        }
-      }
-      recipeEntries.push({
-        recipe: serialise(row, names, withCosts),
-        usedBy: usedBy.get(row.id) ?? [],
-        allergens,
-        expanded: expanded?.ok ? { ...expanded.value, ...(cost ? { cost } : {}) } : null,
-        card,
+      const recipe = serialise(row, names, withCosts);
+      const entry: OfflineRecipeEntry = {
+        recipe,
         allergenHistory: row.type === 'dish' ? (history.get(row.id) ?? []) : null,
-      });
+      };
+
+      // The amounts as stored, where converting the entered ones doesn't
+      // give exactly them back (a cup is kept to four decimals of a millilitre).
+      const stored = [row.yieldBase, ...row.components.map((c) => c.quantityBase)];
+      const entered = [recipe.yield, ...recipe.components.map((c) => c.quantity)];
+      const base = stored.map((value, i) => (value === toBase(entered[i]!) ? null : value));
+      while (base.length > 0 && base.at(-1) === null) base.pop();
+      if (base.length > 0) entry.base = base;
+
+      const inBook = book.recipe(row.id);
+      if (inBook && !isDeepStrictEqual(bookRecipeFrom(recipe, entry.base), inBook)) {
+        entry.book = inBook;
+      }
+      for (const { ref } of [...recipe.components, ...(inBook?.components ?? [])]) {
+        if (ref.kind !== 'ingredient' || ingredients.has(ref.ingredientId)) continue;
+        const found = book.ingredient(ref.ingredientId);
+        if (!found) continue;
+        // Not even prices nothing on a cook's screens would show.
+        const { price: _price, ...unpriced } = found;
+        ingredients.set(found.id, withCosts ? found : unpriced);
+      }
+      full.push(recipe);
+      recipeEntries.push(entry);
+    }
+
+    // The book as the tablet will make it, to see what it will work out.
+    const tabletBook = createRecipeBook(
+      recipeEntries.map((entry, i) => entry.book ?? bookRecipeFrom(full[i]!, entry.base)),
+      [...ingredients.values()],
+    );
+    const ingredientAt = new Map([...ingredients.keys()].map((id, i) => [id, i]));
+    const recipeAt = new Map(full.map((recipe, i) => [recipe.id, i]));
+    let kitchenName: string | null = null;
+    for (const [i, entry] of recipeEntries.entries()) {
+      const recipe = full[i]!;
+      const result = recipe.type === 'dish' ? cards?.get(recipe.id) : undefined;
+      if (result?.ok) {
+        const { settings: _settings, ...card } = result.card;
+        kitchenName ??= card.kitchenName;
+        const worked = dishCardFrom(
+          recipe,
+          summaries.get(recipe.id),
+          kitchenName,
+          card.attention,
+          tabletBook,
+        );
+        if (isDeepStrictEqual(worked, card)) entry.cardAttention = card.attention;
+        else entry.card = card;
+      }
+      entry.recipe = {
+        ...recipe,
+        components: recipe.components.map(({ displayName, ...component }) => ({
+          ...component,
+          ref: packedRef(component.ref, ingredientAt, recipeAt),
+          // Left out where it is the name of what the line refers to.
+          ...(displayName === componentName(component.ref, tabletBook) ? {} : { displayName }),
+        })),
+      };
     }
 
     const menuEntries: OfflineBundle['menuEntries'] = [];
@@ -143,6 +204,7 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     }
 
     return {
+      format: OFFLINE_BUNDLE_FORMAT,
       version,
       // The endpoint's schema drops what isn't part of the answer; so does this.
       stations: stations.map((station) => stationSchema.parse(station)),
@@ -150,7 +212,9 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
       dishes,
       menus: menuList,
       dishCardSettings: serialiseSettings(settings),
-      recipes: all.map(summarise),
+      kitchenName,
+      ...(withCosts ? { costSettings } : {}),
+      ingredients: [...ingredients.values()],
       recipeEntries,
       menuEntries,
     };
@@ -169,48 +233,65 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     }),
   );
 
-  r.get('/offline/bundle', { onRequest: [app.requireUser] }, async (request, reply) => {
-    const user = request.user!;
-    // The version first, then everything else: a write in between (cards
-    // made chefs-only, say) then shows as a newer version next time, and the
-    // tablet loads again rather than keep what it may no longer have.
-    const data = app.live.dataVersion();
-    const version = `${data}-${user.role}`;
-    const settings = await dishCards.settings();
-    const withCards = settings.access !== 'managers' || MANAGERS.includes(user.role);
-    const withCosts = seesCosts(user);
+  r.get(
+    '/offline/bundle',
+    {
+      onRequest: [app.requireUser],
+      schema: { querystring: z.object({ format: z.coerce.number().int().optional() }) },
+    },
+    async (request, reply) => {
+      // An app saved on a tablet before an update asks without a format, or
+      // for an older one, and would misread this one: it is told no, and
+      // loads ahead again once it has updated.
+      if (request.query.format !== OFFLINE_BUNDLE_FORMAT) {
+        throw new ApiError(
+          410,
+          'bundle_format',
+          'This version of the app can’t read what the server loads ahead. Reload the app to update it.',
+        );
+      }
+      const user = request.user!;
+      // The version first, then everything else: a write in between (cards
+      // made chefs-only, say) then shows as a newer version next time, and the
+      // tablet loads again rather than keep what it may no longer have.
+      const data = app.live.dataVersion();
+      const version = `${data}-${user.role}`;
+      const settings = await dishCards.settings();
+      const withCards = settings.access !== 'managers' || MANAGERS.includes(user.role);
+      const withCosts = seesCosts(user);
 
-    // One build per version and kind of reader, whatever the roles asking:
-    // only the version stamped on it differs between them.
-    const kind = withCosts ? 'costs' : withCards ? 'cards' : 'plain';
-    let current = built.get(kind);
-    if (!current || current.version !== data) {
-      const result = build(data, withCards, withCosts);
-      // A failed build must not be remembered.
-      result.catch(() => {
-        if (built.get(kind)?.result === result) built.delete(kind);
-      });
-      current = { version: data, result };
-      built.set(kind, current);
-      for (const key of encoded.keys()) if (key.startsWith(`${kind}|`)) encoded.delete(key);
-    }
-    const bundle = await current.result;
-    const key = `${kind}|${user.role}`;
-    let body = encoded.get(key);
-    if (!body || body.version !== version) {
-      body = { version, raw: Buffer.from(JSON.stringify({ ...bundle, version })) };
-      encoded.set(key, body);
-    }
+      // One build per version and kind of reader, whatever the roles asking:
+      // only the version stamped on it differs between them.
+      const kind = withCosts ? 'costs' : withCards ? 'cards' : 'plain';
+      let current = built.get(kind);
+      if (!current || current.version !== data) {
+        const result = build(data, withCards, withCosts);
+        // A failed build must not be remembered.
+        result.catch(() => {
+          if (built.get(kind)?.result === result) built.delete(kind);
+        });
+        current = { version: data, result };
+        built.set(kind, current);
+        for (const key of encoded.keys()) if (key.startsWith(`${kind}|`)) encoded.delete(key);
+      }
+      const bundle = await current.result;
+      const key = `${kind}|${user.role}`;
+      let body = encoded.get(key);
+      if (!body || body.version !== version) {
+        body = { version, raw: Buffer.from(JSON.stringify({ ...bundle, version })) };
+        encoded.set(key, body);
+      }
 
-    reply
-      .header('content-type', 'application/json; charset=utf-8')
-      .header('vary', 'accept-encoding');
-    if (/\bgzip\b/.test(request.headers['accept-encoding'] ?? '')) {
-      body.zipped ??= gzipped(body.raw);
-      return reply.header('content-encoding', 'gzip').send(await body.zipped);
-    }
-    return reply.send(body.raw);
-  });
+      reply
+        .header('content-type', 'application/json; charset=utf-8')
+        .header('vary', 'accept-encoding');
+      if (/\bgzip\b/.test(request.headers['accept-encoding'] ?? '')) {
+        body.zipped ??= gzipped(body.raw);
+        return reply.header('content-encoding', 'gzip').send(await body.zipped);
+      }
+      return reply.send(body.raw);
+    },
+  );
 };
 
 export default offlineRoutes;

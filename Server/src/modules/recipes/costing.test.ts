@@ -292,7 +292,7 @@ describe('a cook', () => {
     const bundle = async (cookies: Record<string, string>) => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/offline/bundle',
+        url: '/api/offline/bundle?format=2',
         cookies,
         headers: { 'accept-encoding': 'gzip' },
       });
@@ -309,6 +309,10 @@ describe('a cook', () => {
     expect(forCook).not.toContain('sellPrice');
     expect(forCook).not.toContain('"cost"');
     expect(forCook).not.toContain('10.9');
+    // Nor what the ingredients cost, which a chef's tablet works costs out from.
+    expect(forChef).toContain('"price":{"amount":4');
+    expect(forCook).not.toContain('"price"');
+    expect(forCook).not.toContain('costSettings');
     // And the chef's build is not handed out again for the cook's.
     expect(await bundle(admin)).toContain('"sellPrice":10.9');
   });
