@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { eq, sql } from 'drizzle-orm';
 import { ingredients } from '../../db/schema.js';
 import { setUpKitchen, useTestContext } from '../../test/harness.js';
+import { loadRecipeBook } from './book.js';
 
 const ctx = useTestContext();
 let admin: string;
@@ -954,6 +955,20 @@ describe('how often a save reads the whole recipe book', () => {
       payload,
       cookies: as(admin),
     });
+
+  it('reads only the columns the allergen and cost maths use', async () => {
+    const stock = await addRecipe(ctx.app, admin, {
+      name: 'Stock',
+      method: [{ text: 'Simmer for a long time.' }],
+    });
+    const { result, sql: sent } = await ctx.countStatements(() => loadRecipeBook(ctx.db));
+    expect(result.recipe(stock.id)?.name).toBe('Stock');
+    expect(bookReads(sent)).toBe(1);
+    // The method, notes and timestamps are most of a row and play no part.
+    expect(sent).not.toContain('"method"');
+    expect(sent).not.toContain('"notes"');
+    expect(sent).not.toContain('"updated_at"');
+  });
 
   it('reads it once to rename a recipe', async () => {
     const stock = await addRecipe(ctx.app, admin, { name: 'Stock' });

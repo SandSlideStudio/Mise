@@ -35,10 +35,52 @@ function toAllergens(values: string[]): Allergen[] {
 }
 
 export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
+  // Only the columns the domain works with: the method, notes and timestamps
+  // are the bulk of every row and nothing here reads them.
   const [recipeRows, componentRows, ingredientRows] = await Promise.all([
-    db.select().from(recipes),
-    db.select().from(recipeComponents),
-    db.select().from(ingredients),
+    db
+      .select({
+        id: recipes.id,
+        name: recipes.name,
+        type: recipes.type,
+        stationId: recipes.stationId,
+        yieldBase: recipes.yieldBase,
+        yieldUnit: recipes.yieldUnit,
+        portions: recipes.portions,
+        declaredAllergens: recipes.declaredAllergens,
+        mayContain: recipes.mayContain,
+      })
+      .from(recipes),
+    db
+      .select({
+        id: recipeComponents.id,
+        recipeId: recipeComponents.recipeId,
+        sortOrder: recipeComponents.sortOrder,
+        section: recipeComponents.section,
+        note: recipeComponents.note,
+        quantityBase: recipeComponents.quantityBase,
+        unitEntered: recipeComponents.unitEntered,
+        ingredientId: recipeComponents.ingredientId,
+        childRecipeId: recipeComponents.childRecipeId,
+      })
+      .from(recipeComponents),
+    db
+      .select({
+        id: ingredients.id,
+        name: ingredients.name,
+        baseUnit: ingredients.baseUnit,
+        allergens: ingredients.allergens,
+        mayContain: ingredients.mayContain,
+        vegan: ingredients.vegan,
+        allergenDetails: ingredients.allergenDetails,
+        densityGPerMl: ingredients.densityGPerMl,
+        itemWeightG: ingredients.itemWeightG,
+        yieldPercent: ingredients.yieldPercent,
+        price: ingredients.price,
+        purchaseQuantity: ingredients.purchaseQuantity,
+        purchaseUnit: ingredients.purchaseUnit,
+      })
+      .from(ingredients),
   ]);
 
   const componentsByRecipe = new Map<string, DomainComponent[]>();
@@ -72,8 +114,26 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
   return createRecipeBook(domainRecipes, ingredientRows.map(domainIngredient));
 }
 
+/** The columns of an ingredient the domain needs; a full row has them all. */
+type IngredientForDomain = Pick<
+  typeof ingredients.$inferSelect,
+  | 'id'
+  | 'name'
+  | 'baseUnit'
+  | 'allergens'
+  | 'mayContain'
+  | 'vegan'
+  | 'allergenDetails'
+  | 'densityGPerMl'
+  | 'itemWeightG'
+  | 'yieldPercent'
+  | 'price'
+  | 'purchaseQuantity'
+  | 'purchaseUnit'
+>;
+
 /** One ingredient as the domain works with it, price and all. */
-export function domainIngredient(row: typeof ingredients.$inferSelect): DomainIngredient {
+export function domainIngredient(row: IngredientForDomain): DomainIngredient {
   return {
     id: row.id,
     name: row.name,
@@ -90,7 +150,7 @@ export function domainIngredient(row: typeof ingredients.$inferSelect): DomainIn
 }
 
 /** A price is only a price with what it buys; anything less is unknown. */
-function priceOf(row: typeof ingredients.$inferSelect): DomainIngredient['price'] {
+function priceOf(row: IngredientForDomain): DomainIngredient['price'] {
   if (row.price === null || row.purchaseQuantity === null || !row.purchaseUnit) return null;
   if (!isUnitCode(row.purchaseUnit)) return null;
   return { amount: row.price, quantity: { value: row.purchaseQuantity, unit: row.purchaseUnit } };
