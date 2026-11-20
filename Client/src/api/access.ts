@@ -20,6 +20,17 @@ export function useAccessStatus() {
   });
 }
 
+/**
+ * Whether this device is outside the kitchen, where adding staff, changing
+ * how someone signs in and enrolling a tablet ask for your password again.
+ * Undefined until known; the server asks regardless, so a screen that guessed
+ * wrong learns from its answer.
+ */
+export function useOutside(): boolean | undefined {
+  const status = useAccessStatus();
+  return status.data ? status.data.status !== 'inside' : undefined;
+}
+
 export function useRequestAccess() {
   const queryClient = useQueryClient();
   return useMutation({

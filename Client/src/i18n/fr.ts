@@ -1010,7 +1010,12 @@ export const fr: Record<MessageKey, string> = {
   'error.accessRequired': 'Cet appareil n’est pas approuvé pour l’accès hors de la cuisine.',
   'error.wrongPassword': 'Ce mot de passe n’est pas le bon.',
   'error.passwordNeeded':
-    'Approuver depuis l’extérieur demande un mot de passe, et ce compte n’en a pas. Approuvez depuis la cuisine.',
+    'Depuis l’extérieur de la cuisine, il faut un mot de passe, et ce compte n’en a pas. Faites-le depuis la cuisine.',
+  'confirm.passwordLabel': 'Votre mot de passe',
+  'confirm.currentPasswordLabel': 'Votre mot de passe actuel',
+  'confirm.whyOutside': 'Vous êtes hors de la cuisine : votre mot de passe est redemandé.',
+  'confirm.whySelf':
+    'Pour changer votre propre mot de passe ou votre e-mail, votre mot de passe actuel est demandé d’abord.',
   'error.tooManyRequests': 'Trop d’appareils attendent une approbation. Réessayez plus tard.',
   'settings.tabConnection': 'Connexion',
   'connection.relayedTitle': 'Mise ne peut pas savoir qui est dans la cuisine',

@@ -776,3 +776,69 @@ describe('email addresses', () => {
     expect(response.statusCode).toBe(409);
   });
 });
+
+describe('changing your own password or email', () => {
+  async function myId(): Promise<string> {
+    const me = await ctx.app.inject({ method: 'GET', url: '/api/auth/me', cookies: as(admin) });
+    return me.json().user.id;
+  }
+
+  const editMe = async (payload: Record<string, unknown>) =>
+    ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/users/${await myId()}`,
+      payload,
+      cookies: as(admin),
+    });
+
+  const signIn = (email: string, password: string) =>
+    ctx.app.inject({ method: 'POST', url: '/api/auth/login', payload: { email, password } });
+
+  it('asks for the current password, even inside the kitchen', async () => {
+    const without = await editMe({ password: 'someone-elses-choice' });
+    expect(without.statusCode).toBe(403);
+    expect(without.json().error.code).toBe('wrong_password');
+    const wrong = await editMe({ password: 'someone-elses-choice', currentPassword: 'guess' });
+    expect(wrong.json().error.code).toBe('wrong_password');
+    const otherEmail = await editMe({ email: 'taken-over@example.com' });
+    expect(otherEmail.json().error.code).toBe('wrong_password');
+    // Nothing changed: the owner still gets in.
+    expect((await signIn(ADMIN.email, ADMIN.password)).statusCode).toBe(200);
+
+    const changed = await editMe({
+      password: 'my-own-new-password',
+      email: 'escoffier@example.com',
+      currentPassword: ADMIN.password,
+    });
+    expect(changed.statusCode).toBe(200);
+    expect((await signIn('escoffier@example.com', 'my-own-new-password')).statusCode).toBe(200);
+  });
+
+  it('counts a wrong current password like a wrong sign-in', async () => {
+    for (let i = 0; i < 10; i++) {
+      await editMe({ password: 'someone-elses-choice', currentPassword: 'still-guessing' });
+    }
+    const locked = await editMe({
+      password: 'my-own-new-password',
+      currentPassword: ADMIN.password,
+    });
+    expect(locked.statusCode).toBe(429);
+    expect(locked.json().error.code).toBe('account_locked');
+  });
+
+  it('asks nothing for your name, or for the same email sent back unchanged', async () => {
+    const renamed = await editMe({ displayName: 'Auguste', email: ADMIN.email, role: 'admin' });
+    expect(renamed.statusCode).toBe(200);
+  });
+
+  it('asks nothing more inside the kitchen to set someone else’s password', async () => {
+    const chef = await addStaff(ctx.app, admin, { displayName: 'Rosa', role: 'cook', pin: '4821' });
+    const set = await ctx.app.inject({
+      method: 'PATCH',
+      url: `/api/users/${chef.id}`,
+      payload: { role: 'sous_chef', email: 'rosa@example.com', password: 'rosas-own-password' },
+      cookies: as(admin),
+    });
+    expect(set.statusCode).toBe(200);
+  });
+});

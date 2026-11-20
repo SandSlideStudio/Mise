@@ -40,6 +40,13 @@ export const passwordSchema = z
   .max(200, 'That is longer than we can hash');
 
 /**
+ * Your own password, typed again to prove it is still you. Any length: an
+ * older password may be shorter than today's rule, and a wrong one is simply
+ * wrong.
+ */
+export const currentPasswordSchema = z.string().max(200);
+
+/**
  * A shared tablet that signs out when left alone tells the server it is in
  * use at most this often while someone is touching it, so the server, which
  * signs out a tablet it has not heard from, never signs out someone at work.
@@ -141,6 +148,8 @@ export const pinOnlyLoginRequestSchema = z.object({
 
 export const enrollDeviceRequestSchema = z.object({
   name: z.string().min(1).max(120),
+  /** Your password again, when enrolling from outside the kitchen. */
+  currentPassword: currentPasswordSchema.optional(),
 });
 
 export const enrollDeviceResponseSchema = z.object({

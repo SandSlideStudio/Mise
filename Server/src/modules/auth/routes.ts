@@ -295,10 +295,13 @@ const authRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole('admin'), app.requirePassword],
       schema: {
         body: enrollDeviceRequestSchema,
-        response: { 200: enrollDeviceResponseSchema, 403: errorSchema },
+        response: { 200: enrollDeviceResponseSchema, 403: errorSchema, 429: errorSchema },
       },
     },
     async (request, reply) => {
+      // An enrolled tablet takes PINs. From outside, a signed-in phone that
+      // went missing must not be enough to make one.
+      if (!request.inside) await app.confirmOwnPassword(request, request.body.currentPassword);
       const device = await app.auth.enrollDevice(request.body.name);
       reply.setCookie(DEVICE_COOKIE, device.token, {
         httpOnly: true,

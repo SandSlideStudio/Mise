@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { PasswordInput } from '../../components/PasswordInput.js';
+import { PasswordConfirm } from '../../components/PasswordConfirm.js';
 import type { RemoteDevice } from '@mise/contracts';
 import {
   useApproveRemoteDevice,
@@ -154,19 +154,13 @@ function WaitingDevice({ device, inside }: { device: RemoteDevice; inside: boole
 
       {askingPassword ? (
         <form onSubmit={onApprove} className="flex flex-wrap items-end gap-3">
-          <div className="min-w-56 flex-1">
-            <label className="label" htmlFor={`password-${device.id}`}>
-              {t('outside.passwordLabel')}
-            </label>
-            <PasswordInput
-              id={`password-${device.id}`}
-              autoComplete="current-password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              autoFocus
-              required
-            />
-          </div>
+          <PasswordConfirm
+            id={`password-${device.id}`}
+            label={t('outside.passwordLabel')}
+            value={password}
+            onChange={setPassword}
+            autoFocus
+          />
           <button type="submit" className="btn-primary" disabled={approve.isPending || !password}>
             {t('outside.approve')}
           </button>

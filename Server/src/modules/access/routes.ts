@@ -102,28 +102,7 @@ const accessRoutes: FastifyPluginAsync = async (app) => {
     async (request, reply) => {
       const user = request.user!;
       // From outside, a signed-in phone that went missing must not be enough.
-      if (!request.inside) {
-        const result = await app.auth.confirmPassword(
-          user.id,
-          request.body.password ?? '',
-          request.ip,
-        );
-        if (result === 'no_password') {
-          throw new ApiError(
-            403,
-            'password_needed',
-            'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
-          );
-        }
-        if (result === 'wrong') {
-          throw new ApiError(403, 'wrong_password', 'That password is not right.');
-        }
-        if (typeof result === 'object') {
-          throw new ApiError(429, 'account_locked', 'Too many wrong passwords. Try again later.', {
-            lockedUntil: result.lockedUntil.toISOString(),
-          });
-        }
-      }
+      if (!request.inside) await app.confirmOwnPassword(request, request.body.password);
       const approved = await app.access.approve(request.params.id, {
         userId: user.id,
         from: request.inside ? null : (request.remoteDevice?.name ?? null),

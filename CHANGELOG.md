@@ -212,6 +212,12 @@ staff data, and a stack of smaller fixes.
   by the tablet's browser. A browser that was closed, put away or switched off no longer leaves the
   last cook signed in for whoever picks the tablet up. A tablet in use tells Mise so now and then,
   so nobody at work is signed out.
+- From outside the kitchen, adding staff, changing someone's password, email, PIN or role or
+  switching them off, and enrolling a tablet now ask for your password again, like approving a
+  device. Before, a signed-in phone that went missing could add an administrator with a password
+  of its choosing and let itself in as them.
+- Changing your own password or email asks for your current password first, so someone at a
+  session left signed in can't lock you out of your own account.
 
 **Under the hood**
 

@@ -1,5 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { LoadError } from '../../components/LoadError.js';
+import { PasswordConfirm, refusedForPassword } from '../../components/PasswordConfirm.js';
+import { useOutside } from '../../api/access.js';
 import {
   useDevices,
   useEnrollDevice,
@@ -28,10 +30,22 @@ export function DeviceSettings() {
   // The same people who may lift a person's lock.
   const mayLift = me?.role === 'admin' || me?.role === 'head_chef';
   const [name, setName] = useState('');
+  // From outside the kitchen, a tablet is only enrolled with your password again.
+  const outside = useOutside();
+  const [password, setPassword] = useState('');
+  const asksPassword = outside === true || refusedForPassword(enroll.error);
 
   function onEnroll(event: FormEvent) {
     event.preventDefault();
-    enroll.mutate(name, { onSuccess: () => setName('') });
+    enroll.mutate(
+      { name, currentPassword: asksPassword ? password : undefined },
+      {
+        onSuccess: () => {
+          setName('');
+          setPassword('');
+        },
+      },
+    );
   }
 
   const day = (iso: string) => new Date(iso).toLocaleDateString(locale);
@@ -119,11 +133,22 @@ export function DeviceSettings() {
             required
           />
         </div>
+        {asksPassword ? (
+          <PasswordConfirm
+            id="enrolPassword"
+            label={t('confirm.passwordLabel')}
+            value={password}
+            onChange={setPassword}
+          />
+        ) : null}
         <button type="submit" className="btn-quiet" disabled={enroll.isPending}>
           {enroll.isPending ? t('devices.enrolling') : t('devices.enrol')}
         </button>
       </form>
 
+      {asksPassword ? (
+        <p className="text-ink-faint mt-2 text-sm">{t('confirm.whyOutside')}</p>
+      ) : null}
       {enroll.isSuccess ? (
         <p className="text-ink-soft mt-3 text-sm">{t('devices.enrolledOk')}</p>
       ) : null}

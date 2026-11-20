@@ -14,11 +14,38 @@ import {
   updateStationSchema,
   updateUserSchema,
   userSchema,
+  type Role,
+  type UpdateUser,
 } from '@mise/contracts';
 import { ApiError } from '../../lib/errors.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { currencyOf } from '../recipes/costs.js';
 import { createKitchenService, type KitchenFailure } from './service.js';
+
+/**
+ * Whether an edit asks for the editor's own password first. Changing your own
+ * password or email does, anywhere: otherwise a session left signed in is
+ * enough to take the account from its owner. From outside the kitchen, so
+ * does any change to how someone signs in or what they may do, so a
+ * signed-in phone that went missing can't hand anyone a way in.
+ */
+function asksForPassword(
+  edit: UpdateUser,
+  target: { id: string; email: string | null; role: Role; active: boolean },
+  actorId: string,
+  inside: boolean,
+): boolean {
+  const changesEmail = edit.email !== undefined && (edit.email ?? null) !== target.email;
+  if (target.id === actorId && (edit.password !== undefined || changesEmail)) return true;
+  if (inside) return false;
+  return (
+    edit.password !== undefined ||
+    edit.pin !== undefined ||
+    changesEmail ||
+    (edit.role !== undefined && edit.role !== target.role) ||
+    (edit.active !== undefined && edit.active !== target.active)
+  );
+}
 
 /**
  * Managing the brigade. Everything here is behind a role check: cooks can read
@@ -272,6 +299,9 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      // From outside, a signed-in phone that went missing must not be able to
+      // add someone whose password it chose, and come back in as them.
+      if (!request.inside) await app.confirmOwnPassword(request, request.body.currentPassword);
       const result = await withPinTry(request.user!.id, Boolean(request.body.pin), () =>
         kitchen.createUser(request.body, request.user!),
       );
@@ -298,6 +328,10 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       },
     },
     async (request) => {
+      const target = await kitchen.getUser(request.params.id);
+      if (target && asksForPassword(request.body, target, request.user!.id, request.inside)) {
+        await app.confirmOwnPassword(request, request.body.currentPassword);
+      }
       const result = await withPinTry(request.user!.id, Boolean(request.body.pin), () =>
         kitchen.updateUser(request.params.id, request.body, request.user!),
       );

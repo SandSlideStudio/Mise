@@ -445,7 +445,8 @@ export function Setup() {
       onSuccess: async () => {
         if (enrolDevice) {
           try {
-            await enrol.mutateAsync(deviceName.trim());
+            // The password just chosen: from outside, enrolling asks for it again.
+            await enrol.mutateAsync({ name: deviceName.trim(), currentPassword: password });
           } catch {
             // The kitchen exists either way; a tablet can be enrolled from Settings.
           }

@@ -993,7 +993,12 @@ export const nl: Record<MessageKey, string> = {
   'error.accessRequired': 'Dit apparaat is niet goedgekeurd voor toegang van buiten de keuken.',
   'error.wrongPassword': 'Dat wachtwoord klopt niet.',
   'error.passwordNeeded':
-    'Goedkeuren van buitenaf vraagt een wachtwoord, en dit account heeft er geen. Keur het goed vanuit de keuken.',
+    'Van buiten de keuken vraagt dit een wachtwoord, en dit account heeft er geen. Doe het vanuit de keuken.',
+  'confirm.passwordLabel': 'Je wachtwoord',
+  'confirm.currentPasswordLabel': 'Je huidige wachtwoord',
+  'confirm.whyOutside': 'Je bent buiten de keuken, dus dit vraagt opnieuw om je wachtwoord.',
+  'confirm.whySelf':
+    'Je eigen wachtwoord of e-mailadres wijzigen vraagt eerst om je huidige wachtwoord.',
   'error.tooManyRequests':
     'Er wachten te veel apparaten op goedkeuring. Probeer het later opnieuw.',
   'settings.tabConnection': 'Verbinding',

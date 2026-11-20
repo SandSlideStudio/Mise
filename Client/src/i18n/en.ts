@@ -973,7 +973,11 @@ export const en = {
   'error.accessRequired': 'This device isn’t approved for access from outside the kitchen.',
   'error.wrongPassword': 'That password isn’t right.',
   'error.passwordNeeded':
-    'Approving from outside needs a password, and this account has none. Approve it from inside the kitchen.',
+    'From outside the kitchen this needs a password, and this account has none. Do it from inside the kitchen.',
+  'confirm.passwordLabel': 'Your password',
+  'confirm.currentPasswordLabel': 'Your current password',
+  'confirm.whyOutside': 'You’re outside the kitchen, so this asks for your password again.',
+  'confirm.whySelf': 'Changing your own password or email asks for your current password first.',
   'error.tooManyRequests': 'Too many devices are waiting to be approved. Try again later.',
   'settings.tabConnection': 'Connection',
   'connection.relayedTitle': 'Mise can’t tell who is inside the kitchen',

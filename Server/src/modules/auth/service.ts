@@ -135,7 +135,10 @@ export function createAuthService(db: Database) {
 
   /**
    * Someone already signed in proves it is still them, with the same lockout
-   * as signing in. Used before approving a device from outside the kitchen.
+   * as signing in. Asked before anything from outside the kitchen that would
+   * let a signed-in phone that went missing in further (approving a device,
+   * enrolling a tablet, adding staff or changing how they sign in), and
+   * before anyone changes their own password or email.
    */
   async function confirmPassword(
     userId: string,
@@ -152,6 +155,16 @@ export function createAuthService(db: Database) {
     }
     lockout.succeeded(user.id, address);
     return 'ok';
+  }
+
+  /** Whether someone can sign in with a password at all. */
+  async function hasPassword(userId: string): Promise<boolean> {
+    const [user] = await db
+      .select({ passwordHash: users.passwordHash })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    return Boolean(user?.passwordHash);
   }
 
   /** Email and password, for chefs and managers on any device. */
@@ -637,6 +650,7 @@ export function createAuthService(db: Database) {
     /** When this person's PIN is locked until, across all tablets: kept in memory, not the database. */
     pinLockedUntil: (userId: string) => lockout.pinLocked(userId),
     confirmPassword,
+    hasPassword,
     markTourSeen,
     resolveSession,
     revokeSession,

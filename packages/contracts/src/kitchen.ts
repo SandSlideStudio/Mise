@@ -1,7 +1,13 @@
 import { z } from 'zod';
 import { idSchema } from './common.js';
 import { currencySchema } from './costing.js';
-import { languageSchema, passwordSchema, pinSchema, roleSchema } from './auth.js';
+import {
+  currentPasswordSchema,
+  languageSchema,
+  passwordSchema,
+  pinSchema,
+  roleSchema,
+} from './auth.js';
 import { labelSizeSchema } from './labels.js';
 import { tickedRetentionSchema } from './prep.js';
 
@@ -50,6 +56,11 @@ export const createUserSchema = z
     defaultStationId: idSchema.nullable().optional(),
     password: passwordSchema.optional(),
     pin: pinSchema.optional(),
+    /**
+     * Your own password, not theirs. Asked from outside the kitchen, where a
+     * signed-in phone that went missing must not be enough to add someone.
+     */
+    currentPassword: currentPasswordSchema.optional(),
   })
   .refine((v) => v.password || v.pin, {
     message: 'A staff member needs either a password or a PIN to sign in',
@@ -71,6 +82,12 @@ export const updateUserSchema = z.object({
   active: z.boolean().optional(),
   password: passwordSchema.optional(),
   pin: pinSchema.nullable().optional(),
+  /**
+   * Your own password, not theirs. Asked when you change your own password or
+   * email, and from outside the kitchen whenever someone's password, email,
+   * role, PIN or whether they are active changes.
+   */
+  currentPassword: currentPasswordSchema.optional(),
 });
 
 export const pinOnlyStateSchema = z.enum(['off', 'waiting', 'on']);

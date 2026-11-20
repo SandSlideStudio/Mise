@@ -327,6 +327,187 @@ describe('asking and approving', () => {
   });
 });
 
+describe('a signed-in phone that went missing, outside the kitchen', () => {
+  /** Signed in with the password on a device approved from outside. */
+  async function phone() {
+    const admin = await setUpKitchen(ctx.app);
+    const laptop = await approvedOutside(ctx.app);
+    const signedIn = await from(OUTSIDE, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+      cookie: laptop,
+    });
+    expect(signedIn.statusCode).toBe(200);
+    const session = cookieFrom(signedIn, 'mise_session')!;
+    return { admin, laptop, session, cookie: `mise_session=${session}; ${laptop}` };
+  }
+
+  const outside = (cookie: string, options: InjectOptions) => from(OUTSIDE, { ...options, cookie });
+
+  it('cannot get round the password check by adding a manager it knows the password of', async () => {
+    const { laptop, session, cookie } = await phone();
+    await ask('Thief laptop', '198.51.100.20');
+    const { devices } = await list(session, OUTSIDE, laptop);
+    const requestId = devices.find((d) => d.status === 'pending')!.id;
+
+    // Approving asks for the password, which the thief does not know.
+    const refused = await approve(session, requestId, OUTSIDE, {}, laptop);
+    expect(refused.json().error.code).toBe('wrong_password');
+
+    // Adding an administrator with a password of the thief's choosing asks for it too...
+    const accomplice = await outside(cookie, {
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        displayName: 'Helper',
+        role: 'admin',
+        email: 'helper@evil.example',
+        password: 'thief-chosen-password',
+      },
+    });
+    expect(accomplice.statusCode).toBe(403);
+    expect(accomplice.json().error.code).toBe('wrong_password');
+
+    // ...so there is nobody to sign in as and approve with.
+    const helper = await outside(laptop, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: 'helper@evil.example', password: 'thief-chosen-password' },
+    });
+    expect(helper.statusCode).toBe(401);
+  });
+
+  it('adds someone once the password is given again, and counts a wrong one', async () => {
+    const { cookie } = await phone();
+    const person = {
+      displayName: 'Rosa',
+      role: 'sous_chef',
+      email: 'rosa@example.com',
+      password: 'rosas-own-password',
+    };
+    const wrong = await outside(cookie, {
+      method: 'POST',
+      url: '/api/users',
+      payload: { ...person, currentPassword: 'not-it' },
+    });
+    expect(wrong.json().error.code).toBe('wrong_password');
+    const right = await outside(cookie, {
+      method: 'POST',
+      url: '/api/users',
+      payload: { ...person, currentPassword: ADMIN.password },
+    });
+    expect(right.statusCode).toBe(200);
+
+    // Wrong guesses lock the account the same way wrong sign-ins do.
+    for (let i = 0; i < 10; i++) {
+      await outside(cookie, {
+        method: 'POST',
+        url: '/api/users',
+        payload: { ...person, email: `x${i}@example.com`, currentPassword: 'still-not-it' },
+      });
+    }
+    const locked = await outside(cookie, {
+      method: 'POST',
+      url: '/api/users',
+      payload: { ...person, email: 'late@example.com', currentPassword: ADMIN.password },
+    });
+    expect(locked.statusCode).toBe(429);
+    expect(locked.json().error.code).toBe('account_locked');
+  });
+
+  it('asks before changing how someone signs in or what they may do, not before a name', async () => {
+    const { admin, cookie } = await phone();
+    const created = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/users',
+      payload: { displayName: 'Marco', role: 'cook', pin: '4821' },
+      cookie: `mise_session=${admin}`,
+    });
+    const id = created.json().id as string;
+    const edit = (payload: object) =>
+      outside(cookie, { method: 'PATCH', url: `/api/users/${id}`, payload });
+
+    // A new name, or the same role and email sent back unchanged, is fine.
+    expect((await edit({ displayName: 'Marco R.', role: 'cook', email: null })).statusCode).toBe(
+      200,
+    );
+    for (const change of [
+      { pin: '7356' },
+      { pin: null },
+      { role: 'head_chef' },
+      { email: 'marco@example.com' },
+      { password: 'a-new-long-password', email: 'marco@example.com' },
+      { active: false },
+    ]) {
+      const refused = await edit(change);
+      expect(refused.json().error?.code, JSON.stringify(change)).toBe('wrong_password');
+    }
+    const allowed = await edit({ role: 'sous_chef', currentPassword: ADMIN.password });
+    expect(allowed.statusCode).toBe(200);
+    expect(allowed.json().role).toBe('sous_chef');
+  });
+
+  it('asks before enrolling a tablet', async () => {
+    const { cookie } = await phone();
+    const refused = await outside(cookie, {
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Thief tablet' },
+    });
+    expect(refused.json().error.code).toBe('wrong_password');
+    expect(cookieFrom(refused, 'mise_device')).toBeFalsy();
+    const enrolled = await outside(cookie, {
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Bar tablet', currentPassword: ADMIN.password },
+    });
+    expect(enrolled.statusCode).toBe(200);
+    expect(cookieFrom(enrolled, 'mise_device')).toBeTruthy();
+  });
+
+  it('cannot change the account password without the current one', async () => {
+    const { cookie } = await phone();
+    const me = await outside(cookie, { method: 'GET', url: '/api/auth/me' });
+    const changed = await outside(cookie, {
+      method: 'PATCH',
+      url: `/api/users/${me.json().user.id}`,
+      payload: { password: 'thief-chosen-password' },
+    });
+    expect(changed.json().error.code).toBe('wrong_password');
+    // The owner still signs in with their own.
+    const owner = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/auth/login',
+      payload: { email: ADMIN.email, password: ADMIN.password },
+    });
+    expect(owner.statusCode).toBe(200);
+  });
+
+  it('inside the kitchen, adding staff and enrolling a tablet ask for nothing more', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const added = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/users',
+      payload: {
+        displayName: 'Rosa',
+        role: 'head_chef',
+        email: 'r@example.com',
+        password: 'a'.repeat(12),
+      },
+      cookie: `mise_session=${admin}`,
+    });
+    expect(added.statusCode).toBe(200);
+    const enrolled = await from(INSIDE, {
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookie: `mise_session=${admin}`,
+    });
+    expect(enrolled.statusCode).toBe(200);
+  });
+});
+
 describe('turning down everyone waiting', () => {
   const turnDownAll = (token: string) =>
     from(INSIDE, {

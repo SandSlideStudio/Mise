@@ -39,6 +39,11 @@ declare module 'fastify' {
     requireDevice: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     /** Rejects a PIN sign-in: the action touches security, so it needs the password. */
     requirePassword: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    /**
+     * The signed-in person types their own password again, checked and
+     * counted like a sign-in. Throws the refusal when it isn't right.
+     */
+    confirmOwnPassword: (request: FastifyRequest, password: string | undefined) => Promise<void>;
     setSessionCookie: (reply: FastifyReply, token: string, expiresAt: Date) => void;
     /** Cookies only over HTTPS: always with COOKIE_SECURE, or whenever this request came over it. */
     secureCookies: (request: FastifyRequest) => boolean;
@@ -110,6 +115,34 @@ const authPlugin: FastifyPluginAsync = async (app) => {
       );
     }
   });
+
+  app.decorate(
+    'confirmOwnPassword',
+    async (request: FastifyRequest, password: string | undefined) => {
+      if (!request.user) throw new ApiError(401, 'not_authenticated', 'Sign in to continue.');
+      // Nothing typed is no guess, so it isn't counted against them.
+      const result = password
+        ? await auth.confirmPassword(request.user.id, password, request.ip)
+        : (await auth.hasPassword(request.user.id))
+          ? 'wrong'
+          : 'no_password';
+      if (result === 'no_password') {
+        throw new ApiError(
+          403,
+          'password_needed',
+          'This needs a password, and this account has none. Do it from inside the kitchen.',
+        );
+      }
+      if (result === 'wrong') {
+        throw new ApiError(403, 'wrong_password', 'That password is not right.');
+      }
+      if (typeof result === 'object') {
+        throw new ApiError(429, 'account_locked', 'Too many wrong passwords. Try again later.', {
+          lockedUntil: result.lockedUntil.toISOString(),
+        });
+      }
+    },
+  );
 
   app.decorate('requireDevice', async (request: FastifyRequest) => {
     if (!request.deviceId) {

@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { PasswordInput } from '../../components/PasswordInput.js';
+import { PasswordConfirm, refusedForPassword } from '../../components/PasswordConfirm.js';
+import { useOutside } from '../../api/access.js';
+import { passwordAsked } from '../../lib/passwordAsked.js';
 import { mayManage, ROLES, type Role, type Station, type User } from '@mise/contracts';
 import {
   useCreateStaff,
@@ -340,9 +343,20 @@ function StaffForm({
   const [pin, setPin] = useState('');
   const [email, setEmail] = useState(person?.email ?? '');
   const [password, setPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
 
   const pending = create.isPending || update.isPending;
   const error = create.error ?? update.error;
+
+  const outside = useOutside();
+  const asked = passwordAsked({
+    person,
+    meId: me?.id,
+    outside,
+    edit: { email: email || null, password, pin, role },
+  });
+  const asksPassword = asked !== null || refusedForPassword(error);
+  const ownSignIn = asked === 'self';
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -351,6 +365,7 @@ function StaffForm({
       role,
       defaultStationId: stationId || null,
       email: email || null,
+      ...(asksPassword && currentPassword ? { currentPassword } : {}),
     };
 
     if (editing) {
@@ -482,6 +497,23 @@ function StaffForm({
           </div>
         </div>
       </details>
+
+      {asksPassword ? (
+        <div className="border-line grid gap-5 border-t pt-4 sm:grid-cols-2">
+          <div>
+            <PasswordConfirm
+              id="currentPassword"
+              className=""
+              label={ownSignIn ? t('confirm.currentPasswordLabel') : t('confirm.passwordLabel')}
+              value={currentPassword}
+              onChange={setCurrentPassword}
+            />
+            <p className="text-ink-faint mt-1.5 text-sm">
+              {ownSignIn ? t('confirm.whySelf') : t('confirm.whyOutside')}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <p role="alert" className="text-danger text-sm">

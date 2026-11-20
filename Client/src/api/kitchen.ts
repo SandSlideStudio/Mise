@@ -166,8 +166,11 @@ export function useDevices() {
 export function useEnrollDevice() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (name: string) =>
-      api.post<{ id: string; name: string; token: string }>('/auth/devices', { name }),
+    mutationFn: ({ name, currentPassword }: { name: string; currentPassword?: string }) =>
+      api.post<{ id: string; name: string; token: string }>('/auth/devices', {
+        name,
+        ...(currentPassword ? { currentPassword } : {}),
+      }),
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['devices'] }),
   });
 }

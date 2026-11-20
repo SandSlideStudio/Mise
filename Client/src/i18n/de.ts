@@ -1011,7 +1011,13 @@ export const de: Record<MessageKey, string> = {
     'Dieses Gerät ist nicht für den Zugang von außerhalb der Küche freigegeben.',
   'error.wrongPassword': 'Das Passwort stimmt nicht.',
   'error.passwordNeeded':
-    'Freigeben von außen braucht ein Passwort, und dieses Konto hat keins. Gib es aus der Küche frei.',
+    'Von außerhalb der Küche braucht das ein Passwort, und dieses Konto hat keins. Erledige es aus der Küche.',
+  'confirm.passwordLabel': 'Dein Passwort',
+  'confirm.currentPasswordLabel': 'Dein aktuelles Passwort',
+  'confirm.whyOutside':
+    'Du bist außerhalb der Küche, deshalb wird erneut nach deinem Passwort gefragt.',
+  'confirm.whySelf':
+    'Um dein eigenes Passwort oder deine E-Mail-Adresse zu ändern, brauchst du zuerst dein aktuelles Passwort.',
   'error.tooManyRequests': 'Zu viele Geräte warten auf Freigabe. Versuche es später noch einmal.',
   'settings.tabConnection': 'Verbindung',
   'connection.relayedTitle': 'Mise kann nicht erkennen, wer in der Küche ist',
