@@ -1690,4 +1690,12 @@ export const de: Record<MessageKey, string> = {
   'privacy.keptLabelChecks':
     'Wer das Etikett jeder Zutat bei der Lieferung geprüft hat, wann und mit welchem Ergebnis, solange es die Zutat gibt.',
   'personData.labelChecks': 'Bei der Lieferung geprüfte Etiketten',
+  // Eine Zahl, die sich nicht lesen lässt, unter dem Feld, in dem sie steht.
+  'number.notNumber': 'Keine Zahl. Schreib sie so: {example}.',
+  'number.grouped':
+    'Lass das Tausendertrennzeichen weg und nimm ein Komma oder einen Punkt für die Nachkommastellen: {example}.',
+  'number.whole': 'Bitte eine ganze Zahl.',
+  'number.atLeast': 'Mindestens {min}.',
+  'number.moreThan': 'Mehr als {min}.',
+  'number.atMost': 'Höchstens {max}.',
 };

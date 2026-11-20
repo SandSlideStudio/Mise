@@ -34,8 +34,10 @@ import {
 } from '../components/LabelCheck.js';
 import { LoadError } from '../components/LoadError.js';
 import { PendingLabelChecks } from '../components/PendingLabelChecks.js';
+import { NumberInput } from '../components/NumberInput.js';
 import { Plate } from '../components/Plate.js';
 import { allergenName, errorMessage, useT, type Translator } from '../i18n/index.js';
+import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
 
 /**
  * The raw material catalogue: what goes into the recipes, and what is in it.
@@ -315,6 +317,13 @@ function unitLabel(t: Translator['t'], baseUnit: BaseUnit): string {
   return t('ingredients.weighed');
 }
 
+// What each box will take; the server holds the same limits.
+const PRICE: NumberRules = { min: 0, max: 1_000_000 };
+const PRICE_FOR: NumberRules = { above: 0, max: 1_000_000 };
+const YIELD: NumberRules = { above: 0, max: 100, percent: true };
+const DENSITY: NumberRules = { above: 0, max: 30 };
+const ITEM_WEIGHT: NumberRules = { above: 0, max: 100_000 };
+
 export function IngredientForm({
   ingredient,
   onDone,
@@ -325,7 +334,7 @@ export function IngredientForm({
   onCancel: () => void;
 }) {
   const translator = useT();
-  const { t } = translator;
+  const { t, locale } = translator;
   const create = useCreateIngredient();
   const update = useUpdateIngredient();
   const remove = useDeleteIngredient();
@@ -344,21 +353,19 @@ export function IngredientForm({
   const [nuts, setNuts] = useState((ingredient?.allergenDetails.nuts ?? []).join(', '));
   const [confirming, setConfirming] = useState(false);
   const [priceAmount, setPriceAmount] = useState(
-    ingredient?.price ? String(ingredient.price.amount) : '',
+    ingredient?.price ? numberText(ingredient.price.amount, locale, { money: true }) : '',
   );
   const [priceQuantity, setPriceQuantity] = useState(
-    ingredient?.price ? String(ingredient.price.quantity.value) : '',
+    ingredient?.price ? numberText(ingredient.price.quantity.value, locale) : '',
   );
   const [priceUnit, setPriceUnit] = useState<UnitCode>(
     (ingredient?.price?.quantity.unit as UnitCode | undefined) ?? defaultPurchaseUnit(baseUnit),
   );
-  const [yieldPercent, setYieldPercent] = useState(String(ingredient?.yieldPercent ?? 100));
-  const [density, setDensity] = useState(
-    ingredient?.densityGPerMl != null ? String(ingredient.densityGPerMl) : '',
+  const [yieldPercent, setYieldPercent] = useState(
+    numberText(ingredient?.yieldPercent ?? 100, locale),
   );
-  const [itemWeight, setItemWeight] = useState(
-    ingredient?.itemWeightG != null ? String(ingredient.itemWeightG) : '',
-  );
+  const [density, setDensity] = useState(numberText(ingredient?.densityGPerMl, locale));
+  const [itemWeight, setItemWeight] = useState(numberText(ingredient?.itemWeightG, locale));
 
   // Density and weight per piece only when the purchase needs them to reach
   // how it is measured, or when one was entered before.
@@ -376,14 +383,21 @@ export function IngredientForm({
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    const typed = [
+      readNumber(priceAmount, PRICE),
+      readNumber(priceQuantity, PRICE_FOR),
+      readNumber(yieldPercent, YIELD),
+      readNumber(density, DENSITY),
+      readNumber(itemWeight, ITEM_WEIGHT),
+    ] as const;
+    // Each box says what is wrong with it; nothing is saved as another number.
+    if (typed.some((read) => read.problem)) return;
+    const [amount, per, yieldValue, densityValue, itemWeightValue] = typed.map(
+      (read) => read.value,
+    );
     // Unknown unless both are filled in: half a price is no price.
     const price =
-      priceAmount && priceQuantity
-        ? {
-            amount: Number(priceAmount),
-            quantity: { value: Number(priceQuantity), unit: priceUnit },
-          }
-        : null;
+      amount != null && per != null ? { amount, quantity: { value: per, unit: priceUnit } } : null;
     const shown = ingredient?.price;
     const priceTouched = !ingredient || (shown !== undefined && !samePrice(price, shown));
     const payload = {
@@ -399,9 +413,9 @@ export function IngredientForm({
         gluten: allergens.includes('gluten') ? splitNames(cereals) : [],
         nuts: allergens.includes('nuts') ? splitNames(nuts) : [],
       },
-      yieldPercent: yieldPercent ? Number(yieldPercent) : 100,
-      densityGPerMl: density ? Number(density) : null,
-      itemWeightG: itemWeight ? Number(itemWeight) : null,
+      yieldPercent: yieldValue ?? 100,
+      densityGPerMl: densityValue ?? null,
+      itemWeightG: itemWeightValue ?? null,
       // Only a price changed here is sent: not one this form wasn't shown, so
       // it can't be wiped unseen, and not the one it was shown, which would
       // undo a new price someone entered meanwhile. A new price alone keeps
@@ -470,30 +484,25 @@ export function IngredientForm({
             <label className="label" htmlFor="priceAmount">
               {t('ingredients.price')}
             </label>
-            <input
+            <NumberInput
               id="priceAmount"
-              type="number"
-              inputMode="decimal"
-              step="0.01"
-              min={0}
+              rules={PRICE}
+              money
               className="field w-32"
               value={priceAmount}
-              onChange={(e) => setPriceAmount(e.target.value)}
+              onText={setPriceAmount}
             />
           </div>
           <div>
             <label className="label" htmlFor="priceQuantity">
               {t('ingredients.priceFor')}
             </label>
-            <input
+            <NumberInput
               id="priceQuantity"
-              type="number"
-              inputMode="decimal"
-              step="any"
-              min={0}
+              rules={PRICE_FOR}
               className="field w-28"
               value={priceQuantity}
-              onChange={(e) => setPriceQuantity(e.target.value)}
+              onText={setPriceQuantity}
             />
           </div>
           <div>
@@ -521,16 +530,12 @@ export function IngredientForm({
             <label className="label" htmlFor="yieldPercent">
               {t('ingredients.yieldLabel')}
             </label>
-            <input
+            <NumberInput
               id="yieldPercent"
-              type="number"
-              inputMode="decimal"
-              step="any"
-              min={1}
-              max={100}
+              rules={YIELD}
               className="field"
               value={yieldPercent}
-              onChange={(e) => setYieldPercent(e.target.value)}
+              onText={setYieldPercent}
               aria-describedby="yieldHint"
             />
             <p id="yieldHint" className="text-ink-soft mt-1.5 text-sm">
@@ -542,15 +547,12 @@ export function IngredientForm({
               <label className="label" htmlFor="density">
                 {t('ingredients.densityLabel')}
               </label>
-              <input
+              <NumberInput
                 id="density"
-                type="number"
-                inputMode="decimal"
-                step="any"
-                min={0}
+                rules={DENSITY}
                 className="field"
                 value={density}
-                onChange={(e) => setDensity(e.target.value)}
+                onText={setDensity}
                 aria-describedby="densityHint"
               />
               <p id="densityHint" className="text-ink-soft mt-1.5 text-sm">
@@ -563,15 +565,12 @@ export function IngredientForm({
               <label className="label" htmlFor="itemWeight">
                 {t('ingredients.eachLabel')}
               </label>
-              <input
+              <NumberInput
                 id="itemWeight"
-                type="number"
-                inputMode="decimal"
-                step="any"
-                min={0}
+                rules={ITEM_WEIGHT}
                 className="field"
                 value={itemWeight}
-                onChange={(e) => setItemWeight(e.target.value)}
+                onText={setItemWeight}
                 aria-describedby="itemWeightHint"
               />
               <p id="itemWeightHint" className="text-ink-soft mt-1.5 text-sm">

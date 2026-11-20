@@ -217,6 +217,10 @@
   .field:focus-visible {
     @apply border-accent outline-accent outline-2 -outline-offset-1;
   }
+  /* A box holding something that can't be read, such as "9,80,0". */
+  [aria-invalid='true'] {
+    @apply border-danger;
+  }
   textarea.field {
     @apply py-2.5;
   }

@@ -1634,6 +1634,14 @@ export const en = {
   'privacy.keptLabelChecks':
     'Who checked each ingredient’s label at delivery, when, and what they found, for as long as the ingredient is kept.',
   'personData.labelChecks': 'Labels checked at delivery',
+  // A number that can't be read, under the box it was typed in.
+  'number.notNumber': 'Not a number. Write it like {example}.',
+  'number.grouped':
+    'Leave out the thousands separator, and use one comma or point for the decimals: {example}.',
+  'number.whole': 'A whole number, please.',
+  'number.atLeast': 'At least {min}.',
+  'number.moreThan': 'More than {min}.',
+  'number.atMost': 'At most {max}.',
 } as const;
 
 export type MessageKey = keyof typeof en;

@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import type { AddFromChecklistResponse, ChecklistItem } from '@mise/contracts';
 import type * as ChecklistApi from '../api/checklist.js';
-import { PrepChecklist, typedAmount } from './PrepChecklist.js';
+import { PrepChecklist } from './PrepChecklist.js';
 
 /**
  * Adding from the checklist with pars: a cook says how much is there of what
@@ -76,14 +76,32 @@ describe('adding lines with a par', () => {
     expect(screen.getByRole('heading', { name: 'How much is there?' })).toBeTruthy();
     expect(screen.getByText('par 3 l')).toBeTruthy();
     // Only the line with a par is asked about.
-    const box = screen.getByRole('spinbutton', { name: 'How much Fig gel is there, in l' });
-    expect(screen.getAllByRole('spinbutton')).toHaveLength(1);
+    const box = screen.getByRole('textbox', { name: 'How much Fig gel is there, in l' });
+    expect(screen.getAllByRole('textbox')).toHaveLength(1);
     fireEvent.change(box, { target: { value: '1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (2)' }));
 
     expect(state.add.mock.calls[0]![0]).toEqual({
       ids: [GEL, JUS],
       onHand: { [GEL]: { value: 1, unit: 'l' } },
+    });
+  });
+
+  it('reads how much is there with a comma, and adds nothing it can’t read', () => {
+    openAndTick('Fig gel');
+    fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (1)' }));
+    const box = screen.getByRole('textbox', { name: 'How much Fig gel is there, in l' });
+    fireEvent.change(box, { target: { value: '1,5,0' } });
+    fireEvent.blur(box);
+    fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (1)' }));
+    expect(state.add).not.toHaveBeenCalled();
+    expect(screen.getByRole('alert')).toBeTruthy();
+
+    fireEvent.change(box, { target: { value: '1,5' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (1)' }));
+    expect(state.add.mock.calls[0]![0]).toEqual({
+      ids: [GEL],
+      onHand: { [GEL]: { value: 1.5, unit: 'l' } },
     });
   });
 
@@ -113,7 +131,7 @@ describe('adding lines with a par', () => {
   it('says which lines were left off because there is enough', () => {
     openAndTick('Fig gel', 'Jus');
     fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (2)' }));
-    fireEvent.change(screen.getByRole('spinbutton'), { target: { value: '3.5' } });
+    fireEvent.change(screen.getByRole('textbox'), { target: { value: '3.5' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (2)' }));
     answer({ added: 1, alreadyThere: 0, enough: ['Fig gel'] });
     expect(screen.getByRole('status').textContent).toBe(
@@ -154,17 +172,17 @@ describe('setting a par', () => {
       (screen.getByRole('combobox', { name: 'Unit of the par for Fig gel' }) as HTMLSelectElement)
         .value,
     ).toBe('l');
-    expect(
-      (screen.getByRole('spinbutton', { name: 'Par for Jus' }) as HTMLInputElement).value,
-    ).toBe('2');
+    expect((screen.getByRole('textbox', { name: 'Par for Jus' }) as HTMLInputElement).value).toBe(
+      '2',
+    );
   });
 
   it('saves what was typed, and an emptied par as none', () => {
     edit();
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'Par for Fig gel' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Par for Fig gel' }), {
       target: { value: '3' },
     });
-    fireEvent.change(screen.getByRole('spinbutton', { name: 'Par for Jus' }), {
+    fireEvent.change(screen.getByRole('textbox', { name: 'Par for Jus' }), {
       target: { value: '' },
     });
     fireEvent.click(screen.getByRole('button', { name: 'Save checklist' }));
@@ -173,6 +191,28 @@ describe('setting a par', () => {
       ['Fig gel', { value: 3, unit: 'l' }],
       ['Jus', null],
     ]);
+  });
+
+  it('reads a par with a decimal comma as the number it is', () => {
+    edit();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Par for Fig gel' }), {
+      target: { value: '1,5' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save checklist' }));
+    const [{ items }] = state.save.mock.calls[0] as [{ items: ChecklistItem[] }];
+    expect(items[0]!.par).toEqual({ value: 1.5, unit: 'l' });
+  });
+
+  it('says so, and saves nothing, when the par can’t be read', () => {
+    edit();
+    const box = screen.getByRole('textbox', { name: 'Par for Fig gel' });
+    fireEvent.change(box, { target: { value: '1.250,5' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save checklist' }));
+    expect(state.save).not.toHaveBeenCalled();
+    expect(box.getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByRole('alert').textContent).toBe(
+      'Leave out the thousands separator, and use one comma or point for the decimals: 1250.5.',
+    );
   });
 });
 
@@ -200,15 +240,5 @@ describe('adding a line to the checklist', () => {
 
   it('leaves a name the book does not have unlinked', () => {
     expect(addLine('Sjalot brunoise').map((item) => item.recipeId)).toEqual([null]);
-  });
-});
-
-describe('a number typed on a tablet', () => {
-  it('takes a comma or a point, and nothing else', () => {
-    expect(typedAmount('1,5')).toBe(1.5);
-    expect(typedAmount(' 2 ')).toBe(2);
-    expect(typedAmount('')).toBeNull();
-    expect(typedAmount('abc')).toBeNull();
-    expect(typedAmount('-1')).toBeNull();
   });
 });

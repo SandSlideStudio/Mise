@@ -141,3 +141,62 @@ describe('how it is kept, in the editor', () => {
     expect(sent[0]!.body).toMatchObject({ kept: null });
   });
 });
+
+/**
+ * Amounts typed with a decimal comma. The browser's number box read "1,5" by
+ * the browser's language, so a Dutch kitchen on an English tablet got 15.
+ */
+describe('amounts in the editor', () => {
+  const withButter = {
+    ...figGel,
+    components: [
+      {
+        id: 'c1',
+        sortOrder: 0,
+        section: null,
+        note: null,
+        quantity: { value: 0.25, unit: 'kg' },
+        ref: { kind: 'ingredient', ingredientId: 'i-butter' },
+        displayName: 'Butter',
+      },
+    ],
+  } satisfies Recipe;
+
+  async function save() {
+    await act(async () => {
+      fireEvent.submit(screen.getByLabelText('One batch makes').closest('form')!);
+    });
+  }
+
+  it('reads the batch and a line with a comma or a point', async () => {
+    open(withButter);
+    fireEvent.change(screen.getByLabelText('One batch makes'), { target: { value: '1,5' } });
+    fireEvent.change(screen.getByLabelText('How much'), { target: { value: '0.3' } });
+    fireEvent.change(screen.getByLabelText('Keeps, hours'), { target: { value: '48' } });
+    await save();
+    expect(sent[0]!.body).toMatchObject({
+      yield: { value: 1.5, unit: 'kg' },
+      shelfLifeHours: 48,
+      components: [{ quantity: { value: 0.3, unit: 'kg' } }],
+    });
+  });
+
+  it('says what is wrong with a line, and saves nothing', async () => {
+    open(withButter);
+    const amount = screen.getByLabelText('How much');
+    fireEvent.change(amount, { target: { value: '1,5e3' } });
+    fireEvent.blur(amount);
+    await save();
+    expect(sent).toHaveLength(0);
+    expect(amount.getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByRole('alert').textContent).toBe('Not a number. Write it like 9.8.');
+  });
+
+  it('keeps hours whole', async () => {
+    open(withButter);
+    fireEvent.change(screen.getByLabelText('Keeps, hours'), { target: { value: '1,5' } });
+    await save();
+    expect(sent).toHaveLength(0);
+    expect(screen.getByRole('alert').textContent).toBe('A whole number, please.');
+  });
+});

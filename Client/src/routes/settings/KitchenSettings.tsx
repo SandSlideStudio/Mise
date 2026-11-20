@@ -12,6 +12,10 @@ import { useKitchen, usePinOnlyStatus, useUpdateKitchen } from '../../api/kitche
 import { useCurrentUser } from '../../api/session.js';
 import { errorMessage, LANGUAGE_NAMES, useT } from '../../i18n/index.js';
 import { VersionSettings } from './VersionSettings.js';
+import { NumberInput } from '../../components/NumberInput.js';
+import { numberText, readNumber, type NumberRules } from '../../lib/typedNumber.js';
+
+const VAT: NumberRules = { min: 0, max: 50, percent: true };
 
 export const IDLE_CHOICES = [2, 5, 10, 15, 30];
 /** How long kept ticked lines stay, in days. Leaving the choice empty keeps them for good. */
@@ -59,7 +63,7 @@ function idleChoices(current: number | null): number[] {
  */
 export function KitchenSettings() {
   const translator = useT();
-  const { t, plural } = translator;
+  const { t, plural, locale } = translator;
   const kitchen = useKitchen();
   const update = useUpdateKitchen();
   const [name, setName] = useState('');
@@ -85,9 +89,9 @@ export function KitchenSettings() {
       setLabelSize(kitchen.data.labelSize);
       setLabelOnTick(kitchen.data.labelOnTick);
       setCurrency(kitchen.data.currency);
-      setFoodVat(String(kitchen.data.foodVatPercent));
+      setFoodVat(numberText(kitchen.data.foodVatPercent, locale));
     }
-  }, [kitchen.data]);
+  }, [kitchen.data, locale]);
 
   if (kitchen.isPending) return <p className="text-ink-soft">{t('common.loading')}</p>;
   if (kitchen.isError && kitchen.data === undefined)
@@ -95,6 +99,9 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    const vat = readNumber(foodVat, VAT);
+    // The box says what is wrong; the rate is never saved as another number.
+    if (vat.problem) return;
     // A shorter time takes effect within the hour and can't be undone: years
     // of ticked lines can go at once, so the chef says so first.
     const before = kitchen.data?.tickedKeepDays ?? null;
@@ -111,7 +118,7 @@ export function KitchenSettings() {
       labelSize,
       labelOnTick,
       currency,
-      foodVatPercent: foodVat === '' ? 0 : Number(foodVat),
+      foodVatPercent: vat.value ?? 0,
     });
   }
 
@@ -248,16 +255,12 @@ export function KitchenSettings() {
             <label className="label" htmlFor="foodVat">
               {t('kitchen.vat')}
             </label>
-            <input
+            <NumberInput
               id="foodVat"
-              type="number"
-              inputMode="decimal"
-              step="any"
-              min={0}
-              max={50}
+              rules={VAT}
               className="field"
               value={foodVat}
-              onChange={(e) => setFoodVat(e.target.value)}
+              onText={setFoodVat}
               aria-describedby="foodVatHint"
             />
             <p id="foodVatHint" className="text-ink-soft mt-1.5 text-sm">

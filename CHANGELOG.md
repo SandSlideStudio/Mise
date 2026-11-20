@@ -133,6 +133,10 @@ staff data, and a stack of smaller fixes.
   any machine on the network can put itself forward.
 - The Dutch, German, French and Spanish texts were gone over: one word for each kitchen term
   throughout, the same form of address everywhere, and a number of clumsy or wrong phrases fixed.
+- Prices, amounts, yields, pars, VAT and every other number box take a decimal comma or a point,
+  whatever language the browser is set to. An English browser read a purchase price of "9,80" as
+  980, so every food cost was a hundred times out without a word. Something that can't be read,
+  such as "1.250,50", is now pointed out under the box and nothing is saved until it is fixed.
 
 **Accessibility**
 

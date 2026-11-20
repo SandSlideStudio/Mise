@@ -25,6 +25,8 @@ import { useWaitingAccess } from '../api/access.js';
 import { LoadError } from '../components/LoadError.js';
 import { byStation, PrepTaskRow, StationHeading } from '../components/PrepTaskRow.js';
 import { BottomNotice } from '../components/BottomNotice.js';
+import { NumberInput } from '../components/NumberInput.js';
+import { readNumber, type NumberRules } from '../lib/typedNumber.js';
 import { LabelSheets, useByNote, usePrintLabels } from '../components/PrepLabel.js';
 import { clockTime, errorMessage, friendlyDate, useT } from '../i18n/index.js';
 import { useNight } from '../lib/theme.js';
@@ -402,6 +404,8 @@ function Handover() {
   );
 }
 
+const AMOUNT: NumberRules = { min: 0 };
+
 /**
  * Putting something on the running list. Adding what is already waiting on
  * the same station puts the amount onto that line, and says so.
@@ -447,12 +451,15 @@ function AddRunningLine() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    const typedAmount = readNumber(amount, AMOUNT);
+    // The box says what is wrong; a line is never added at another amount.
+    if (typedAmount.problem) return;
     add.mutate(
       {
         description,
         stationId: stationId || null,
         recipeId: linked?.id ?? null,
-        quantity: amount ? { value: Number(amount), unit } : null,
+        quantity: typedAmount.value !== null ? { value: typedAmount.value, unit } : null,
       },
       {
         onSuccess: (result) => {
@@ -487,17 +494,15 @@ function AddRunningLine() {
         autoComplete="off"
         required
       />
-      <input
+      <NumberInput
         ref={amountField}
         aria-label={t('common.howMuch')}
-        type="number"
-        inputMode="decimal"
-        step="any"
-        min={0}
+        rules={AMOUNT}
         className="field qty col-span-2 h-12 text-right text-[22px] placeholder:font-sans placeholder:text-base placeholder:font-normal md:col-span-1"
         value={amount}
-        onChange={(e) => setAmount(e.target.value)}
+        onText={setAmount}
         placeholder={t('common.howMuch')}
+        messageClassName="order-last col-span-3 md:col-span-5"
       />
       <select
         aria-label={t('common.unit')}

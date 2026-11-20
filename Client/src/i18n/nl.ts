@@ -1675,4 +1675,12 @@ export const nl: Record<MessageKey, string> = {
   'privacy.keptLabelChecks':
     'Wie het etiket van elk ingrediënt bij levering controleerde, wanneer, en wat daaruit bleek, zolang het ingrediënt bestaat.',
   'personData.labelChecks': 'Etiketten gecontroleerd bij levering',
+  // Een getal dat niet te lezen is, onder het vak waarin het staat.
+  'number.notNumber': 'Geen getal. Schrijf het zoals {example}.',
+  'number.grouped':
+    'Laat de punt voor duizendtallen weg en gebruik één komma of punt voor de decimalen: {example}.',
+  'number.whole': 'Alleen een heel getal.',
+  'number.atLeast': 'Minstens {min}.',
+  'number.moreThan': 'Meer dan {min}.',
+  'number.atMost': 'Hoogstens {max}.',
 };

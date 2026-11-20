@@ -1696,4 +1696,12 @@ export const fr: Record<MessageKey, string> = {
   'privacy.keptLabelChecks':
     'Qui a vérifié l’étiquette de chaque ingrédient à la livraison, quand, et ce que cette personne a constaté, tant que l’ingrédient existe.',
   'personData.labelChecks': 'Étiquettes vérifiées à la livraison',
+  // Un nombre illisible, sous la case où il a été saisi.
+  'number.notNumber': 'Ce n’est pas un nombre. Écrivez-le ainsi : {example}.',
+  'number.grouped':
+    'Sans séparateur de milliers, avec une seule virgule ou un seul point pour les décimales : {example}.',
+  'number.whole': 'Un nombre entier, s’il vous plaît.',
+  'number.atLeast': 'Au moins {min}.',
+  'number.moreThan': 'Plus de {min}.',
+  'number.atMost': 'Au plus {max}.',
 };

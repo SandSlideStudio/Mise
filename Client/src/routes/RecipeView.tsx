@@ -21,7 +21,9 @@ import {
 } from '../api/recipes.js';
 import { AppShell } from '../components/AppShell.js';
 import { RecipeCostLine } from '../components/Cost.js';
+import { NumberInput } from '../components/NumberInput.js';
 import { Plate } from '../components/Plate.js';
+import { numberText, readNumber } from '../lib/typedNumber.js';
 import {
   allergenName,
   errorMessage,
@@ -414,7 +416,7 @@ function ScaleControl({
   asked: ScaleTarget;
   onChange: (target: ScaleTarget) => void;
 }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   // Shown in the unit the recipe is written in: 2000 g asked of a recipe in kg reads 2.
   const askedYield =
     asked.yieldValue !== undefined && asked.yieldUnit && isUnitCode(asked.yieldUnit)
@@ -423,15 +425,16 @@ function ScaleControl({
   const [mode, setMode] = useState<ScaleMode>(askedYield ? 'yield' : 'written');
   const [values, setValues] = useState({
     portions: '',
-    yield: askedYield?.ok ? String(Number(askedYield.value.value.toFixed(3))) : '',
+    yield: askedYield?.ok ? numberText(Number(askedYield.value.value.toFixed(3)), locale) : '',
     batches: '',
   });
 
   function apply(nextMode: ScaleMode, raw: string) {
     setMode(nextMode);
     if (nextMode !== 'written') setValues((current) => ({ ...current, [nextMode]: raw }));
-    const value = Number(raw);
-    if (nextMode === 'written' || !raw || !Number.isFinite(value) || value <= 0) {
+    // Something that can't be read scales nothing: the box says why.
+    const value = readNumber(raw, { above: 0 }).value;
+    if (nextMode === 'written' || value === null) {
       onChange({});
       return;
     }
@@ -448,7 +451,7 @@ function ScaleControl({
   ) {
     const active = mode === key;
     return (
-      <span className="flex items-center gap-2.5">
+      <span className="flex flex-wrap items-center gap-2.5">
         <button
           type="button"
           aria-pressed={active}
@@ -461,16 +464,14 @@ function ScaleControl({
         >
           {label}
         </button>
-        <input
-          type="number"
-          inputMode="decimal"
-          step="any"
-          min={0}
+        <NumberInput
+          rules={{ above: 0 }}
           aria-label={label}
           value={values[key]}
           placeholder={placeholder}
-          onChange={(e) => apply(key, e.target.value)}
-          className="qty border-line bg-surface-raised placeholder:text-ink-faint focus-visible:border-accent h-[52px] w-[92px] border text-center text-[26px] [appearance:textfield] focus-visible:outline-2 focus-visible:-outline-offset-1 [&::-webkit-inner-spin-button]:appearance-none"
+          onText={(text) => apply(key, text)}
+          className="qty border-line bg-surface-raised placeholder:text-ink-faint focus-visible:border-accent h-[52px] w-[92px] border text-center text-[26px] focus-visible:outline-2 focus-visible:-outline-offset-1"
+          messageClassName="order-last basis-full"
         />
         {unit ? <span className="text-ink-soft text-[17px]">{unit}</span> : null}
       </span>
@@ -485,11 +486,11 @@ function ScaleControl({
       <div className="flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
         {recipe.portions ? (
           <>
-            {field('portions', t('scale.portions'), String(recipe.portions))}
+            {field('portions', t('scale.portions'), numberText(recipe.portions, locale))}
             {divider}
           </>
         ) : null}
-        {field('yield', t('scale.need'), String(recipe.yield.value), recipe.yield.unit)}
+        {field('yield', t('scale.need'), numberText(recipe.yield.value, locale), recipe.yield.unit)}
         {divider}
         {field('batches', t('scale.batches'), '1')}
         <button

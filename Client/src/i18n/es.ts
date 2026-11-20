@@ -1672,4 +1672,12 @@ export const es: Record<MessageKey, string> = {
   'privacy.keptLabelChecks':
     'Quién revisó la etiqueta de cada ingrediente en la entrega, cuándo y qué encontró, mientras el ingrediente exista.',
   'personData.labelChecks': 'Etiquetas revisadas en la entrega',
+  // Un número que no se puede leer, bajo la casilla donde se escribió.
+  'number.notNumber': 'No es un número. Escríbelo así: {example}.',
+  'number.grouped':
+    'Sin separador de miles, con una sola coma o un solo punto para los decimales: {example}.',
+  'number.whole': 'Solo un número entero.',
+  'number.atLeast': 'Al menos {min}.',
+  'number.moreThan': 'Más de {min}.',
+  'number.atMost': 'Como máximo {max}.',
 };
