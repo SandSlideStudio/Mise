@@ -415,13 +415,14 @@ function Editor({
       ...draft.filter((item) => item.id === id).map((item) => ({ ...item, stationId })),
     ]);
   // A line named just like a recipe in the book is that recipe: linked at
-  // once, so the chef does not have to find it a second time.
+  // once, so the chef does not have to find it a second time. Two recipes with
+  // that name, and which one is meant is the chef's to say: left unlinked.
   const append = (stationId: string | null, name: string) => {
     const same = name.trim().toLocaleLowerCase();
-    const recipeId =
-      (recipes.data ?? []).find(
-        (recipe) => recipe.status !== 'archived' && recipe.name.trim().toLocaleLowerCase() === same,
-      )?.id ?? null;
+    const matches = (recipes.data ?? []).filter(
+      (recipe) => recipe.status !== 'archived' && recipe.name.trim().toLocaleLowerCase() === same,
+    );
+    const recipeId = matches.length === 1 ? matches[0]!.id : null;
     setDraft([...draft, { id: newItemId(), stationId, name, recipeId, par: null }]);
   };
   const link = (id: string, recipeId: string | null) =>

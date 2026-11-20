@@ -60,8 +60,18 @@ describe('the conflict dialog, side by side', () => {
     const names = naming();
     const sent = { amount: 12.5, quantity: { value: 5, unit: 'kg' } };
     const back = { ...sent, updatedAt: '2026-11-01T09:00:00Z', perBase: 0.0025 };
-    expect(showValue(en, 'ingredients', 'price', sent, names)).toBe('12.5 / 5 kg');
-    expect(showValue(en, 'ingredients', 'price', back, names)).toBe('12.5 / 5 kg');
+    expect(showValue(en, 'ingredients', 'price', sent, names)).toBe('12.50 / 5 kg');
+    expect(showValue(en, 'ingredients', 'price', back, names)).toBe('12.50 / 5 kg');
+    // The money written the reader's way too, never "1.25" in Dutch.
+    expect(
+      showValue(
+        nl,
+        'ingredients',
+        'price',
+        { amount: 1.25, quantity: { value: 1.5, unit: 'kg' } },
+        names,
+      ),
+    ).toBe('1,25 / 1,5 kg');
     expect(fieldName(nl, 'price')).toBe('Inkoopprijs');
     expect(fieldName(nl, 'sellPrice')).toBe('Verkoopprijs');
   });

@@ -1,6 +1,12 @@
 import type { Translator } from '../i18n/index.js';
 
 /**
+ * One separator followed by exactly three digits, with a whole part: "1.250"
+ * is a thousand and a quarter or one and a quarter, depending on who writes it.
+ */
+const AMBIGUOUS = /^-?([1-9]\d{0,2})[.,](\d{3})$/;
+
+/**
  * Numbers as a kitchen types them. A browser's own number box reads "9,80"
  * by the browser's language, not the kitchen's: in an English browser it
  * becomes 980, and butter then costs a hundred times what it does. So every
@@ -63,7 +69,7 @@ export function readNumber(text: string, rules: NumberRules = {}): TypedNumber {
   // thousands, one and a quarter where it marks decimals. Guessing either way
   // makes a price or an amount a thousand times off without anyone seeing,
   // so it is asked instead. "0,250" can only mean a quarter.
-  const ambiguous = /^-?([1-9]\d{0,2})[.,](\d{3})$/.exec(cleaned);
+  const ambiguous = AMBIGUOUS.exec(cleaned);
   if (ambiguous) {
     const [, head, tail] = ambiguous as unknown as [string, string, string];
     return {
@@ -100,12 +106,15 @@ export function numberText(
   opts: { money?: boolean } = {},
 ): string {
   if (value === null || value === undefined || !Number.isFinite(value)) return '';
-  return new Intl.NumberFormat(locale, {
+  const text = new Intl.NumberFormat(locale, {
     useGrouping: false,
     // A price reads as one: 9,80, not 9,8. Whole euros stay whole.
     minimumFractionDigits: opts.money && !Number.isInteger(value) ? 2 : 0,
     maximumFractionDigits: opts.money ? 4 : 6,
   }).format(value);
+  // Never in the shape reading asks about: 1.035 is written "1,0350", the
+  // same number, but one no language could take for a thousand and more.
+  return AMBIGUOUS.test(text) ? `${text}0` : text;
 }
 
 /** What is wrong, in a sentence the cook can act on. */

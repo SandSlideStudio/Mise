@@ -141,6 +141,9 @@ staff data, and a stack of smaller fixes.
   whatever language the browser is set to. An English browser read a purchase price of "9,80" as
   980, so every food cost was a hundred times out without a word. Something that can't be read,
   such as "1.250,50", is now pointed out under the box and nothing is saved until it is fixed.
+  "1.250" on its own, a thousand or one and a quarter depending on who wrote it, is asked about.
+  Every number shown is written the reader's way too, in the edit-conflict window and on the
+  printed prep list as well.
 
 **Accessibility**
 

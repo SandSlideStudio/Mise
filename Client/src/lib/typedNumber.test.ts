@@ -106,3 +106,39 @@ describe('saying what is wrong', () => {
     expect(problemText(createTranslator('en'), { kind: 'atMost', max: 100 })).toBe('At most 100.');
   });
 });
+
+describe('what is written back is always read back', () => {
+  const locales = ['en', 'nl', 'de', 'fr', 'es'];
+
+  it('writes a value with three decimals so it is never asked about', () => {
+    expect(numberText(1.035, 'nl')).toBe('1,0350');
+    expect(numberText(1.125, 'en')).toBe('1.1250');
+    expect(numberText(1.125, 'nl', { money: true })).toBe('1,1250');
+    expect(numberText(0.125, 'nl')).toBe('0,125');
+  });
+
+  it('reads every number it writes, in every language, as the same number', () => {
+    const values = [
+      0, 0.001, 0.25, 0.5, 1, 1.035, 1.125, 1.25, 2.375, 9.8, 12.5, 99.999, 123.456, 999.999, 1000,
+      1035, 1250.5, 12345.678, -1.125, 0.000001,
+    ];
+    for (const locale of locales) {
+      for (const value of values) {
+        for (const money of [false, true]) {
+          const text = numberText(value, locale, { money });
+          const read = readNumber(text);
+          expect(read.problem, `${locale} ${value} → "${text}"`).toBeNull();
+          expect(read.value, `${locale} ${value} → "${text}"`).toBeCloseTo(value, money ? 4 : 6);
+        }
+      }
+    }
+  });
+
+  it('suggests a spelling it can read, when it asks', () => {
+    const asked = readNumber('1,035');
+    expect(asked.problem).toMatchObject({ kind: 'ambiguous', decimal: 1.035 });
+    const message = problemText(createTranslator('nl'), asked.problem!);
+    expect(message).toContain('1,0350');
+    expect(readNumber('1,0350').value).toBe(1.035);
+  });
+});

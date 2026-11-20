@@ -12,6 +12,7 @@ import {
   type Translator,
 } from '../i18n/index.js';
 import { knownNames, menuDishAsSent } from '../api/offlineEdits.js';
+import { numberText } from '../lib/typedNumber.js';
 
 /**
  * Both sides of a conflict, the way a chef reads them: field names in their
@@ -131,7 +132,11 @@ export function showValue(
       // "12.5 for 5 kg": the money as typed, and what it buys.
       const { amount: money, quantity } = value as { amount?: unknown; quantity?: unknown };
       const much = amount(quantity, translator.locale);
-      return typeof money === 'number' && much ? `${money} / ${much}` : NOTHING;
+      // In the reader's way of writing, like the amount: "1,25 / 1,5 kg" in
+      // Dutch, where "1.25" could be taken for a hundred and twenty-five.
+      return typeof money === 'number' && much
+        ? `${numberText(money, translator.locale, { money: true })} / ${much}`
+        : NOTHING;
     }
     case 'prepMinutes':
     case 'cookMinutes':
