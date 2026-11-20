@@ -423,6 +423,7 @@ export const en = {
   'editor.editing': 'Editing',
   'editor.name': 'Recipe name',
   'editor.namePlaceholder': 'Recipe name',
+  'editor.dishNamePlaceholder': 'Dish name',
   'editor.status': 'Status',
   'editor.lastSaved': 'Last saved {time}',
   'editor.notSaved': 'Not saved yet',

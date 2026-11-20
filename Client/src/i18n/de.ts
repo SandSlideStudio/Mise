@@ -438,6 +438,7 @@ export const de: Record<MessageKey, string> = {
   'editor.editing': 'Bearbeiten',
   'editor.name': 'Name des Rezepts',
   'editor.namePlaceholder': 'Name des Rezepts',
+  'editor.dishNamePlaceholder': 'Name des Gerichts',
   'editor.status': 'Status',
   'editor.lastSaved': 'Zuletzt gespeichert {time}',
   'editor.notSaved': 'Noch nicht gespeichert',

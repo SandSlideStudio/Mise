@@ -440,6 +440,7 @@ export const fr: Record<MessageKey, string> = {
   'editor.editing': 'Modification',
   'editor.name': 'Nom de la recette',
   'editor.namePlaceholder': 'Nom de la recette',
+  'editor.dishNamePlaceholder': 'Nom du plat',
   'editor.status': 'Statut',
   'editor.lastSaved': 'Dernier enregistrement {time}',
   'editor.notSaved': 'Pas encore enregistrée',
