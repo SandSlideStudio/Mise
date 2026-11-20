@@ -92,6 +92,10 @@ export const fr: Record<MessageKey, string> = {
     'Les allergènes de cette recette ne peuvent pas être établis : il manque quelque chose ou elle renvoie à elle-même. Vérifiez ce qu’elle contient dans l’éditeur.',
   'error.nameOutsideKitchen':
     'Le certificat de la cuisine ne vaut que pour le réseau de la cuisine : des adresses comme 192.168.1.50, et des noms finissant par .local, .lan, .home ou .internal. « {name} » n’en fait pas partie.',
+  'error.authorityAlreadyConstrained':
+    'Le certificat de la cuisine ne vaut déjà que pour le réseau de la cuisine. Il n’y a rien à remplacer.',
+  'error.authorityNameOutsideKitchen':
+    'Remplacez d’abord les adresses utilisées par les tablettes par des adresses du réseau de la cuisine : « {name} » n’en fait pas partie.',
   'error.invalidCredentials': 'Ça ne correspond pas. Réessayez.',
   'error.accountInactive': 'Ce compte n’est plus actif.',
   'error.deviceNotEnrolled':
@@ -1087,6 +1091,21 @@ export const fr: Record<MessageKey, string> = {
   'https.failedHint':
     'Le plus souvent, le port 80 n’atteint pas encore Mise, ou le domaine ne pointe pas encore ici. Let’s Encrypt n’autorise que quelques échecs par heure.',
   'https.renewFailed': 'Le dernier renouvellement a échoué ; Mise réessaiera : {reason}',
+  'https.oldAuthorityTitle':
+    'Ce certificat de la cuisine peut se porter garant de n’importe quel site',
+  'https.oldAuthorityRisk':
+    'Il a été créé le {date}, avant que Mise ne limite ses certificats au réseau de la cuisine. Une tablette ou un téléphone qui lui fait confiance le croit aussi pour d’autres sites, comme celui d’une banque. Seul quelqu’un qui prendrait le contrôle de ce serveur ou de sa base de données pourrait s’en servir, mais il pourrait alors espionner ces appareils sur n’importe quel site.',
+  'https.oldAuthorityCost':
+    'Le remplacer en crée un nouveau, valable pour le réseau de la cuisine seulement. Ensuite, chaque tablette et chaque téléphone affiche un avertissement en HTTPS jusqu’à ce que vous fassiez confiance au nouveau certificat, avec les mêmes étapes que la première fois :',
+  'https.replaceAuthority': 'Remplacer le certificat de la cuisine',
+  'https.replaceAuthorityConfirm': 'Oui, le remplacer',
+  'https.replacing': 'Remplacement…',
+  'https.authorityReplaced':
+    'Remplacé. Le nouveau certificat de la cuisine ne vaut que pour le réseau de la cuisine.',
+  'https.authorityReplacedSteps':
+    'Faites-lui maintenant confiance sur chaque tablette et chaque téléphone : ouvrez cette page sur chacun et suivez les étapes.',
+  'https.authorityRemoveOld':
+    'Supprimez ensuite l’ancien certificat « Mise » de chaque appareil, là où vous l’avez installé, pour qu’il ne fasse plus confiance qu’au nouveau.',
   'trust.title': 'Faire confiance au certificat de la cuisine',
   'trust.body':
     'Une fois par appareil. Ensuite Mise s’ouvre ici en HTTPS, continue de fonctionner quand le réseau tombe et peut être installé comme une app.',

@@ -88,6 +88,10 @@ export const nl: Record<MessageKey, string> = {
     'De allergenen van dit recept zijn niet te bepalen: er ontbreekt iets of het verwijst naar zichzelf. Kijk in de editor wat erin gaat.',
   'error.nameOutsideKitchen':
     'Het keukencertificaat geldt alleen voor het keukennetwerk: adressen zoals 192.168.1.50, en namen die eindigen op .local, .lan, .home of .internal. “{name}” hoort daar niet bij.',
+  'error.authorityAlreadyConstrained':
+    'Het keukencertificaat geldt al alleen voor het keukennetwerk. Er valt niets te vervangen.',
+  'error.authorityNameOutsideKitchen':
+    'Verander eerst de adressen die de tablets gebruiken in adressen op het keukennetwerk: “{name}” hoort daar niet bij.',
   'error.invalidCredentials': 'Dat klopt niet. Probeer het opnieuw.',
   'error.accountInactive': 'Dat account is niet meer actief.',
   'error.deviceNotEnrolled':
@@ -1071,6 +1075,20 @@ export const nl: Record<MessageKey, string> = {
   'https.failedHint':
     'Meestal komt poort 80 nog niet bij Mise aan, of wijst het domein nog niet hierheen. Let’s Encrypt staat maar een paar mislukte pogingen per uur toe.',
   'https.renewFailed': 'De laatste vernieuwing mislukte; Mise probeert het opnieuw: {reason}',
+  'https.oldAuthorityTitle': 'Dit keukencertificaat kan voor elke website instaan',
+  'https.oldAuthorityRisk':
+    'Het is gemaakt op {date}, voordat Mise zijn certificaten tot het keukennetwerk beperkte. Een tablet of telefoon die het vertrouwt, gelooft het ook over andere websites, zoals die van een bank. Alleen iemand die deze server of de database ervan overneemt, kan dat misbruiken, maar die kan dan op elke website meekijken op die apparaten.',
+  'https.oldAuthorityCost':
+    'Vervang je het, dan maakt Mise een nieuw certificaat dat alleen voor het keukennetwerk geldt. Daarna toont elke tablet en telefoon bij HTTPS een waarschuwing, tot je het nieuwe certificaat daar vertrouwt, met dezelfde stappen als de eerste keer:',
+  'https.replaceAuthority': 'Vervang het keukencertificaat',
+  'https.replaceAuthorityConfirm': 'Ja, vervang het',
+  'https.replacing': 'Vervangen…',
+  'https.authorityReplaced':
+    'Vervangen. Het nieuwe keukencertificaat geldt alleen voor het keukennetwerk.',
+  'https.authorityReplacedSteps':
+    'Vertrouw het nu op elke tablet en telefoon: open op elk apparaat deze pagina en volg de stappen.',
+  'https.authorityRemoveOld':
+    'Verwijder daarna het oude “Mise”-certificaat van elk apparaat, waar je het hebt geïnstalleerd, zodat het alleen het nieuwe vertrouwt.',
   'trust.title': 'Vertrouw het keukencertificaat',
   'trust.body':
     'Eén keer per apparaat. Daarna opent Mise hier via HTTPS, blijft het werken als het netwerk wegvalt en kun je het als app installeren.',

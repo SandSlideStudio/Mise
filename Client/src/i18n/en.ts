@@ -87,6 +87,10 @@ export const en = {
     'The allergens of this recipe can’t be worked out: something in it is missing or refers back to itself. Check what goes into it in the editor.',
   'error.nameOutsideKitchen':
     'The kitchen certificate only vouches for the kitchen network: addresses such as 192.168.1.50, and names ending in .local, .lan, .home or .internal. “{name}” isn’t one of them.',
+  'error.authorityAlreadyConstrained':
+    'The kitchen certificate already vouches for the kitchen network alone. There is nothing to replace.',
+  'error.authorityNameOutsideKitchen':
+    'First change the addresses the tablets use to ones on the kitchen network: “{name}” isn’t one of them.',
   'error.invalidCredentials': 'That didn’t match. Try again.',
   'error.accountInactive': 'That account is no longer active.',
   'error.deviceNotEnrolled': 'PIN sign-in only works on a tablet an administrator has enrolled.',
@@ -1049,6 +1053,20 @@ export const en = {
   'https.failedHint':
     'Most often port 80 isn’t reaching Mise yet, or the domain doesn’t point here yet. Let’s Encrypt allows only a few failed tries an hour.',
   'https.renewFailed': 'The last renewal failed, and Mise will try again: {reason}',
+  'https.oldAuthorityTitle': 'This kitchen certificate can vouch for any website',
+  'https.oldAuthorityRisk':
+    'It was made on {date}, before Mise limited its certificates to the kitchen network. A tablet or phone that trusts it would also believe it about other websites, such as a bank’s. Only someone who took over this server or its database could use that, but they could then listen in on those devices on any website.',
+  'https.oldAuthorityCost':
+    'Replacing it makes a new one that vouches for the kitchen network alone. Afterwards, every tablet and phone shows a warning over HTTPS until it trusts the new certificate, with the same steps as the first time:',
+  'https.replaceAuthority': 'Replace the kitchen certificate',
+  'https.replaceAuthorityConfirm': 'Yes, replace it',
+  'https.replacing': 'Replacing…',
+  'https.authorityReplaced':
+    'Replaced. The new kitchen certificate vouches for the kitchen network alone.',
+  'https.authorityReplacedSteps':
+    'Now trust it on every tablet and phone: open this page on each one and follow the steps.',
+  'https.authorityRemoveOld':
+    'Then remove the old “Mise” certificate from each device, where you installed it, so it trusts only the new one.',
   'trust.title': 'Trust the kitchen certificate',
   'trust.body':
     'Once per device. Afterwards Mise opens over HTTPS here, keeps working when the network drops, and can be installed as an app.',

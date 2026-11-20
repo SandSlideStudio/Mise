@@ -93,6 +93,10 @@ export const de: Record<MessageKey, string> = {
     'Die Allergene dieses Rezepts lassen sich nicht ermitteln: Etwas fehlt oder verweist auf sich selbst. Prüfe im Editor, was hineinkommt.',
   'error.nameOutsideKitchen':
     'Das Küchenzertifikat gilt nur für das Küchennetz: Adressen wie 192.168.1.50 und Namen auf .local, .lan, .home oder .internal. „{name}“ gehört nicht dazu.',
+  'error.authorityAlreadyConstrained':
+    'Das Küchenzertifikat gilt schon nur für das Küchennetz. Es gibt nichts zu ersetzen.',
+  'error.authorityNameOutsideKitchen':
+    'Ändere zuerst die Adressen, die die Tablets nutzen, in Adressen im Küchennetz: „{name}“ gehört nicht dazu.',
   'error.invalidCredentials': 'Das passt nicht. Bitte noch einmal versuchen.',
   'error.accountInactive': 'Dieses Konto ist nicht mehr aktiv.',
   'error.deviceNotEnrolled':
@@ -1085,6 +1089,19 @@ export const de: Record<MessageKey, string> = {
   'https.failedHint':
     'Meist erreicht Port 80 Mise noch nicht, oder die Domain zeigt noch nicht hierher. Let’s Encrypt erlaubt nur wenige Fehlversuche pro Stunde.',
   'https.renewFailed': 'Die letzte Erneuerung schlug fehl; Mise versucht es erneut: {reason}',
+  'https.oldAuthorityTitle': 'Dieses Küchenzertifikat kann für jede Website bürgen',
+  'https.oldAuthorityRisk':
+    'Es wurde am {date} erstellt, bevor Mise seine Zertifikate auf das Küchennetz beschränkte. Ein Tablet oder Handy, das ihm vertraut, glaubt ihm auch bei anderen Websites, etwa der einer Bank. Ausnutzen könnte das nur, wer diesen Server oder seine Datenbank übernimmt, dann aber auf jeder Website bei diesen Geräten mitlesen.',
+  'https.oldAuthorityCost':
+    'Ersetzt du es, erstellt Mise ein neues, das nur für das Küchennetz gilt. Danach zeigt jedes Tablet und Handy über HTTPS eine Warnung, bis es dem neuen Zertifikat vertraut, mit denselben Schritten wie beim ersten Mal:',
+  'https.replaceAuthority': 'Küchenzertifikat ersetzen',
+  'https.replaceAuthorityConfirm': 'Ja, ersetzen',
+  'https.replacing': 'Wird ersetzt…',
+  'https.authorityReplaced': 'Ersetzt. Das neue Küchenzertifikat gilt nur für das Küchennetz.',
+  'https.authorityReplacedSteps':
+    'Vertraue ihm jetzt auf jedem Tablet und Handy: Öffne auf jedem Gerät diese Seite und folge den Schritten.',
+  'https.authorityRemoveOld':
+    'Entferne danach das alte „Mise“-Zertifikat von jedem Gerät, dort, wo du es installiert hast, damit es nur noch dem neuen vertraut.',
   'trust.title': 'Dem Küchenzertifikat vertrauen',
   'trust.body':
     'Einmal pro Gerät. Danach öffnet sich Mise hier über HTTPS, läuft weiter, wenn das Netz ausfällt, und lässt sich als App installieren.',
