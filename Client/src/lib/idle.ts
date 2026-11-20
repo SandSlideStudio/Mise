@@ -65,6 +65,8 @@ export interface IdleOptions {
   onWarning(secondsLeft: number | null): void;
   /** Time is up. Called once. */
   onExpire(): void;
+  /** Someone touched the tablet. Called on every interaction, so keep it cheap. */
+  onActive?(): void;
 }
 
 /**
@@ -77,6 +79,7 @@ export function watchIdle({
   warnMs,
   onWarning,
   onExpire,
+  onActive,
 }: IdleOptions): IdleWatch {
   // Where this tab last saw interaction. A record from before this page
   // opened counts: that is how a tablet that slept, or was reloaded, knows.
@@ -117,6 +120,7 @@ export function watchIdle({
       lastWritten = now;
       writeRecord(userId, now);
     }
+    onActive?.();
     check();
   }
 

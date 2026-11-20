@@ -208,6 +208,10 @@ staff data, and a stack of smaller fixes.
   list at once (and, where ticked lines are deleted, is gone for good). A tick sent late keeps its
   own time up to an hour back, so the line stays on the list at least an hour for a chef to see
   and reopen.
+- A shared tablet that signs out when left alone is now signed out by Mise itself as well, not only
+  by the tablet's browser. A browser that was closed, put away or switched off no longer leaves the
+  last cook signed in for whoever picks the tablet up. A tablet in use tells Mise so now and then,
+  so nobody at work is signed out.
 
 **Under the hood**
 

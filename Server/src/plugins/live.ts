@@ -179,7 +179,7 @@ const livePlugin: FastifyPluginAsync = async (app) => {
     const heartbeat = setInterval(() => {
       void (async () => {
         const session = token
-          ? await app.auth.resolveSession(token).catch(() => 'unknown' as const)
+          ? await app.auth.resolveSession(token, { touch: false }).catch(() => 'unknown' as const)
           : null;
         const approved = device
           ? await app.access.approved(device).catch(() => 'unknown' as const)

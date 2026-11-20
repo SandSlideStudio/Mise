@@ -1,5 +1,10 @@
 import { and, eq, isNull, lt, sql } from 'drizzle-orm';
-import { DEFAULT_STATIONS, type Language, type SetupRequest } from '@mise/contracts';
+import {
+  ACTIVITY_PING_MS,
+  DEFAULT_STATIONS,
+  type Language,
+  type SetupRequest,
+} from '@mise/contracts';
 import { toBase, type UnitCode } from '@mise/domain';
 import type { Database, Executor, Transaction } from '../../db/client.js';
 import {
@@ -54,6 +59,14 @@ function minutesFromNow(minutes: number): Date {
 
 /** How often "last seen" is written for a session or a tablet. */
 const LAST_SEEN_EVERY_MS = 5 * 60_000;
+
+/**
+ * How far past its idle limit a tablet session may go unheard before the
+ * server ends it. "Last seen" can be up to LAST_SEEN_EVERY_MS behind the last
+ * request, and a tablet in use tells the server so at most every
+ * ACTIVITY_PING_MS, so someone at work is never signed out by this.
+ */
+export const IDLE_SLACK_MS = LAST_SEEN_EVERY_MS + ACTIVITY_PING_MS;
 
 function stale(lastSeen: Date | null): boolean {
   return lastSeen === null || Date.now() - lastSeen.getTime() > LAST_SEEN_EVERY_MS;
@@ -313,9 +326,12 @@ export function createAuthService(db: Database) {
       language: users.language,
       tourSeenAt: users.tourSeenAt,
       active: users.active,
+      idleSignOutMinutes: kitchens.idleSignOutMinutes,
     })
     .from(sessions)
     .innerJoin(users, eq(users.id, sessions.userId))
+    // There is one kitchen; its idle limit comes along rather than costing a query.
+    .leftJoin(kitchens, sql`true`)
     .where(eq(sessions.tokenHash, sql.placeholder('tokenHash')))
     .limit(1)
     .prepare('session_by_token');
@@ -326,8 +342,14 @@ export function createAuthService(db: Database) {
     .limit(1)
     .prepare('device_by_token');
 
-  /** Resolve a session cookie to the person holding it. */
-  async function resolveSession(token: string) {
+  /**
+   * Resolve a session cookie to the person holding it.
+   *
+   * `touch: false` looks without counting as use, for the live stream's own
+   * check every few seconds: an open screen nobody touches is not someone at
+   * the tablet.
+   */
+  async function resolveSession(token: string, { touch = true }: { touch?: boolean } = {}) {
     const [row] = await sessionByToken.execute({ tokenHash: hashToken(token) });
 
     if (!row) return null;
@@ -337,9 +359,21 @@ export function createAuthService(db: Database) {
     }
     if (!row.active) return null;
 
+    // A shared tablet left alone signs out by itself, in the browser. A
+    // browser that was closed, sent to the background or switched off never
+    // gets to, so the server ends it too once it has heard nothing for the
+    // limit, with room for how seldom "last seen" is written.
+    if (row.deviceId !== null && row.idleSignOutMinutes !== null) {
+      const silentMs = Date.now() - row.lastSeenAt.getTime();
+      if (silentMs > row.idleSignOutMinutes * 60_000 + IDLE_SLACK_MS) {
+        await db.delete(sessions).where(eq(sessions.id, row.sessionId));
+        return null;
+      }
+    }
+
     // Every request would otherwise write to disk, photos included, which
     // wears out the SD card of a Raspberry Pi. Five minutes is precise enough.
-    if (stale(row.lastSeenAt)) {
+    if (touch && stale(row.lastSeenAt)) {
       await db
         .update(sessions)
         .set({ lastSeenAt: new Date() })

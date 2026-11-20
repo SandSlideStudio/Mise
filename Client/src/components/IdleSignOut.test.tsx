@@ -8,8 +8,12 @@ import { IdleSignOut } from './IdleSignOut.js';
 
 const kitchen = vi.hoisted(() => ({ data: { idleSignOutMinutes: 5 as number | null } }));
 const mutate = vi.hoisted(() => vi.fn());
+const ping = vi.hoisted(() => vi.fn());
 vi.mock('../api/kitchen.js', () => ({ useKitchen: () => kitchen }));
-vi.mock('../api/session.js', () => ({ useLogout: () => ({ mutate }) }));
+vi.mock('../api/session.js', () => ({
+  useLogout: () => ({ mutate }),
+  useActivityPing: () => ping,
+}));
 
 const user = (onTablet: boolean) => ({ id: 'u1', onTablet }) as SessionUser;
 const MIN = 60_000;
@@ -17,6 +21,7 @@ const MIN = 60_000;
 beforeEach(() => {
   localStorage.clear();
   mutate.mockReset();
+  ping.mockReset();
   kitchen.data.idleSignOutMinutes = 5;
   vi.useFakeTimers();
 });
@@ -65,5 +70,14 @@ describe('signing out a shared tablet', () => {
     expect(screen.queryByText('Signing out…')).toBeNull();
     act(() => void vi.advanceTimersByTime(30_000));
     expect(mutate).toHaveBeenCalledTimes(2);
+  });
+
+  it('tells the server the tablet is in use whenever it is touched', () => {
+    render(<IdleSignOut user={user(true)} />);
+    fireEvent.pointerDown(window);
+    expect(ping).toHaveBeenCalledTimes(1);
+    act(() => void vi.advanceTimersByTime(5 * MIN - 20_000));
+    fireEvent.click(screen.getByRole('button', { name: 'Stay signed in' }));
+    expect(ping.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
 });

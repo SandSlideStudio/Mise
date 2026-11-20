@@ -39,6 +39,13 @@ export const passwordSchema = z
   .min(12, 'Use at least 12 characters')
   .max(200, 'That is longer than we can hash');
 
+/**
+ * A shared tablet that signs out when left alone tells the server it is in
+ * use at most this often while someone is touching it, so the server, which
+ * signs out a tablet it has not heard from, never signs out someone at work.
+ */
+export const ACTIVITY_PING_MS = 60_000;
+
 export const pinSchema = z.string().regex(/^\d{4,8}$/, 'A PIN is 4 to 8 digits');
 
 export const setupStatusSchema = z.object({

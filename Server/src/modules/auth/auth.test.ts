@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { eq } from 'drizzle-orm';
-import { users } from '../../db/schema.js';
+import { sessions, users } from '../../db/schema.js';
 import { hashSecret } from '../../lib/crypto.js';
+import { IDLE_SLACK_MS } from './service.js';
 import {
   ADMIN,
   approvedOutside,
@@ -234,6 +235,113 @@ describe('sessions', () => {
     const rows = await ctx.db.query.sessions.findMany();
     expect(rows).toHaveLength(1);
     expect(rows[0]?.tokenHash).not.toBe(cookie);
+  });
+});
+
+describe('a shared tablet left alone', () => {
+  let admin: string;
+  let cookId: string;
+  let device: string;
+
+  beforeEach(async () => {
+    admin = await setUpKitchen(ctx.app);
+    const created = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/users',
+      payload: { displayName: 'Marco', role: 'cook', pin: '4821' },
+      cookies: { mise_session: admin },
+    });
+    cookId = created.json().id;
+    const enrolled = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/devices',
+      payload: { name: 'Pass tablet' },
+      cookies: { mise_session: admin },
+    });
+    device = cookieFrom(enrolled, 'mise_device')!;
+  });
+
+  async function idleAfter(minutes: number | null) {
+    const set = await ctx.app.inject({
+      method: 'PATCH',
+      url: '/api/kitchen',
+      payload: { idleSignOutMinutes: minutes },
+      cookies: { mise_session: admin },
+    });
+    expect(set.statusCode).toBe(200);
+  }
+
+  async function pinSignIn(): Promise<string> {
+    const signedIn = await ctx.app.inject({
+      method: 'POST',
+      url: '/api/auth/pin-login',
+      payload: { userId: cookId, pin: '4821' },
+      cookies: { mise_device: device },
+    });
+    expect(signedIn.statusCode).toBe(200);
+    return cookieFrom(signedIn, 'mise_session')!;
+  }
+
+  /** The server last heard from this person's sessions this long ago. */
+  async function lastHeard(userId: string, msAgo: number) {
+    await ctx.db
+      .update(sessions)
+      .set({ lastSeenAt: new Date(Date.now() - msAgo) })
+      .where(eq(sessions.userId, userId));
+  }
+
+  const me = (cookie: string) =>
+    ctx.app.inject({ method: 'GET', url: '/api/auth/me', cookies: { mise_session: cookie } });
+
+  it('is signed out by the server once it has gone unheard past the limit', async () => {
+    await idleAfter(5);
+    const cook = await pinSignIn();
+    // The browser was closed, sent to the background, or switched off, so its
+    // own timer never fired.
+    await lastHeard(cookId, 60 * 60_000);
+    expect((await me(cook)).statusCode).toBe(401);
+    // Ended, not merely refused: nothing is left to come back to.
+    expect(await ctx.db.select().from(sessions).where(eq(sessions.userId, cookId))).toHaveLength(0);
+  });
+
+  it('leaves someone at work alone: within the limit and the room for "last seen"', async () => {
+    await idleAfter(5);
+    const cook = await pinSignIn();
+    await lastHeard(cookId, 5 * 60_000 + IDLE_SLACK_MS - 5_000);
+    expect((await me(cook)).statusCode).toBe(200);
+    // That request counted as use, so the count starts over.
+    const [row] = await ctx.db.select().from(sessions).where(eq(sessions.userId, cookId));
+    expect(Date.now() - row!.lastSeenAt.getTime()).toBeLessThan(60_000);
+  });
+
+  it('allows for how seldom "last seen" is written and how often a tablet in use says so', async () => {
+    expect(IDLE_SLACK_MS).toBeGreaterThanOrEqual(5 * 60_000 + 60_000);
+  });
+
+  it('is not signed out when the kitchen has chosen no limit', async () => {
+    const cook = await pinSignIn();
+    await lastHeard(cookId, 10 * 60 * 60_000);
+    expect((await me(cook)).statusCode).toBe(200);
+  });
+
+  it('never signs out a phone or laptop signed in with a password', async () => {
+    await idleAfter(5);
+    const [owner] = await ctx.db.select().from(users).where(eq(users.email, ADMIN.email));
+    await lastHeard(owner!.id, 60 * 60_000);
+    expect((await me(admin)).statusCode).toBe(200);
+  });
+
+  it('is not kept signed in by its live stream checking on it', async () => {
+    await idleAfter(5);
+    const cook = await pinSignIn();
+    await lastHeard(cookId, 60_000);
+    // What the stream asks every few seconds while a screen is open.
+    expect(await ctx.app.auth.resolveSession(cook, { touch: false })).not.toBeNull();
+    const [row] = await ctx.db.select().from(sessions).where(eq(sessions.userId, cookId));
+    expect(Date.now() - row!.lastSeenAt.getTime()).toBeGreaterThanOrEqual(60_000);
+    // And it ends a session that has gone unheard, so the stream closes.
+    await lastHeard(cookId, 60 * 60_000);
+    expect(await ctx.app.auth.resolveSession(cook, { touch: false })).toBeNull();
   });
 });
 

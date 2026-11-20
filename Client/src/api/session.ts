@@ -1,13 +1,14 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { onReachable } from '../lib/connectivity.js';
-import type {
-  LoginRequest,
-  Roster,
-  SessionUser,
-  SetupRequest,
-  SetupStatus,
-  UpdateMe,
+import {
+  ACTIVITY_PING_MS,
+  type LoginRequest,
+  type Roster,
+  type SessionUser,
+  type SetupRequest,
+  type SetupStatus,
+  type UpdateMe,
 } from '@mise/contracts';
 import { useNavigate } from '@tanstack/react-router';
 import { api, noAnswer, RequestFailed } from './client.js';
@@ -101,6 +102,37 @@ export function useCurrentUser() {
     },
     retry: false,
   });
+}
+
+/**
+ * Tell the server a shared tablet is in use. The server signs out a tablet it
+ * has not heard from for longer than the kitchen's idle limit, and someone
+ * reading a recipe may tap and scroll for a long while without the page
+ * asking it anything. Called on every touch; asks at most once a minute.
+ *
+ * Through the query cache, so a session the server has ended is handled the
+ * way any other ended session is: the sign-in screen, and nothing kept.
+ */
+export function useActivityPing(): () => void {
+  const queryClient = useQueryClient();
+  const last = useRef(0);
+  return useCallback(() => {
+    const now = Date.now();
+    if (now - last.current < ACTIVITY_PING_MS && now >= last.current) return;
+    last.current = now;
+    void queryClient
+      .fetchQuery({
+        queryKey: ['activity'],
+        queryFn: () => api.get<{ user: SessionUser }>('/auth/me'),
+        staleTime: 0,
+        gcTime: 0,
+        retry: false,
+      })
+      // Offline or the server busy: the next touch asks again.
+      .catch(() => {
+        last.current = 0;
+      });
+  }, [queryClient]);
 }
 
 /** Change something about yourself. Today that is only the language. */

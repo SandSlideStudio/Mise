@@ -2,7 +2,7 @@ import { BottomNotice } from './BottomNotice.js';
 import { useEffect, useRef, useState } from 'react';
 import type { SessionUser } from '@mise/contracts';
 import { useKitchen } from '../api/kitchen.js';
-import { useLogout } from '../api/session.js';
+import { useActivityPing, useLogout } from '../api/session.js';
 import { useT } from '../i18n/index.js';
 import { watchIdle, type IdleWatch } from '../lib/idle.js';
 
@@ -31,6 +31,8 @@ function Watching({ user }: { user: SessionUser }) {
   // The mutation object is new on every render; only its method is needed.
   const signOut = useRef(logout.mutate);
   signOut.current = logout.mutate;
+  // The server signs out a tablet it hasn't heard from, so a touch tells it.
+  const ping = useActivityPing();
 
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const [ending, setEnding] = useState(false);
@@ -50,6 +52,7 @@ function Watching({ user }: { user: SessionUser }) {
       limitMs,
       warnMs: Math.min(WARN_MS, limitMs / 2),
       onWarning: setSecondsLeft,
+      onActive: ping,
       onExpire: () => {
         // Cover the screen first: whatever was open must not show while the
         // sign-out goes through.
@@ -67,7 +70,7 @@ function Watching({ user }: { user: SessionUser }) {
       watch.current = null;
       window.clearTimeout(retry);
     };
-  }, [minutes, user.id, attempt]);
+  }, [minutes, user.id, attempt, ping]);
 
   if (ending) {
     return (
