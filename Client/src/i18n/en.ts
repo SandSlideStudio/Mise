@@ -1251,6 +1251,7 @@ export const en = {
     'For signing in on a kitchen tablet. It has to be different from everyone else’s, and not an obvious one like 1234.',
   'error.pinTaken': 'Choose another PIN.',
   'error.pinTooCommon': 'Pick a less obvious PIN.',
+  'error.pinTries': 'Too many PINs that were already taken. Try again in 15 minutes.',
   'error.pinOnlyOff': 'This tablet shows the names again. Tap your name, then your PIN.',
   'error.pinOnlyOn': 'This tablet now signs in with a PIN only.',
   'error.tabletLockedUntil':

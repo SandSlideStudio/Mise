@@ -67,6 +67,39 @@ function failureToError(failure: KitchenFailure): ApiError {
   }
 }
 
+/**
+ * While PIN-only sign-in is on, "Choose another PIN" tells whoever sets one
+ * that somebody already has it, and on a tablet that PIN signs in as them.
+ * A run of bad luck handing PINs out is a few refusals; more is a search for
+ * other people's, the administrator's included. So each person setting PINs
+ * gets five refusals in 15 minutes, counting the tries still being checked,
+ * and then waits.
+ */
+const PIN_TAKEN_LIMIT = 5;
+const PIN_TAKEN_WINDOW_MS = 15 * 60_000;
+
+function createPinTries(now: () => number = Date.now) {
+  const tries = new Map<string, { refused: number[]; checking: number }>();
+  return {
+    /** Before the check, with no await in between. False: they wait. */
+    hold(actorId: string): boolean {
+      const state = tries.get(actorId) ?? { refused: [], checking: 0 };
+      state.refused = state.refused.filter((at) => at > now() - PIN_TAKEN_WINDOW_MS);
+      if (state.refused.length + state.checking >= PIN_TAKEN_LIMIT) return false;
+      state.checking += 1;
+      tries.set(actorId, state);
+      return true;
+    },
+    release(actorId: string, taken: boolean): void {
+      const state = tries.get(actorId);
+      if (!state) return;
+      state.checking -= 1;
+      if (taken) state.refused.push(now());
+      if (state.checking === 0 && state.refused.length === 0) tries.delete(actorId);
+    },
+  };
+}
+
 /** Dates leave the API as ISO strings; the schemas expect nothing else. */
 function serialiseUser(user: {
   id: string;
@@ -85,6 +118,31 @@ function serialiseUser(user: {
 const kitchenRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
   const kitchen = createKitchenService(app.db);
+  const pinTries = createPinTries();
+
+  /** Run a change that may set a PIN, counting it against whoever makes it. */
+  async function withPinTry<T extends { ok: boolean; error?: KitchenFailure }>(
+    actorId: string,
+    setsPin: boolean,
+    change: () => Promise<T>,
+  ): Promise<T> {
+    if (!setsPin) return change();
+    if (!pinTries.hold(actorId)) {
+      throw new ApiError(
+        429,
+        'pin_tries',
+        'Too many PINs that were already taken. Try again in 15 minutes.',
+      );
+    }
+    let taken = false;
+    try {
+      const result = await change();
+      taken = !result.ok && result.error?.kind === 'pin_taken';
+      return result;
+    } finally {
+      pinTries.release(actorId, taken);
+    }
+  }
 
   async function describeKitchen(row: NonNullable<Awaited<ReturnType<typeof kitchen.getKitchen>>>) {
     return {
@@ -204,11 +262,19 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
       onRequest: [app.requireRole('admin', 'head_chef'), app.requirePassword],
       schema: {
         body: createUserSchema,
-        response: { 200: userSchema, 400: errorSchema, 403: errorSchema, 409: errorSchema },
+        response: {
+          200: userSchema,
+          400: errorSchema,
+          403: errorSchema,
+          409: errorSchema,
+          429: errorSchema,
+        },
       },
     },
     async (request) => {
-      const result = await kitchen.createUser(request.body, request.user!);
+      const result = await withPinTry(request.user!.id, Boolean(request.body.pin), () =>
+        kitchen.createUser(request.body, request.user!),
+      );
       if (!result.ok) throw failureToError(result.error);
       return withLock(result.user);
     },
@@ -227,11 +293,14 @@ const kitchenRoutes: FastifyPluginAsync = async (app) => {
           403: errorSchema,
           404: errorSchema,
           409: errorSchema,
+          429: errorSchema,
         },
       },
     },
     async (request) => {
-      const result = await kitchen.updateUser(request.params.id, request.body, request.user!);
+      const result = await withPinTry(request.user!.id, Boolean(request.body.pin), () =>
+        kitchen.updateUser(request.params.id, request.body, request.user!),
+      );
       if (!result.ok) throw failureToError(result.error);
       // A new password or PIN lifts the lock wherever they were locked out.
       if (request.body.password || request.body.pin !== undefined) {

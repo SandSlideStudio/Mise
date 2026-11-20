@@ -184,6 +184,47 @@ describe('PINs while it is chosen', () => {
     }
   });
 
+  it('stops anyone trying PINs until one is taken, so nobody can find out everyone else’s', async () => {
+    await choose(true);
+    // The administrator's own PIN, which signs in as them on any tablet.
+    const me = (await as(admin, 'GET', '/api/auth/me')).json().user.id;
+    expect((await setPin(me, '4821')).statusCode).toBe(200);
+    admin = cookieFrom(
+      await ctx.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: ADMIN.email, password: ADMIN.password },
+      }),
+      'mise_session',
+    )!;
+    await addStaff({
+      displayName: 'Head',
+      role: 'head_chef',
+      email: 'head@example.com',
+      password: 'a-long-head-chef-password',
+    });
+    const head = cookieFrom(
+      await ctx.app.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email: 'head@example.com', password: 'a-long-head-chef-password' },
+      }),
+      'mise_session',
+    )!;
+    // Five refusals is a run of bad luck handing PINs out; more is a search.
+    for (let i = 0; i < 5; i += 1) {
+      expect((await setPin(marco, '4821', head)).json().error.code).toBe('pin_taken');
+    }
+    const stopped = await setPin(marco, '4821', head);
+    expect(stopped.statusCode).toBe(429);
+    expect(stopped.json().error.code).toBe('pin_tries');
+    // Sent all at once, they wait just the same.
+    const burst = await Promise.all(['5937', '6048', '7159'].map((pin) => setPin(anna, pin, head)));
+    expect(burst.map((answer) => answer.statusCode)).toEqual([429, 429, 429]);
+    // Someone else handing out PINs is not held up by it.
+    expect((await setPin(anna, '7395')).statusCode).toBe(200);
+  });
+
   it('leaves PINs alone while it is off', async () => {
     expect((await setPin(marco, '1234')).statusCode).toBe(200);
     expect((await setPin(anna, '1234')).statusCode).toBe(200);

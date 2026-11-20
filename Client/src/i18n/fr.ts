@@ -1299,6 +1299,7 @@ export const fr: Record<MessageKey, string> = {
     'Pour se connecter sur une tablette de cuisine. Il doit être différent de celui des autres, et pas évident comme 1234.',
   'error.pinTaken': 'Choisissez un autre code PIN.',
   'error.pinTooCommon': 'Choisissez un code PIN moins évident.',
+  'error.pinTries': 'Trop de codes PIN déjà attribués. Réessayez dans 15 minutes.',
   'error.pinOnlyOff':
     'Cette tablette affiche de nouveau les noms. Touchez votre nom, puis saisissez votre code PIN.',
   'error.pinOnlyOn': 'Sur cette tablette, on se connecte maintenant avec un code PIN seul.',

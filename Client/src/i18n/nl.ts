@@ -1280,6 +1280,7 @@ export const nl: Record<MessageKey, string> = {
     'Om in te loggen op een keukentablet. Hij moet anders zijn dan die van ieder ander, en niet voor de hand liggen zoals 1234.',
   'error.pinTaken': 'Kies een andere pincode.',
   'error.pinTooCommon': 'Kies een pincode die minder voor de hand ligt.',
+  'error.pinTries': 'Te veel pincodes die al bezet waren. Probeer het over 15 minuten opnieuw.',
   'error.pinOnlyOff': 'Deze tablet toont de namen weer. Tik op je naam en dan je pincode.',
   'error.pinOnlyOn': 'Op deze tablet log je nu in met alleen een pincode.',
   'error.tabletLockedUntil':
