@@ -81,6 +81,12 @@ export function createAuthService(db: Database) {
    * older lock), or this address for this account? Otherwise the attempt is
    * counted now, so guesses sent at once can't all slip through.
    */
+  /**
+   * The account-wide lock of addresses that have no account, kept in memory
+   * the way a real account's is kept in the database, so both answer alike.
+   */
+  const unknownLocked = new Map<string, number>();
+
   async function reserveAttempt(
     user: { id: string; lockedUntil: Date | null },
     address: string,
@@ -151,8 +157,24 @@ export function createAuthService(db: Database) {
     // No such account, or one that signs in with a PIN only: the same answer,
     // in the same time, as a wrong password, so sign-in never tells a
     // stranger which emails are real.
+    // It is counted and locked like a real one, too: otherwise the sixth
+    // wrong guess (a lock for a real account, a plain refusal for a made-up
+    // one) would tell the two apart after all.
     if (!user?.passwordHash) {
+      const standIn = `email:${email.trim().toLowerCase()}`;
+      const lockedUntil = unknownLocked.get(standIn);
+      if (lockedUntil && lockedUntil > Date.now()) {
+        return { ok: false, error: { kind: 'locked', until: new Date(lockedUntil) } };
+      }
+      const reserved = lockout.reserve(standIn, address);
+      if ('lockedUntil' in reserved) {
+        return { ok: false, error: { kind: 'locked', until: reserved.lockedUntil } };
+      }
       await dummyVerify();
+      if (lockout.failed(standIn, address, reserved.attempt).lockAccount) {
+        if (unknownLocked.size >= 10_000) unknownLocked.clear();
+        unknownLocked.set(standIn, Date.now() + LOCKOUT_MINUTES * 60_000);
+      }
       return { ok: false, error: { kind: 'invalid_credentials' } };
     }
     const reserved = await reserveAttempt(user, address);

@@ -111,6 +111,26 @@ describe('password sign-in', () => {
     expect(response.json().error.code).toBe('invalid_credentials');
   });
 
+  it('gives the same answers, lock included, for an account that does not exist', async () => {
+    // From two places, so the route's own limit per address doesn't step in.
+    const tries = async (email: string, remoteAddress: string) => {
+      const codes: string[] = [];
+      for (let i = 0; i < 6; i += 1) {
+        const response = await ctx.app.inject({
+          method: 'POST',
+          url: '/api/auth/login',
+          payload: { email, password: 'not-the-password' },
+          remoteAddress,
+        });
+        codes.push(`${response.statusCode} ${response.json().error.code}`);
+      }
+      return codes;
+    };
+    expect(await tries('nobody@example.com', '192.168.1.21')).toEqual(
+      await tries(ADMIN.email, '192.168.1.22'),
+    );
+  });
+
   it('gives the same answer for a switched-off account, unless the password is right', async () => {
     await ctx.db.update(users).set({ active: false }).where(eq(users.email, ADMIN.email));
     const guess = await ctx.app.inject({
