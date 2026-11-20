@@ -1,6 +1,7 @@
 import { randomBytes, randomUUID } from 'node:crypto';
 import { mkdir, mkdtemp, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
 import http from 'node:http';
+import { createGzip } from 'node:zlib';
 import type { AddressInfo } from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
@@ -864,6 +865,47 @@ describe('sending backups to a NAS', () => {
 });
 
 describe('the rules behind it', () => {
+  /** One entry as a backup holds it, with whatever header it is given. */
+  function rawEntry(header: object, body: Buffer): Buffer[] {
+    const headerBytes = Buffer.from(JSON.stringify(header));
+    const length = Buffer.alloc(4);
+    length.writeUInt32BE(headerBytes.length);
+    return [length, headerBytes, body];
+  }
+
+  async function unpackAll(chunks: Buffer[]) {
+    const names: string[] = [];
+    for await (const entry of unpackEntries(
+      (async function* () {
+        yield* chunks;
+      })(),
+    ))
+      names.push(entry.name);
+    return names;
+  }
+
+  it('refuses an entry that unzips to more than any kitchen holds', async () => {
+    // A third of a megabyte that unzips to 300 MB of nothing.
+    const gzip = createGzip();
+    const packed: Buffer[] = [];
+    gzip.on('data', (chunk: Buffer) => packed.push(chunk));
+    const zeros = Buffer.alloc(1024 * 1024);
+    for (let i = 0; i < 300; i += 1) gzip.write(zeros);
+    await new Promise((resolve) => gzip.end(resolve));
+    const body = Buffer.concat(packed);
+    expect(body.length).toBeLessThan(1024 * 1024);
+
+    await expect(
+      unpackAll(rawEntry({ name: 'table/recipe.json', size: body.length, gzip: true }, body)),
+    ).rejects.toMatchObject({ code: 'not_a_backup' });
+  });
+
+  it('refuses an entry that says it is larger than any kitchen holds', async () => {
+    await expect(
+      unpackAll(rawEntry({ name: 'photo/a.png', size: 2 ** 40, gzip: false }, Buffer.alloc(16))),
+    ).rejects.toMatchObject({ code: 'not_a_backup' });
+  });
+
   it('backs up every table, apart from the ones left out on purpose', () => {
     const tables = Object.values(schema).filter((value) => is(value, PgTable));
     for (const table of tables) {
