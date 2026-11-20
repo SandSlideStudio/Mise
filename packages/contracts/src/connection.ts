@@ -48,6 +48,11 @@ export const connectionSchema = z.object({
       expiresAt: z.string().nullable(),
       /** What a tablet shows for the authority it trusts, to compare. */
       fingerprint: z.string().nullable(),
+      /**
+       * The authority itself, null before there is one. Not constrained: made
+       * before 2.2.2, it may vouch for any website, and can be replaced.
+       */
+      authority: z.object({ constrained: z.boolean(), createdAt: z.string() }).nullable(),
     }),
     domain: z.object({
       enabled: z.boolean(),

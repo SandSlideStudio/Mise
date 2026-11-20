@@ -10,7 +10,7 @@ import {
 } from '@mise/contracts';
 import { kitchens } from '../../db/schema.js';
 import { validKitchenName } from './certificates.js';
-import { CertificateFailure } from './service.js';
+import { AuthorityRefusal, CertificateFailure } from './service.js';
 import { ACME_ROUTE } from '../../plugins/access.js';
 import { ApiError } from '../../lib/errors.js';
 import { isPrivateAddress } from '../../lib/network.js';
@@ -31,7 +31,14 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
       https: {
         port: app.httpsListener.port() ?? app.config.HTTPS_PORT,
         httpPort: app.config.PORT,
-        kitchen: { ...https.kitchen, expiresAt: https.kitchen.expiresAt?.toISOString() ?? null },
+        kitchen: {
+          ...https.kitchen,
+          expiresAt: https.kitchen.expiresAt?.toISOString() ?? null,
+          authority: https.kitchen.authority && {
+            ...https.kitchen.authority,
+            createdAt: https.kitchen.authority.createdAt.toISOString(),
+          },
+        },
         domain: { ...https.domain, expiresAt: https.domain.expiresAt?.toISOString() ?? null },
       },
       outsideDomain: app.connection.outsideDomain(),
@@ -138,6 +145,43 @@ const connectionRoutes: FastifyPluginAsync = async (app) => {
     },
     async (request) => {
       await app.connection.disableKitchenHttps();
+      return describe(request);
+    },
+  );
+
+  /**
+   * A kitchen authority from before 2.2.2, which may vouch for any website,
+   * swapped for one that vouches for the kitchen network alone. Every tablet
+   * trusts the new one once afterwards, so only when an administrator asks.
+   */
+  r.post(
+    '/connection/kitchen-https/replace-authority',
+    {
+      onRequest: [app.requireRole('admin'), app.requirePassword],
+      schema: {
+        response: { 200: connectionSchema, 400: errorSchema, 403: errorSchema, 404: errorSchema },
+      },
+    },
+    async (request) => {
+      try {
+        await app.connection.replaceAuthority(await kitchenName());
+      } catch (error) {
+        if (!(error instanceof AuthorityRefusal)) throw error;
+        if (error.reason === 'none') throw ApiError.notFound('The kitchen certificate');
+        if (error.reason === 'already_constrained') {
+          throw new ApiError(
+            400,
+            'authority_already_constrained',
+            'The kitchen certificate already vouches for the kitchen network alone. There is nothing to replace.',
+          );
+        }
+        throw new ApiError(
+          400,
+          'authority_name_outside_kitchen',
+          `Change the addresses the tablets use to kitchen network ones first: "${error.host}" isn't one.`,
+          { name: error.host },
+        );
+      }
       return describe(request);
     },
   );

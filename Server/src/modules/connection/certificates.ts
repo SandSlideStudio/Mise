@@ -172,6 +172,19 @@ export function authorityPermits(authorityPem: string, name: string): boolean {
   );
 }
 
+/**
+ * Whether the authority carries the limits above. One made before 2.2.2
+ * doesn't: a tablet that trusts it would believe it about any website.
+ */
+export function authorityConstrained(authorityPem: string): boolean {
+  return Boolean(new x509.X509Certificate(authorityPem).getExtension(id_ce_nameConstraints));
+}
+
+/** When the authority was made. It is dated a day back, for clocks that run behind. */
+export function authorityMadeAt(authorityPem: string): Date {
+  return new Date(new x509.X509Certificate(authorityPem).notBefore.getTime() + DAY);
+}
+
 /** The authority, made once per server, for the names it is first asked for. */
 export async function createAuthority(kitchenName: string, names: string[] = []): Promise<PemPair> {
   const keys = await keyPair();
