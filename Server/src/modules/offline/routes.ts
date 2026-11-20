@@ -17,6 +17,7 @@ import {
 } from '@mise/contracts';
 import { createRecipeBook, toBase } from '@mise/domain';
 import { ApiError } from '../../lib/errors.js';
+import type { Database } from '../../db/client.js';
 import { sameRelease } from '../../lib/version.js';
 import { MANAGERS } from '../../plugins/auth.js';
 import { createDishCardService, serialiseSettings } from '../dishcards/service.js';
@@ -62,11 +63,25 @@ type BundleIngredient = OfflineBundle['ingredients'][number];
 
 const offlineRoutes: FastifyPluginAsync = async (app) => {
   const r = app.withTypeProvider<ZodTypeProvider>();
-  const recipes = createRecipesService(app.db);
+  /**
+   * Everything a bundle is read through, bound to one transaction: a bundle is
+   * read as the kitchen stood at one moment, so a recipe saved while it is
+   * being made can't leave its lines from after and its allergens from
+   * before (the tablet would show those to a guest until the next reload).
+   */
+  function servicesOn(db: Database) {
+    return {
+      db,
+      recipes: createRecipesService(db),
+      dishCards: createDishCardService(db),
+      menus: createMenusService(db),
+      kitchen: createKitchenService(db),
+      checklist: createChecklistReader(db),
+    };
+  }
+  type Services = ReturnType<typeof servicesOn>;
+  // Settings are read outside a bundle too, by the request itself.
   const dishCards = createDishCardService(app.db);
-  const menus = createMenusService(app.db);
-  const kitchen = createKitchenService(app.db);
-  const checklist = createChecklistReader(app.db);
 
   /**
    * The last build, per kind of reader (with or without cards, with or
@@ -78,45 +93,38 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
   /** The same, written out with each role's version on it, plain and zipped. */
   const encoded = new Map<string, Built & { version: string }>();
 
-  /**
-   * What every kind of bundle is made from, read once per version: a chef and
-   * a cook get different bundles, but from one reading of the book.
-   */
-  let sources: { version: string; result: ReturnType<typeof readSources> } | null = null;
-  function readSources() {
+  function readSources(s: Services) {
     return Promise.all([
-      loadRecipeBook(app.db),
-      recipes.allRecipes(),
-      loadComponentNames(app.db),
-      kitchen.listStations(),
-      checklist.readChecklist(),
-      menus.listMenus(),
-      dishCards.settings(),
-      historyOf(app.db),
-      loadCostSettings(app.db),
+      loadRecipeBook(s.db),
+      s.recipes.allRecipes(),
+      loadComponentNames(s.db),
+      s.kitchen.listStations(),
+      s.checklist.readChecklist(),
+      s.menus.listMenus(),
+      s.dishCards.settings(),
+      historyOf(s.db),
+      loadCostSettings(s.db),
     ]);
   }
-  function sourcesAt(version: string) {
-    if (!sources || sources.version !== version) {
-      const result = readSources();
-      // A failed reading must not be remembered.
-      result.catch(() => {
-        if (sources?.result === result) sources = null;
-      });
-      sources = { version, result };
-    }
-    return sources.result;
+
+  function build(version: string, withCards: boolean, withCosts: boolean) {
+    // Only reads: in a snapshot of their own, the kitchen as of one moment.
+    return app.db.transaction(
+      (tx) => buildFrom(servicesOn(tx as unknown as Database), version, withCards, withCosts),
+      { isolationLevel: 'repeatable read', accessMode: 'read only' },
+    );
   }
 
-  async function build(
+  async function buildFrom(
+    s: Services,
     version: string,
     withCards: boolean,
     withCosts: boolean,
   ): Promise<OfflineBundle> {
     const [book, all, names, stations, list, menuList, settings, history, costSettings] =
-      await sourcesAt(version);
-    const dishes = await dishCards.summaries(book);
-    const cards = withCards ? await dishCards.allCards(book) : null;
+      await readSources(s);
+    const dishes = await s.dishCards.summaries(book);
+    const cards = withCards ? await s.dishCards.allCards(book) : null;
     const summaries = new Map(dishes.map((dish) => [dish.id, dish]));
 
     // Every ingredient a recipe uses, once: the tablet's book is made of these.
@@ -190,12 +198,12 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const menuEntries: OfflineBundle['menuEntries'] = [];
-    for (const found of await menus.allMenus()) {
+    for (const found of await s.menus.allMenus()) {
       const { id } = found;
-      const menu = withCosts ? await menus.withCosts(found, book) : found;
+      const menu = withCosts ? await s.menus.withCosts(found, book) : found;
       let overview: OfflineBundle['menuEntries'][number]['overview'] = null;
       if (withCards) {
-        const result = await menus.overview(id, book);
+        const result = await s.menus.overview(id, book);
         if (result.ok) {
           const { settings: _settings, ...rest } = result.overview;
           overview = rest;

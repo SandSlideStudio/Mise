@@ -363,13 +363,14 @@ describe('the bundle for offline use', () => {
     expect(large.statements).toBeLessThanOrEqual(small.statements);
   });
 
-  it('is built once for a chef and a cook taking turns', async () => {
+  it('is built once per kind of reader, a chef and a cook taking turns', async () => {
     await kitchenWith(3);
     cook = await signInCook();
     bookLoads.count = 0;
     const versions = [];
     for (const who of [admin, cook, admin, cook]) versions.push((await bundleFor(who)).version);
-    expect(bookLoads.count).toBe(1);
+    // Each kind is read in a snapshot of its own; then kept until a change.
+    expect(bookLoads.count).toBe(2);
     // Each still says whose it is.
     expect(versions[0]).not.toBe(versions[1]);
     expect(versions[0]).toBe(versions[2]);
