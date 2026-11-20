@@ -230,9 +230,10 @@ export interface DishCardMatrix {
   /** One row per sub-recipe, in the order the dish lists them. */
   rows: DishCardRow[];
   /**
-   * Allergens, vegan status or details that come from something sitting
-   * directly in the dish rather than in a sub-recipe, when they add anything
-   * the rows don't already say. Null when they add nothing.
+   * What sits directly in the dish rather than in a sub-recipe: its own
+   * ingredients and what is declared on it. Shown whenever any of that
+   * carries an allergen, all of them, even ones a row already has; and when
+   * it is less vegan, or names a cereal or nut, than the rows. Null otherwise.
    */
   other: Omit<DishCardRow, 'recipeId' | 'name'> | null;
   /** The whole dish, everything included. */
@@ -248,7 +249,9 @@ const VEGAN_RANK: Record<VeganStatus, number> = { yes: 0, unknown: 1, no: 2 };
  * thinks about a plate. But a card that leaves an allergen out can put a
  * guest in hospital, so anything the dish carries outside its sub-recipes, a
  * garnish of raw hazelnut or an allergen declared on the dish itself, gets a
- * row of its own rather than going missing.
+ * row of its own rather than going missing. It gets that row even when a
+ * sub-recipe has the same allergen: leaving the sauce off takes the sauce's
+ * milk away, not the butter's.
  */
 export function dishCardMatrix(
   dishId: string,
@@ -323,25 +326,24 @@ export function dishCardMatrix(
 
   let other: DishCardMatrix['other'] = null;
   if (hasDirect) {
-    const covered = mergeProfiles(...rows.map((row) => row.allergens), emptyAllergenProfile());
+    const ownAllergens = mergeProfiles(direct.allergens, emptyAllergenProfile());
     const coveredDetails = mergeAllergenDetails(...rows.map((row) => row.details));
     const otherDetails = mergeAllergenDetails(...direct.details);
     const otherVegan = combineVegan(direct.vegan);
     const rowsVegan = rows.length > 0 ? combineVegan(rows.map((row) => row.vegan)) : 'yes';
 
-    const addsAllergen =
-      direct.allergens.contains.some((a) => !covered.contains.includes(a)) ||
-      direct.allergens.mayContain.some(
-        (a) => !covered.contains.includes(a) && !covered.mayContain.includes(a),
-      );
+    // Any allergen at all, not only one the rows lack. Butter straight on a
+    // dish whose jus has milk too: front of house told "no jus" must not
+    // hear "no milk", so the butter's milk is on a row of its own.
+    const carriesAllergen = ownAllergens.contains.length > 0 || ownAllergens.mayContain.length > 0;
     const addsDetail =
       otherDetails.gluten.some((n) => !includesName(coveredDetails.gluten, n)) ||
       otherDetails.nuts.some((n) => !includesName(coveredDetails.nuts, n));
     const lowersVegan = direct.vegan.length > 0 && VEGAN_RANK[otherVegan] > VEGAN_RANK[rowsVegan];
 
-    if (addsAllergen || addsDetail || lowersVegan) {
+    if (carriesAllergen || addsDetail || lowersVegan) {
       other = {
-        allergens: direct.allergens,
+        allergens: ownAllergens,
         vegan: direct.vegan.length > 0 ? otherVegan : 'yes',
         details: otherDetails,
       };

@@ -33,7 +33,9 @@ export function RecipeCardPrint({
   const mayContain = allergens.mayContain as Allergen[];
 
   const amount = (value: number, unit: string) =>
-    isUnitCode(unit) ? formatQuantity(humanize({ value, unit })) : `${value} ${unit}`;
+    isUnitCode(unit)
+      ? formatQuantity(humanize({ value, unit }), { locale: translator.locale })
+      : `${value} ${unit}`;
 
   const facts: { label: string; value: string; note?: string }[] = isDish
     ? []

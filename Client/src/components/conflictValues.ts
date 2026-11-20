@@ -85,11 +85,13 @@ export function fieldName(translator: Translator, key: string): string {
 
 const NOTHING = '—';
 
-function amount(value: unknown): string | null {
+function amount(value: unknown, locale?: string): string | null {
   if (!value || typeof value !== 'object') return null;
   const { value: n, unit } = value as { value?: unknown; unit?: unknown };
   if (typeof n !== 'number' || typeof unit !== 'string') return null;
-  return isUnitCode(unit) ? formatQuantity(humanize({ value: n, unit })) : `${n} ${unit}`;
+  return isUnitCode(unit)
+    ? formatQuantity(humanize({ value: n, unit }), { locale })
+    : `${n} ${unit}`;
 }
 
 function refName(ref: unknown, naming: Naming): string | null {
@@ -124,11 +126,11 @@ export function showValue(
     case 'stationId':
       return naming.stations.get(String(value)) ?? t('offline.unknownStation');
     case 'yield':
-      return amount(value) ?? NOTHING;
+      return amount(value, translator.locale) ?? NOTHING;
     case 'price': {
       // "12.5 for 5 kg": the money as typed, and what it buys.
       const { amount: money, quantity } = value as { amount?: unknown; quantity?: unknown };
-      const much = amount(quantity);
+      const much = amount(quantity, translator.locale);
       return typeof money === 'number' && much ? `${money} / ${much}` : NOTHING;
     }
     case 'prepMinutes':
@@ -167,7 +169,7 @@ export function showValue(
             (typeof part.displayName === 'string' ? part.displayName : null) ??
             refName(part.ref, naming) ??
             '…';
-          const much = amount(part.quantity);
+          const much = amount(part.quantity, translator.locale);
           return much ? `${much} ${name}` : name;
         })
         .join('\n');
@@ -193,7 +195,7 @@ export function showValue(
       ? plural('offline.items', value.length)
       : names.join(', ');
   }
-  const much = amount(value);
+  const much = amount(value, translator.locale);
   if (much) return much;
   if (typeof value === 'object' && 'name' in value) return String(value.name);
   return NOTHING;

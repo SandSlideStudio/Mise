@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { Ingredient } from '@mise/contracts';
 import { useT } from '../i18n/index.js';
 import { LabelCheckForm } from './LabelCheck.js';
@@ -21,13 +21,26 @@ export function DeliveryCheck({
   const [picked, setPicked] = useState<string[]>([]);
   const [step, setStep] = useState<number | null>(null);
   const [checked, setChecked] = useState(0);
+  const top = useRef<HTMLDivElement>(null);
+
+  // Each label starts at its top. Tapped at the foot of a long list, the
+  // next label opened scrolled to its buttons, with the name of what is
+  // being checked out of sight above.
+  useEffect(() => {
+    if (step !== null) top.current?.scrollIntoView?.({ block: 'start' });
+  }, [step]);
+  const frame = (body: ReactNode) => (
+    <div ref={top} className="scroll-mt-4">
+      {body}
+    </div>
+  );
 
   const queue = picked
     .map((id) => ingredients.find((ingredient) => ingredient.id === id))
     .filter((ingredient): ingredient is Ingredient => ingredient !== undefined);
 
   if (step !== null && step >= queue.length) {
-    return (
+    return frame(
       <section aria-labelledby="delivery-title" className="flex flex-col gap-4">
         <h2 id="delivery-title" className="text-2xl">
           {t('delivery.start')}
@@ -38,14 +51,14 @@ export function DeliveryCheck({
             {t('delivery.finish')}
           </button>
         </div>
-      </section>
+      </section>,
     );
   }
 
   if (step !== null) {
     const ingredient = queue[step]!;
     const next = () => setStep(step + 1);
-    return (
+    return frame(
       <LabelCheckForm
         // A fresh form for each label, not the last one's toggles.
         key={ingredient.id}
@@ -58,7 +71,7 @@ export function DeliveryCheck({
         }}
         extraAction={{ label: t('delivery.skip'), onClick: next }}
         onCancel={onClose}
-      />
+      />,
     );
   }
 
@@ -67,7 +80,7 @@ export function DeliveryCheck({
     (ingredient) => !term || ingredient.name.toLocaleLowerCase(translator.locale).includes(term),
   );
 
-  return (
+  return frame(
     <section aria-labelledby="delivery-title" className="flex flex-col gap-4">
       <div>
         <h2 id="delivery-title" className="text-2xl">
@@ -120,6 +133,6 @@ export function DeliveryCheck({
           {t('common.cancel')}
         </button>
       </div>
-    </section>
+    </section>,
   );
 }

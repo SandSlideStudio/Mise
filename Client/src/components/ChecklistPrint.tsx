@@ -53,7 +53,7 @@ export function ChecklistPrint({
               {item.par ? (
                 <>
                   <span className="text-[10pt]">
-                    {t('checklistPrint.par', { amount: formatQuantity(item.par) })}
+                    {t('checklistPrint.par', { amount: formatQuantity(item.par, { locale }) })}
                   </span>
                   <span className="flex items-end gap-[1.5mm] text-[10pt]">
                     {t('checklistPrint.there')}

@@ -37,7 +37,9 @@ import { AppShell, PageHeader } from '../components/AppShell.js';
 import { useCurrentUser } from '../api/session.js';
 import { LoadError } from '../components/LoadError.js';
 import { ComponentPicker } from '../components/ComponentPicker.js';
+import { NumberInput } from '../components/NumberInput.js';
 import { Plate } from '../components/Plate.js';
+import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
 import {
   allergenName,
   courseName,
@@ -75,6 +77,12 @@ type LineField = 'picker' | 'amount' | 'unit' | 'note';
 // The name never shrinks to nothing: it is what the line is. What sort it is
 // sits under the name rather than in a column of its own.
 const LINE_COLUMNS = 'lg:grid-cols-[minmax(180px,1fr)_96px_96px_minmax(0,220px)_100px]';
+
+// What each box will take; the server holds the same limits.
+const AMOUNT: NumberRules = { min: 0 };
+const MINUTES: NumberRules = { integer: true, min: 0 };
+const HOURS: NumberRules = { integer: true, above: 0 };
+const SELL_PRICE: NumberRules = { min: 0, max: 100_000 };
 
 /** "romig, knoflook, fris" into a list, and back. */
 function splitList(value: string): string[] {
@@ -167,7 +175,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [type, setType] = useState<RecipeType>(() => recipe?.type ?? typeFromAddress());
   const [status, setStatus] = useState<RecipeStatus>(recipe?.status ?? 'draft');
   const [stationId, setStationId] = useState(recipe?.stationId ?? '');
-  const [yieldAmount, setYieldAmount] = useState(String(recipe?.yield.value ?? ''));
+  const [yieldAmount, setYieldAmount] = useState(numberText(recipe?.yield.value, locale));
   const [yieldUnit, setYieldUnit] = useState<UnitCode>((recipe?.yield.unit as UnitCode) ?? 'kg');
   const [prepMinutes, setPrepMinutes] = useState(
     recipe?.prepMinutes ? String(recipe.prepMinutes) : '',
@@ -190,7 +198,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   const [drinks, setDrinks] = useState((recipe?.drinkPairings ?? []).join(', '));
   const [cutlery, setCutlery] = useState((recipe?.cutlery ?? []).join(', '));
   const [sellPrice, setSellPrice] = useState(
-    recipe?.sellPrice != null ? String(recipe.sellPrice) : '',
+    numberText(recipe?.sellPrice, locale, { money: true }),
   );
   const [steps, setSteps] = useState<string[]>((recipe?.method ?? []).map((s) => s.text));
   const [lines, setLines] = useState<EditorLine[]>(() =>
@@ -199,7 +207,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
           key: component.id,
           ref: component.ref,
           displayName: component.displayName ?? '',
-          amount: String(component.quantity.value),
+          amount: numberText(component.quantity.value, locale),
           unit: component.quantity.unit as UnitCode,
           note: component.note ?? '',
           section: component.section ?? '',
@@ -300,13 +308,28 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
   function onSubmit(event: FormEvent) {
     event.preventDefault();
 
+    // Each box says what is wrong with it; nothing is saved as another number.
+    // Only the boxes shown: a dish has no batch, and only a dish is sold.
+    const typed = [
+      ...lines.map((line) => readNumber(line.amount, AMOUNT)),
+      ...(isDish
+        ? [readNumber(sellPrice, SELL_PRICE)]
+        : [
+            readNumber(yieldAmount, AMOUNT),
+            readNumber(prepMinutes, MINUTES),
+            readNumber(shelfLifeHours, HOURS),
+          ]),
+    ];
+    if (typed.some((read) => read.problem)) return;
+    const valueOf = (text: string, rules: NumberRules) => readNumber(text, rules).value;
+
     const components: CreateRecipeComponent[] = lines
-      .filter((line) => line.ref !== null && line.amount !== '')
+      .filter((line) => line.ref !== null && valueOf(line.amount, AMOUNT) !== null)
       .map((line, index) => ({
         sortOrder: index,
         section: line.section || null,
         note: line.note || null,
-        quantity: { value: Number(line.amount), unit: line.unit },
+        quantity: { value: valueOf(line.amount, AMOUNT)!, unit: line.unit },
         ref: line.ref!,
       }));
 
@@ -315,10 +338,12 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       type,
       status,
       stationId: stationId || null,
-      yield: isDish ? dishSize.yield : { value: Number(yieldAmount), unit: yieldUnit },
+      yield: isDish
+        ? dishSize.yield
+        : { value: valueOf(yieldAmount, AMOUNT) ?? 0, unit: yieldUnit },
       portions: isDish ? dishSize.portions : null,
-      prepMinutes: !isDish && prepMinutes ? Number(prepMinutes) : null,
-      shelfLifeHours: !isDish && shelfLifeHours ? Number(shelfLifeHours) : null,
+      prepMinutes: isDish ? null : valueOf(prepMinutes, MINUTES),
+      shelfLifeHours: isDish ? null : valueOf(shelfLifeHours, HOURS),
       kept: (!isDish && kept) || null,
       storage: (!isDish && storage) || null,
       method: steps.filter((step) => step.trim()).map((text) => ({ text })),
@@ -332,7 +357,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
       cutlery: splitList(cutlery),
       components,
       // Only a dish is sold; anything else keeps what it had.
-      ...(isDish ? { sellPrice: sellPrice ? Number(sellPrice) : null } : {}),
+      ...(isDish ? { sellPrice: valueOf(sellPrice, SELL_PRICE) } : {}),
     };
 
     // A dish lives on the Dishes page, as its card; everything else in the book.
@@ -358,13 +383,13 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
             <div className="bg-surface-raised border-line flex flex-wrap items-center gap-x-5 gap-y-3 border-b px-4 py-4 sm:px-6">
               {/* The page's heading, drawn as the small label it has always been. */}
               <h1 className="eyebrow font-sans text-[13px] leading-normal">
-                {recipe ? t('editor.editing') : t('recipes.new')}
+                {recipe ? t('editor.editing') : isDish ? t('dishes.new') : t('recipes.new')}
               </h1>
               <input
                 aria-label={t('editor.name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t('editor.namePlaceholder')}
+                placeholder={isDish ? t('editor.dishNamePlaceholder') : t('editor.namePlaceholder')}
                 required
                 autoFocus={!recipe}
                 className="font-display text-ink border-field focus-visible:border-accent placeholder:text-ink-faint min-w-0 flex-1 basis-full border-b-2 bg-transparent px-1 pb-0.5 text-[30px] sm:basis-0 font-semibold focus-visible:outline-none sm:max-w-[420px] sm:text-[34px]"
@@ -492,18 +517,17 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                           />
                           <KindTag line={line} />
                         </div>
-                        <input
+                        <NumberInput
                           ref={register(`${line.key}:amount`)}
-                          type="number"
-                          inputMode="decimal"
-                          step="any"
-                          min={0}
+                          rules={AMOUNT}
                           value={line.amount}
-                          onChange={(e) => updateLine(line.key, { amount: e.target.value })}
+                          onText={(amount) => updateLine(line.key, { amount })}
                           onKeyDown={(e) => onLineKey(e, index, 'amount')}
                           placeholder="0"
                           aria-label={t('common.howMuch')}
-                          className="field qty h-11 text-right text-[22px] [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
+                          className="field qty h-11 text-right text-[22px]"
+                          // Under the whole line, not squeezed into its column.
+                          messageClassName="order-last col-span-full"
                         />
                         <select
                           ref={register(`${line.key}:unit`)}
@@ -640,15 +664,13 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                         className="col-span-2"
                       >
                         <span className="grid grid-cols-[minmax(0,1fr)_96px] gap-2">
-                          <input
+                          <NumberInput
                             id="yieldAmount"
-                            type="number"
-                            inputMode="decimal"
-                            step="any"
-                            min={0}
+                            rules={AMOUNT}
                             className="field qty min-h-10 text-xl"
                             value={yieldAmount}
-                            onChange={(e) => setYieldAmount(e.target.value)}
+                            onText={setYieldAmount}
+                            messageClassName="order-last col-span-full"
                             required
                           />
                           <select
@@ -667,24 +689,22 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                       </RailField>
 
                       <RailField label={t('editor.prepMinutes')} htmlFor="prepMinutes">
-                        <input
+                        <NumberInput
                           id="prepMinutes"
-                          type="number"
-                          min={0}
+                          rules={MINUTES}
                           className="field min-h-10"
                           value={prepMinutes}
-                          onChange={(e) => setPrepMinutes(e.target.value)}
+                          onText={setPrepMinutes}
                         />
                       </RailField>
 
                       <RailField label={t('editor.keepsHours')} htmlFor="shelfLife">
-                        <input
+                        <NumberInput
                           id="shelfLife"
-                          type="number"
-                          min={0}
+                          rules={HOURS}
                           className="field min-h-10"
                           value={shelfLifeHours}
-                          onChange={(e) => setShelfLifeHours(e.target.value)}
+                          onText={setShelfLifeHours}
                         />
                       </RailField>
 
@@ -722,15 +742,13 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                       htmlFor="sellPrice"
                       hint={t('cost.sellPriceHint')}
                     >
-                      <input
+                      <NumberInput
                         id="sellPrice"
-                        type="number"
-                        inputMode="decimal"
-                        step="0.01"
-                        min={0}
+                        rules={SELL_PRICE}
+                        money
                         className="field min-h-10"
                         value={sellPrice}
-                        onChange={(e) => setSellPrice(e.target.value)}
+                        onText={setSellPrice}
                       />
                     </RailField>
                   </>

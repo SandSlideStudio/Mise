@@ -22,6 +22,7 @@ vi.mock('../components/AppShell.js', () => ({
 }));
 
 const { IngredientForm, Ingredients } = await import('./Ingredients.js');
+const { I18nProvider } = await import('../i18n/index.js');
 
 const butter = {
   id: 'i-butter',
@@ -102,6 +103,74 @@ describe('the price in the ingredient editor', () => {
       price: { amount: 6, quantity: { value: 1, unit: 'kg' } },
       priceBase: '2027-04-01T08:00:00.000Z',
     });
+  });
+
+  /**
+   * Found walking through the app: the price box was the browser's number
+   * box, and an English browser read "9,80" as 980. Butter then cost
+   * € 980 a kilo and every food cost was a hundred times out, unseen.
+   */
+  it('reads "9,80" as nine eighty, whatever language the browser speaks', async () => {
+    open();
+    fireEvent.change(screen.getByLabelText('Purchase price'), { target: { value: '9,80' } });
+    fireEvent.change(screen.getByLabelText('For'), { target: { value: '2,5' } });
+    await save();
+    expect(sent[0]).toMatchObject({
+      price: { amount: 9.8, quantity: { value: 2.5, unit: 'kg' } },
+    });
+  });
+
+  it('takes a price pasted with its currency sign', async () => {
+    open();
+    fireEvent.change(screen.getByLabelText('Purchase price'), { target: { value: '€ 9.80' } });
+    await save();
+    expect(sent[0]).toMatchObject({ price: { amount: 9.8 } });
+  });
+
+  it('says so, and saves nothing, when the price can’t be read', async () => {
+    open();
+    const price = screen.getByLabelText('Purchase price');
+    fireEvent.change(price, { target: { value: '1.250,50' } });
+    fireEvent.blur(price);
+    await save();
+    expect(sent).toHaveLength(0);
+    expect(price.getAttribute('aria-invalid')).toBe('true');
+    expect(screen.getByRole('alert').textContent).toMatch(/thousands separator/);
+    // The browser holds the form back too.
+    expect((price as HTMLInputElement).validity.valid).toBe(false);
+  });
+
+  it('holds the trim yield to a percentage', async () => {
+    open();
+    const yieldBox = screen.getByLabelText('Trim yield, per cent');
+    fireEvent.change(yieldBox, { target: { value: '120' } });
+    await save();
+    expect(sent).toHaveLength(0);
+    expect(screen.getByRole('alert').textContent).toBe('At most 100.');
+    fireEvent.change(yieldBox, { target: { value: '85,5 %' } });
+    await save();
+    expect(sent[0]).toMatchObject({ yieldPercent: 85.5 });
+  });
+
+  it('shows the price it has the way this kitchen writes it, and tidies what was typed', () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    client.setQueryData(['me'], { id: 'u1', displayName: 'Teun', role: 'admin', language: 'nl' });
+    render(
+      <QueryClientProvider client={client}>
+        <I18nProvider>
+          <IngredientForm
+            ingredient={{ ...butter, price: { ...butter.price, amount: 9.8 } }}
+            onDone={() => {}}
+            onCancel={() => {}}
+          />
+        </I18nProvider>
+      </QueryClientProvider>,
+    );
+    const price = screen.getByLabelText<HTMLInputElement>('Inkoopprijs');
+    expect(price.value).toBe('9,80');
+    fireEvent.change(price, { target: { value: '12.5' } });
+    fireEvent.blur(price);
+    expect(price.value).toBe('12,50');
   });
 });
 

@@ -3,6 +3,8 @@ import type { AllergenProfile, Recipe } from '@mise/contracts';
 import { labelSettingsOf } from '../api/labels.js';
 import { useCurrentUser } from '../api/session.js';
 import { useT } from '../i18n/index.js';
+import { readNumber, type NumberRules } from '../lib/typedNumber.js';
+import { NumberInput } from './NumberInput.js';
 import {
   LabelSheets,
   PrepLabel,
@@ -13,6 +15,7 @@ import {
 
 /** More than a tray of containers at once is a typo, not a batch. */
 const MOST = 50;
+const HOW_MANY: NumberRules = { integer: true, min: 1, max: MOST };
 
 /**
  * Printing labels for a prep by hand, from its recipe: for a batch made
@@ -47,7 +50,9 @@ export function RecipeLabel({
   });
   const preview = label(new Date());
   const note = useByNote(t, preview);
-  const copies = Math.min(MOST, Math.max(1, Math.floor(Number(count)) || 1));
+  // Left empty, one. Something it can't read prints nothing: the box says why.
+  const typed = readNumber(count, HOW_MANY);
+  const copies = typed.value ?? 1;
 
   return (
     <section
@@ -76,21 +81,18 @@ export function RecipeLabel({
               <label className="label" htmlFor="label-count">
                 {t('label.howMany')}
               </label>
-              <input
+              <NumberInput
                 id="label-count"
-                type="number"
-                inputMode="numeric"
-                min={1}
-                max={MOST}
+                rules={HOW_MANY}
                 className="field qty h-12 w-24 text-right text-xl"
                 value={count}
-                onChange={(e) => setCount(e.target.value)}
+                onText={setCount}
               />
             </div>
             <button
               type="button"
               className="btn-primary min-h-12"
-              disabled={job !== null}
+              disabled={job !== null || typed.problem !== null}
               onClick={() => {
                 const made = new Date();
                 print({

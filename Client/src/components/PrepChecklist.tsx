@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useRef, useState, type FormEvent } from 'react';
 import type { ChecklistItem, Quantity, RecipeSummary, Station } from '@mise/contracts';
 import { ALL_UNITS, formatQuantity, unit as unitDef, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
@@ -13,6 +13,8 @@ import { useKitchen, useStations } from '../api/kitchen.js';
 import { useRecipes } from '../api/recipes.js';
 import { useCurrentUser } from '../api/session.js';
 import { errorMessage, useT } from '../i18n/index.js';
+import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
+import { NumberInput } from './NumberInput.js';
 import { ChecklistSheet, usePrintChecklist } from './ChecklistPrint.js';
 
 /**
@@ -36,13 +38,8 @@ type Outcome =
   | { kind: 'queued' }
   | null;
 
-/** A number typed on a tablet, with a comma or a point. Empty, or not a number: null. */
-export function typedAmount(text: string): number | null {
-  const trimmed = text.trim();
-  if (trimmed === '') return null;
-  const value = Number(trimmed.replace(',', '.'));
-  return Number.isFinite(value) && value >= 0 ? value : null;
-}
+/** How much there is, or the par: nothing below nothing. */
+const AMOUNT: NumberRules = { min: 0 };
 
 function Panel() {
   const translator = useT();
@@ -53,6 +50,7 @@ function Panel() {
   const stations = useStations();
   const add = useAddFromChecklist();
   const [open, setOpen] = useState(false);
+  const toggleRef = useRef<HTMLButtonElement>(null);
   const [editing, setEditing] = useState(false);
   const [ticked, setTicked] = useState<ReadonlySet<string>>(new Set());
   // Asking how much is there of the ticked items with a par, before they go on.
@@ -83,6 +81,11 @@ function Panel() {
           // Cleared once it has gone, or been kept on the tablet to go later.
           setTicked(new Set());
           setCounting(false);
+          // Folded away, so the lines just added are in view on a tablet
+          // instead of below the whole checklist. The keyboard's place goes to
+          // the button that opens it again, not lost with the button it was on.
+          setOpen(false);
+          toggleRef.current?.focus();
           setOutcome(
             isQueued(result)
               ? { kind: 'queued' }
@@ -99,6 +102,21 @@ function Panel() {
     );
   }
 
+  const said =
+    outcome && !add.isPending
+      ? outcome.kind === 'queued'
+        ? t('checklist.queued')
+        : [
+            outcome.added > 0 ? plural('checklist.added', outcome.added) : t('checklist.addedNone'),
+            outcome.alreadyThere > 0
+              ? plural('checklist.alreadyThere', outcome.alreadyThere)
+              : null,
+            ...outcome.enough.map((name) => t('checklist.enough', { name })),
+          ]
+            .filter(Boolean)
+            .join(' ')
+      : null;
+
   /** Straight on, unless something ticked has a par: then first ask what is there. */
   function onAdd() {
     if (withPar.length > 0) {
@@ -111,6 +129,7 @@ function Panel() {
     <section data-tour="checklist" className="no-print border-line bg-surface border-b-2">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-2.5 sm:px-7">
         <button
+          ref={toggleRef}
           type="button"
           aria-expanded={open}
           onClick={() => setOpen(!open)}
@@ -119,7 +138,13 @@ function Panel() {
           {t('checklist.title')}
           <span aria-hidden>{open ? '▴' : '▾'}</span>
         </button>
-        {!open ? <span className="text-ink-soft text-[15px]">{t('checklist.hint')}</span> : null}
+        {open ? null : said ? (
+          <p role="status" className="text-ink-soft text-base">
+            {said}
+          </p>
+        ) : (
+          <span className="text-ink-soft text-[15px]">{t('checklist.hint')}</span>
+        )}
       </div>
 
       {open && !editing && counting && withPar.length > 0 ? (
@@ -187,21 +212,9 @@ function Panel() {
               {errorMessage(translator, add.error)}
             </p>
           ) : null}
-          {outcome && !add.isPending ? (
+          {said ? (
             <p role="status" className="text-ink-soft mt-2 text-base">
-              {outcome.kind === 'queued'
-                ? t('checklist.queued')
-                : [
-                    outcome.added > 0
-                      ? plural('checklist.added', outcome.added)
-                      : t('checklist.addedNone'),
-                    outcome.alreadyThere > 0
-                      ? plural('checklist.alreadyThere', outcome.alreadyThere)
-                      : null,
-                    ...outcome.enough.map((name) => t('checklist.enough', { name })),
-                  ]
-                    .filter(Boolean)
-                    .join(' ')}
+              {said}
             </p>
           ) : null}
         </div>
@@ -248,14 +261,16 @@ function OnHand({
   onSend: (onHand: Record<string, Quantity>) => void;
   onBack: () => void;
 }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const [typed, setTyped] = useState<Record<string, string>>({});
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    const read = items.map((item) => [item, readNumber(typed[item.id] ?? '', AMOUNT)] as const);
+    // Each box says what is wrong with it; nothing goes on at another amount.
+    if (read.some(([, value]) => value.problem)) return;
     const onHand: Record<string, Quantity> = {};
-    for (const item of items) {
-      const value = typedAmount(typed[item.id] ?? '');
+    for (const [item, { value }] of read) {
       if (item.par && value !== null) onHand[item.id] = { value, unit: item.par.unit };
     }
     onSend(onHand);
@@ -271,23 +286,24 @@ function OnHand({
             const par = item.par!;
             const abbr = unitDef(par.unit as UnitCode).abbr;
             return (
-              <li key={item.id} className="border-rule flex items-center gap-3 border-b py-2">
+              <li
+                key={item.id}
+                className="border-rule flex flex-wrap items-center gap-3 border-b py-2"
+              >
                 <span className="flex min-w-0 flex-1 flex-col">
                   <span className="text-lg break-words">{item.name}</span>
                   <span className="text-ink-soft text-[15px]">
-                    {t('checklist.parIs', { amount: formatParAmount(par) })}
+                    {t('checklist.parIs', { amount: formatParAmount(par, locale) })}
                   </span>
                 </span>
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  step="any"
-                  min={0}
+                <NumberInput
+                  rules={AMOUNT}
                   autoFocus={index === 0}
                   aria-label={t('checklist.onHandFor', { name: item.name, unit: abbr })}
                   className="field qty h-14 w-28 text-right text-[24px]"
                   value={typed[item.id] ?? ''}
-                  onChange={(e) => setTyped({ ...typed, [item.id]: e.target.value })}
+                  onText={(text) => setTyped({ ...typed, [item.id]: text })}
+                  messageClassName="order-last basis-full"
                 />
                 <span aria-hidden className="text-ink-soft w-10 text-lg">
                   {abbr}
@@ -315,8 +331,8 @@ function OnHand({
 }
 
 /** A par as the chef set it: "3 l", "2 dz", "40". */
-export function formatParAmount(par: Quantity): string {
-  return formatQuantity({ value: par.value, unit: par.unit as UnitCode });
+export function formatParAmount(par: Quantity, locale?: string): string {
+  return formatQuantity({ value: par.value, unit: par.unit as UnitCode }, { locale });
 }
 
 /** What can be ticked: the items by station, each row a whole-row target. */
@@ -378,7 +394,7 @@ function Editor({
   onDone: () => void;
 }) {
   const translator = useT();
-  const { t } = translator;
+  const { t, locale } = translator;
   const save = useSaveChecklist();
   const recipes = useRecipes();
   const [draft, setDraft] = useState<ChecklistItem[]>(items);
@@ -398,8 +414,16 @@ function Editor({
       ...draft.filter((item) => item.id !== id),
       ...draft.filter((item) => item.id === id).map((item) => ({ ...item, stationId })),
     ]);
-  const append = (stationId: string | null, name: string) =>
-    setDraft([...draft, { id: newItemId(), stationId, name, recipeId: null, par: null }]);
+  // A line named just like a recipe in the book is that recipe: linked at
+  // once, so the chef does not have to find it a second time.
+  const append = (stationId: string | null, name: string) => {
+    const same = name.trim().toLocaleLowerCase();
+    const recipeId =
+      (recipes.data ?? []).find(
+        (recipe) => recipe.status !== 'archived' && recipe.name.trim().toLocaleLowerCase() === same,
+      )?.id ?? null;
+    setDraft([...draft, { id: newItemId(), stationId, name, recipeId, par: null }]);
+  };
   const link = (id: string, recipeId: string | null) =>
     setDraft(draft.map((item) => (item.id === id ? { ...item, recipeId } : item)));
 
@@ -430,13 +454,15 @@ function Editor({
     return (parUnit[item.id] ?? item.par?.unit ?? linked?.yield.unit ?? 'each') as UnitCode;
   }
   const textFor = (item: ChecklistItem) =>
-    parText[item.id] ?? (item.par ? String(item.par.value) : '');
+    parText[item.id] ?? (item.par ? numberText(item.par.value, locale) : '');
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    // Each box says what is wrong with it; no par is saved as another number.
+    if (draft.some((item) => readNumber(textFor(item), AMOUNT).problem)) return;
     const named = draft
       .map((item) => {
-        const value = typedAmount(textFor(item));
+        const value = readNumber(textFor(item), AMOUNT).value;
         // Empty, or nothing at all: no par.
         const par = value !== null && value > 0 ? { value, unit: unitFor(item) } : null;
         return { ...item, name: item.name.trim(), par };
@@ -519,17 +545,15 @@ function Editor({
                   >
                     <span aria-hidden>✕</span>
                   </button>
-                  <div className="flex basis-full items-center gap-2">
+                  <div className="flex basis-full flex-wrap items-center gap-2">
                     <span className="eyebrow">{t('checklist.par')}</span>
-                    <input
-                      type="number"
-                      inputMode="decimal"
-                      step="any"
-                      min={0}
+                    <NumberInput
+                      rules={AMOUNT}
                       aria-label={t('checklist.parFor', { name: item.name })}
                       className="field qty h-11 w-24 text-right"
                       value={textFor(item)}
-                      onChange={(e) => setParText({ ...parText, [item.id]: e.target.value })}
+                      onText={(text) => setParText({ ...parText, [item.id]: text })}
+                      messageClassName="order-last basis-full"
                       onKeyDown={(e) => {
                         // Enter is for the next box, not for saving the whole checklist.
                         if (e.key === 'Enter') e.preventDefault();
@@ -676,7 +700,11 @@ function RecipeLinkField({
         type="button"
         className="btn-quiet min-h-11 basis-full justify-start text-[15px]"
         aria-label={t('checklist.linkRecipeFor', { name })}
-        onClick={() => setSearching(true)}
+        onClick={() => {
+          // Start from the line's own name: usually the recipe is called the same.
+          setTyped(name);
+          setSearching(true);
+        }}
       >
         {t('checklist.linkRecipe')}
       </button>

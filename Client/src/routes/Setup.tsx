@@ -1829,7 +1829,8 @@ function RecipeRow({
           onChange={(stationKey) => onChange({ ...recipe, stationKey })}
         />
       </Field>
-      <div className="flex items-end gap-2">
+      {/* The whole width: in one column of two, the amount box shrank to a sliver. */}
+      <div className="flex items-end gap-2 sm:col-span-2">
         {recipe.type === 'dish' ? (
           <p className="text-ink-soft min-w-0 flex-1 pb-3 text-sm">
             {plural('editor.dishPlates', ONE_PLATE.portions)}
