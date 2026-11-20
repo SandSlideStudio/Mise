@@ -940,6 +940,15 @@ export const de: Record<MessageKey, string> = {
   'menus.noDishes': 'Noch keine Gerichte auf diesem Menü.',
   'menus.noCourse': 'Ohne Gang',
   'menus.changed': 'Geändert',
+  'menus.draftsOnActive_one':
+    '{count} Gericht ist noch ein Entwurf – das steht auch auf seiner Karte.',
+  'menus.draftsOnActive_other':
+    '{count} Gerichte sind noch Entwürfe – das steht auch auf ihren Karten.',
+  'menus.publishDrafts_one': 'Jetzt veröffentlichen',
+  'menus.publishDrafts_other': 'Alle veröffentlichen',
+  'menus.publishing': 'Wird veröffentlicht…',
+  'menus.draftsOnList_one': '{count} Gericht noch Entwurf',
+  'menus.draftsOnList_other': '{count} Gerichte noch Entwürfe',
   'menus.removeDish': '{name} vom Menü nehmen',
   'menus.addDish': 'Gericht hinzufügen',
   'menus.pickDish': 'Ein Gericht wählen',

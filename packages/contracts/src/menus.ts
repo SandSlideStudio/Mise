@@ -18,6 +18,8 @@ export const menuSummarySchema = z.object({
   description: z.string().nullable(),
   status: menuStatusSchema,
   dishCount: z.number().int(),
+  /** Dishes on it still marked draft: an active menu with any should say so. */
+  draftCount: z.number().int(),
   updatedAt: z.string(),
 });
 

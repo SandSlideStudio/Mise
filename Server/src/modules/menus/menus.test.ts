@@ -114,6 +114,42 @@ describe('menus', () => {
     expect((await call('GET', `/api/menus/${menu.id}`)).statusCode).toBe(404);
   });
 
+  it('count the dishes on it that are still drafts', async () => {
+    const tatin = await dish('Tarte tatin', 'dessert');
+    const oester = await dish('Oester', 'starter');
+    const menu = await ok('POST', '/api/menus', {
+      name: 'Herfst',
+      status: 'active',
+      dishes: [tatin.id, oester.id],
+    });
+    expect(menu.draftCount).toBe(2);
+    await ok('POST', '/api/menus', { name: 'Leeg' });
+
+    // The menu page offers publishing them; a cook sees the count but may not.
+    await ok('POST', '/api/users', {
+      displayName: 'Marco',
+      role: 'cook',
+      email: 'marco@example.com',
+      password: 'a-long-enough-password',
+    });
+    const signIn = await call('POST', '/api/auth/login', {
+      email: 'marco@example.com',
+      password: 'a-long-enough-password',
+    });
+    const cook = { mise_session: cookieFrom(signIn, 'mise_session')! };
+    const refused = await call('PATCH', `/api/recipes/${tatin.id}`, { status: 'published' }, cook);
+    expect(refused.statusCode).toBe(403);
+    expect((await call('GET', `/api/menus/${menu.id}`, undefined, cook)).json().draftCount).toBe(2);
+
+    await ok('PATCH', `/api/recipes/${tatin.id}`, { status: 'published' });
+    expect((await ok('GET', `/api/menus/${menu.id}`)).draftCount).toBe(1);
+    const list = await ok('GET', '/api/menus');
+    expect(list.map((m: { name: string; draftCount: number }) => [m.name, m.draftCount])).toEqual([
+      ['Herfst', 1],
+      ['Leeg', 0],
+    ]);
+  });
+
   it('lose a dish that is deleted from the book', async () => {
     const tatin = await dish('Tarte tatin', 'dessert');
     const menu = await ok('POST', '/api/menus', { name: 'Herfst', dishes: [tatin.id] });

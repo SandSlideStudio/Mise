@@ -145,6 +145,9 @@ staff data, and a stack of smaller fixes.
   "2 el" and "1 kopje" in Dutch, "2 EL" in German, "2 c. à s." in French, "2 cda." in Spanish,
   with "stuk" rather than "each" to choose from. Recipes keep the same units underneath, so a
   recipe written in one language reads right in another. g, kg, ml and l stay as they are.
+- An active menu with dishes still marked draft says so, on its page and in the list of menus
+  ("2 dishes are still drafts — their cards say so"), and chefs can publish them from there in
+  one tap.
 
 **Accessibility**
 

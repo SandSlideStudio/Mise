@@ -15,6 +15,7 @@ import {
   useDuplicateMenu,
   useMarkCardsPrinted,
   useMenu,
+  usePublishDishes,
   useUpdateMenu,
 } from '../api/menus.js';
 import { useRecipes } from '../api/recipes.js';
@@ -85,6 +86,8 @@ function MenuView({ menu }: { menu: Menu }) {
   return (
     <div className="flex flex-col gap-6">
       <MenuHeader menu={menu} canManage={canManage} />
+
+      {menu.status === 'active' ? <DraftDishes menu={menu} canPublish={canManage} /> : null}
 
       {canManage || cardSettings.data?.access === 'everyone' ? <Printing menu={menu} /> : null}
 
@@ -221,6 +224,42 @@ function MenuView({ menu }: { menu: Menu }) {
       </Plate>
 
       {canManage ? <MenuActions menu={menu} /> : null}
+    </div>
+  );
+}
+
+/**
+ * A menu the floor is selling with dishes still marked draft: their cards say
+ * "still a draft" to the guests' waiter, which nobody meant on a menu that is
+ * out. Said plainly, with one tap to publish them for those who may.
+ */
+export function DraftDishes({ menu, canPublish }: { menu: Menu; canPublish: boolean }) {
+  const translator = useT();
+  const { plural } = translator;
+  const publish = usePublishDishes(menu.id);
+  const drafts = menu.dishes.filter((dish) => dish.status === 'draft');
+  if (drafts.length === 0) return null;
+
+  return (
+    <div className="border-accent bg-accent-wash flex flex-wrap items-center gap-3 border-l-4 px-4 py-3">
+      <p className="min-w-0 flex-1 text-[17px]">{plural('menus.draftsOnActive', drafts.length)}</p>
+      {canPublish ? (
+        <button
+          type="button"
+          className="btn-primary min-h-11"
+          disabled={publish.isPending}
+          onClick={() => publish.mutate(drafts.map((dish) => dish.recipeId))}
+        >
+          {publish.isPending
+            ? translator.t('menus.publishing')
+            : plural('menus.publishDrafts', drafts.length)}
+        </button>
+      ) : null}
+      {publish.error ? (
+        <p role="alert" className="text-danger w-full text-sm">
+          {errorMessage(translator, publish.error)}
+        </p>
+      ) : null}
     </div>
   );
 }
