@@ -120,7 +120,9 @@ function StaffRow({
   return (
     <li className="p-4">
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
-        <div className="min-w-0 flex-1">
+        {/* Room for the name and role first: on a phone the tags and buttons
+            go below them, instead of squeezing them into a column of dots. */}
+        <div className="min-w-0 flex-1 basis-56">
           <p className="font-medium">
             {person.displayName}
             {isSelf ? <span className="text-ink-soft font-normal"> {t('staff.you')}</span> : null}
@@ -167,7 +169,7 @@ function StaffRow({
               aria-expanded={showData}
               onClick={() => setShowData(!showData)}
             >
-              {t('staff.theirData')}
+              {isSelf ? t('staff.yourData') : t('staff.theirData')}
             </button>
           ) : null}
           {!isSelf && canManage && !confirming ? (

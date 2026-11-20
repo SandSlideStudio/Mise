@@ -428,6 +428,7 @@ export const nl: Record<MessageKey, string> = {
   'editor.editing': 'Bewerken',
   'editor.name': 'Naam van het recept',
   'editor.namePlaceholder': 'Naam van het recept',
+  'editor.dishNamePlaceholder': 'Naam van het gerecht',
   'editor.status': 'Status',
   'editor.lastSaved': 'Laatst opgeslagen {time}',
   'editor.notSaved': 'Nog niet opgeslagen',
@@ -515,7 +516,7 @@ export const nl: Record<MessageKey, string> = {
   'staff.passwordTag': 'Wachtwoord',
   'staff.locked': 'Geblokkeerd',
   'staff.unlock': 'Blokkade opheffen',
-  'staff.namePlaceholder': 'Zoals de brigade die persoon kent',
+  'staff.namePlaceholder': 'Roepnaam in de keuken',
   'staff.role': 'Rol',
   'staff.station': 'Vaste post',
   'staff.noStation': 'Geen vaste post',
@@ -588,7 +589,7 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.language': 'Taal',
   'kitchen.languageHint':
     'De taal van de app voor iedereen die zelf geen taal heeft gekozen. Recepten blijven precies zoals ze zijn ingetypt.',
-  'kitchen.retention': 'Verdwenen regels van de doorlopende lijst',
+  'kitchen.retention': 'Afgevinkte regels, als ze van de lijst gaan',
   'kitchen.retentionKeep': 'Bewaren in de database, uit het zicht',
   'kitchen.retentionDelete': 'Verwijderen om ruimte te besparen',
   'kitchen.retentionHint':
@@ -606,6 +607,9 @@ export const nl: Record<MessageKey, string> = {
   'running.title': 'De lijst',
   'running.subtitle': 'Eén lijst voor de hele keuken. Afgevinkte regels verdwijnen na twee uur.',
   'running.empty': 'Er staat niets op de lijst. Zet erop wat er moet gebeuren.',
+  'running.emptyCook': 'Er staat nog niets op de lijst. Een chef zet erop wat er moet gebeuren.',
+  'running.emptyCookChecklist':
+    'Er staat nog niets op de lijst. Vink in de prepchecklist aan wat nodig is en zet het erop.',
   'running.merged': 'Opgeteld bij de {name} die al op de lijst stond.',
   'running.goneAt': 'weg om {time}',
 
@@ -1381,6 +1385,7 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Afgevinkte regels ouder dan {count} dagen worden binnen het uur verwijderd en zijn niet terug te halen. Doorgaan?',
   'staff.theirData': 'Hun gegevens',
+  'staff.yourData': 'Jouw gegevens',
   'staff.theirDataHint':
     'Alles wat Mise over {name} bewaart: het account, de prepregels die ze toevoegden, oppakten of afvinkten, een overdrachtsnotitie met hun naam eronder, en waar ze ingelogd zijn. Nooit hun pincode of wachtwoord.',
   'staff.downloadReadable': 'Downloaden om te lezen',

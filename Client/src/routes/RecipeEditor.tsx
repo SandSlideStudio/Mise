@@ -358,13 +358,13 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
             <div className="bg-surface-raised border-line flex flex-wrap items-center gap-x-5 gap-y-3 border-b px-4 py-4 sm:px-6">
               {/* The page's heading, drawn as the small label it has always been. */}
               <h1 className="eyebrow font-sans text-[13px] leading-normal">
-                {recipe ? t('editor.editing') : t('recipes.new')}
+                {recipe ? t('editor.editing') : isDish ? t('dishes.new') : t('recipes.new')}
               </h1>
               <input
                 aria-label={t('editor.name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder={t('editor.namePlaceholder')}
+                placeholder={isDish ? t('editor.dishNamePlaceholder') : t('editor.namePlaceholder')}
                 required
                 autoFocus={!recipe}
                 className="font-display text-ink border-field focus-visible:border-accent placeholder:text-ink-faint min-w-0 flex-1 basis-full border-b-2 bg-transparent px-1 pb-0.5 text-[30px] sm:basis-0 font-semibold focus-visible:outline-none sm:max-w-[420px] sm:text-[34px]"

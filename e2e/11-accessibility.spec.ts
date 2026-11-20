@@ -391,6 +391,10 @@ test.describe('by keyboard alone', () => {
     await tabTo(page, page.getByRole('button', { name: 'Add to prep list (1)' }));
     await page.keyboard.press('Enter');
     await expect(page.getByRole('status').filter({ hasText: /prep list|already/ })).toBeVisible();
+    // Added, the checklist folds away and the keyboard is back on its button.
+    await expect(toggle).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
 
     await tabTo(page, page.getByRole('button', { name: 'Print checklist' }));
     await page.keyboard.press('Enter');

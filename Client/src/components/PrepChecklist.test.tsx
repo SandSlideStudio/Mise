@@ -120,6 +120,17 @@ describe('adding lines with a par', () => {
       '1 line added to the prep list. Fig gel: enough there.',
     );
   });
+
+  it('folds away once added, so the new lines are in view', () => {
+    openAndTick('Jus');
+    fireEvent.click(screen.getByRole('button', { name: 'Add to prep list (1)' }));
+    answer({ added: 1, alreadyThere: 0, enough: [] });
+    const toggle = screen.getByRole('button', { name: /^Prep checklist/ });
+    expect(toggle.getAttribute('aria-expanded')).toBe('false');
+    expect(document.activeElement).toBe(toggle);
+    expect(screen.queryByRole('checkbox', { name: 'Jus' })).toBeNull();
+    expect(screen.getByRole('status').textContent).toBe('1 line added to the prep list.');
+  });
 });
 
 describe('setting a par', () => {
@@ -162,6 +173,33 @@ describe('setting a par', () => {
       ['Fig gel', { value: 3, unit: 'l' }],
       ['Jus', null],
     ]);
+  });
+});
+
+describe('adding a line to the checklist', () => {
+  beforeEach(() => {
+    state.role = 'chef';
+    state.items = [];
+  });
+
+  function addLine(name: string) {
+    render(<PrepChecklist />);
+    fireEvent.click(screen.getByRole('button', { name: /^Prep checklist/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Edit checklist' }));
+    const box = screen.getAllByRole('textbox', { name: 'New item' })[0]!;
+    fireEvent.change(box, { target: { value: name } });
+    fireEvent.keyDown(box, { key: 'Enter' });
+    fireEvent.click(screen.getByRole('button', { name: 'Save checklist' }));
+    const [{ items }] = state.save.mock.calls[0] as [{ items: ChecklistItem[] }];
+    return items;
+  }
+
+  it('links it to the recipe of the same name', () => {
+    expect(addLine('vijgen gel ').map((item) => item.recipeId)).toEqual(['r-gel']);
+  });
+
+  it('leaves a name the book does not have unlinked', () => {
+    expect(addLine('Sjalot brunoise').map((item) => item.recipeId)).toEqual([null]);
   });
 });
 

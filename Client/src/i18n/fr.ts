@@ -440,6 +440,7 @@ export const fr: Record<MessageKey, string> = {
   'editor.editing': 'Modification',
   'editor.name': 'Nom de la recette',
   'editor.namePlaceholder': 'Nom de la recette',
+  'editor.dishNamePlaceholder': 'Nom du plat',
   'editor.status': 'Statut',
   'editor.lastSaved': 'Dernier enregistrement {time}',
   'editor.notSaved': 'Pas encore enregistrée',
@@ -603,7 +604,7 @@ export const fr: Record<MessageKey, string> = {
   'kitchen.language': 'Langue',
   'kitchen.languageHint':
     'La langue de l’application pour ceux qui n’en ont pas choisi une. Les recettes restent exactement telles qu’elles ont été saisies.',
-  'kitchen.retention': 'Lignes disparues de la liste continue',
+  'kitchen.retention': 'Lignes cochées, une fois sorties de la liste',
   'kitchen.retentionKeep': 'Les garder dans la base de données, hors de vue',
   'kitchen.retentionDelete': 'Les supprimer pour gagner de l’espace',
   'kitchen.retentionHint':
@@ -622,6 +623,9 @@ export const fr: Record<MessageKey, string> = {
   'running.subtitle':
     'Une seule liste pour toute la cuisine. Les lignes cochées disparaissent au bout de deux heures.',
   'running.empty': 'Rien sur la liste. Ajoutez ce qui est à faire.',
+  'running.emptyCook': 'Rien sur la liste pour l’instant. Le chef y ajoute ce qui est à faire.',
+  'running.emptyCookChecklist':
+    'Rien sur la liste pour l’instant. Cochez dans la checklist de prep ce qu’il faut et ajoutez-le.',
   'running.merged': 'Ajouté à la ligne {name} déjà sur la liste.',
   'running.goneAt': 'disparaît à {time}',
 
@@ -1404,6 +1408,7 @@ export const fr: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Les lignes cochées depuis plus de {count} jours seront supprimées dans l’heure, sans retour possible. Continuer ?',
   'staff.theirData': 'Ses données',
+  'staff.yourData': 'Vos données',
   'staff.theirDataHint':
     'Tout ce que Mise garde sur {name} : son compte, les lignes de prep ajoutées, prises ou cochées, une note de passation signée de son nom, et où la personne est connectée. Jamais son code PIN ni son mot de passe.',
   'staff.downloadReadable': 'Télécharger pour lire',

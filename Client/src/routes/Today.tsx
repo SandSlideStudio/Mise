@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import type { PrepTask, PrepTaskStatus, RecipeSummary } from '@mise/contracts';
 import { ALL_UNITS, formatQuantity, isUnitCode, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
-import { useStations } from '../api/kitchen.js';
+import { useKitchen, useStations } from '../api/kitchen.js';
 import {
   GONE_AFTER_MS,
   isWaiting,
@@ -164,6 +164,7 @@ function RunningPrep() {
   const update = useUpdatePrepTask();
   const remove = useDeletePrepTask();
   const canManage = user?.role !== 'cook';
+  const { data: kitchen } = useKitchen();
   const queryClient = useQueryClient();
   const [labelJob, printLabels] = usePrintLabels();
   // What to write on the label by hand, said once it has gone to the printer.
@@ -216,7 +217,15 @@ function RunningPrep() {
       subtitle={t('running.subtitle')}
       tasks={visible}
       failed={tasks.isError ? () => void tasks.refetch() : undefined}
-      emptyText={t('running.empty')}
+      // A cook has no box to add a line in, so "add what needs doing" would
+      // send them looking for one: point at what they can do instead.
+      emptyText={
+        canManage
+          ? t('running.empty')
+          : kitchen?.prepChecklist
+            ? t('running.emptyCookChecklist')
+            : t('running.emptyCook')
+      }
       onToggle={(id, status) => {
         // Starting a job puts your name on it, so the kitchen sees who has it.
         update.mutate(
@@ -538,7 +547,10 @@ function AddRunningLine() {
                 <span className="text-ink-soft">
                   {' · '}
                   {t('addTask.makes', {
-                    amount: formatQuantity({ value: recipe.yield.value, unit: recipe.yield.unit }),
+                    amount: formatQuantity(
+                      { value: recipe.yield.value, unit: recipe.yield.unit },
+                      { locale: translator.locale },
+                    ),
                   })}
                 </span>
               ) : null}

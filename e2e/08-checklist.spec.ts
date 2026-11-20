@@ -119,6 +119,7 @@ test('the chef switches the checklist on and builds it by station; a cook ticks 
     }
 
     // The same item again goes nowhere: it is still open on the list.
+    await openChecklist(cookPage);
     await cookPage.getByRole('checkbox', { name: lamb }).check();
     await cookPage.getByRole('button', { name: 'Add to prep list (1)' }).click();
     await expect(cookPage.getByRole('status')).toHaveText(
@@ -127,6 +128,7 @@ test('the chef switches the checklist on and builds it by station; a cook ticks 
     await expect(prepLine(cookPage, lamb)).toHaveCount(1);
 
     // One new and one already there: both numbers are said.
+    await openChecklist(cookPage);
     await cookPage.getByRole('checkbox', { name: lamb }).check();
     await cookPage.getByRole('checkbox', { name: chimichurri }).check();
     await cookPage.getByRole('button', { name: 'Add to prep list (2)' }).click();

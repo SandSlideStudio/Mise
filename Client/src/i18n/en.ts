@@ -423,6 +423,7 @@ export const en = {
   'editor.editing': 'Editing',
   'editor.name': 'Recipe name',
   'editor.namePlaceholder': 'Recipe name',
+  'editor.dishNamePlaceholder': 'Dish name',
   'editor.status': 'Status',
   'editor.lastSaved': 'Last saved {time}',
   'editor.notSaved': 'Not saved yet',
@@ -580,7 +581,7 @@ export const en = {
   'kitchen.language': 'Language',
   'kitchen.languageHint':
     'What the interface speaks for anyone who has not chosen their own. Recipes stay exactly as they were typed.',
-  'kitchen.retention': 'Lines gone from the running list',
+  'kitchen.retention': 'Ticked lines, once they leave the list',
   'kitchen.retentionKeep': 'Keep them in the database, out of sight',
   'kitchen.retentionDelete': 'Delete them to save space',
   'kitchen.retentionHint':
@@ -599,6 +600,9 @@ export const en = {
   'running.subtitle':
     'One list for the whole kitchen. Ticked lines go two hours after they are ticked.',
   'running.empty': 'Nothing on the list. Add what needs doing.',
+  'running.emptyCook': 'Nothing on the list yet. A chef adds what needs doing.',
+  'running.emptyCookChecklist':
+    'Nothing on the list yet. Tick what’s needed in the prep checklist and add it.',
   'running.merged': 'Added to the {name} already on the list.',
   'running.goneAt': 'gone at {time}',
 
@@ -1108,7 +1112,7 @@ export const en = {
   'error.noDomain': 'Set the address from outside first.',
   'offline.title': 'Offline.',
   'offline.body':
-    'Mise can’t be reached since {time}. This shows what this device had, and changes are kept here until Mise answers again.',
+    'Mise hasn’t answered since {time}. This shows what this device had, and changes are kept here until Mise answers again.',
   'offline.waiting_one': '1 change is waiting.',
   'offline.waiting_other': '{count} changes are waiting.',
   'offline.sending_one': 'Sending 1 change made while offline…',
@@ -1349,6 +1353,7 @@ export const en = {
   'kitchen.keepShorterConfirm_other':
     'Ticked lines older than {count} days are deleted within the hour, and can’t be brought back. Go ahead?',
   'staff.theirData': 'Their data',
+  'staff.yourData': 'Your data',
   'staff.theirDataHint':
     'Everything Mise holds about {name}: their account, the prep lines they added, were on or ticked off, a handover note signed with their name, and where they are signed in. Never their PIN or password.',
   'staff.downloadReadable': 'Download to read',

@@ -162,9 +162,11 @@ export function PrepLabel({ label, size }: { label: LabelContent; size: LabelSiz
         {label.name}
       </h2>
 
-      {/* The date is the one thing never cut short: the words before it give way first. */}
-      <p className="flex items-baseline">
-        <span className="mr-[1mm] min-w-0 truncate">{t('label.useBy')}</span>
+      {/* The date is the one thing never cut short. Where the words before it
+          don't fit beside it they go on a line of their own above it: cut to
+          "T." on a 62 mm roll, a date could be read as the day it was made. */}
+      <p className="flex flex-wrap items-baseline">
+        <span className="mr-[1mm]">{t('label.useBy')}</span>
         {until.kind === 'blank' ? (
           <Blank />
         ) : (
@@ -179,12 +181,16 @@ export function PrepLabel({ label, size }: { label: LabelContent; size: LabelSiz
         )}
       </p>
 
-      <p className="flex items-baseline gap-x-[1mm]">
+      {/* Who made it moves down a line rather than shrinking to "J…", where
+          there is height to spare: on the smallest rolls the allergens need it. */}
+      <p className={`flex items-baseline gap-x-[2.5mm] ${tier === 'small' ? '' : 'flex-wrap'}`}>
         <span className="shrink-0">
           {t('label.made')} {day(locale, label.made)} {time(locale, label.made)}
         </span>
-        <span className="ml-[1.5mm] shrink-0">{t('label.by')}</span>
-        {label.by ? <span className="truncate font-bold">{shortName(label.by)}</span> : <Blank />}
+        <span className="flex min-w-0 grow items-baseline gap-x-[1mm]">
+          <span className="shrink-0">{t('label.by')}</span>
+          {label.by ? <span className="truncate font-bold">{shortName(label.by)}</span> : <Blank />}
+        </span>
       </p>
 
       {tier !== 'small' && keptText ? <p className="truncate">{keptText}</p> : null}

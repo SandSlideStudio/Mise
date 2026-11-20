@@ -56,6 +56,14 @@ describe('formatQuantity', () => {
   it('prints a bare number for counts', () => {
     expect(formatQuantity(qty(12, 'each'))).toBe('12');
   });
+
+  it('writes the number the way the reader’s language does', () => {
+    expect(formatQuantity(qty(1.5, 'kg'), { locale: 'nl-NL' })).toBe('1,5 kg');
+    expect(formatQuantity(qty(0.25, 'each'), { locale: 'de-DE' })).toBe('0,25');
+    expect(formatQuantity(qty(1.5, 'kg'), { locale: 'en-GB' })).toBe('1.5 kg');
+    // No thousands separator: 1500 g is not "1.500 g", which reads as 1.5 g.
+    expect(formatQuantity(qty(1500, 'g'), { locale: 'nl-NL' })).toBe('1500 g');
+  });
 });
 
 describe('small imperial amounts', () => {

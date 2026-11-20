@@ -24,20 +24,23 @@ import { useCurrentUser } from '../api/session.js';
 /** Starting a job, or putting it back. */
 export type ProgressChange = 'in_progress' | 'open';
 
-export function formatTaskQuantity(task: PrepTask): string | null {
+export function formatTaskQuantity(task: PrepTask, locale?: string): string | null {
   if (!task.quantity || !isUnitCode(task.quantity.unit)) return null;
   // Stored in base units, so 2000 g reads back as 2 kg.
-  return formatQuantity(humanize({ value: task.quantity.value, unit: task.quantity.unit }));
+  return formatQuantity(humanize({ value: task.quantity.value, unit: task.quantity.unit }), {
+    locale,
+  });
 }
 
 /**
  * Why a line made up to a par asks for its amount: "Par 3 l, 1 l there".
  * Nothing for any other line.
  */
-export function parNote(t: Translator['t'], task: PrepTask): string | null {
+export function parNote(t: Translator['t'], task: PrepTask, locale?: string): string | null {
   const par = task.par;
   if (!par || !isUnitCode(par.par.unit) || !isUnitCode(par.onHand.unit)) return null;
-  const show = (value: number, unit: UnitCode) => formatQuantity(humanize({ value, unit }));
+  const show = (value: number, unit: UnitCode) =>
+    formatQuantity(humanize({ value, unit }), { locale });
   const target = show(par.par.value, par.par.unit);
   return par.onHand.value > 0
     ? t('task.parNote', { par: target, onHand: show(par.onHand.value, par.onHand.unit) })
@@ -65,13 +68,13 @@ export function PrepTaskRow({
   onLabel?: () => void;
   disabled?: boolean;
 }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   const done = task.status === 'done';
   const making = task.status === 'in_progress';
-  const quantity = formatTaskQuantity(task);
+  const quantity = formatTaskQuantity(task, locale);
   const soft = done ? 'text-ink-faint' : 'text-ink-soft';
   const added = addedNote(t, task);
-  const par = parNote(t, task);
+  const par = parNote(t, task, locale);
 
   return (
     <li className="border-rule flex items-stretch border-b">

@@ -177,6 +177,7 @@ export function Recipes() {
                         {isUnitCode(recipe.yield.unit)
                           ? formatQuantity(
                               humanize({ value: recipe.yield.value, unit: recipe.yield.unit }),
+                              { locale: translator.locale },
                             )
                           : recipe.yield.value}
                       </span>

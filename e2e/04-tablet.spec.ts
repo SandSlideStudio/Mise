@@ -18,7 +18,10 @@ test('a cook signs in with a PIN on an enrolled tablet', async ({ page }) => {
   await expect(page.getByText(/enrolled/i).first()).toBeVisible();
 
   await page.getByRole('button', { name: 'Sign out' }).click();
-  await page.goto('/line');
+  await page.waitForURL(/\/login$/);
+  // Opened again in the morning, an enrolled tablet shows the names, not the email form.
+  await page.goto('/');
+  await page.waitForURL(/\/line$/);
   await page.getByRole('button', { name: new RegExp(cook) }).click();
   for (const digit of '4821') await page.getByRole('button', { name: digit, exact: true }).click();
   await page.waitForURL((url) => url.pathname === '/');

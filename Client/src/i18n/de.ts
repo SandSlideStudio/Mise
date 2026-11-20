@@ -438,6 +438,7 @@ export const de: Record<MessageKey, string> = {
   'editor.editing': 'Bearbeiten',
   'editor.name': 'Name des Rezepts',
   'editor.namePlaceholder': 'Name des Rezepts',
+  'editor.dishNamePlaceholder': 'Name des Gerichts',
   'editor.status': 'Status',
   'editor.lastSaved': 'Zuletzt gespeichert {time}',
   'editor.notSaved': 'Noch nicht gespeichert',
@@ -525,7 +526,7 @@ export const de: Record<MessageKey, string> = {
   'staff.passwordTag': 'Passwort',
   'staff.locked': 'Gesperrt',
   'staff.unlock': 'Sperre aufheben',
-  'staff.namePlaceholder': 'Wie die Brigade diese Person kennt',
+  'staff.namePlaceholder': 'Rufname in der Küche',
   'staff.role': 'Rolle',
   'staff.station': 'Üblicher Posten',
   'staff.noStation': 'Kein fester Posten',
@@ -598,7 +599,7 @@ export const de: Record<MessageKey, string> = {
   'kitchen.language': 'Sprache',
   'kitchen.languageHint':
     'Die Sprache der App für alle, die keine eigene gewählt haben. Rezepte bleiben genau so, wie sie eingetippt wurden.',
-  'kitchen.retention': 'Verschwundene Zeilen der laufenden Liste',
+  'kitchen.retention': 'Abgehakte Zeilen, wenn sie von der Liste gehen',
   'kitchen.retentionKeep': 'In der Datenbank behalten, unsichtbar',
   'kitchen.retentionDelete': 'Löschen, um Speicherplatz zu sparen',
   'kitchen.retentionHint':
@@ -617,6 +618,9 @@ export const de: Record<MessageKey, string> = {
   'running.subtitle':
     'Eine Liste für die ganze Küche. Abgehakte Zeilen verschwinden nach zwei Stunden.',
   'running.empty': 'Nichts auf der Liste. Trage ein, was zu tun ist.',
+  'running.emptyCook': 'Noch nichts auf der Liste. Die Küchenleitung trägt ein, was zu tun ist.',
+  'running.emptyCookChecklist':
+    'Noch nichts auf der Liste. In der Prep-Checkliste abhaken, was gebraucht wird, und auf die Liste setzen.',
   'running.merged': 'Zu dem schon vorhandenen {name} auf der Liste addiert.',
   'running.goneAt': 'weg um {time}',
 
@@ -1395,6 +1399,7 @@ export const de: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Abgehakte Zeilen, die älter als {count} Tage sind, werden innerhalb einer Stunde gelöscht und lassen sich nicht zurückholen. Weiter?',
   'staff.theirData': 'Daten dieser Person',
+  'staff.yourData': 'Deine Daten',
   'staff.theirDataHint':
     'Alles, was Mise über {name} speichert: das Konto, die Prep-Zeilen, die die Person hinzugefügt, übernommen oder abgehakt hat, eine Übergabenotiz mit ihrem Namen und wo sie angemeldet ist. Nie ihre PIN oder ihr Passwort.',
   'staff.downloadReadable': 'Zum Lesen herunterladen',

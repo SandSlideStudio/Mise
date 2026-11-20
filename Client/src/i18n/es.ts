@@ -428,6 +428,7 @@ export const es: Record<MessageKey, string> = {
   'editor.editing': 'Editando',
   'editor.name': 'Nombre de la receta',
   'editor.namePlaceholder': 'Nombre de la receta',
+  'editor.dishNamePlaceholder': 'Nombre del plato',
   'editor.status': 'Estado',
   'editor.lastSaved': 'Último guardado {time}',
   'editor.notSaved': 'Todavía sin guardar',
@@ -589,7 +590,7 @@ export const es: Record<MessageKey, string> = {
   'kitchen.language': 'Idioma',
   'kitchen.languageHint':
     'El idioma de la aplicación para quien no haya elegido el suyo. Las recetas se quedan tal como se escribieron.',
-  'kitchen.retention': 'Líneas que desaparecen de la lista continua',
+  'kitchen.retention': 'Líneas marcadas, cuando salen de la lista',
   'kitchen.retentionKeep': 'Guardarlas en la base de datos, fuera de la vista',
   'kitchen.retentionDelete': 'Eliminarlas para ahorrar espacio',
   'kitchen.retentionHint':
@@ -608,6 +609,9 @@ export const es: Record<MessageKey, string> = {
   'running.subtitle':
     'Una sola lista para toda la cocina. Las líneas marcadas desaparecen a las dos horas.',
   'running.empty': 'No hay nada en la lista. Añade lo que haya que hacer.',
+  'running.emptyCook': 'Aún no hay nada en la lista. El jefe de cocina añade lo que hay que hacer.',
+  'running.emptyCookChecklist':
+    'Aún no hay nada en la lista. Marca en la checklist de prep lo que hace falta y añádelo.',
   'running.merged': 'Sumado a la línea de {name} que ya estaba en la lista.',
   'running.goneAt': 'desaparece a las {time}',
 
@@ -1381,6 +1385,7 @@ export const es: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Las líneas marcadas de hace más de {count} días se borrarán en la próxima hora y no se podrán recuperar. ¿Continuar?',
   'staff.theirData': 'Sus datos',
+  'staff.yourData': 'Tus datos',
   'staff.theirDataHint':
     'Todo lo que Mise guarda sobre {name}: su cuenta, las líneas de prep que añadió, tomó o marcó, una nota de relevo firmada con su nombre, y dónde tiene la sesión abierta. Nunca su PIN ni su contraseña.',
   'staff.downloadReadable': 'Descargar para leer',

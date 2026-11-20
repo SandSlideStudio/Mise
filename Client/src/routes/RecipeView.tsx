@@ -125,8 +125,10 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const portions = recipe.portions ? round(recipe.portions * factor) : null;
   const kept = keptWithNote(t, recipe);
   const size: Size = {
-    note: scaled ? t('recipe.scaled', { factor: round(factor) }) : t('recipe.asWritten'),
-    makes: `${t('recipe.makes', { amount: amount(recipe.yield.value * factor, recipe.yield.unit) })}${
+    note: scaled
+      ? t('recipe.scaled', { factor: factorText(translator.locale, factor) })
+      : t('recipe.asWritten'),
+    makes: `${t('recipe.makes', { amount: amount(recipe.yield.value * factor, recipe.yield.unit, translator.locale) })}${
       portions ? ` · ${plural('recipes.portions', portions)}` : ''
     }`,
   };
@@ -520,7 +522,7 @@ function indentStyle(depth: number): CSSProperties {
  * a number in the gutter, so the fourth level still reads on a photocopy.
  */
 function Tree({ lines }: { lines: ExpandedLine[] }) {
-  const { t } = useT();
+  const { t, locale } = useT();
   let lastSection: string | null | undefined;
   const columns =
     'grid grid-cols-[18px_76px_minmax(0,1fr)] gap-2.5 px-4 sm:grid-cols-[30px_120px_minmax(0,1fr)] sm:gap-3.5 sm:px-8';
@@ -545,7 +547,7 @@ function Tree({ lines }: { lines: ExpandedLine[] }) {
             <div className={`border-rule items-baseline border-b py-[11px] ${columns}`}>
               <span className="text-ink-faint font-mono text-[11px]">{line.depth}</span>
               <span className="qty text-right text-[20px] sm:text-[26px]">
-                {amount(line.quantity.value, line.quantity.unit)}
+                {amount(line.quantity.value, line.quantity.unit, locale)}
               </span>
               <span className="relative min-w-0" style={indentStyle(line.depth)}>
                 <Leaders depth={line.depth} />
@@ -727,10 +729,23 @@ function Plating({
  * repeats the size, because a sheet taped up for three weeks needs to say
  * which size it is.
  */
-function amount(value: number, unit: string): string {
-  return isUnitCode(unit) ? formatQuantity(humanize({ value, unit })) : `${round(value)} ${unit}`;
+function amount(value: number, unit: string, locale: string): string {
+  return isUnitCode(unit)
+    ? formatQuantity(humanize({ value, unit }), { locale })
+    : `${round(value)} ${unit}`;
 }
 
 function round(value: number): number {
   return Number(value.toFixed(2));
+}
+
+/**
+ * How many times the written recipe: "2.5", or for a small part of a big
+ * batch "0.004", where two decimals said "0×". In the reader's own decimals.
+ */
+export function factorText(locale: string, factor: number): string {
+  return new Intl.NumberFormat(
+    locale,
+    factor < 1 ? { maximumSignificantDigits: 2 } : { maximumFractionDigits: 2 },
+  ).format(factor);
 }
