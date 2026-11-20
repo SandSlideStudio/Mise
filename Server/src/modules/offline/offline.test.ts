@@ -1,7 +1,13 @@
 import { gunzipSync } from 'node:zlib';
 import type * as BookModule from '../recipes/book.js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { unpackOfflineBundle, type OfflineBundle } from '@mise/contracts';
+import {
+  bookRecipeFrom,
+  unpackOfflineBundle,
+  type DishCard,
+  type OfflineBundle,
+  type Recipe,
+} from '@mise/contracts';
 import { cookieFrom, setUpKitchen, useTestContext } from '../../test/harness.js';
 
 // Counts how often the whole recipe book is read, the cost this exists to cut.
@@ -109,7 +115,7 @@ beforeEach(async () => {
 const bundleFor = async (cookies: Record<string, string>) => {
   const response = await ctx.app.inject({
     method: 'GET',
-    url: '/api/offline/bundle',
+    url: '/api/offline/bundle?format=2',
     cookies,
     headers: { 'accept-encoding': 'gzip' },
   });
@@ -217,8 +223,113 @@ describe('the bundle for offline use', () => {
     ).toBe(true);
   });
 
+  it('holds exactly what each endpoint gives for cups, ounces and lines in the same place', async () => {
+    const station = await post('/api/stations', { name: 'Pass', sortOrder: 1 });
+    const milk = await post('/api/ingredients', {
+      name: 'Milk',
+      baseUnit: 'ml',
+      allergens: ['milk'],
+      vegan: false,
+    });
+    const butter = await post('/api/ingredients', {
+      name: 'Butter',
+      baseUnit: 'g',
+      allergens: ['milk'],
+      vegan: false,
+    });
+    const salt = await post('/api/ingredients', { name: 'Salt', baseUnit: 'g', vegan: true });
+    const sauce = await post('/api/recipes', {
+      name: 'Sauce',
+      type: 'prep',
+      stationId: station.id,
+      // Kept in grams to four decimals: not what converting a pound gives.
+      yield: { value: 1.3, unit: 'lb' },
+      components: [
+        {
+          sortOrder: 0,
+          quantity: { value: 1.5, unit: 'cup' },
+          ref: { kind: 'ingredient', ingredientId: milk.id },
+        },
+        {
+          sortOrder: 1,
+          quantity: { value: 3, unit: 'oz' },
+          ref: { kind: 'ingredient', ingredientId: butter.id },
+        },
+        // Two lines in the same place.
+        {
+          sortOrder: 1,
+          quantity: { value: 1, unit: 'tsp' },
+          ref: { kind: 'ingredient', ingredientId: salt.id },
+        },
+      ],
+    });
+    await post('/api/recipes', {
+      name: 'Dish',
+      type: 'dish',
+      yield: { value: 1, unit: 'each' },
+      portions: 1,
+      components: [
+        {
+          sortOrder: 0,
+          quantity: { value: 2, unit: 'oz' },
+          ref: { kind: 'recipe', recipeId: sauce.id },
+        },
+      ],
+    });
+
+    const bundle = await bundleFor(admin);
+    const entry = bundle.recipeEntries.find((e) => e.recipe.id === sauce.id)!;
+    expect(entry.base?.length).toBeGreaterThan(0);
+    await expectSameAsOneByOne(admin);
+    cook = await signInCook();
+    await expectSameAsOneByOne(cook);
+  });
+
+  it('sends each recipe and ingredient once, however many dishes use them', async () => {
+    const { base } = await kitchenWith(12);
+    const sent = JSON.stringify(await bundleFor(admin));
+    const flour = (
+      await ctx.app.inject({ method: 'GET', url: '/api/ingredients', cookies: admin })
+    ).json<{ id: string }[]>()[0]!;
+    // The ingredient is in thirteen recipes, and its id in the bundle once.
+    expect(sent.split(flour.id)).toHaveLength(2);
+    // The base is in twelve dishes, and sent once, not inside each of them.
+    expect(sent.split('"Base"')).toHaveLength(2);
+    expect(sent).not.toContain('"lines"');
+    expect(base.id).toBeTruthy();
+  });
+
+  it('takes what the server sent as it is over what it would work out', async () => {
+    const { base, ids } = await kitchenWith(1);
+    const bundle = await bundleFor(admin);
+    const dish = bundle.recipeEntries.find((e) => e.recipe.id === ids[0])!;
+    const sauce = bundle.recipeEntries.find((e) => e.recipe.id === base.id)!;
+    const dataOf = (key: unknown[]) =>
+      unpackOfflineBundle(bundle).find(([k]) => JSON.stringify(k) === JSON.stringify(key))?.[1];
+
+    const { settings: _settings, ...card } = dataOf(['dish-card', dish.recipe.id]) as DishCard;
+    delete dish.cardAttention;
+    dish.card = { ...card, kitchenName: 'As sent' };
+    sauce.book = { ...bookRecipeFrom(sauce.recipe as Recipe), components: [] };
+    dish.recipe.components[0]!.displayName = 'Named as sent';
+
+    expect(dataOf(['dish-card', dish.recipe.id])).toMatchObject({ kitchenName: 'As sent' });
+    expect(dataOf(['recipe-expanded', base.id, {}])).toMatchObject({ lines: [] });
+    expect((dataOf(['recipe', dish.recipe.id]) as Recipe).components[0]!.displayName).toBe(
+      'Named as sent',
+    );
+  });
+
+  it('is refused to an app that reads another format', async () => {
+    for (const url of ['/api/offline/bundle', '/api/offline/bundle?format=1']) {
+      const response = await ctx.app.inject({ method: 'GET', url, cookies: admin });
+      expect(response.statusCode).toBe(410);
+      expect(response.json().error.code).toBe('bundle_format');
+    }
+  });
+
   it('is refused without signing in', async () => {
-    for (const url of ['/api/offline/bundle', '/api/offline/version']) {
+    for (const url of ['/api/offline/bundle?format=2', '/api/offline/version']) {
       expect((await ctx.app.inject({ method: 'GET', url })).statusCode).toBe(401);
     }
   });
@@ -288,7 +399,7 @@ describe('the data version', () => {
     const after = await version();
     expect(after).not.toBe(before);
     expect((await bundleFor(admin)).version).toBe(after);
-    expect((await bundleFor(admin)).recipes.map((r) => r.name)).toContain('Renamed');
+    expect((await bundleFor(admin)).recipeEntries.map((e) => e.recipe.name)).toContain('Renamed');
   });
 
   it('ignores prep ticks, which are kept current by live updates', async () => {

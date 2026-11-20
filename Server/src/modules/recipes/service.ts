@@ -1,5 +1,5 @@
 import { ApiError } from '../../lib/errors.js';
-import { and, asc, eq, ilike, inArray, isNotNull, sql, type SQL } from 'drizzle-orm';
+import { and, asc, eq, ilike, inArray, sql, type SQL } from 'drizzle-orm';
 import type { CreateRecipe, CreateRecipeComponent, UpdateRecipe } from '@mise/contracts';
 import {
   findCycle,
@@ -109,7 +109,10 @@ export function createRecipesService(db: Database) {
   async function allRecipes() {
     const [rows, components, photos] = await Promise.all([
       db.select().from(recipes).orderBy(asc(recipes.name)),
-      db.select().from(recipeComponents).orderBy(asc(recipeComponents.sortOrder)),
+      db
+        .select()
+        .from(recipeComponents)
+        .orderBy(asc(recipeComponents.sortOrder), asc(recipeComponents.id)),
       db.select().from(recipePhotos).orderBy(asc(recipePhotos.createdAt)),
     ]);
     const componentsOf = new Map<string, typeof components>();
@@ -139,7 +142,7 @@ export function createRecipesService(db: Database) {
       .select()
       .from(recipeComponents)
       .where(eq(recipeComponents.recipeId, id))
-      .orderBy(asc(recipeComponents.sortOrder));
+      .orderBy(asc(recipeComponents.sortOrder), asc(recipeComponents.id));
 
     const photos = await db
       .select()
@@ -504,22 +507,6 @@ export function createRecipesService(db: Database) {
       .where(eq(recipeComponents.childRecipeId, id));
   }
 
-  /** usedBy for every recipe at once: which recipes each one is a part of. */
-  async function usedByAll() {
-    const rows = await db
-      .select({ child: recipeComponents.childRecipeId, id: recipes.id, name: recipes.name })
-      .from(recipeComponents)
-      .innerJoin(recipes, eq(recipes.id, recipeComponents.recipeId))
-      .where(isNotNull(recipeComponents.childRecipeId));
-    const byChild = new Map<string, { id: string; name: string }[]>();
-    for (const { child, id, name } of rows) {
-      const list = byChild.get(child!) ?? [];
-      list.push({ id, name });
-      byChild.set(child!, list);
-    }
-    return byChild;
-  }
-
   /**
    * Recipes that can't be called free from an allergen: they contain it or may
    * contain it anywhere in their tree, or their allergens can't be worked out.
@@ -560,7 +547,6 @@ export function createRecipesService(db: Database) {
     deleteRecipe,
     duplicateRecipe,
     usedBy,
-    usedByAll,
     allRecipes,
     idsWithAllergen,
     detectCycle,

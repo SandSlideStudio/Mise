@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient, type QueryClient, type QueryKey } from '@tanstack/react-query';
-import { unpackOfflineBundle, type OfflineBundle } from '@mise/contracts';
+import { OFFLINE_BUNDLE_FORMAT, unpackOfflineBundle, type OfflineBundle } from '@mise/contracts';
 import { createAsyncStoragePersister } from '@tanstack/query-async-storage-persister';
 import { del, get, set } from 'idb-keyval';
 import { isReachable } from '../lib/connectivity.js';
@@ -136,10 +136,13 @@ export async function loadAhead(queryClient: QueryClient, userId?: string): Prom
   const started = Date.now();
   let bundle: OfflineBundle;
   try {
-    bundle = await api.get<OfflineBundle>('/offline/bundle');
+    bundle = await api.get<OfflineBundle>('/offline/bundle', { format: OFFLINE_BUNDLE_FORMAT });
   } catch {
     return;
   }
+  // A server from before the format this app reads answers in its own; what
+  // is in it would be misread, so it is left alone until both are updated.
+  if (bundle.format !== OFFLINE_BUNDLE_FORMAT) return;
   // Changes not sent yet are shown as made; the server's copy must not paint
   // over them. The next round, once they are sent, loads it.
   if (queryClient.isMutating() > 0) return;

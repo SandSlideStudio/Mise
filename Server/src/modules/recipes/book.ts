@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { asc, eq } from 'drizzle-orm';
 import {
   BASE_UNIT_FOR,
   createRecipeBook,
@@ -63,7 +63,10 @@ export async function loadRecipeBook(db: Executor): Promise<RecipeBook> {
         ingredientId: recipeComponents.ingredientId,
         childRecipeId: recipeComponents.childRecipeId,
       })
-      .from(recipeComponents),
+      .from(recipeComponents)
+      // Lines in the same place in the same order every time, and the same
+      // order as a recipe's own answer, so an expanded tree never reshuffles.
+      .orderBy(asc(recipeComponents.sortOrder), asc(recipeComponents.id)),
     db
       .select({
         id: ingredients.id,
