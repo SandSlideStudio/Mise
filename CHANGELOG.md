@@ -125,6 +125,14 @@ staff data, and a stack of smaller fixes.
 - The prep list and the checklist can be used by keyboard alone, checked by tests.
 - The small "Step 5 of 6" line in setup is easier to read.
 
+**Security**
+
+- A tablet that signs in by PIN alone now also locks after ten wrong PINs within 15 minutes,
+  whatever right ones came in between. Before, someone could try four, sign in as themselves, and
+  try four more, until a chef's PIN came up.
+- Sign-in no longer tells a stranger which email addresses have an account: guessing at a made-up
+  one now locks after the same number of tries as a real one.
+
 **Under the hood**
 
 - Shipped dependencies are checked for known security problems on every change; a few were
