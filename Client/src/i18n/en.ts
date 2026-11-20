@@ -1353,6 +1353,7 @@ export const en = {
   'kitchen.keepShorterConfirm_other':
     'Ticked lines older than {count} days are deleted within the hour, and can’t be brought back. Go ahead?',
   'staff.theirData': 'Their data',
+  'staff.yourData': 'Your data',
   'staff.theirDataHint':
     'Everything Mise holds about {name}: their account, the prep lines they added, were on or ticked off, a handover note signed with their name, and where they are signed in. Never their PIN or password.',
   'staff.downloadReadable': 'Download to read',

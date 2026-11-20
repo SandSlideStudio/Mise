@@ -1385,6 +1385,7 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Afgevinkte regels ouder dan {count} dagen worden binnen het uur verwijderd en zijn niet terug te halen. Doorgaan?',
   'staff.theirData': 'Hun gegevens',
+  'staff.yourData': 'Jouw gegevens',
   'staff.theirDataHint':
     'Alles wat Mise over {name} bewaart: het account, de prepregels die ze toevoegden, oppakten of afvinkten, een overdrachtsnotitie met hun naam eronder, en waar ze ingelogd zijn. Nooit hun pincode of wachtwoord.',
   'staff.downloadReadable': 'Downloaden om te lezen',

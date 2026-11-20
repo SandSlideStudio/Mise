@@ -1408,6 +1408,7 @@ export const fr: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Les lignes cochées depuis plus de {count} jours seront supprimées dans l’heure, sans retour possible. Continuer ?',
   'staff.theirData': 'Ses données',
+  'staff.yourData': 'Vos données',
   'staff.theirDataHint':
     'Tout ce que Mise garde sur {name} : son compte, les lignes de prep ajoutées, prises ou cochées, une note de passation signée de son nom, et où la personne est connectée. Jamais son code PIN ni son mot de passe.',
   'staff.downloadReadable': 'Télécharger pour lire',

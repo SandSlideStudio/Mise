@@ -1399,6 +1399,7 @@ export const de: Record<MessageKey, string> = {
   'kitchen.keepShorterConfirm_other':
     'Abgehakte Zeilen, die älter als {count} Tage sind, werden innerhalb einer Stunde gelöscht und lassen sich nicht zurückholen. Weiter?',
   'staff.theirData': 'Daten dieser Person',
+  'staff.yourData': 'Deine Daten',
   'staff.theirDataHint':
     'Alles, was Mise über {name} speichert: das Konto, die Prep-Zeilen, die die Person hinzugefügt, übernommen oder abgehakt hat, eine Übergabenotiz mit ihrem Namen und wo sie angemeldet ist. Nie ihre PIN oder ihr Passwort.',
   'staff.downloadReadable': 'Zum Lesen herunterladen',
