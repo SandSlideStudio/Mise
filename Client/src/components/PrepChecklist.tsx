@@ -572,6 +572,7 @@ function Editor({
                     <NumberInput
                       rules={AMOUNT}
                       aria-label={t('checklist.parFor', { name: item.name })}
+                      aria-describedby={parHint(item) ? `par-hint-${item.id}` : undefined}
                       className="field qty h-11 w-24 text-right"
                       value={textFor(item)}
                       onText={(text) => setParText({ ...parText, [item.id]: text })}
@@ -592,7 +593,12 @@ function Editor({
                       <UnitOptions />
                     </select>
                     {parHint(item) ? (
-                      <p className="text-ink-soft basis-full text-[15px]">{parHint(item)}</p>
+                      <p
+                        id={`par-hint-${item.id}`}
+                        className="text-ink-soft basis-full text-[15px]"
+                      >
+                        {parHint(item)}
+                      </p>
                     ) : null}
                   </div>
                   <RecipeLinkField

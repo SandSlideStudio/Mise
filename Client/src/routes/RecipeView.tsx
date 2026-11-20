@@ -505,7 +505,7 @@ function ScaleControl({
           t('scale.need'),
           numberText(recipe.yield.value, locale),
           isUnitCode(recipe.yield.unit)
-            ? unitLabel(translator, recipe.yield.unit, recipe.yield.value)
+            ? unitLabel(translator, recipe.yield.unit)
             : recipe.yield.unit,
         )}
         {divider}

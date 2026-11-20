@@ -63,9 +63,7 @@ export function ChecklistPrint({
                       className="h-[6mm] w-[18mm] border-[0.6px] border-black"
                     />
                     {/* A bare count needs no unit, the same as on the screen. */}
-                    {item.par.unit === 'each'
-                      ? ''
-                      : unitLabel(translator, item.par.unit, item.par.value)}
+                    {item.par.unit === 'each' ? '' : unitLabel(translator, item.par.unit)}
                   </span>
                 </>
               ) : null}
