@@ -152,12 +152,8 @@ async function expectSameAsOneByOne(cookies: Record<string, string>) {
   for (const [key, data] of entries) {
     const single = await ctx.app.inject({ method: 'GET', url: pathFor(key), cookies });
     expect(single.statusCode, JSON.stringify(key)).toBe(200);
-    // The used-by list has no order of its own.
-    const sort = (value: unknown) =>
-      key[0] === 'recipe-used-by'
-        ? [...(value as { id: string }[])].sort((a, b) => a.id.localeCompare(b.id))
-        : value;
-    expect(sort(data), JSON.stringify(key)).toEqual(sort(single.json()));
+    // Every list in the same order too, the used-by list included.
+    expect(data, JSON.stringify(key)).toEqual(single.json());
   }
   return entries;
 }

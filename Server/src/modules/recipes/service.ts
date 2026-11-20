@@ -500,11 +500,16 @@ export function createRecipesService(db: Database) {
 
   /** Which recipes use this one, so deleting it can say what would break. */
   async function usedBy(id: string) {
-    return db
-      .select({ id: recipes.id, name: recipes.name })
-      .from(recipeComponents)
-      .innerJoin(recipes, eq(recipes.id, recipeComponents.recipeId))
-      .where(eq(recipeComponents.childRecipeId, id));
+    return (
+      db
+        .select({ id: recipes.id, name: recipes.name })
+        .from(recipeComponents)
+        .innerJoin(recipes, eq(recipes.id, recipeComponents.recipeId))
+        .where(eq(recipeComponents.childRecipeId, id))
+        // The order the recipe book lists them in, and the order a tablet works
+        // the list out in offline, so the page reads the same either way.
+        .orderBy(asc(recipes.name), asc(recipeComponents.sortOrder), asc(recipeComponents.id))
+    );
   }
 
   /**
