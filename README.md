@@ -212,7 +212,9 @@ internet. All of it is set up under **Settings → Connection**:
 - **On the kitchen network.** Mise makes a certificate of its own for the addresses the tablets
   use, such as `192.168.1.50`. No domain or internet needed. Each tablet then opens
   `http://<address>:3000/trust` once and follows the steps for its kind of device (iPad and
-  iPhone, Android, Windows, Mac). HTTPS answers on port 3443.
+  iPhone, Android, Windows, Mac). HTTPS answers on port 3443. A kitchen certificate made before
+  2.2.2 isn't limited to the kitchen network; Settings offers to replace it, after which each
+  tablet trusts the new one once more.
 - **For your domain.** Mise gets a free certificate from Let's Encrypt and renews it by itself. Point
   the domain at your public IP and have your router send port 80 on to Mise's port 3000 and port
   443 to 3443. On a server of its own, set `PORT=80` and `HTTPS_PORT=443` in `.env` instead.

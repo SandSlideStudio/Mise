@@ -163,6 +163,9 @@ staff data, and a stack of smaller fixes.
   file works as before.
 - An outside device taken off the list stops hearing live updates at once, not only once its
   sign-in ends. One person can hold twenty live-update streams open at most.
+- A kitchen certificate made before 2.2.2, which a trusting tablet would believe about any
+  website, can now be replaced under **Settings → Connection** by one limited to the kitchen
+  network. Settings says when yours is one; each tablet then trusts the new one once more.
 - HTTPS no longer lets a request take forever to arrive, so nobody can hold connections open by
   sending one a byte at a time.
 - The installer writes `.env` readable by its owner alone from the first byte, and runs nothing
