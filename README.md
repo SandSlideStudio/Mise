@@ -455,9 +455,11 @@ data.
 Oracle's free tier runs Mise well, on either kind of free server: an Ampere (ARM) one, or the
 small AMD one with 1 GB of memory. On Ubuntu, over SSH:
 
-1. **Open the ports twice.** In the Oracle console, add ingress rules for TCP 80 and 443 (and 3000
-   if you want to reach Mise before HTTPS) to the subnet's security list. Oracle's Ubuntu image also
-   blocks them on the server itself:
+1. **Open the ports twice.** In the Oracle console, add ingress rules for TCP 80 and 443 to the
+   subnet's security list. Don't open 3000: until HTTPS is on, the setup code and your password
+   would cross the internet unencrypted. To reach Mise before then, use an SSH tunnel instead
+   (`ssh -L 3000:localhost:3000 ubuntu@<server>`, then open `http://localhost:3000`). Oracle's
+   Ubuntu image also blocks the ports on the server itself:
    ```bash
    sudo iptables -I INPUT -p tcp -m multiport --dports 80,443 -m conntrack --ctstate NEW -j ACCEPT
    sudo netfilter-persistent save
