@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { setUpKitchen, useTestContext } from '../test/harness.js';
 import { writeReceipts } from '../db/schema.js';
+import { receiptKey } from './writes.js';
 
 const ctx = useTestContext();
 
@@ -47,7 +48,10 @@ describe('a change sent again after a dropped connection', () => {
     const me = (await send(admin, 'GET', '/api/auth/me')).json().user.id as string;
     const line = { description: 'Pick chervil', quantity: { value: 2, unit: 'kg' } };
     // The first send has claimed the id and is still running.
-    await ctx.app.db.insert(writeReceipts).values({ key: `${me}:tablet-change-0002`, status: 0 });
+    await ctx.app.db.insert(writeReceipts).values({
+      key: receiptKey(me, 'tablet-change-0002', 'POST', '/api/running/tasks'),
+      status: 0,
+    });
 
     const second = await send(admin, 'POST', '/api/running/tasks', line, {
       'x-mise-write': 'tablet-change-0002',
@@ -57,11 +61,47 @@ describe('a change sent again after a dropped connection', () => {
     expect((await runningList(admin)).some((t) => t.description === line.description)).toBe(false);
   });
 
+  it('never answers one change with what another one got under the same id', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const write = { 'x-mise-write': 'tablet-change-0010' };
+    const recipe = await send(
+      admin,
+      'POST',
+      '/api/recipes',
+      { name: 'Fond blanc', type: 'prep', yield: { value: 1, unit: 'l' } },
+      write,
+    );
+    expect(recipe.statusCode).toBe(200);
+    const note = await send(admin, 'PUT', '/api/running/note', { text: 'Fish at ten' }, write);
+    expect(note.headers['x-mise-replayed']).toBeUndefined();
+    expect(note.json()).not.toHaveProperty('name');
+  });
+
+  it('still answers from what an older version kept, during an update', async () => {
+    const admin = await setUpKitchen(ctx.app);
+    const me = (await send(admin, 'GET', '/api/auth/me')).json().user.id as string;
+    await ctx.app.db.insert(writeReceipts).values({
+      key: `${me}:tablet-change-0011`,
+      status: 200,
+      contentType: 'application/json; charset=utf-8',
+      body: JSON.stringify({ kept: true }),
+    });
+    const again = await send(
+      admin,
+      'POST',
+      '/api/running/tasks',
+      { description: 'Pick chervil' },
+      { 'x-mise-write': 'tablet-change-0011' },
+    );
+    expect(again.headers['x-mise-replayed']).toBe('1');
+    expect((await runningList(admin)).some((t) => t.description === 'Pick chervil')).toBe(false);
+  });
+
   it('takes over a claim left by a send that never finished', async () => {
     const admin = await setUpKitchen(ctx.app);
     const me = (await send(admin, 'GET', '/api/auth/me')).json().user.id as string;
     await ctx.app.db.insert(writeReceipts).values({
-      key: `${me}:tablet-change-0004`,
+      key: receiptKey(me, 'tablet-change-0004', 'POST', '/api/running/tasks'),
       status: 0,
       createdAt: new Date(Date.now() - 10 * 60 * 1000),
     });

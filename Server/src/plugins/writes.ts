@@ -40,6 +40,14 @@ function writeId(request: FastifyRequest): string | null {
   return typeof value === 'string' && VALID_ID.test(value) ? value : null;
 }
 
+/**
+ * Whose change, its id, and which change it was: the same id sent to another
+ * address is not the same change, and never gets that one's answer.
+ */
+export function receiptKey(userId: string, id: string, method: string, url: string): string {
+  return `${userId}:${id}:${method} ${url.split('?')[0]}`;
+}
+
 /** A claim still being made. A real answer always has a status of 100 or more. */
 const PENDING = 0;
 /** A claim older than this was left by a request that never finished: take it over. */
@@ -64,7 +72,20 @@ const writesPlugin: FastifyPluginAsync = async (app) => {
     if (!WRITES.has(request.method) || !request.user) return;
     const id = writeId(request);
     if (!id) return;
-    const key = `${request.user.id}:${id}`;
+    const key = receiptKey(request.user.id, id, request.method, request.url);
+    // An answer kept by 2.3 and earlier, before the key named the change:
+    // still the answer to a change on its way during an update.
+    const older = `${request.user.id}:${id}`;
+    const [before] = await app.db
+      .select()
+      .from(writeReceipts)
+      .where(eq(writeReceipts.key, older))
+      .limit(1);
+    if (before && before.status !== PENDING) {
+      reply.code(before.status).header('x-mise-replayed', '1');
+      if (before.contentType) reply.type(before.contentType);
+      return reply.send(before.body ?? undefined);
+    }
     if (await claim(key)) {
       request.writeKey = key;
       return;
