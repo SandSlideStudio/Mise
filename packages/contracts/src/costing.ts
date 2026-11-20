@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { costRecipe, foodCostPercent, summariseCost, type RecipeBook } from '@mise/domain';
 import { idSchema, quantitySchema } from './common.js';
 
 /**
@@ -72,3 +73,42 @@ export type CostGap = z.infer<typeof costGapSchema>;
 export type RecipeCost = z.infer<typeof recipeCostSchema>;
 export type MenuDishCost = z.infer<typeof menuDishCostSchema>;
 export type MenuCost = z.infer<typeof menuCostSchema>;
+
+/** What the kitchen counts costs in, and the VAT its menu prices include. */
+export interface CostSettings {
+  currency: Currency;
+  foodVatPercent: number;
+}
+
+/**
+ * What a recipe costs at a multiplier of its batch, ready to send. Null when
+ * its tree can't be followed (a loop), which the expansion answers already.
+ *
+ * Here rather than on the server because a chef's tablet works the costs of
+ * its offline copy out itself, and must come to the very same figures.
+ */
+export function recipeCostAt(
+  recipeId: string,
+  factor: number,
+  book: RecipeBook,
+  settings: CostSettings,
+  sellPrice: number | null,
+): RecipeCost | null {
+  const recipe = book.recipe(recipeId);
+  if (!recipe) return null;
+  const cost = costRecipe(recipeId, factor, book);
+  if (!cost.ok) return null;
+  const summary = summariseCost(recipe, factor, cost.value);
+  return {
+    currency: settings.currency,
+    total: summary.total,
+    perBase: summary.perBase,
+    perPortion: summary.perPortion,
+    // A selling price only means something for a dish.
+    foodCostPercent:
+      recipe.type === 'dish' && summary.perPortion !== null
+        ? foodCostPercent(summary.perPortion, sellPrice, settings.foodVatPercent)
+        : null,
+    gaps: summary.gaps,
+  };
+}

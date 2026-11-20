@@ -1,5 +1,10 @@
-import { CURRENCIES, type Currency, type RecipeCost, type Role } from '@mise/contracts';
-import { costRecipe, foodCostPercent, summariseCost, type RecipeBook } from '@mise/domain';
+import {
+  CURRENCIES,
+  recipeCostAt,
+  type CostSettings,
+  type Currency,
+  type Role,
+} from '@mise/contracts';
 import type { Executor } from '../../db/client.js';
 import { kitchens } from '../../db/schema.js';
 import { MANAGERS } from '../../plugins/auth.js';
@@ -17,10 +22,7 @@ export function seesCosts(user: { role: Role } | null | undefined): boolean {
   return user ? MANAGERS.includes(user.role) : false;
 }
 
-export interface CostSettings {
-  currency: Currency;
-  foodVatPercent: number;
-}
+export type { CostSettings };
 
 export function currencyOf(value: string): Currency {
   return (CURRENCIES as readonly string[]).includes(value) ? (value as Currency) : 'EUR';
@@ -34,32 +36,5 @@ export async function loadCostSettings(db: Executor): Promise<CostSettings> {
   return { currency: currencyOf(row?.currency ?? 'EUR'), foodVatPercent: row?.foodVatPercent ?? 9 };
 }
 
-/**
- * What a recipe costs at a multiplier of its batch, ready to send. Null when
- * its tree can't be followed (a loop), which the expansion answers already.
- */
-export function costAgainst(
-  recipeId: string,
-  factor: number,
-  book: RecipeBook,
-  settings: CostSettings,
-  sellPrice: number | null,
-): RecipeCost | null {
-  const recipe = book.recipe(recipeId);
-  if (!recipe) return null;
-  const cost = costRecipe(recipeId, factor, book);
-  if (!cost.ok) return null;
-  const summary = summariseCost(recipe, factor, cost.value);
-  return {
-    currency: settings.currency,
-    total: summary.total,
-    perBase: summary.perBase,
-    perPortion: summary.perPortion,
-    // A selling price only means something for a dish.
-    foodCostPercent:
-      recipe.type === 'dish' && summary.perPortion !== null
-        ? foodCostPercent(summary.perPortion, sellPrice, settings.foodVatPercent)
-        : null,
-    gaps: summary.gaps,
-  };
-}
+/** What a recipe costs at a multiplier of its batch; shared with the tablets' offline copy. */
+export const costAgainst = recipeCostAt;

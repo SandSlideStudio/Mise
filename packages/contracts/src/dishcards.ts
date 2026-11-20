@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { DishCardRow as MatrixRow } from '@mise/domain';
 import { languageSchema } from './auth.js';
 import { allergenSchema, idSchema } from './common.js';
 import { courseSchema, recipeStatusSchema, servingTemperatureSchema } from './recipes.js';
@@ -130,3 +131,17 @@ export type DishCardFacts = z.infer<typeof dishCardFactsSchema>;
 export type DishCardRow = z.infer<typeof dishCardRowSchema>;
 export type DishCard = z.infer<typeof dishCardSchema>;
 export type VeganStatus = z.infer<typeof veganStatusSchema>;
+
+/**
+ * One row of the dish-card matrix as a card shows it. Shared, because a
+ * tablet draws its offline cards from the same matrix and must say the same.
+ */
+export function dishCardFacts(row: Omit<MatrixRow, 'recipeId' | 'name'>): DishCardFacts {
+  return {
+    contains: row.allergens.contains,
+    mayContain: row.allergens.mayContain,
+    vegan: row.vegan,
+    gluten: row.details.gluten,
+    nuts: row.details.nuts,
+  };
+}

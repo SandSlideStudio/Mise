@@ -1,13 +1,13 @@
 import { and, asc, eq, sql } from 'drizzle-orm';
 import {
   DISH_CARD_PARTS,
+  dishCardFacts as facts,
   type DishCard,
-  type DishCardFacts,
   type DishCardPart,
   type DishSummary,
   type UpdateDishCardSettings,
 } from '@mise/contracts';
-import { dishCardMatrix, type DishCardRow as DomainRow } from '@mise/domain';
+import { dishCardMatrix } from '@mise/domain';
 import type { Database } from '../../db/client.js';
 import {
   dishCardSettings,
@@ -31,16 +31,6 @@ import { loadRecipeBook } from '../recipes/book.js';
 type StoredSettings = typeof dishCardSettings.$inferSelect;
 
 export type CardFailure = { kind: 'not_found' } | { kind: 'not_a_dish' } | { kind: 'broken' };
-
-function facts(row: Omit<DomainRow, 'recipeId' | 'name'>): DishCardFacts {
-  return {
-    contains: row.allergens.contains,
-    mayContain: row.allergens.mayContain,
-    vegan: row.vegan,
-    gluten: row.details.gluten,
-    nuts: row.details.nuts,
-  };
-}
 
 /**
  * The parts a kitchen switched off. Before 2.1 the line under the name was the
