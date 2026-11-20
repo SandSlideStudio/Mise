@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { setUpKitchen, useTestContext } from '../../test/harness.js';
+import { buildApp } from '../../app.js';
+import { TEST_CONFIG, setUpKitchen, useTestContext } from '../../test/harness.js';
 
 // As in a rootless container, whose relay is 10.0.2.2.
 vi.mock('../../lib/containerGateway.js', () => ({
@@ -76,5 +77,32 @@ describe('visitors relayed by the container', () => {
     });
     expect(await statusFrom(RELAY, { 'x-forwarded-for': '192.168.1.30' })).toBe('inside');
     expect(await statusFrom(RELAY, { 'x-forwarded-for': '203.0.113.7' })).toBe('none');
+  });
+
+  it("aren't let in by a forwarded address when TRUST_PROXY is set for Caddy", async () => {
+    await setUpKitchen(ctx.app);
+    // Caddy from the compose file, with its own address on the compose network.
+    const app = await buildApp(
+      { ...TEST_CONFIG, TRUST_PROXY: 1 },
+      { db: ctx.db, serveClient: false },
+    );
+    try {
+      const status = async (address: string, forwardedFor: string) => {
+        const response = await app.inject({
+          method: 'GET',
+          url: '/api/access/status',
+          remoteAddress: address,
+          headers: { host: 'mise.example.com', 'x-forwarded-for': forwardedFor },
+        });
+        return response.json().status as string;
+      };
+      // Someone on the internet, relayed to the published port, naming a kitchen address.
+      expect(await status(RELAY, '192.168.1.30')).toBe('none');
+      // Caddy passing on a visitor on the kitchen network still counts them inside.
+      expect(await status('172.18.0.5', '192.168.1.30')).toBe('inside');
+      expect(await status('172.18.0.5', '203.0.113.7')).toBe('none');
+    } finally {
+      await app.close();
+    }
   });
 });

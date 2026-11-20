@@ -82,10 +82,16 @@ const accessPlugin: FastifyPluginAsync<AccessOptions> = async (app, options) => 
   const gateways = containerGateways();
   const trusts = (proxy: string) =>
     app.config.TRUST_PROXY !== false || proxy === app.connection.trustedProxy();
-  /** From the container's gateway, and not a trusted web server passing a visitor on. */
+  /**
+   * From the container's gateway, and not the web server named in Settings
+   * passing a visitor on. TRUST_PROXY doesn't count here: it is for Caddy
+   * from the compose file, which has its own address. Through the gateway,
+   * anyone on the internet who reaches the published port could add an
+   * X-Forwarded-For naming a kitchen address and be let in as inside.
+   */
   const relayed = (request: FastifyRequest) => {
     const peer = plainAddress(request.socket.remoteAddress ?? '');
-    return gateways.has(peer) && !(forwarded(request) && trusts(peer));
+    return gateways.has(peer) && !(forwarded(request) && peer === app.connection.trustedProxy());
   };
   app.decorate(
     'relayedUnknown',
