@@ -1,4 +1,4 @@
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { PasswordInput } from './PasswordInput.js';
 import { RequestFailed } from '../api/client.js';
 import { useT } from '../i18n/index.js';
@@ -16,6 +16,7 @@ export function PasswordConfirm({
   value,
   onChange,
   autoFocus,
+  describedBy,
   className = 'min-w-56 flex-1',
 }: {
   id: string;
@@ -23,6 +24,8 @@ export function PasswordConfirm({
   value: string;
   onChange: (value: string) => void;
   autoFocus?: boolean;
+  /** The id of what says why it is asked. */
+  describedBy?: string;
   className?: string;
 }) {
   return (
@@ -36,6 +39,7 @@ export function PasswordConfirm({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         autoFocus={autoFocus}
+        aria-describedby={describedBy}
         required
       />
     </div>
@@ -66,8 +70,11 @@ export function OutsidePassword({
         label={t('confirm.passwordLabel')}
         value={value}
         onChange={onChange}
+        describedBy={`${id}-why`}
       />
-      <p className="text-ink-faint mt-1.5 text-sm">{t('confirm.whyOutside')}</p>
+      <p id={`${id}-why`} className="text-ink-faint mt-1.5 text-sm">
+        {t('confirm.whyOutside')}
+      </p>
     </div>
   );
 }
@@ -96,27 +103,43 @@ export function PasswordPrompt({
   const { t } = useT();
   const [password, setPassword] = useState('');
 
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    if (!password) return;
+  function submit() {
+    if (!password || pending) return;
     onSubmit(password);
     setPassword('');
   }
 
+  function onKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      onCancel();
+    } else if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
+      // Only this: never the form it may sit in.
+      event.preventDefault();
+      event.stopPropagation();
+      submit();
+    }
+  }
+
+  // Not a <form>: it often opens inside one (where backups go, the kitchen's
+  // certificate), and a form inside a form submits the outer one instead.
   return (
-    <form onSubmit={submit} className="flex basis-full flex-col gap-2">
+    <div role="group" onKeyDown={onKeyDown} className="flex basis-full flex-col gap-2">
       <div className="flex flex-wrap items-end gap-3">
         <PasswordConfirm
           id={id}
           label={t('confirm.passwordLabel')}
           value={password}
           onChange={setPassword}
+          describedBy={`${id}-why`}
           autoFocus
         />
         <button
-          type="submit"
+          type="button"
           className={danger ? 'btn-small border-danger text-danger' : 'btn-small'}
           disabled={pending || !password}
+          onClick={submit}
         >
           {submitLabel}
         </button>
@@ -124,8 +147,10 @@ export function PasswordPrompt({
           {t('common.cancel')}
         </button>
       </div>
-      <p className="text-ink-faint text-sm">{t('confirm.whyOutside')}</p>
-    </form>
+      <p id={`${id}-why`} className="text-ink-faint text-sm">
+        {t('confirm.whyOutside')}
+      </p>
+    </div>
   );
 }
 
@@ -163,6 +188,14 @@ export function AskedAction({
   // Cancelled after a refusal: the refusal alone doesn't open it again.
   const [dismissed, setDismissed] = useState<unknown>(null);
   const refused = refusedForPassword(error) && error !== dismissed;
+  // Called off: focus goes back to the button it opened from, not the page.
+  const refocus = useRef(false);
+  const button = useCallback((element: HTMLButtonElement | null) => {
+    if (element && refocus.current) {
+      refocus.current = false;
+      element.focus();
+    }
+  }, []);
 
   if (asking || refused) {
     return (
@@ -177,6 +210,7 @@ export function AskedAction({
           onAct(password);
         }}
         onCancel={() => {
+          refocus.current = true;
           setAsking(false);
           setDismissed(error);
         }}
@@ -186,6 +220,7 @@ export function AskedAction({
 
   return (
     <button
+      ref={button}
       type="button"
       className={className}
       disabled={pending || disabled}

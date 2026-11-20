@@ -15,7 +15,12 @@ export function useUpdateConnection() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (input: UpdateConnection) => api.put<Connection>('/connection', input),
-    onSuccess: (connection) => queryClient.setQueryData(['connection'], connection),
+    onSuccess: (connection) => {
+      queryClient.setQueryData(['connection'], connection);
+      // Which web server is trusted decides whether this device is inside,
+      // and with it whether the screens ask for the password again.
+      void queryClient.invalidateQueries({ queryKey: ['access-status'] });
+    },
   });
 }
 
