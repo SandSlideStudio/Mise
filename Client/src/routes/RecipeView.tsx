@@ -125,7 +125,9 @@ function RecipePage({ recipeId, asked }: { recipeId: string; asked: ScaleTarget 
   const portions = recipe.portions ? round(recipe.portions * factor) : null;
   const kept = keptWithNote(t, recipe);
   const size: Size = {
-    note: scaled ? t('recipe.scaled', { factor: round(factor) }) : t('recipe.asWritten'),
+    note: scaled
+      ? t('recipe.scaled', { factor: factorText(translator.locale, factor) })
+      : t('recipe.asWritten'),
     makes: `${t('recipe.makes', { amount: amount(recipe.yield.value * factor, recipe.yield.unit, translator.locale) })}${
       portions ? ` · ${plural('recipes.portions', portions)}` : ''
     }`,
@@ -735,4 +737,15 @@ function amount(value: number, unit: string, locale: string): string {
 
 function round(value: number): number {
   return Number(value.toFixed(2));
+}
+
+/**
+ * How many times the written recipe: "2.5", or for a small part of a big
+ * batch "0.004", where two decimals said "0×". In the reader's own decimals.
+ */
+export function factorText(locale: string, factor: number): string {
+  return new Intl.NumberFormat(
+    locale,
+    factor < 1 ? { maximumSignificantDigits: 2 } : { maximumFractionDigits: 2 },
+  ).format(factor);
 }
