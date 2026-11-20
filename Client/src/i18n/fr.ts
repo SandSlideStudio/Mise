@@ -623,6 +623,9 @@ export const fr: Record<MessageKey, string> = {
   'running.subtitle':
     'Une seule liste pour toute la cuisine. Les lignes cochées disparaissent au bout de deux heures.',
   'running.empty': 'Rien sur la liste. Ajoutez ce qui est à faire.',
+  'running.emptyCook': 'Rien sur la liste pour l’instant. Le chef y ajoute ce qui est à faire.',
+  'running.emptyCookChecklist':
+    'Rien sur la liste pour l’instant. Cochez dans la checklist de prep ce qu’il faut et ajoutez-le.',
   'running.merged': 'Ajouté à la ligne {name} déjà sur la liste.',
   'running.goneAt': 'disparaît à {time}',
 

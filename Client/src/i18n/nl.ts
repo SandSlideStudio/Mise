@@ -607,6 +607,9 @@ export const nl: Record<MessageKey, string> = {
   'running.title': 'De lijst',
   'running.subtitle': 'Eén lijst voor de hele keuken. Afgevinkte regels verdwijnen na twee uur.',
   'running.empty': 'Er staat niets op de lijst. Zet erop wat er moet gebeuren.',
+  'running.emptyCook': 'Er staat nog niets op de lijst. Een chef zet erop wat er moet gebeuren.',
+  'running.emptyCookChecklist':
+    'Er staat nog niets op de lijst. Vink in de prepchecklist aan wat nodig is en zet het erop.',
   'running.merged': 'Opgeteld bij de {name} die al op de lijst stond.',
   'running.goneAt': 'weg om {time}',
 

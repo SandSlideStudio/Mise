@@ -618,6 +618,9 @@ export const de: Record<MessageKey, string> = {
   'running.subtitle':
     'Eine Liste für die ganze Küche. Abgehakte Zeilen verschwinden nach zwei Stunden.',
   'running.empty': 'Nichts auf der Liste. Trage ein, was zu tun ist.',
+  'running.emptyCook': 'Noch nichts auf der Liste. Die Küchenleitung trägt ein, was zu tun ist.',
+  'running.emptyCookChecklist':
+    'Noch nichts auf der Liste. In der Prep-Checkliste abhaken, was gebraucht wird, und auf die Liste setzen.',
   'running.merged': 'Zu dem schon vorhandenen {name} auf der Liste addiert.',
   'running.goneAt': 'weg um {time}',
 

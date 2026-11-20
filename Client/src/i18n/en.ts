@@ -600,6 +600,9 @@ export const en = {
   'running.subtitle':
     'One list for the whole kitchen. Ticked lines go two hours after they are ticked.',
   'running.empty': 'Nothing on the list. Add what needs doing.',
+  'running.emptyCook': 'Nothing on the list yet. A chef adds what needs doing.',
+  'running.emptyCookChecklist':
+    'Nothing on the list yet. Tick what’s needed in the prep checklist and add it.',
   'running.merged': 'Added to the {name} already on the list.',
   'running.goneAt': 'gone at {time}',
 

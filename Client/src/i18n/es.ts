@@ -609,6 +609,9 @@ export const es: Record<MessageKey, string> = {
   'running.subtitle':
     'Una sola lista para toda la cocina. Las líneas marcadas desaparecen a las dos horas.',
   'running.empty': 'No hay nada en la lista. Añade lo que haya que hacer.',
+  'running.emptyCook': 'Aún no hay nada en la lista. El jefe de cocina añade lo que hay que hacer.',
+  'running.emptyCookChecklist':
+    'Aún no hay nada en la lista. Marca en la checklist de prep lo que hace falta y añádelo.',
   'running.merged': 'Sumado a la línea de {name} que ya estaba en la lista.',
   'running.goneAt': 'desaparece a las {time}',
 
