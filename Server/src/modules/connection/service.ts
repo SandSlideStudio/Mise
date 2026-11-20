@@ -4,6 +4,8 @@ import { connectionSettings } from '../../db/schema.js';
 import { plainAddress } from '../../lib/network.js';
 import { acmeReason, issueDomainCertificate, type ChallengeAnswers } from './acme.js';
 import {
+  authorityConstrained,
+  authorityMadeAt,
   authorityPermits,
   isKitchenName,
   createAuthority,
@@ -49,6 +51,16 @@ export interface SeenProxy {
 
 /** Getting a certificate from Let's Encrypt went wrong; the reason is theirs. */
 export class CertificateFailure extends Error {}
+
+/** Why the kitchen's authority can't be replaced as it stands. */
+export class AuthorityRefusal extends Error {
+  constructor(
+    readonly reason: 'none' | 'already_constrained' | 'name_outside_kitchen',
+    readonly host?: string,
+  ) {
+    super(reason);
+  }
+}
 
 type Row = typeof connectionSettings.$inferSelect;
 type Issue = typeof issueDomainCertificate;
@@ -203,6 +215,12 @@ export function createConnectionService(options: {
           names: row?.kitchenNames ?? [],
           expiresAt: row?.kitchenExpiresAt ?? null,
           fingerprint: row?.kitchenCaCert ? fingerprint(row.kitchenCaCert) : null,
+          authority: row?.kitchenCaCert
+            ? {
+                constrained: authorityConstrained(row.kitchenCaCert),
+                createdAt: authorityMadeAt(row.kitchenCaCert),
+              }
+            : null,
         },
         domain: {
           enabled: row?.domainHttps ?? false,
@@ -228,6 +246,39 @@ export function createConnectionService(options: {
 
     async enableKitchenHttps(names: string[], kitchenName: string): Promise<void> {
       await save({ kitchenHttps: true, ...(await makeKitchenCertificate(names, kitchenName)) });
+    },
+
+    /**
+     * A new authority in place of one made before 2.2.2, limited to the
+     * kitchen network like any made since, with a new certificate from it
+     * served at once. The old one is dropped rather than kept alongside: what
+     * it is worth to an intruder is exactly that tablets still trust it, so
+     * it should vouch for nothing more. Every tablet then trusts the new one
+     * once; until then it shows the browser's warning over HTTPS, and plain
+     * HTTP keeps working.
+     */
+    async replaceAuthority(kitchenName: string): Promise<void> {
+      const old = row?.kitchenCaCert;
+      if (!old) throw new AuthorityRefusal('none');
+      // Only the old kind: replacing a limited one gains nothing and costs
+      // every tablet a visit.
+      if (authorityConstrained(old)) throw new AuthorityRefusal('already_constrained');
+      const names = row?.kitchenNames ?? [];
+      // The old authority took any name; the new one would carry a public
+      // one in its limits, and with it the risk this is meant to end.
+      const outside = names.find((name) => !isKitchenName(name));
+      if (outside) throw new AuthorityRefusal('name_outside_kitchen', outside);
+      const authority = await createAuthority(kitchenName, names);
+      const values: Partial<Row> = { kitchenCaCert: authority.cert, kitchenCaKey: authority.key };
+      if (names.length > 0) {
+        const issued = await issueKitchenCertificate(authority, names);
+        Object.assign(values, {
+          kitchenCert: issued.cert,
+          kitchenKey: issued.key,
+          kitchenExpiresAt: issued.expiresAt,
+        });
+      }
+      await save(values);
     },
 
     /** The authority stays, so turning it back on asks no tablet to trust it again. */

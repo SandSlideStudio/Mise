@@ -86,6 +86,10 @@ export const es: Record<MessageKey, string> = {
     'No se pueden calcular los alérgenos de esta receta: falta algo o hace referencia a sí misma. Revisa lo que lleva en el editor.',
   'error.nameOutsideKitchen':
     'El certificado de la cocina solo vale para la red de la cocina: direcciones como 192.168.1.50 y nombres que acaban en .local, .lan, .home o .internal. «{name}» no es uno de ellos.',
+  'error.authorityAlreadyConstrained':
+    'El certificado de la cocina ya solo vale para la red de la cocina. No hay nada que sustituir.',
+  'error.authorityNameOutsideKitchen':
+    'Primero cambia las direcciones que usan las tabletas por direcciones de la red de la cocina: «{name}» no es una de ellas.',
   'error.invalidCredentials': 'No coincide. Inténtalo de nuevo.',
   'error.accountInactive': 'Esa cuenta ya no está activa.',
   'error.deviceNotEnrolled':
@@ -1069,6 +1073,20 @@ export const es: Record<MessageKey, string> = {
   'https.failedHint':
     'Lo más habitual es que el puerto 80 aún no llegue a Mise, o que el dominio aún no apunte aquí. Let’s Encrypt solo permite unos pocos intentos fallidos por hora.',
   'https.renewFailed': 'La última renovación falló; Mise lo volverá a intentar: {reason}',
+  'https.oldAuthorityTitle': 'Este certificado de la cocina puede responder por cualquier web',
+  'https.oldAuthorityRisk':
+    'Se creó el {date}, antes de que Mise limitara sus certificados a la red de la cocina. Una tableta o un móvil que confía en él también lo cree para otras webs, como la de un banco. Solo alguien que se hiciera con este servidor o su base de datos podría aprovecharlo, pero entonces podría espiar esos dispositivos en cualquier web.',
+  'https.oldAuthorityCost':
+    'Al sustituirlo, Mise crea uno nuevo que solo vale para la red de la cocina. Después, cada tableta y cada móvil muestra un aviso por HTTPS hasta que confíes en el nuevo certificado, con los mismos pasos que la primera vez:',
+  'https.replaceAuthority': 'Sustituir el certificado de la cocina',
+  'https.replaceAuthorityConfirm': 'Sí, sustituirlo',
+  'https.replacing': 'Sustituyendo…',
+  'https.authorityReplaced':
+    'Sustituido. El nuevo certificado de la cocina solo vale para la red de la cocina.',
+  'https.authorityReplacedSteps':
+    'Ahora confía en él en cada tableta y cada móvil: abre esta página en cada uno y sigue los pasos.',
+  'https.authorityRemoveOld':
+    'Después quita el certificado antiguo «Mise» de cada dispositivo, donde lo instalaste, para que solo confíe en el nuevo.',
   'trust.title': 'Confía en el certificado de la cocina',
   'trust.body':
     'Una vez por dispositivo. Después Mise se abre aquí por HTTPS, sigue funcionando si se cae la red y se puede instalar como app.',

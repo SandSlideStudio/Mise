@@ -329,6 +329,8 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   already_inside: 'error.alreadyInside',
   allergens_unknown: 'error.allergensUnknown',
   name_outside_kitchen: 'error.nameOutsideKitchen',
+  authority_already_constrained: 'error.authorityAlreadyConstrained',
+  authority_name_outside_kitchen: 'error.authorityNameOutsideKitchen',
   backup_bad_key: 'backups.reason.bad_key',
   backup_wrong_key: 'backups.reason.wrong_key',
   backup_not_a_backup: 'backups.reason.not_a_backup',

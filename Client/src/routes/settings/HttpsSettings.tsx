@@ -8,6 +8,7 @@ import {
   useDisableKitchenHttps,
   useEnableDomainHttps,
   useEnableKitchenHttps,
+  useReplaceKitchenAuthority,
 } from '../../api/connection.js';
 import { errorMessage, useT } from '../../i18n/index.js';
 
@@ -120,6 +121,8 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
         </div>
       ) : null}
 
+      <AuthorityReplacement connection={connection} />
+
       <form onSubmit={onSubmit} className="mt-5 flex flex-wrap items-end gap-3">
         <div className="min-w-64 flex-1">
           <label className="label" htmlFor="kitchenNames">
@@ -164,6 +167,86 @@ function KitchenCertificate({ connection }: { connection: Connection }) {
       {error ? (
         <p role="alert" className="text-danger mt-3 text-sm">
           {errorMessage(translator, error)}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * An authority from before 2.2.2 vouches for any website, not just the
+ * kitchen's. Replacing it is the administrator's call, since every tablet
+ * then trusts the new one once more; this says what is at stake on each side.
+ * A limited authority shows nothing here, except right after replacing.
+ */
+function AuthorityReplacement({ connection }: { connection: Connection }) {
+  const translator = useT();
+  const { t, locale } = translator;
+  const kitchen = connection.https.kitchen;
+  const replace = useReplaceKitchenAuthority();
+  const [confirming, setConfirming] = useState(false);
+
+  if (replace.isSuccess && kitchen.authority?.constrained) {
+    return (
+      <div role="status" className="border-accent mt-5 border-l-2 pl-3">
+        <p className="text-sm font-semibold">{t('https.authorityReplaced')}</p>
+        <p className="mt-1 text-sm">{t('https.authorityReplacedSteps')}</p>
+        <Link to="/trust" className="text-accent font-mono text-sm underline underline-offset-4">
+          {`${window.location.host}/trust`}
+        </Link>
+        <p className="text-ink-soft mt-2 text-sm">{t('https.authorityRemoveOld')}</p>
+        {kitchen.fingerprint ? (
+          <details className="text-ink-faint mt-2 text-sm">
+            <summary className="cursor-pointer">{t('trust.fingerprint')}</summary>
+            <p className="mt-2 font-mono text-xs break-all">{kitchen.fingerprint}</p>
+          </details>
+        ) : null}
+      </div>
+    );
+  }
+  if (!kitchen.authority || kitchen.authority.constrained) return null;
+
+  return (
+    <div className="border-danger mt-5 border-l-2 pl-3">
+      <p className="text-sm font-semibold">{t('https.oldAuthorityTitle')}</p>
+      <p className="mt-1 max-w-[65ch] text-sm">
+        {t('https.oldAuthorityRisk', {
+          date: new Date(kitchen.authority.createdAt).toLocaleDateString(locale),
+        })}
+      </p>
+      <p className="text-ink-soft mt-2 max-w-[65ch] text-sm">{t('https.oldAuthorityCost')}</p>
+      <Link to="/trust" className="text-accent font-mono text-sm underline underline-offset-4">
+        {`${window.location.host}/trust`}
+      </Link>
+      <div className="mt-3 flex flex-wrap items-center gap-2">
+        {confirming ? (
+          <>
+            <button
+              type="button"
+              className="btn-small border-danger text-danger"
+              disabled={replace.isPending}
+              onClick={() => replace.mutate(undefined, { onSettled: () => setConfirming(false) })}
+            >
+              {replace.isPending ? t('https.replacing') : t('https.replaceAuthorityConfirm')}
+            </button>
+            <button
+              type="button"
+              className="btn-small"
+              disabled={replace.isPending}
+              onClick={() => setConfirming(false)}
+            >
+              {t('common.cancel')}
+            </button>
+          </>
+        ) : (
+          <button type="button" className="btn-small" onClick={() => setConfirming(true)}>
+            {t('https.replaceAuthority')}
+          </button>
+        )}
+      </div>
+      {replace.error ? (
+        <p role="alert" className="text-danger mt-2 text-sm">
+          {errorMessage(translator, replace.error)}
         </p>
       ) : null}
     </div>

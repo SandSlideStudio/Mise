@@ -34,6 +34,9 @@ export const useEnableKitchenHttps = () =>
   );
 export const useDisableKitchenHttps = () =>
   useConnectionChange(() => api.delete<Connection>('/connection/kitchen-https'));
+/** A new, limited authority in place of one from before 2.2.2. Every tablet trusts it again. */
+export const useReplaceKitchenAuthority = () =>
+  useConnectionChange(() => api.post<Connection>('/connection/kitchen-https/replace-authority'));
 export const useEnableDomainHttps = () =>
   useConnectionChange(() => api.post<Connection>('/connection/domain-https'));
 export const useDisableDomainHttps = () =>

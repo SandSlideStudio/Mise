@@ -108,6 +108,7 @@ describe('an administrator signed in with a PIN', () => {
       ['POST', '/api/auth/devices', { name: 'Another tablet' }],
       ['PUT', '/api/connection', { outsideDomain: 'mise.example.com' }],
       ['PUT', '/api/connection/kitchen-https', { names: ['192.168.1.50'] }],
+      ['POST', '/api/connection/kitchen-https/replace-authority'],
       // How people sign in, not just what the kitchen is called.
       ['PATCH', '/api/kitchen', { pinOnly: true }],
       ['PATCH', '/api/kitchen', { idleSignOutMinutes: 5 }],

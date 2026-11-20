@@ -1,7 +1,8 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import https from 'node:https';
 import tls from 'node:tls';
-import { X509Certificate } from 'node:crypto';
+import { X509Certificate, webcrypto } from 'node:crypto';
+import * as x509 from '@peculiar/x509';
 import type { FastifyInstance } from 'fastify';
 import { eq } from 'drizzle-orm';
 import { buildApp } from '../../app.js';
@@ -14,7 +15,12 @@ import {
   useTestContext,
 } from '../../test/harness.js';
 import type { issueDomainCertificate } from './acme.js';
-import { authorityPermits, createAuthority, issueKitchenCertificate } from './certificates.js';
+import {
+  authorityConstrained,
+  authorityPermits,
+  createAuthority,
+  issueKitchenCertificate,
+} from './certificates.js';
 import { CONNECTION_ID } from './service.js';
 import { createHttpsListener } from './listener.js';
 
@@ -108,6 +114,8 @@ function fetchOverHttps(
             path,
             ca: options.ca,
             servername: options.servername,
+            // A fresh connection each time, so each sees the certificate served now.
+            agent: false,
             ...(options.anyCertificate ? { rejectUnauthorized: false } : {}),
             headers: { host: options.servername ?? '127.0.0.1' },
           },
@@ -348,6 +356,162 @@ describe('the kitchen certificate', () => {
       remoteAddress: INSIDE,
     });
     expect(anyone.statusCode).toBe(401);
+  });
+});
+
+/** An authority as Mise made them before 2.2.2: no limits on what it vouches for. */
+async function oldAuthority() {
+  const algorithm = { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' } as const;
+  const keys = (await webcrypto.subtle.generateKey(algorithm, true, [
+    'sign',
+    'verify',
+  ])) as unknown as webcrypto.CryptoKeyPair;
+  const cert = await x509.X509CertificateGenerator.createSelfSigned({
+    serialNumber: '01',
+    name: 'CN=Mise · Old Kitchen, O=Mise kitchen certificate',
+    notBefore: new Date(Date.now() - 400 * 86_400_000),
+    notAfter: new Date(Date.now() + 5000 * 86_400_000),
+    keys,
+    signingAlgorithm: algorithm,
+    extensions: [
+      new x509.BasicConstraintsExtension(true, 0, true),
+      new x509.KeyUsagesExtension(
+        x509.KeyUsageFlags.keyCertSign | x509.KeyUsageFlags.cRLSign,
+        true,
+      ),
+    ],
+  });
+  const der = await webcrypto.subtle.exportKey('pkcs8', keys.privateKey as never);
+  return { cert: cert.toString('pem'), key: x509.PemConverter.encode(der, 'PRIVATE KEY') };
+}
+
+/** Kitchen HTTPS on, signed by an authority from before 2.2.2, as an upgraded server has it. */
+async function onOldAuthority(server: FastifyInstance, admin: string, names: string[]) {
+  // On first, with a name today's authority accepts; the old one replaces it below.
+  await as(server, admin, 'PUT', '/api/connection/kitchen-https', { names: ['192.168.1.50'] });
+  const authority = await oldAuthority();
+  const issued = await issueKitchenCertificate(authority, names);
+  await ctx.db
+    .update(connectionSettings)
+    .set({
+      kitchenCaCert: authority.cert,
+      kitchenCaKey: authority.key,
+      kitchenCert: issued.cert,
+      kitchenKey: issued.key,
+      kitchenNames: names,
+    })
+    .where(eq(connectionSettings.id, CONNECTION_ID));
+  await server.connection.load();
+  return authority;
+}
+
+describe('replacing an authority from before 2.2.2', () => {
+  const REPLACE = '/api/connection/kitchen-https/replace-authority';
+
+  it('says which kind the kitchen has', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    expect((await as(server, admin, 'GET', '/api/connection')).json().https.kitchen.authority).toBe(
+      null,
+    );
+    await as(server, admin, 'PUT', '/api/connection/kitchen-https', { names: ['192.168.1.50'] });
+    const made = (await as(server, admin, 'GET', '/api/connection')).json().https.kitchen.authority;
+    expect(made.constrained).toBe(true);
+    expect(Math.abs(new Date(made.createdAt).getTime() - Date.now())).toBeLessThan(60_000);
+
+    await onOldAuthority(server, admin, ['192.168.1.50']);
+    const old = (await as(server, admin, 'GET', '/api/connection')).json().https.kitchen.authority;
+    expect(old.constrained).toBe(false);
+  });
+
+  it('makes a limited authority, and serves a certificate from it straight away', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    await server.httpsListener.start(0, '127.0.0.1');
+    const old = await onOldAuthority(server, admin, ['127.0.0.1', 'mise.local']);
+    const port = server.httpsListener.port()!;
+    expect((await fetchOverHttps(port, '/api/health', { ca: old.cert })).status).toBe(200);
+    const before = server.connection.https().kitchen.fingerprint;
+
+    const replaced = await as(server, admin, 'POST', REPLACE);
+    expect(replaced.statusCode).toBe(200);
+    const kitchen = replaced.json().https.kitchen;
+    expect(kitchen).toMatchObject({
+      enabled: true,
+      names: ['127.0.0.1', 'mise.local'],
+      authority: { constrained: true },
+    });
+    expect(kitchen.fingerprint).not.toBe(before);
+
+    const authority = server.connection.authority()!;
+    expect(authorityConstrained(authority)).toBe(true);
+    expect(authorityPermits(authority, 'www.mybank.com')).toBe(false);
+    expect(authorityPermits(authority, 'mise.local')).toBe(true);
+    // The same listener, no restart: a tablet trusting the new one gets in,
+    // one still trusting the old one gets the browser's warning.
+    expect(server.httpsListener.port()).toBe(port);
+    expect((await fetchOverHttps(port, '/api/health', { ca: authority })).status).toBe(200);
+    await expect(fetchOverHttps(port, '/api/health', { ca: old.cert })).rejects.toThrow();
+
+    // Kept over a restart, and what tablets download is the new one.
+    await server.connection.load();
+    const download = await server.inject({
+      method: 'GET',
+      url: '/api/connection/kitchen-certificate.crt',
+      remoteAddress: INSIDE,
+    });
+    expect(download.body).toBe(authority);
+
+    // Done once: there is nothing left to replace.
+    const again = await as(server, admin, 'POST', REPLACE);
+    expect(again.statusCode).toBe(400);
+    expect(again.json().error.code).toBe('authority_already_constrained');
+  });
+
+  it('refuses while a public name is among the addresses', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    const old = await onOldAuthority(server, admin, ['192.168.1.50', 'kitchen.example.com']);
+    const response = await as(server, admin, 'POST', REPLACE);
+    expect(response.statusCode).toBe(400);
+    expect(response.json().error).toMatchObject({
+      code: 'authority_name_outside_kitchen',
+      details: { name: 'kitchen.example.com' },
+    });
+    expect(server.connection.authority()).toBe(old.cert);
+  });
+
+  it('has nothing to replace before there is a kitchen certificate', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    expect((await as(server, admin, 'POST', REPLACE)).statusCode).toBe(404);
+  });
+
+  it('is for administrators signed in with their password only', async () => {
+    const server = await start();
+    const admin = await signIn(server);
+    const old = await onOldAuthority(server, admin, ['192.168.1.50']);
+    for (const role of ['cook', 'sous_chef', 'head_chef'] as const) {
+      const email = `${role}@example.com`;
+      const password = `a-long-${role}-password`;
+      await as(server, admin, 'POST', '/api/users', {
+        displayName: role,
+        role,
+        email,
+        password,
+      });
+      const signedIn = await server.inject({
+        method: 'POST',
+        url: '/api/auth/login',
+        payload: { email, password },
+        remoteAddress: INSIDE,
+      });
+      const cookie = `mise_session=${cookieFrom(signedIn, 'mise_session')}`;
+      expect((await as(server, cookie, 'POST', REPLACE)).statusCode, role).toBe(403);
+    }
+    const anyone = await server.inject({ method: 'POST', url: REPLACE, remoteAddress: INSIDE });
+    expect(anyone.statusCode).toBe(401);
+    expect(server.connection.authority()).toBe(old.cert);
   });
 });
 
