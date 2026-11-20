@@ -2,6 +2,7 @@ import fp from 'fastify-plugin';
 import type { FastifyPluginAsync } from 'fastify';
 import { randomBytes } from 'node:crypto';
 import type { ServerResponse } from 'node:http';
+import { ApiError } from '../lib/errors.js';
 import { SESSION_COOKIE } from './auth.js';
 
 /**
@@ -99,6 +100,15 @@ const WRITES = new Set(['POST', 'PATCH', 'PUT', 'DELETE']);
 /** Often enough that no proxy or tablet decides the connection is dead. */
 const HEARTBEAT_MS = 25_000;
 
+/**
+ * Open streams one person may hold. A browser opens at most six connections
+ * to a server, so this is far more than their phone, tablet and laptop
+ * together need. Each stream stays open for hours and asks the database
+ * about its sign-in every heartbeat: without a limit, one account could
+ * open thousands and wear a Raspberry Pi down.
+ */
+export const MAX_STREAMS_PER_PERSON = 20;
+
 function topicFor(route: string | undefined): LiveTopic | null {
   if (!route) return null;
   for (const [prefix, topic] of TOPIC_BY_ROUTE) {
@@ -110,6 +120,8 @@ function topicFor(route: string | undefined): LiveTopic | null {
 const livePlugin: FastifyPluginAsync = async (app) => {
   const listeners = new Set<Listener>();
   const streams = new Set<ServerResponse>();
+  /** Open streams by whose they are. */
+  const open = new Map<string, number>();
 
   // The random part makes a restart look like a change, so tablets load once.
   const boot = randomBytes(4).toString('hex');
@@ -138,6 +150,13 @@ const livePlugin: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/api/events', { onRequest: [app.requireUser] }, (request, reply) => {
+    const person = request.user!.id;
+    const held = open.get(person) ?? 0;
+    if (held >= MAX_STREAMS_PER_PERSON) {
+      // The screen tries again by itself a few seconds later.
+      throw new ApiError(429, 'too_many_streams', 'Too many screens open. Close a few.');
+    }
+    open.set(person, held + 1);
     reply.hijack();
     const raw = reply.raw;
     raw.writeHead(200, {
@@ -173,6 +192,9 @@ const livePlugin: FastifyPluginAsync = async (app) => {
       clearInterval(heartbeat);
       unsubscribe();
       streams.delete(raw);
+      const left = (open.get(person) ?? 1) - 1;
+      if (left > 0) open.set(person, left);
+      else open.delete(person);
     });
   });
 

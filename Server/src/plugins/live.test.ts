@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import type { LiveTopic } from './live.js';
+import { MAX_STREAMS_PER_PERSON, type LiveTopic } from './live.js';
 import { setUpKitchen, useTestContext } from '../test/harness.js';
 
 const ctx = useTestContext();
@@ -114,6 +114,36 @@ describe('live updates', () => {
     });
     await readUntil('event: change');
     expect(received).toContain('data: {"topic":"prep"}');
+
+    abort.abort();
+  });
+
+  it('holds one person to a limited number of open streams', async () => {
+    await ctx.app.listen({ port: 0, host: '127.0.0.1' });
+    const { port } = ctx.app.server.address() as { port: number };
+    const abort = new AbortController();
+    const open = (signal: AbortSignal) =>
+      fetch(`http://127.0.0.1:${port}/api/events`, {
+        headers: { cookie: `mise_session=${admin}` },
+        signal,
+      });
+
+    const first = new AbortController();
+    const streams = [await open(first.signal)];
+    for (let i = 1; i < MAX_STREAMS_PER_PERSON; i++) streams.push(await open(abort.signal));
+    expect(streams.every((response) => response.status === 200)).toBe(true);
+
+    const refused = await open(abort.signal);
+    expect(refused.status).toBe(429);
+    const { error } = (await refused.json()) as { error: { code: string } };
+    expect(error.code).toBe('too_many_streams');
+
+    // Closing a screen makes room for another.
+    first.abort();
+    await vi.waitFor(async () => {
+      const again = await open(abort.signal);
+      expect(again.status).toBe(200);
+    });
 
     abort.abort();
   });
