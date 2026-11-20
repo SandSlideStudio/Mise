@@ -109,7 +109,10 @@ export function createRecipesService(db: Database) {
   async function allRecipes() {
     const [rows, components, photos] = await Promise.all([
       db.select().from(recipes).orderBy(asc(recipes.name)),
-      db.select().from(recipeComponents).orderBy(asc(recipeComponents.sortOrder)),
+      db
+        .select()
+        .from(recipeComponents)
+        .orderBy(asc(recipeComponents.sortOrder), asc(recipeComponents.id)),
       db.select().from(recipePhotos).orderBy(asc(recipePhotos.createdAt)),
     ]);
     const componentsOf = new Map<string, typeof components>();
@@ -139,7 +142,7 @@ export function createRecipesService(db: Database) {
       .select()
       .from(recipeComponents)
       .where(eq(recipeComponents.recipeId, id))
-      .orderBy(asc(recipeComponents.sortOrder));
+      .orderBy(asc(recipeComponents.sortOrder), asc(recipeComponents.id));
 
     const photos = await db
       .select()
