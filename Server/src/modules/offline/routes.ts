@@ -94,6 +94,7 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     const [book, all, names, usedBy, stations, list, menuList, settings, history, costSettings] =
       await sourcesAt(version);
     const dishes = await dishCards.summaries(book);
+    const cards = withCards ? await dishCards.allCards(book) : null;
 
     const recipeEntries: OfflineBundle['recipeEntries'] = [];
     for (const row of all) {
@@ -109,9 +110,9 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
           ? costAgainst(row.id, expanded.value.factor, book, costSettings, row.sellPrice)
           : null;
       let card: OfflineBundle['recipeEntries'][number]['card'] = null;
-      if (withCards && row.type === 'dish') {
-        const result = await dishCards.card(row.id, book);
-        if (result.ok) {
+      if (cards && row.type === 'dish') {
+        const result = cards.get(row.id);
+        if (result?.ok) {
           const { settings: _settings, ...rest } = result.card;
           card = rest;
         }
@@ -127,9 +128,8 @@ const offlineRoutes: FastifyPluginAsync = async (app) => {
     }
 
     const menuEntries: OfflineBundle['menuEntries'] = [];
-    for (const { id } of menuList) {
-      const found = await menus.getMenu(id);
-      if (!found) continue;
+    for (const found of await menus.allMenus()) {
+      const { id } = found;
       const menu = withCosts ? await menus.withCosts(found, book) : found;
       let overview: OfflineBundle['menuEntries'][number]['overview'] = null;
       if (withCards) {
