@@ -1387,6 +1387,8 @@ export const fr: Record<MessageKey, string> = {
   // Pars : ce que le chef veut avoir de prêt, et ce qu’il y a déjà
   'checklist.par': 'Par',
   'checklist.parFor': 'Par pour {name}',
+  'checklist.parBelowBatch': 'Moins d’une fournée ({batch}).',
+  'checklist.parBelowBatchMeant': 'Moins d’une fournée ({batch}) — vouliez-vous dire {meant} ?',
   'checklist.parUnitFor': 'Unité du par pour {name}',
   'checklist.parHint':
     'Le par est la quantité à avoir de prête. La personne qui ajoute la ligne indique ce qu’il y a en stock, et la liste demande le reste. Laissez vide pour ne pas fixer de par.',

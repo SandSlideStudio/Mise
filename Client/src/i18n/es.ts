@@ -1364,6 +1364,8 @@ export const es: Record<MessageKey, string> = {
   // Pars: cuánto quiere el chef tener listo, y lo que ya hay
   'checklist.par': 'Par',
   'checklist.parFor': 'Par de {name}',
+  'checklist.parBelowBatch': 'Menos de una tanda ({batch}).',
+  'checklist.parBelowBatchMeant': 'Menos de una tanda ({batch}): ¿querías decir {meant}?',
   'checklist.parUnitFor': 'Unidad del par de {name}',
   'checklist.parHint':
     'El par es la cantidad que quieres tener lista. Quien añade la línea indica lo que hay, y la lista pide el resto. Déjalo vacío para no fijar par.',

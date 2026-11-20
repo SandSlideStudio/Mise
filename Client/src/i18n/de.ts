@@ -1379,6 +1379,8 @@ export const de: Record<MessageKey, string> = {
   // Par-Bestände: wie viel der Chef fertig haben will, und was schon da ist
   'checklist.par': 'Par',
   'checklist.parFor': 'Par-Menge für {name}',
+  'checklist.parBelowBatch': 'Weniger als ein Ansatz ({batch}).',
+  'checklist.parBelowBatchMeant': 'Weniger als ein Ansatz ({batch}) – meintest du {meant}?',
   'checklist.parUnitFor': 'Einheit der Par-Menge für {name}',
   'checklist.parHint':
     'Die Par-Menge ist, wie viel du fertig haben willst. Wer die Zeile auf die Liste setzt, gibt an, was da ist, und die Liste fordert den Rest an. Leer lassen: keine Par-Menge.',

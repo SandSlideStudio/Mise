@@ -1331,6 +1331,8 @@ export const en = {
   // Par levels: how much the chef wants ready, and what is there already
   'checklist.par': 'Par',
   'checklist.parFor': 'Par for {name}',
+  'checklist.parBelowBatch': 'Less than one batch ({batch}).',
+  'checklist.parBelowBatchMeant': 'Less than one batch ({batch}) — meant {meant}?',
   'checklist.parUnitFor': 'Unit of the par for {name}',
   'checklist.parHint':
     'A par is how much you want ready. The cook who adds the line says what is there, and the list asks for the rest. Leave it empty for none.',

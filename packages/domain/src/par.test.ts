@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { toMakeForPar } from './par.js';
+import { parBelowBatch, toMakeForPar } from './par.js';
 import { qty } from './units.js';
 
 describe('what to make to reach a par', () => {
@@ -55,5 +55,25 @@ describe('what to make to reach a par', () => {
       kind: 'unknown',
       par: qty(3, 'l'),
     });
+  });
+});
+
+describe('a par smaller than one batch', () => {
+  it('is pointed out, with the bigger unit it was likely meant in', () => {
+    expect(parBelowBatch(qty(1, 'ml'), qty(500, 'ml'))).toEqual({ meant: qty(1, 'l') });
+    expect(parBelowBatch(qty(2, 'g'), qty(1.5, 'kg'))).toEqual({ meant: qty(2, 'kg') });
+  });
+
+  it('is pointed out without a guess when the bigger unit would still be too little', () => {
+    expect(parBelowBatch(qty(0.2, 'ml'), qty(500, 'ml'))).toEqual({ meant: null });
+    expect(parBelowBatch(qty(0.5, 'l'), qty(2, 'l'))).toEqual({ meant: null });
+    expect(parBelowBatch(qty(4, 'each'), qty(10, 'each'))).toEqual({ meant: null });
+  });
+
+  it('says nothing about a batch or more, or about units that do not compare', () => {
+    expect(parBelowBatch(qty(500, 'ml'), qty(0.5, 'l'))).toBeNull();
+    expect(parBelowBatch(qty(3, 'l'), qty(500, 'ml'))).toBeNull();
+    expect(parBelowBatch(qty(1, 'g'), qty(500, 'ml'))).toBeNull();
+    expect(parBelowBatch(qty(0, 'ml'), qty(500, 'ml'))).toBeNull();
   });
 });

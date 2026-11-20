@@ -203,6 +203,35 @@ describe('setting a par', () => {
     expect(items[0]!.par).toEqual({ value: 1.5, unit: 'l' });
   });
 
+  /**
+   * Found walking through the app: a par of 1 ml for a recipe that makes a
+   * litre, the unit left on ml by mistake. A hint, and it still saves.
+   */
+  it('hints when the par is less than one batch of its recipe, and saves it anyway', () => {
+    edit();
+    const box = screen.getByRole('textbox', { name: 'Par for Fig gel' });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Unit of the par for Fig gel' }), {
+      target: { value: 'ml' },
+    });
+    fireEvent.change(box, { target: { value: '1' } });
+    expect(screen.getByText('Less than one batch (1 l) — meant 1 l?')).toBeTruthy();
+
+    fireEvent.change(box, { target: { value: '0,5' } });
+    // 0.5 l would still be less than a batch: no guess, only the hint.
+    expect(screen.getByText('Less than one batch (1 l).')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Save checklist' }));
+    const [{ items }] = state.save.mock.calls[0] as [{ items: ChecklistItem[] }];
+    expect(items[0]!.par).toEqual({ value: 0.5, unit: 'ml' });
+  });
+
+  it('says nothing of batches for a par of a batch or more, or a line with no recipe', () => {
+    edit();
+    fireEvent.change(screen.getByRole('textbox', { name: 'Par for Fig gel' }), {
+      target: { value: '1' },
+    });
+    expect(screen.queryByText(/one batch/)).toBeNull();
+  });
+
   it('says so, and saves nothing, when the par can’t be read', () => {
     edit();
     const box = screen.getByRole('textbox', { name: 'Par for Fig gel' });

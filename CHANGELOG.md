@@ -38,6 +38,8 @@ staff data, and a stack of smaller fixes.
   asks how much is already there, and the prep list only asks for the rest ("Make 1.8 l — par 3 l,
   1.2 l there"); a line with enough there isn't added at all. The recipe link opens the recipe at
   that amount.
+- A par smaller than one batch of the line's recipe gets a gentle word under it ("Less than one
+  batch (500 ml) — meant 1 l?"), for a unit left on ml by mistake. It still saves.
 - **Print checklist** gives a sheet by station with a box per line, for kitchens that tick on paper,
   and each line's par with a box to write what's there.
 - Ticking no longer makes the page jump: the "not sent yet" notice only shows once a tick has

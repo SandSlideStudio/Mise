@@ -1364,6 +1364,8 @@ export const nl: Record<MessageKey, string> = {
   // Parniveaus: hoeveel de chef klaar wil hebben, en wat er al aanwezig is
   'checklist.par': 'Par',
   'checklist.parFor': 'Par voor {name}',
+  'checklist.parBelowBatch': 'Minder dan één batch ({batch}).',
+  'checklist.parBelowBatchMeant': 'Minder dan één batch ({batch}) — bedoel je {meant}?',
   'checklist.parUnitFor': 'Eenheid van de par voor {name}',
   'checklist.parHint':
     'De par is hoeveel je klaar wilt hebben. De kok die de regel toevoegt, zegt wat er in huis is, en de lijst vraagt om de rest. Leeg laten: geen par.',

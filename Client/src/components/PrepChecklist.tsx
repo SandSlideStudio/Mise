@@ -1,6 +1,6 @@
 import { useRef, useState, type FormEvent } from 'react';
 import type { ChecklistItem, Quantity, RecipeSummary, Station } from '@mise/contracts';
-import type { UnitCode } from '@mise/domain';
+import { humanize, parBelowBatch, type UnitCode } from '@mise/domain';
 import { isQueued } from '../api/client.js';
 import {
   groupChecklist,
@@ -458,6 +458,25 @@ function Editor({
   const textFor = (item: ChecklistItem) =>
     parText[item.id] ?? (item.par ? numberText(item.par.value, locale) : '');
 
+  /**
+   * A gentle word when the par is less than one batch of its recipe, which is
+   * nearly always the wrong unit: 1 ml for a 500 ml vinaigrette. It saves all
+   * the same; half a batch can be what the chef wants.
+   */
+  function parHint(item: ChecklistItem): string | null {
+    const linked = item.recipeId
+      ? (recipes.data ?? []).find((recipe) => recipe.id === item.recipeId)
+      : undefined;
+    const value = readNumber(textFor(item), AMOUNT).value;
+    if (!linked || value === null) return null;
+    const below = parBelowBatch({ value, unit: unitFor(item) }, linked.yield);
+    if (!below) return null;
+    const batch = quantityText(translator, humanize(linked.yield));
+    return below.meant
+      ? t('checklist.parBelowBatchMeant', { batch, meant: quantityText(translator, below.meant) })
+      : t('checklist.parBelowBatch', { batch });
+  }
+
   function onSubmit(event: FormEvent) {
     event.preventDefault();
     // Each box says what is wrong with it; no par is saved as another number.
@@ -571,6 +590,9 @@ function Editor({
                     >
                       <UnitOptions />
                     </select>
+                    {parHint(item) ? (
+                      <p className="text-ink-soft basis-full text-[15px]">{parHint(item)}</p>
+                    ) : null}
                   </div>
                   <RecipeLinkField
                     name={item.name}
