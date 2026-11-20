@@ -1357,6 +1357,10 @@ export const es: Record<MessageKey, string> = {
   'kitchen.keepForGood': 'Para siempre',
   'kitchen.keepForHint':
     'Las líneas marcadas más antiguas se eliminan, para que el registro de quién hizo qué no crezca sin fin.',
+  'kitchen.keepShorterConfirm_one':
+    'Las líneas marcadas de hace más de {count} día se borrarán en la próxima hora y no se podrán recuperar. ¿Continuar?',
+  'kitchen.keepShorterConfirm_other':
+    'Las líneas marcadas de hace más de {count} días se borrarán en la próxima hora y no se podrán recuperar. ¿Continuar?',
   'staff.theirData': 'Sus datos',
   'staff.theirDataHint':
     'Todo lo que Mise guarda sobre {name}: su cuenta, las líneas de prep que añadió, tomó o marcó, una nota de relevo firmada con su nombre, y dónde tiene la sesión abierta. Nunca su PIN ni su contraseña.',

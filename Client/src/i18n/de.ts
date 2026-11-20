@@ -1371,6 +1371,10 @@ export const de: Record<MessageKey, string> = {
   'kitchen.keepForGood': 'Für immer',
   'kitchen.keepForHint':
     'Ältere abgehakte Zeilen werden gelöscht, damit die Aufzeichnung, wer was gemacht hat, nicht endlos wächst.',
+  'kitchen.keepShorterConfirm_one':
+    'Abgehakte Zeilen, die älter als {count} Tag sind, werden innerhalb einer Stunde gelöscht und lassen sich nicht zurückholen. Weiter?',
+  'kitchen.keepShorterConfirm_other':
+    'Abgehakte Zeilen, die älter als {count} Tage sind, werden innerhalb einer Stunde gelöscht und lassen sich nicht zurückholen. Weiter?',
   'staff.theirData': 'Daten dieser Person',
   'staff.theirDataHint':
     'Alles, was Mise über {name} speichert: das Konto, die Prep-Zeilen, die die Person hinzugefügt, übernommen oder abgehakt hat, eine Übergabenotiz mit ihrem Namen und wo sie angemeldet ist. Nie ihre PIN oder ihr Passwort.',

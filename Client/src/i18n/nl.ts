@@ -1357,6 +1357,10 @@ export const nl: Record<MessageKey, string> = {
   'kitchen.keepForGood': 'Voorgoed',
   'kitchen.keepForHint':
     'Oudere afgevinkte regels worden verwijderd, zodat het overzicht van wie wat deed niet eindeloos groeit.',
+  'kitchen.keepShorterConfirm_one':
+    'Afgevinkte regels ouder dan {count} dag worden binnen het uur verwijderd en zijn niet terug te halen. Doorgaan?',
+  'kitchen.keepShorterConfirm_other':
+    'Afgevinkte regels ouder dan {count} dagen worden binnen het uur verwijderd en zijn niet terug te halen. Doorgaan?',
   'staff.theirData': 'Hun gegevens',
   'staff.theirDataHint':
     'Alles wat Mise over {name} bewaart: het account, de prepregels die ze toevoegden, oppakten of afvinkten, een overdrachtsnotitie met hun naam eronder, en waar ze ingelogd zijn. Nooit hun pincode of wachtwoord.',

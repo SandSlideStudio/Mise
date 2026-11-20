@@ -95,6 +95,12 @@ export function KitchenSettings() {
 
   function onSubmit(event: FormEvent) {
     event.preventDefault();
+    // A shorter time takes effect within the hour and can't be undone: years
+    // of ticked lines can go at once, so the chef says so first.
+    const before = kitchen.data?.tickedKeepDays ?? null;
+    const shorter =
+      tickedRetention === 'keep' && keepDays !== null && (before === null || keepDays < before);
+    if (shorter && !window.confirm(plural('kitchen.keepShorterConfirm', keepDays))) return;
     update.mutate({
       name,
       language,

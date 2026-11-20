@@ -1325,6 +1325,10 @@ export const en = {
   'kitchen.keepForGood': 'For good',
   'kitchen.keepForHint':
     'Older ticked lines are deleted, so the record of who did what doesn’t grow without end.',
+  'kitchen.keepShorterConfirm_one':
+    'Ticked lines older than {count} day are deleted within the hour, and can’t be brought back. Go ahead?',
+  'kitchen.keepShorterConfirm_other':
+    'Ticked lines older than {count} days are deleted within the hour, and can’t be brought back. Go ahead?',
   'staff.theirData': 'Their data',
   'staff.theirDataHint':
     'Everything Mise holds about {name}: their account, the prep lines they added, were on or ticked off, a handover note signed with their name, and where they are signed in. Never their PIN or password.',
