@@ -1,5 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { CreateMenu, Menu, MenuOverview, MenuSummary, UpdateMenu } from '@mise/contracts';
+import type {
+  CreateMenu,
+  Menu,
+  MenuOverview,
+  MenuSummary,
+  Recipe,
+  UpdateMenu,
+} from '@mise/contracts';
 import { api, isQueued, RequestFailed, sendOrQueue } from './client.js';
 import { inCourseOrder, menuDishAsSent } from './offlineEdits.js';
 
@@ -97,5 +104,32 @@ export function useMarkCardsPrinted(id: string) {
   return useMutation({
     mutationFn: () => api.post<Menu>(`/menus/${id}/cards-printed`),
     onSuccess: saved,
+  });
+}
+
+/**
+ * Publish the dishes on a menu that are still drafts, in one tap from the
+ * menu. Only the status is sent, so it can't undo anyone's edit to the dish
+ * meanwhile; it needs Mise to be reachable, like the other menu actions. The
+ * server lets only chefs and administrators do it.
+ */
+export function usePublishDishes(menuId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      for (const id of ids) await api.patch<Recipe>(`/recipes/${id}`, { status: 'published' });
+    },
+    // Settled, not succeeded: when one of several fails, those before it did publish.
+    onSettled: () => {
+      const changed = [
+        ['menu', menuId],
+        ['menus'],
+        ['recipes'],
+        ['recipe'],
+        ['dishes'],
+        ['dish-card'],
+      ];
+      for (const queryKey of changed) void queryClient.invalidateQueries({ queryKey });
+    },
   });
 }

@@ -19,7 +19,6 @@ import type {
 } from '@mise/contracts';
 import {
   ALLERGENS,
-  ALL_UNITS,
   COURSES,
   KEPT,
   ONE_PLATE,
@@ -39,6 +38,8 @@ import { LoadError } from '../components/LoadError.js';
 import { ComponentPicker } from '../components/ComponentPicker.js';
 import { NumberInput } from '../components/NumberInput.js';
 import { Plate } from '../components/Plate.js';
+import { WithCurrency } from '../components/Cost.js';
+import { UnitOptions } from '../components/UnitOptions.js';
 import { numberText, readNumber, type NumberRules } from '../lib/typedNumber.js';
 import {
   allergenName,
@@ -539,11 +540,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                           aria-label={t('common.unit')}
                           className="field h-11"
                         >
-                          {ALL_UNITS.map((unit) => (
-                            <option key={unit.code} value={unit.code}>
-                              {unit.code}
-                            </option>
-                          ))}
+                          <UnitOptions />
                         </select>
                         <input
                           ref={register(`${line.key}:note`)}
@@ -679,11 +676,7 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                             value={yieldUnit}
                             onChange={(e) => setYieldUnit(e.target.value as UnitCode)}
                           >
-                            {ALL_UNITS.map((unit) => (
-                              <option key={unit.code} value={unit.code}>
-                                {unit.code}
-                              </option>
-                            ))}
+                            <UnitOptions />
                           </select>
                         </span>
                       </RailField>
@@ -742,14 +735,17 @@ function EditorForm({ recipe }: { recipe?: Recipe }) {
                       htmlFor="sellPrice"
                       hint={t('cost.sellPriceHint')}
                     >
-                      <NumberInput
-                        id="sellPrice"
-                        rules={SELL_PRICE}
-                        money
-                        className="field min-h-10"
-                        value={sellPrice}
-                        onText={setSellPrice}
-                      />
+                      <WithCurrency>
+                        <NumberInput
+                          id="sellPrice"
+                          rules={SELL_PRICE}
+                          money
+                          className="field min-h-10 min-w-0 flex-1"
+                          value={sellPrice}
+                          onText={setSellPrice}
+                          messageClassName="order-last basis-full"
+                        />
+                      </WithCurrency>
                     </RailField>
                   </>
                 ) : (

@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import type { ChecklistItem, Station } from '@mise/contracts';
-import { formatQuantity, unit } from '@mise/domain';
 import { groupChecklist } from '../api/checklist.js';
-import { useT } from '../i18n/index.js';
+import { quantityText, unitLabel, useT } from '../i18n/index.js';
 
 /**
  * The checklist on paper, for kitchens that tick on paper: a box and a name
@@ -23,7 +22,8 @@ export function ChecklistPrint({
   stations: Station[];
   date?: Date;
 }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t, locale } = translator;
   const groups = groupChecklist(items, stations);
   const day = date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
 
@@ -53,7 +53,7 @@ export function ChecklistPrint({
               {item.par ? (
                 <>
                   <span className="text-[10pt]">
-                    {t('checklistPrint.par', { amount: formatQuantity(item.par, { locale }) })}
+                    {t('checklistPrint.par', { amount: quantityText(translator, item.par) })}
                   </span>
                   <span className="flex items-end gap-[1.5mm] text-[10pt]">
                     {t('checklistPrint.there')}
@@ -63,7 +63,9 @@ export function ChecklistPrint({
                       className="h-[6mm] w-[18mm] border-[0.6px] border-black"
                     />
                     {/* A bare count needs no unit, the same as on the screen. */}
-                    {item.par.unit === 'each' ? '' : unit(item.par.unit).abbr}
+                    {item.par.unit === 'each'
+                      ? ''
+                      : unitLabel(translator, item.par.unit, item.par.value)}
                   </span>
                 </>
               ) : null}

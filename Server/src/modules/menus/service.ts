@@ -79,9 +79,13 @@ export function createMenusService(db: Database) {
         status: menus.status,
         updatedAt: menus.updatedAt,
         dishCount: count(menuDishes.id),
+        draftCount: sql<number>`count(*) filter (where ${recipes.status} = 'draft')`.mapWith(
+          Number,
+        ),
       })
       .from(menus)
       .leftJoin(menuDishes, eq(menuDishes.menuId, menus.id))
+      .leftJoin(recipes, eq(recipes.id, menuDishes.recipeId))
       .groupBy(menus.id)
       .orderBy(asc(menus.name));
     return rows.map((row) => ({ ...row, updatedAt: row.updatedAt.toISOString() }));
@@ -165,6 +169,7 @@ export function createMenusService(db: Database) {
       description: row.description,
       status: row.status,
       dishCount: dishes.length,
+      draftCount: dishes.filter((dish) => dish.status === 'draft').length,
       updatedAt: row.updatedAt.toISOString(),
       cardsPrintedAt: row.cardsPrintedAt?.toISOString() ?? null,
       dishes: dishes.map((dish) => ({

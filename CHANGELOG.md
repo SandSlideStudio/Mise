@@ -38,6 +38,8 @@ staff data, and a stack of smaller fixes.
   asks how much is already there, and the prep list only asks for the rest ("Make 1.8 l — par 3 l,
   1.2 l there"); a line with enough there isn't added at all. The recipe link opens the recipe at
   that amount.
+- A par smaller than one batch of the line's recipe gets a gentle word under it ("Less than one
+  batch (500 ml) — meant 1 l?"), for a unit left on ml by mistake. It still saves.
 - **Print checklist** gives a sheet by station with a box per line, for kitchens that tick on paper,
   and each line's par with a box to write what's there.
 - Ticking no longer makes the page jump: the "not sent yet" notice only shows once a tick has
@@ -144,6 +146,17 @@ staff data, and a stack of smaller fixes.
   "1.250" on its own, a thousand or one and a quarter depending on who wrote it, is asked about.
   Every number shown is written the reader's way too, in the edit-conflict window and on the
   printed prep list as well.
+- Units are named in the reader's language wherever they are shown, printed sheets included:
+  "2 el" and "1 kopje" in Dutch, "2 EL" in German, "2 c. à s." in French, "2 cda." in Spanish,
+  with "stuk" rather than "each" to choose from. Recipes keep the same units underneath, so a
+  recipe written in one language reads right in another. g, kg, ml and l stay as they are.
+- A recipe or dish with nothing in it yet shows no food cost, rather than €0.00. The purchase price
+  and selling price boxes show the kitchen's currency sign beside them. Prep and component
+  recipes no longer offer a plating photograph, which is for dishes (one already added still
+  shows, so it can be removed). Setup says a password is too short once, not twice.
+- An active menu with dishes still marked draft says so, on its page and in the list of menus
+  ("2 dishes are still drafts — their cards say so"), and chefs can publish them from there in
+  one tap.
 
 **Accessibility**
 

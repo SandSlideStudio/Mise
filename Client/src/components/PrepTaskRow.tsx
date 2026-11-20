@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import type { PrepTask, PrepTaskStatus, Station } from '@mise/contracts';
-import { formatQuantity, humanize, isUnitCode, type UnitCode } from '@mise/domain';
-import { useT, type Translator } from '../i18n/index.js';
+import { humanize, isUnitCode, type UnitCode } from '@mise/domain';
+import { quantityText, useT, type Translator } from '../i18n/index.js';
 import { useCurrentUser } from '../api/session.js';
 
 /**
@@ -24,23 +24,25 @@ import { useCurrentUser } from '../api/session.js';
 /** Starting a job, or putting it back. */
 export type ProgressChange = 'in_progress' | 'open';
 
-export function formatTaskQuantity(task: PrepTask, locale?: string): string | null {
+export function formatTaskQuantity(task: PrepTask, translator: Translator): string | null {
   if (!task.quantity || !isUnitCode(task.quantity.unit)) return null;
   // Stored in base units, so 2000 g reads back as 2 kg.
-  return formatQuantity(humanize({ value: task.quantity.value, unit: task.quantity.unit }), {
-    locale,
-  });
+  return quantityText(
+    translator,
+    humanize({ value: task.quantity.value, unit: task.quantity.unit }),
+  );
 }
 
 /**
  * Why a line made up to a par asks for its amount: "Par 3 l, 1 l there".
  * Nothing for any other line.
  */
-export function parNote(t: Translator['t'], task: PrepTask, locale?: string): string | null {
+export function parNote(translator: Translator, task: PrepTask): string | null {
+  const { t } = translator;
   const par = task.par;
   if (!par || !isUnitCode(par.par.unit) || !isUnitCode(par.onHand.unit)) return null;
   const show = (value: number, unit: UnitCode) =>
-    formatQuantity(humanize({ value, unit }), { locale });
+    quantityText(translator, humanize({ value, unit }));
   const target = show(par.par.value, par.par.unit);
   return par.onHand.value > 0
     ? t('task.parNote', { par: target, onHand: show(par.onHand.value, par.onHand.unit) })
@@ -68,13 +70,14 @@ export function PrepTaskRow({
   onLabel?: () => void;
   disabled?: boolean;
 }) {
-  const { t, locale } = useT();
+  const translator = useT();
+  const { t } = translator;
   const done = task.status === 'done';
   const making = task.status === 'in_progress';
-  const quantity = formatTaskQuantity(task, locale);
+  const quantity = formatTaskQuantity(task, translator);
   const soft = done ? 'text-ink-faint' : 'text-ink-soft';
   const added = addedNote(t, task);
-  const par = parNote(t, task, locale);
+  const par = parNote(translator, task);
 
   return (
     <li className="border-rule flex items-stretch border-b">

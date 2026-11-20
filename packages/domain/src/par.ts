@@ -1,5 +1,5 @@
 import { humanize } from './rounding.js';
-import { convert, fromBase, qty, toBase, type Quantity } from './units.js';
+import { convert, fromBase, qty, toBase, type Quantity, type UnitCode } from './units.js';
 
 /**
  * Par levels: how much of something the chef wants ready at the start of the
@@ -39,4 +39,25 @@ export function toMakeForPar(par: Quantity, onHand: Quantity | null): ParOutcome
   // A par in dozens that is a few short asks for those few, not another dozen.
   const unit = par.unit === 'dozen' && Math.abs(shortBase % 12) > 1e-9 ? 'each' : par.unit;
   return { kind: 'make', make: humanize(fromBase(shortBase, unit), 'up'), par, onHand: there };
+}
+
+/** The metric unit a thousand times bigger, for a par typed in the small one by mistake. */
+const THOUSANDFOLD: Partial<Record<UnitCode, UnitCode>> = { g: 'kg', ml: 'l' };
+
+/**
+ * A par smaller than one batch of the recipe it is made from: 1 ml for a
+ * 500 ml vinaigrette is almost always 1 l with the wrong unit picked. Only a
+ * hint for the editor, never a refusal: a par of half a batch can be meant.
+ * `meant` is the same number in the unit a thousand times bigger, when that
+ * would be a batch or more. Null when the par is a batch or more, or when it
+ * can't be compared with the batch without knowing the ingredient.
+ */
+export function parBelowBatch(par: Quantity, batch: Quantity): { meant: Quantity | null } | null {
+  if (par.value <= 0 || batch.value <= 0) return null;
+  const inBatchUnit = convert(par, batch.unit);
+  // Float dust from the conversion doesn't make a par of exactly one batch too small.
+  if (!inBatchUnit.ok || inBatchUnit.value.value >= batch.value * (1 - 1e-9)) return null;
+  const bigger = THOUSANDFOLD[par.unit];
+  const meant = bigger && toBase(par) * 1000 >= toBase(batch) ? qty(par.value, bigger) : null;
+  return { meant };
 }

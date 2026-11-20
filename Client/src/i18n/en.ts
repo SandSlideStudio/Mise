@@ -908,6 +908,13 @@ export const en = {
   'menus.noDishes': 'No dishes on this menu yet.',
   'menus.noCourse': 'No course',
   'menus.changed': 'Changed',
+  'menus.draftsOnActive_one': '{count} dish is still a draft — its card says so.',
+  'menus.draftsOnActive_other': '{count} dishes are still drafts — their cards say so.',
+  'menus.publishDrafts_one': 'Publish it',
+  'menus.publishDrafts_other': 'Publish them',
+  'menus.publishing': 'Publishing…',
+  'menus.draftsOnList_one': '{count} dish still a draft',
+  'menus.draftsOnList_other': '{count} dishes still drafts',
   'menus.removeDish': 'Take {name} off the menu',
   'menus.addDish': 'Add the dish',
   'menus.pickDish': 'Choose a dish',
@@ -1324,6 +1331,8 @@ export const en = {
   // Par levels: how much the chef wants ready, and what is there already
   'checklist.par': 'Par',
   'checklist.parFor': 'Par for {name}',
+  'checklist.parBelowBatch': 'Less than one batch ({batch}).',
+  'checklist.parBelowBatchMeant': 'Less than one batch ({batch}) — meant {meant}?',
   'checklist.parUnitFor': 'Unit of the par for {name}',
   'checklist.parHint':
     'A par is how much you want ready. The cook who adds the line says what is there, and the list asks for the rest. Leave it empty for none.',
@@ -1646,6 +1655,25 @@ export const en = {
   'number.atLeast': 'At least {min}.',
   'number.moreThan': 'More than {min}.',
   'number.atMost': 'At most {max}.',
+
+  // Units a kitchen says in its own words. The bare key names the unit in a
+  // list to choose from; the pair follows a number. Metric and imperial
+  // symbols (g, ml, oz…) are the same in every language and have no key.
+  'unit.each': 'each',
+  'unit.each_one': 'ea',
+  'unit.each_other': 'ea',
+  'unit.dozen': 'dozen',
+  'unit.dozen_one': 'dz',
+  'unit.dozen_other': 'dz',
+  'unit.tsp': 'tsp',
+  'unit.tsp_one': 'tsp',
+  'unit.tsp_other': 'tsp',
+  'unit.tbsp': 'tbsp',
+  'unit.tbsp_one': 'tbsp',
+  'unit.tbsp_other': 'tbsp',
+  'unit.cup': 'cup',
+  'unit.cup_one': 'cup',
+  'unit.cup_other': 'cup',
 } as const;
 
 export type MessageKey = keyof typeof en;

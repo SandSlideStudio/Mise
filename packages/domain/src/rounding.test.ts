@@ -64,6 +64,13 @@ describe('formatQuantity', () => {
     // No thousands separator: 1500 g is not "1.500 g", which reads as 1.5 g.
     expect(formatQuantity(qty(1500, 'g'), { locale: 'nl-NL' })).toBe('1500 g');
   });
+
+  it('names the unit with the label it is given, after rounding', () => {
+    const label = (code: string, value: number) => `${code}:${value}`;
+    expect(formatQuantity(qty(2.0004, 'tbsp'), { label })).toBe('2 tbsp:2');
+    // A bare count stays bare, whatever the label would say.
+    expect(formatQuantity(qty(3, 'each'), { label })).toBe('3');
+  });
 });
 
 describe('small imperial amounts', () => {

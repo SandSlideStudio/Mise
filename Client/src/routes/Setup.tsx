@@ -11,7 +11,7 @@ import {
   type SetupRequest,
   type TickedRetention,
 } from '@mise/contracts';
-import { ALL_UNITS, isCommonPin, ONE_PLATE, type UnitCode } from '@mise/domain';
+import { isCommonPin, ONE_PLATE, type UnitCode } from '@mise/domain';
 import type { BackupDestination, OnedriveStatus, RestoreResult } from '@mise/contracts';
 import {
   useRestoreBackup,
@@ -24,6 +24,7 @@ import { RequestFailed } from '../api/client.js';
 import { useEnrollDevice } from '../api/kitchen.js';
 import { useSetup, useSetupStatus } from '../api/session.js';
 import { Plate } from '../components/Plate.js';
+import { UnitOptions } from '../components/UnitOptions.js';
 import {
   errorMessage,
   LANGUAGE_NAMES,
@@ -789,7 +790,7 @@ export function Setup() {
                   </Field>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <PasswordState password={password} confirm={confirm} />
+                  <PasswordState password={password} confirm={confirm} listed={attempted} />
                 </div>
                 <Field label={t('setup.yourPin')} htmlFor="pin" hint={t('setup.yourPinHint')}>
                   <input
@@ -1566,17 +1567,29 @@ function Switch({
   );
 }
 
-function PasswordState({ password, confirm }: { password: string; confirm: string }) {
+/**
+ * How the password stands while it is typed: too short, not the same twice, or
+ * matching. Once Next has been tried, what is wrong is in the list of the step's
+ * problems, which is read out; saying it here as well put it on screen twice.
+ */
+export function PasswordState({
+  password,
+  confirm,
+  listed,
+}: {
+  password: string;
+  confirm: string;
+  listed: boolean;
+}) {
   const { t } = useT();
   if (password.length > 0 && password.length < MIN_PASSWORD) {
-    return <p className="text-danger text-sm">{t('setup.passwordShort')}</p>;
+    return listed ? null : <p className="text-danger text-sm">{t('setup.passwordShort')}</p>;
   }
   if (!confirm) return null;
-  return password === confirm ? (
-    <p className="text-ink-soft text-sm">✓ {t('setup.passwordMatch')}</p>
-  ) : (
-    <p className="text-danger text-sm">{t('setup.passwordMismatch')}</p>
-  );
+  if (password === confirm) {
+    return <p className="text-ink-soft text-sm">✓ {t('setup.passwordMatch')}</p>;
+  }
+  return listed ? null : <p className="text-danger text-sm">{t('setup.passwordMismatch')}</p>;
 }
 
 /** One of several that can be on at once. */
@@ -1855,11 +1868,7 @@ function RecipeRow({
                 value={recipe.yieldUnit}
                 onChange={(e) => onChange({ ...recipe, yieldUnit: e.target.value as UnitCode })}
               >
-                {ALL_UNITS.map((unit) => (
-                  <option key={unit.code} value={unit.code}>
-                    {unit.code}
-                  </option>
-                ))}
+                <UnitOptions />
               </select>
             </div>
           </div>

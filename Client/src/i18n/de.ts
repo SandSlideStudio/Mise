@@ -940,6 +940,15 @@ export const de: Record<MessageKey, string> = {
   'menus.noDishes': 'Noch keine Gerichte auf diesem Menü.',
   'menus.noCourse': 'Ohne Gang',
   'menus.changed': 'Geändert',
+  'menus.draftsOnActive_one':
+    '{count} Gericht ist noch ein Entwurf – das steht auch auf seiner Karte.',
+  'menus.draftsOnActive_other':
+    '{count} Gerichte sind noch Entwürfe – das steht auch auf ihren Karten.',
+  'menus.publishDrafts_one': 'Jetzt veröffentlichen',
+  'menus.publishDrafts_other': 'Alle veröffentlichen',
+  'menus.publishing': 'Wird veröffentlicht…',
+  'menus.draftsOnList_one': '{count} Gericht noch Entwurf',
+  'menus.draftsOnList_other': '{count} Gerichte noch Entwürfe',
   'menus.removeDish': '{name} vom Menü nehmen',
   'menus.addDish': 'Gericht hinzufügen',
   'menus.pickDish': 'Ein Gericht wählen',
@@ -1370,6 +1379,8 @@ export const de: Record<MessageKey, string> = {
   // Par-Bestände: wie viel der Chef fertig haben will, und was schon da ist
   'checklist.par': 'Par',
   'checklist.parFor': 'Par-Menge für {name}',
+  'checklist.parBelowBatch': 'Weniger als ein Ansatz ({batch}).',
+  'checklist.parBelowBatchMeant': 'Weniger als ein Ansatz ({batch}) – meintest du {meant}?',
   'checklist.parUnitFor': 'Einheit der Par-Menge für {name}',
   'checklist.parHint':
     'Die Par-Menge ist, wie viel du fertig haben willst. Wer die Zeile auf die Liste setzt, gibt an, was da ist, und die Liste fordert den Rest an. Leer lassen: keine Par-Menge.',
@@ -1702,4 +1713,20 @@ export const de: Record<MessageKey, string> = {
   'number.atLeast': 'Mindestens {min}.',
   'number.moreThan': 'Mehr als {min}.',
   'number.atMost': 'Höchstens {max}.',
+
+  'unit.each': 'Stück',
+  'unit.each_one': 'Stück',
+  'unit.each_other': 'Stück',
+  'unit.dozen': 'Dutzend',
+  'unit.dozen_one': 'Dutzend',
+  'unit.dozen_other': 'Dutzend',
+  'unit.tsp': 'TL',
+  'unit.tsp_one': 'TL',
+  'unit.tsp_other': 'TL',
+  'unit.tbsp': 'EL',
+  'unit.tbsp_one': 'EL',
+  'unit.tbsp_other': 'EL',
+  'unit.cup': 'Tasse',
+  'unit.cup_one': 'Tasse',
+  'unit.cup_other': 'Tassen',
 };

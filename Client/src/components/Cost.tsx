@@ -7,7 +7,9 @@ import type {
   RecipeCost,
 } from '@mise/contracts';
 import { dimensionOf, unit as unitDef, type BaseUnit, type UnitCode } from '@mise/domain';
-import { useT, type Translator } from '../i18n/index.js';
+import type { ReactNode } from 'react';
+import { useKitchen } from '../api/kitchen.js';
+import { unitLabel, useT, type Translator } from '../i18n/index.js';
 
 /**
  * Food cost on screen, for chefs and administrators. The server leaves every
@@ -20,6 +22,36 @@ import { useT, type Translator } from '../i18n/index.js';
 
 export function formatMoney(locale: string, currency: Currency, amount: number): string {
   return new Intl.NumberFormat(locale, { style: 'currency', currency }).format(amount);
+}
+
+/**
+ * The currency's sign, and whether this language writes it after the amount:
+ * "€ 12,50" in Dutch, "12,50 €" in German and French.
+ */
+export function currencySign(locale: string, currency: Currency): { sign: string; after: boolean } {
+  const parts = new Intl.NumberFormat(locale, { style: 'currency', currency }).formatToParts(1);
+  const sign = parts.findIndex((part) => part.type === 'currency');
+  const number = parts.findIndex((part) => part.type === 'integer');
+  return { sign: parts[sign]?.value ?? currency, after: sign > number };
+}
+
+/**
+ * A money box with the kitchen's currency beside it, on the side the reader
+ * writes it, so nobody wonders whether the price is in euros or cents. The
+ * box's own message about what can't be read goes under both.
+ */
+export function WithCurrency({ children }: { children: ReactNode }) {
+  const { locale } = useT();
+  const kitchen = useKitchen();
+  const { sign, after } = currencySign(locale, kitchen.data?.currency ?? 'EUR');
+  const mark = <span className="text-ink-soft text-lg">{sign}</span>;
+  return (
+    <span className="flex flex-wrap items-center gap-1.5">
+      {after ? null : mark}
+      {children}
+      {after ? mark : null}
+    </span>
+  );
 }
 
 export function formatPercent(locale: string, percent: number): string {
@@ -49,7 +81,7 @@ export function perUnitText(
   const amount = formatMoney(translator.locale, currency, perBase * unitDef(shown).toBase);
   return shown === 'each'
     ? translator.t('cost.each', { amount })
-    : translator.t('cost.perUnit', { amount, unit: unitDef(shown).abbr });
+    : translator.t('cost.perUnit', { amount, unit: unitLabel(translator, shown, 1) });
 }
 
 /**

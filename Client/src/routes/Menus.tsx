@@ -111,6 +111,14 @@ export function Menus() {
                 <p className="text-ink-soft mt-2 text-sm">
                   {plural('menus.dishes', menu.dishCount)}
                 </p>
+                {/* On a menu that is out, a draft dish is a mistake worth seeing from here. */}
+                {menu.status === 'active' && menu.draftCount > 0 ? (
+                  <p className="mt-2">
+                    <span className="tag tag-accent text-[12px]">
+                      {plural('menus.draftsOnList', menu.draftCount)}
+                    </span>
+                  </p>
+                ) : null}
               </Plate>
             </Link>
           ))}

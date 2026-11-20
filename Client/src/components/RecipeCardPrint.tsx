@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import type { Allergen } from '@mise/domain';
-import { formatQuantity, humanize, isUnitCode } from '@mise/domain';
+import { humanize, isUnitCode } from '@mise/domain';
 import type { ExpandedRecipe } from '@mise/contracts';
-import { allergenName, keptWithNote, recipeTypeName, useT } from '../i18n/index.js';
+import { allergenName, keptWithNote, quantityText, recipeTypeName, useT } from '../i18n/index.js';
 import { CardIconMark } from './DishCardView.js';
 
 /**
@@ -33,9 +33,7 @@ export function RecipeCardPrint({
   const mayContain = allergens.mayContain as Allergen[];
 
   const amount = (value: number, unit: string) =>
-    isUnitCode(unit)
-      ? formatQuantity(humanize({ value, unit }), { locale: translator.locale })
-      : `${value} ${unit}`;
+    isUnitCode(unit) ? quantityText(translator, humanize({ value, unit })) : `${value} ${unit}`;
 
   const facts: { label: string; value: string; note?: string }[] = isDish
     ? []
