@@ -118,6 +118,19 @@ describe('vegan', () => {
     expect(unwrap(rollUpVegan('dish', bookWith(recipe('dish', []))))).toBe('unknown');
   });
 
+  it('is not vegan when an empty sub-recipe declares an animal allergen', () => {
+    // A garnish written as "prawn oil" with no lines yet, only the allergen.
+    const oil = recipe('Garnalenolie', [], { declaredAllergens: ['crustaceans'] });
+    const sauce = recipe('Saus', [ing('corn'), sub('Garnalenolie')]);
+    const dish = recipe('dish', [sub('Saus')]);
+    const book = bookWith(dish, [sauce, oil]);
+    expect(unwrap(rollUpVegan('Garnalenolie', book))).toBe('no');
+    expect(unwrap(rollUpVegan('Saus', book))).toBe('no');
+    const row = unwrap(dishCardMatrix('dish', book)).rows[0]!;
+    expect(row.allergens.contains).toEqual(['crustaceans']);
+    expect(row.vegan).toBe('no');
+  });
+
   it('reports a cycle instead of looping', () => {
     const a = recipe('a', [sub('b')]);
     const b = recipe('b', [sub('a')]);
