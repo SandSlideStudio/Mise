@@ -123,7 +123,7 @@ describe('the address that leads to Mise from outside', () => {
 
     // Through the address itself, it's fine, with the password typed again.
     const asked = await setDomain(away, DOMAIN, OUTSIDE, DOMAIN, phone);
-    expect(asked.json().error.code).toBe('wrong_password');
+    expect(asked.json().error.code).toBe('password_missing');
     const fine = await from(OUTSIDE, DOMAIN, {
       method: 'PUT',
       url: '/api/connection',
@@ -325,7 +325,7 @@ describe('behind the web server that hosts the other sites', () => {
 
     const refused = await put({ trustedProxy: APACHE });
     expect(refused.statusCode).toBe(403);
-    expect(refused.json().error.code).toBe('wrong_password');
+    expect(refused.json().error.code).toBe('password_missing');
     const wrong = await put({ trustedProxy: APACHE, currentPassword: 'not-it' });
     expect(wrong.json().error.code).toBe('wrong_password');
 
@@ -392,7 +392,7 @@ describe('HTTPS, from outside the kitchen', () => {
       ['DELETE', '/api/connection/domain-https'],
     ] as const) {
       const refused = await send(method, url, payload);
-      expect(refused.json().error?.code, `${method} ${url}`).toBe('wrong_password');
+      expect(refused.json().error?.code, `${method} ${url}`).toBe('password_missing');
     }
     const off = await send('DELETE', '/api/connection/kitchen-https', {
       currentPassword: ADMIN.password,

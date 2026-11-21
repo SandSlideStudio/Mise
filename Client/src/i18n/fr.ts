@@ -1011,6 +1011,7 @@ export const fr: Record<MessageKey, string> = {
   'outside.reallyRevokeSelf': 'Bloquer cet appareil ?',
   'error.accessRequired': 'Cet appareil n’est pas approuvé pour l’accès hors de la cuisine.',
   'error.wrongPassword': 'Ce mot de passe n’est pas le bon.',
+  'error.passwordMissing': 'Tapez votre mot de passe pour faire ceci.',
   'error.passwordNeeded':
     'Depuis l’extérieur de la cuisine, il faut un mot de passe, et ce compte n’en a pas. Faites-le depuis la cuisine.',
   'confirm.passwordLabel': 'Votre mot de passe',

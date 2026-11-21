@@ -994,6 +994,7 @@ export const es: Record<MessageKey, string> = {
   'outside.reallyRevokeSelf': '¿Dejar fuera este dispositivo?',
   'error.accessRequired': 'Este dispositivo no está aprobado para entrar desde fuera de la cocina.',
   'error.wrongPassword': 'Esa contraseña no es correcta.',
+  'error.passwordMissing': 'Escribe tu contraseña para hacer esto.',
   'error.passwordNeeded':
     'Desde fuera de la cocina hace falta una contraseña, y esta cuenta no tiene. Hazlo desde la cocina.',
   'confirm.passwordLabel': 'Tu contraseña',

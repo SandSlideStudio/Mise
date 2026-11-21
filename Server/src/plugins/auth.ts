@@ -141,6 +141,10 @@ const authPlugin: FastifyPluginAsync = async (app) => {
         );
       }
       if (result === 'wrong') {
+        // Nothing sent is not a wrong password: the screen just didn't know to ask.
+        if (!password) {
+          throw new ApiError(403, 'password_missing', 'Type your password to do this.');
+        }
         throw new ApiError(403, 'wrong_password', 'That password is not right.');
       }
       if (typeof result === 'object') {

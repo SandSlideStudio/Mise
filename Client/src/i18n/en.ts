@@ -974,6 +974,7 @@ export const en = {
   'outside.reallyRevokeSelf': 'Lock this device out?',
   'error.accessRequired': 'This device isn’t approved for access from outside the kitchen.',
   'error.wrongPassword': 'That password isn’t right.',
+  'error.passwordMissing': 'Type your password to do this.',
   'error.passwordNeeded':
     'From outside the kitchen this needs a password, and this account has none. Do it from inside the kitchen.',
   'confirm.passwordLabel': 'Your password',

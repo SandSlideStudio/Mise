@@ -1012,6 +1012,7 @@ export const de: Record<MessageKey, string> = {
   'error.accessRequired':
     'Dieses Gerät ist nicht für den Zugang von außerhalb der Küche freigegeben.',
   'error.wrongPassword': 'Das Passwort stimmt nicht.',
+  'error.passwordMissing': 'Gib dein Passwort ein, um das zu tun.',
   'error.passwordNeeded':
     'Von außerhalb der Küche braucht das ein Passwort, und dieses Konto hat keins. Erledige es aus der Küche.',
   'confirm.passwordLabel': 'Dein Passwort',

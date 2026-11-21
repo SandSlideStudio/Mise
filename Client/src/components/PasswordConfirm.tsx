@@ -48,7 +48,10 @@ export function PasswordConfirm({
 
 /** The server turned it down for want of the right password, whether or not one was asked. */
 export function refusedForPassword(error: unknown): boolean {
-  return error instanceof RequestFailed && error.code === 'wrong_password';
+  return (
+    error instanceof RequestFailed &&
+    (error.code === 'wrong_password' || error.code === 'password_missing')
+  );
 }
 
 /** The field inside a form that asks for it from outside the kitchen, and why. */

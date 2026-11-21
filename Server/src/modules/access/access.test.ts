@@ -279,7 +279,7 @@ describe('asking and approving', () => {
     expect(seen.devices.find((d) => d.thisDevice)?.name).toBe('Test phone');
 
     const without = await approve(away, request.id, OUTSIDE, {}, laptop);
-    expect(without.json().error.code).toBe('wrong_password');
+    expect(without.json().error.code).toBe('password_missing');
     const wrong = await approve(away, request.id, OUTSIDE, { password: 'not-it' }, laptop);
     expect(wrong.json().error.code).toBe('wrong_password');
     const right = await approve(away, request.id, OUTSIDE, { password: ADMIN.password }, laptop);
@@ -353,7 +353,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
 
     // Approving asks for the password, which the thief does not know.
     const refused = await approve(session, requestId, OUTSIDE, {}, laptop);
-    expect(refused.json().error.code).toBe('wrong_password');
+    expect(refused.json().error.code).toBe('password_missing');
 
     // Adding an administrator with a password of the thief's choosing asks for it too...
     const accomplice = await outside(cookie, {
@@ -367,7 +367,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       },
     });
     expect(accomplice.statusCode).toBe(403);
-    expect(accomplice.json().error.code).toBe('wrong_password');
+    expect(accomplice.json().error.code).toBe('password_missing');
 
     // ...so there is nobody to sign in as and approve with.
     const helper = await outside(laptop, {
@@ -441,7 +441,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       { active: false },
     ]) {
       const refused = await edit(change);
-      expect(refused.json().error?.code, JSON.stringify(change)).toBe('wrong_password');
+      expect(refused.json().error?.code, JSON.stringify(change)).toBe('password_missing');
     }
     const allowed = await edit({ role: 'sous_chef', currentPassword: ADMIN.password });
     expect(allowed.statusCode).toBe(200);
@@ -455,7 +455,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       url: '/api/auth/devices',
       payload: { name: 'Thief tablet' },
     });
-    expect(refused.json().error.code).toBe('wrong_password');
+    expect(refused.json().error.code).toBe('password_missing');
     expect(cookieFrom(refused, 'mise_device')).toBeFalsy();
     const enrolled = await outside(cookie, {
       method: 'POST',
@@ -474,7 +474,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       url: `/api/users/${me.json().user.id}`,
       payload: { password: 'thief-chosen-password' },
     });
-    expect(changed.json().error.code).toBe('wrong_password');
+    expect(changed.json().error.code).toBe('password_missing');
     // The owner still signs in with their own.
     const owner = await from(INSIDE, {
       method: 'POST',
@@ -541,7 +541,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
     }
     const lift = (payload?: object) =>
       outside(cookie, { method: 'POST', url: `/api/users/${id}/unlock`, payload });
-    expect((await lift()).json().error.code).toBe('wrong_password');
+    expect((await lift()).json().error.code).toBe('password_missing');
     expect((await lift({ currentPassword: 'not-it' })).json().error.code).toBe('wrong_password');
     expect((await lift({ currentPassword: ADMIN.password })).statusCode).toBe(200);
   });
@@ -564,7 +564,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       outside(cookie, { method: 'DELETE', url: `/api/users/${ownerId}`, payload });
     const refused = await removeOwner();
     expect(refused.statusCode).toBe(403);
-    expect(refused.json().error.code).toBe('wrong_password');
+    expect(refused.json().error.code).toBe('password_missing');
 
     // The owner's own laptop, approved from inside, and someone still waiting.
     await ask('Owner laptop', '198.51.100.30');
@@ -576,14 +576,14 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
     const waiting = (await devicesNow()).find((d) => d.name === 'Owner tablet at home')!;
     for (const id of [ownersLaptop.id, waiting.id]) {
       const kept = await outside(cookie, { method: 'DELETE', url: `/api/access/devices/${id}` });
-      expect(kept.json().error.code).toBe('wrong_password');
+      expect(kept.json().error.code).toBe('password_missing');
     }
     const turnDown = await outside(cookie, {
       method: 'POST',
       url: '/api/access/devices/turn-down-waiting',
       payload: {},
     });
-    expect(turnDown.json().error.code).toBe('wrong_password');
+    expect(turnDown.json().error.code).toBe('password_missing');
     expect((await devicesNow()).length).toBe(4);
 
     // The kitchen's tablets: shutting them out, or lifting their lock.
@@ -599,7 +599,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       ['POST', `/api/auth/devices/${tabletId}/unlock`],
     ] as const) {
       const kept = await outside(cookie, { method, url });
-      expect(kept.json().error.code, `${method} ${url}`).toBe('wrong_password');
+      expect(kept.json().error.code, `${method} ${url}`).toBe('password_missing');
     }
 
     // With the password, each goes ahead.
@@ -638,7 +638,7 @@ describe('a signed-in phone that went missing, outside the kitchen', () => {
       outside(cookie, { method: 'PATCH', url: '/api/kitchen', payload });
     for (const change of [{ idleSignOutMinutes: null }, { pinOnly: true }]) {
       const refused = await edit(change);
-      expect(refused.json().error?.code, JSON.stringify(change)).toBe('wrong_password');
+      expect(refused.json().error?.code, JSON.stringify(change)).toBe('password_missing');
     }
     // The rest of the form, with the same idle time sent back, asks nothing.
     expect((await edit({ name: 'Chez nous', idleSignOutMinutes: 5 })).statusCode).toBe(200);

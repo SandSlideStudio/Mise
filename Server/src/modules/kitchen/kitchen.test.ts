@@ -797,11 +797,11 @@ describe('changing your own password or email', () => {
   it('asks for the current password, even inside the kitchen', async () => {
     const without = await editMe({ password: 'someone-elses-choice' });
     expect(without.statusCode).toBe(403);
-    expect(without.json().error.code).toBe('wrong_password');
+    expect(without.json().error.code).toBe('password_missing');
     const wrong = await editMe({ password: 'someone-elses-choice', currentPassword: 'guess' });
     expect(wrong.json().error.code).toBe('wrong_password');
     const otherEmail = await editMe({ email: 'taken-over@example.com' });
-    expect(otherEmail.json().error.code).toBe('wrong_password');
+    expect(otherEmail.json().error.code).toBe('password_missing');
     // Nothing changed: the owner still gets in.
     expect((await signIn(ADMIN.email, ADMIN.password)).statusCode).toBe(200);
 

@@ -305,6 +305,7 @@ const TRANSLATED_ERRORS: Partial<Record<string, MessageKey>> = {
   setup_token: 'error.setupToken',
   access_required: 'error.accessRequired',
   wrong_password: 'error.wrongPassword',
+  password_missing: 'error.passwordMissing',
   password_needed: 'error.passwordNeeded',
   own_lock: 'error.ownLock',
   download_ticket: 'error.downloadTicket',

@@ -417,7 +417,7 @@ describe('backing up to OneDrive', () => {
       });
 
     // Whoever's OneDrive signs in here would get every backup.
-    expect((await send('POST')).json().error.code).toBe('wrong_password');
+    expect((await send('POST')).json().error.code).toBe('password_missing');
     const started = await send('POST', { currentPassword: ADMIN.password });
     expect(started.json().onedrive.connecting).toMatchObject({ userCode: 'ABCD-EFGH' });
     // Calling off a sign-in still waiting takes nothing away, so needs nothing.
@@ -425,7 +425,7 @@ describe('backing up to OneDrive', () => {
 
     await connect(cookies);
     const kept = await send('DELETE');
-    expect(kept.json().error.code).toBe('wrong_password');
+    expect(kept.json().error.code).toBe('password_missing');
     expect((await status(cookies)).onedrive.account).not.toBeNull();
     const gone = await send('DELETE', { currentPassword: ADMIN.password });
     expect(gone.json().onedrive.account).toBeNull();

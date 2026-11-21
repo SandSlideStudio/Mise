@@ -99,7 +99,7 @@ describe('visitors relayed by the container', () => {
       relayed({ method: 'PUT', url: '/api/connection', payload, cookie });
 
     const refused = await set({ trustContainerGateway: true });
-    expect(refused.json().error.code).toBe('wrong_password');
+    expect(refused.json().error.code).toBe('password_missing');
     expect(await statusFrom(RELAY)).toBe('none');
     // Nor slipped in: an administrator added from there still asks too.
     const helper = await relayed({
@@ -113,7 +113,7 @@ describe('visitors relayed by the container', () => {
       },
       cookie,
     });
-    expect(helper.json().error.code).toBe('wrong_password');
+    expect(helper.json().error.code).toBe('password_missing');
 
     const trusted = await set({ trustContainerGateway: true, currentPassword: ADMIN.password });
     expect(trusted.statusCode).toBe(200);

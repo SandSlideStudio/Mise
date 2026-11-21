@@ -994,6 +994,7 @@ export const nl: Record<MessageKey, string> = {
   'outside.reallyRevokeSelf': 'Dit apparaat buitensluiten?',
   'error.accessRequired': 'Dit apparaat is niet goedgekeurd voor toegang van buiten de keuken.',
   'error.wrongPassword': 'Dat wachtwoord klopt niet.',
+  'error.passwordMissing': 'Typ je wachtwoord om dit te doen.',
   'error.passwordNeeded':
     'Van buiten de keuken vraagt dit een wachtwoord, en dit account heeft er geen. Doe het vanuit de keuken.',
   'confirm.passwordLabel': 'Je wachtwoord',

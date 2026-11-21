@@ -1166,7 +1166,7 @@ describe('from outside the kitchen, on a signed-in phone', () => {
     };
     for (const change of [elsewhere, { keepLocal: 1 }, { keepRemote: 1 }]) {
       const refused = await send('PATCH', '/api/backups', change);
-      expect(refused.json().error.code, JSON.stringify(change)).toBe('wrong_password');
+      expect(refused.json().error.code, JSON.stringify(change)).toBe('password_missing');
     }
     expect((await send('GET', '/api/backups')).json().sendTo).toEqual([]);
 
@@ -1193,16 +1193,16 @@ describe('from outside the kitchen, on a signed-in phone', () => {
   it('asks for the password before testing a NAS or connecting OneDrive', async () => {
     const { send } = await away();
     const test = await send('POST', '/api/backups/test', { webdavUrl: 'http://10.0.0.1/dav' });
-    expect(test.json().error.code).toBe('wrong_password');
+    expect(test.json().error.code).toBe('password_missing');
     const onedrive = await send('POST', '/api/backups/onedrive');
-    expect(onedrive.json().error.code).toBe('wrong_password');
+    expect(onedrive.json().error.code).toBe('password_missing');
   });
 
   it('shows the recovery key only with the password', async () => {
     const { send } = await away();
     const refused = await send('POST', '/api/backups/key');
     expect(refused.statusCode).toBe(403);
-    expect(refused.json().error.code).toBe('wrong_password');
+    expect(refused.json().error.code).toBe('password_missing');
     const wrong = await send('POST', '/api/backups/key', { currentPassword: 'not-it' });
     expect(wrong.json().error.code).toBe('wrong_password');
     const shown = await send('POST', '/api/backups/key', { currentPassword: ADMIN.password });
@@ -1220,7 +1220,7 @@ describe('from outside the kitchen, on a signed-in phone', () => {
     expect(plain.statusCode).toBe(403);
     expect(plain.json().error.code).toBe('download_ticket');
     expect((await send('GET', `${url}?ticket=made-up`)).statusCode).toBe(403);
-    expect((await send('POST', `${url}/ticket`)).json().error.code).toBe('wrong_password');
+    expect((await send('POST', `${url}/ticket`)).json().error.code).toBe('password_missing');
 
     const bought = await send('POST', `${url}/ticket`, { currentPassword: ADMIN.password });
     expect(bought.statusCode).toBe(200);
